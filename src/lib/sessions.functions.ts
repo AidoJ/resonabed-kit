@@ -76,7 +76,7 @@ export const listMyOrgServices = createServerFn({ method: "GET" })
   });
 
 const FREQ_COLUMNS =
-  "id, hz, name, description, benefits, color, goal_tags, body_area_tags, pain_affinity, stress_affinity, sleep_affinity";
+  "id, hz, name, description, benefits, color, goal_tags, body_area_tags";
 
 export const listFrequencies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -120,9 +120,6 @@ const frequencyInput = z.object({
     .optional(),
   goal_tags: z.array(z.string().max(40)).max(20),
   body_area_tags: z.array(z.string().max(40)).max(20),
-  pain_affinity: z.number().int().min(0).max(5),
-  stress_affinity: z.number().int().min(0).max(5),
-  sleep_affinity: z.number().int().min(0).max(5),
 });
 
 export const upsertFrequency = createServerFn({ method: "POST" })
@@ -137,9 +134,6 @@ export const upsertFrequency = createServerFn({ method: "POST" })
       color: data.color ?? null,
       goal_tags: data.goal_tags,
       body_area_tags: data.body_area_tags,
-      pain_affinity: data.pain_affinity,
-      stress_affinity: data.stress_affinity,
-      sleep_affinity: data.sleep_affinity,
     };
     if (data.id) {
       const { error } = await context.supabase
@@ -319,11 +313,14 @@ export const getAudioForFrequency = createServerFn({ method: "POST" })
     z.object({ frequency_id: uuid }).parse(data),
   )
   .handler(async ({ data, context }) => {
+    // If multiple active audio files exist for the frequency, use the most
+    // recently created one.
     const { data: rows, error } = await context.supabase
       .from("audio_files")
-      .select("id, title, file_url, duration_seconds")
+      .select("id, title, file_url, duration_seconds, created_at")
       .eq("frequency_id", data.frequency_id)
       .eq("is_active", true)
+      .order("created_at", { ascending: false })
       .limit(1);
     if (error) throw new Error(error.message);
     return rows?.[0] ?? null;

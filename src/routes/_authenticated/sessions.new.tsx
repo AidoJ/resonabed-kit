@@ -13,7 +13,7 @@ import {
   createDraftSession,
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
-import { rankFrequencies } from "@/lib/frequency-match";
+import { computeTargetHz, rankFrequencies } from "@/lib/frequency-match";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/sessions/new")({
@@ -45,6 +45,8 @@ function NewSession() {
 
   const freqFn = useServerFn(listFrequenciesWithAudioFlag);
   const { data: freqs } = useQuery({ queryKey: ["frequencies-with-audio"], queryFn: () => freqFn() });
+
+  const targetHz = useMemo(() => computeTargetHz(symptoms), [symptoms]);
 
   const ranked = useMemo(() => {
     if (!freqs) return [];
@@ -160,6 +162,7 @@ function NewSession() {
         <StepFrequency
           ranked={ranked}
           hasAudio={hasAudio}
+          targetHz={targetHz}
           selectedId={activeFreqId}
           onChange={setChosenFreqId}
         />

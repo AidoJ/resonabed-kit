@@ -7,10 +7,11 @@ interface Props {
   ranked: RankedFrequency[];
   hasAudio: Record<string, boolean>;
   selectedId: string | null;
+  targetHz: number;
   onChange: (id: string) => void;
 }
 
-export function StepFrequency({ ranked, hasAudio, selectedId, onChange }: Props) {
+export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange }: Props) {
   if (ranked.length === 0) return null;
   const selected = ranked.find((r) => r.frequency.id === selectedId) ?? ranked[0]!;
   const rest = ranked.filter((r) => r.frequency.id !== selected.frequency.id);
@@ -18,6 +19,14 @@ export function StepFrequency({ ranked, hasAudio, selectedId, onChange }: Props)
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm">
+        <span className="text-muted-foreground">Target:</span>{" "}
+        <span className="font-semibold tabular-nums">{targetHz} Hz</span>
+        <span className="ml-2 text-xs text-muted-foreground">
+          Computed from goals, sliders and body areas — closest frequency is recommended.
+        </span>
+      </div>
+
       <div
         className="relative overflow-hidden rounded-xl border p-6"
         style={{
