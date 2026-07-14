@@ -94,13 +94,18 @@ export function CountdownTimer({ durationSeconds, onComplete, onRunningChange, o
     if (remaining <= 0) return;
     endTsRef.current = performance.now() + remaining * 1000;
     setRunning(true);
+    onStart?.();
   };
-  const pause = () => setRunning(false);
+  const pause = () => {
+    setRunning(false);
+    onPause?.();
+  };
   const reset = () => {
     setRunning(false);
     setRemaining(durationSeconds);
     setCompleted(false);
     completedRef.current = false;
+    onReset?.();
   };
 
   const progress =
