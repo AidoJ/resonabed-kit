@@ -28,6 +28,8 @@ const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: Waves, roles: null },
   { to: "/clients", label: "Clients", icon: Users, roles: null },
   { to: "/services", label: "Services", icon: Wrench, roles: null },
+  { to: "/bookings", label: "Bookings", icon: Calendar, roles: null },
+  { to: "/availability", label: "Availability", icon: Clock, roles: null },
   { to: "/sessions", label: "Sessions", icon: ClipboardList, roles: null },
   { to: "/frequencies", label: "Frequencies", icon: Waves, roles: null },
   { to: "/audio", label: "Audio library", icon: Music, roles: null },
