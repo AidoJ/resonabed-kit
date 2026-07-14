@@ -126,15 +126,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar collapsible="icon" className="border-r-0">
-          <SidebarHeader className="px-4 pb-4 pt-5">
+          <SidebarHeader className="px-5 pb-6 pt-6">
             <Link
               to="/dashboard"
-              className="flex items-center gap-2 rounded-xl bg-white/95 px-3 py-2"
+              className="flex items-center justify-center rounded-2xl bg-white/95 px-4 py-5"
             >
               <img
                 src={logo.url}
                 alt="Resonabed"
-                className="h-9 w-auto"
+                className="h-10 w-auto"
                 draggable={false}
               />
             </Link>
