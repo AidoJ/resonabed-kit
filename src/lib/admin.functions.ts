@@ -35,7 +35,7 @@ export const listServices = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("services")
-      .select("id, name, duration_minutes, price, is_active, created_at")
+      .select("id, name, duration_minutes, buffer_minutes, price, is_active, created_at")
       .order("name");
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -49,6 +49,7 @@ export const upsertService = createServerFn({ method: "POST" })
         id: uuid.optional(),
         name: z.string().min(1).max(160),
         duration_minutes: z.number().int().min(1).max(600),
+        buffer_minutes: z.number().int().min(0).max(240),
         price: z.number().min(0).max(100000),
         is_active: z.boolean(),
       })
@@ -68,6 +69,7 @@ export const upsertService = createServerFn({ method: "POST" })
         .update({
           name: data.name,
           duration_minutes: data.duration_minutes,
+          buffer_minutes: data.buffer_minutes,
           price: data.price,
           is_active: data.is_active,
         })
@@ -81,6 +83,7 @@ export const upsertService = createServerFn({ method: "POST" })
         org_id: profile.org_id,
         name: data.name,
         duration_minutes: data.duration_minutes,
+        buffer_minutes: data.buffer_minutes,
         price: data.price,
         is_active: data.is_active,
       })
@@ -89,6 +92,7 @@ export const upsertService = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row;
   });
+
 
 export const deleteService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
