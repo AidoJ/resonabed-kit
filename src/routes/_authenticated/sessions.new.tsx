@@ -13,7 +13,7 @@ import {
   createDraftSession,
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
-import { rankFrequencies } from "@/lib/frequency-match";
+import { computeTargetHz, rankFrequencies } from "@/lib/frequency-match";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/sessions/new")({
