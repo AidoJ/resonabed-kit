@@ -6,6 +6,9 @@ interface Props {
   durationSeconds: number;
   onComplete?: () => void;
   onRunningChange?: (running: boolean) => void;
+  onStart?: () => void;
+  onPause?: () => void;
+  onReset?: () => void;
 }
 
 function fmt(sec: number): string {
