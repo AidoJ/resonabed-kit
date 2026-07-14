@@ -157,6 +157,21 @@ function ServicesAdmin() {
                   />
                 </div>
               </div>
+              <div>
+                <Label>Changeover time (minutes)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={240}
+                  value={editing.buffer_minutes ?? 15}
+                  onChange={(e) =>
+                    setEditing({ ...editing, buffer_minutes: Number(e.target.value) })
+                  }
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Turnaround after each appointment for cleaning and reset. Not shown to clients; blocks the practitioner from being double-booked.
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={editing.is_active ?? true}
