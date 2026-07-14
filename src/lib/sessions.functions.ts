@@ -120,9 +120,6 @@ const frequencyInput = z.object({
     .optional(),
   goal_tags: z.array(z.string().max(40)).max(20),
   body_area_tags: z.array(z.string().max(40)).max(20),
-  pain_affinity: z.number().int().min(0).max(5),
-  stress_affinity: z.number().int().min(0).max(5),
-  sleep_affinity: z.number().int().min(0).max(5),
 });
 
 export const upsertFrequency = createServerFn({ method: "POST" })
@@ -137,9 +134,6 @@ export const upsertFrequency = createServerFn({ method: "POST" })
       color: data.color ?? null,
       goal_tags: data.goal_tags,
       body_area_tags: data.body_area_tags,
-      pain_affinity: data.pain_affinity,
-      stress_affinity: data.stress_affinity,
-      sleep_affinity: data.sleep_affinity,
     };
     if (data.id) {
       const { error } = await context.supabase
