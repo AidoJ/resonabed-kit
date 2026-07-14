@@ -270,7 +270,10 @@ function BookingsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         defaultStartsAt={from.toISOString()}
-        onSaved={() => {
+        onSaved={(savedStartsAt) => {
+          if (savedStartsAt) {
+            setSearch({ date: toISODate(new Date(savedStartsAt)) });
+          }
           refetch();
           queryClient.invalidateQueries({ queryKey: ["bookings"] });
         }}
