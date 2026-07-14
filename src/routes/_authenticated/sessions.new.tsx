@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { WizardShell } from "@/components/session-wizard/wizard-shell";
 import { StepClient, type ClientOption } from "@/components/session-wizard/step-client";
@@ -13,11 +15,17 @@ import {
   createDraftSession,
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
+import { getBooking, startSessionFromBooking } from "@/lib/bookings.functions";
 import { computeTargetHz, rankFrequencies } from "@/lib/frequency-match";
 import { toast } from "sonner";
 
+const searchSchema = z.object({
+  booking_id: fallback(z.string().uuid().optional(), undefined),
+});
+
 export const Route = createFileRoute("/_authenticated/sessions/new")({
   head: () => ({ meta: [{ title: "New session — ResonaBed" }] }),
+  validateSearch: zodValidator(searchSchema),
   component: NewSession,
 });
 
