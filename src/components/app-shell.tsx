@@ -17,7 +17,7 @@ import type { ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
-import logoOnDark from "@/assets/resonabed-logo-onDark.png.asset.json";
+import logo from "@/assets/resonabed-logo.svg.asset.json";
 import {
   Sidebar,
   SidebarContent,
@@ -127,11 +127,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar collapsible="icon" className="border-r-0">
           <SidebarHeader className="px-4 pb-4 pt-5">
-            <Link to="/dashboard" className="flex items-center gap-2">
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2 rounded-xl bg-white/95 px-3 py-2"
+            >
               <img
-                src={logoOnDark.url}
+                src={logo.url}
                 alt="Resonabed"
-                className="h-11 w-auto"
+                className="h-9 w-auto"
                 draggable={false}
               />
             </Link>
