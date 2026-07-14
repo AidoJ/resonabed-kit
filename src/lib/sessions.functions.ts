@@ -76,7 +76,7 @@ export const listMyOrgServices = createServerFn({ method: "GET" })
   });
 
 const FREQ_COLUMNS =
-  "id, hz, name, description, benefits, color, goal_tags, body_area_tags, pain_affinity, stress_affinity, sleep_affinity";
+  "id, hz, name, description, benefits, color, goal_tags, body_area_tags";
 
 export const listFrequencies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
