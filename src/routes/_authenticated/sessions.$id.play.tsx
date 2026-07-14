@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Music, X } from "lucide-react";
 import { getSession, getAudioForFrequency, getSignedAudioUrl } from "@/lib/sessions.functions";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
-import { AudioPlayer } from "@/components/session-player/audio-player";
+import { AudioPlayer, type AudioPlayerHandle } from "@/components/session-player/audio-player";
 import { CompletePanel } from "@/components/session-player/complete-panel";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ function PlaySession() {
   const signFn = useServerFn(getSignedAudioUrl);
 
   const [ambient, setAmbient] = useState(false);
+  const audioHandleRef = useRef<AudioPlayerHandle | null>(null);
 
   const { data: session, isLoading } = useQuery({
     queryKey: ["session", id],
@@ -159,12 +160,23 @@ function PlaySession() {
         ) : null}
 
         {/* Timer */}
-        <CountdownTimer durationSeconds={durationSeconds} onRunningChange={setAmbient} />
+        <CountdownTimer
+          durationSeconds={durationSeconds}
+          onRunningChange={setAmbient}
+          onStart={() => audioHandleRef.current?.play()}
+          onPause={() => audioHandleRef.current?.pause()}
+          onReset={() => audioHandleRef.current?.stop()}
+        />
 
         {/* Audio */}
         <div className="w-full max-w-2xl">
           {audio && signed?.url ? (
-            <AudioPlayer src={signed.url} title={audio.title} onPlayingChange={setAmbient} />
+            <AudioPlayer
+              ref={audioHandleRef}
+              src={signed.url}
+              title={audio.title}
+              onPlayingChange={setAmbient}
+            />
           ) : (
             <div className="flex items-center gap-3 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4 text-sm text-muted-foreground">
               <Music className="h-5 w-5" />

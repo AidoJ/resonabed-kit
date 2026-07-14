@@ -6,6 +6,9 @@ interface Props {
   durationSeconds: number;
   onComplete?: () => void;
   onRunningChange?: (running: boolean) => void;
+  onStart?: () => void;
+  onPause?: () => void;
+  onReset?: () => void;
 }
 
 function fmt(sec: number): string {
@@ -15,7 +18,7 @@ function fmt(sec: number): string {
   return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
 }
 
-export function CountdownTimer({ durationSeconds, onComplete, onRunningChange }: Props) {
+export function CountdownTimer({ durationSeconds, onComplete, onRunningChange, onStart, onPause, onReset }: Props) {
   const [remaining, setRemaining] = useState(durationSeconds);
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -91,13 +94,18 @@ export function CountdownTimer({ durationSeconds, onComplete, onRunningChange }:
     if (remaining <= 0) return;
     endTsRef.current = performance.now() + remaining * 1000;
     setRunning(true);
+    onStart?.();
   };
-  const pause = () => setRunning(false);
+  const pause = () => {
+    setRunning(false);
+    onPause?.();
+  };
   const reset = () => {
     setRunning(false);
     setRemaining(durationSeconds);
     setCompleted(false);
     completedRef.current = false;
+    onReset?.();
   };
 
   const progress =
