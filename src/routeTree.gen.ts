@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
   id: '/services',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/sessions': typeof AuthenticatedSessionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/sessions': typeof AuthenticatedSessionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,12 +76,19 @@ export interface FileRoutesById {
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
+  '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/clients' | '/dashboard' | '/services'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/clients'
+    | '/dashboard'
+    | '/services'
+    | '/sessions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/clients' | '/dashboard' | '/services'
+  to: '/' | '/auth' | '/clients' | '/dashboard' | '/services' | '/sessions'
   id:
     | '__root__'
     | '/'
@@ -82,6 +97,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/services'
+    | '/_authenticated/sessions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -113,6 +129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/sessions': {
+      id: '/_authenticated/sessions'
+      path: '/sessions'
+      fullPath: '/sessions'
+      preLoaderRoute: typeof AuthenticatedSessionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/services': {
       id: '/_authenticated/services'
       path: '/services'
@@ -141,12 +164,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
+  AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
+  AuthenticatedSessionsRoute: AuthenticatedSessionsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
