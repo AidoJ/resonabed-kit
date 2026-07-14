@@ -17,10 +17,13 @@ import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedFrequenciesRouteImport } from './routes/_authenticated/frequencies'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
+import { Route as AuthenticatedAvailabilityRouteImport } from './routes/_authenticated/availability'
 import { Route as AuthenticatedAudioRouteImport } from './routes/_authenticated/audio'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
+import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
+import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings.$id'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
 
@@ -64,6 +67,12 @@ const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAvailabilityRoute =
+  AuthenticatedAvailabilityRouteImport.update({
+    id: '/availability',
+    path: '/availability',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAudioRoute = AuthenticatedAudioRouteImport.update({
   id: '/audio',
   path: '/audio',
@@ -80,12 +89,23 @@ const AuthenticatedSessionsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSessionsRoute,
   } as any)
+const AuthenticatedBookingsIndexRoute =
+  AuthenticatedBookingsIndexRouteImport.update({
+    id: '/bookings/',
+    path: '/bookings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSessionsNewRoute =
   AuthenticatedSessionsNewRouteImport.update({
     id: '/new',
     path: '/new',
     getParentRoute: () => AuthenticatedSessionsRoute,
   } as any)
+const AuthenticatedBookingsIdRoute = AuthenticatedBookingsIdRouteImport.update({
+  id: '/bookings/$id',
+  path: '/bookings/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSessionsIdIndexRoute =
   AuthenticatedSessionsIdIndexRouteImport.update({
     id: '/$id/',
@@ -104,12 +124,15 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/audio': typeof AuthenticatedAudioRoute
+  '/availability': typeof AuthenticatedAvailabilityRoute
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/sessions/$id/': typeof AuthenticatedSessionsIdIndexRoute
@@ -119,11 +142,14 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/audio': typeof AuthenticatedAudioRoute
+  '/availability': typeof AuthenticatedAvailabilityRoute
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/sessions': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/sessions/$id': typeof AuthenticatedSessionsIdIndexRoute
@@ -135,12 +161,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/audio': typeof AuthenticatedAudioRoute
+  '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/frequencies': typeof AuthenticatedFrequenciesRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/_authenticated/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/_authenticated/sessions/$id/': typeof AuthenticatedSessionsIdIndexRoute
@@ -152,12 +181,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/audio'
+    | '/availability'
     | '/clients'
     | '/dashboard'
     | '/frequencies'
     | '/services'
     | '/sessions'
+    | '/bookings/$id'
     | '/sessions/new'
+    | '/bookings/'
     | '/sessions/'
     | '/sessions/$id/play'
     | '/sessions/$id/'
@@ -167,11 +199,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/audio'
+    | '/availability'
     | '/clients'
     | '/dashboard'
     | '/frequencies'
     | '/services'
+    | '/bookings/$id'
     | '/sessions/new'
+    | '/bookings'
     | '/sessions'
     | '/sessions/$id/play'
     | '/sessions/$id'
@@ -182,12 +217,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/audio'
+    | '/_authenticated/availability'
     | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/frequencies'
     | '/_authenticated/services'
     | '/_authenticated/sessions'
+    | '/_authenticated/bookings/$id'
     | '/_authenticated/sessions/new'
+    | '/_authenticated/bookings/'
     | '/_authenticated/sessions/'
     | '/_authenticated/sessions/$id/play'
     | '/_authenticated/sessions/$id/'
@@ -257,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/availability': {
+      id: '/_authenticated/availability'
+      path: '/availability'
+      fullPath: '/availability'
+      preLoaderRoute: typeof AuthenticatedAvailabilityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/audio': {
       id: '/_authenticated/audio'
       path: '/audio'
@@ -278,12 +323,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSessionsIndexRouteImport
       parentRoute: typeof AuthenticatedSessionsRoute
     }
+    '/_authenticated/bookings/': {
+      id: '/_authenticated/bookings/'
+      path: '/bookings'
+      fullPath: '/bookings/'
+      preLoaderRoute: typeof AuthenticatedBookingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sessions/new': {
       id: '/_authenticated/sessions/new'
       path: '/new'
       fullPath: '/sessions/new'
       preLoaderRoute: typeof AuthenticatedSessionsNewRouteImport
       parentRoute: typeof AuthenticatedSessionsRoute
+    }
+    '/_authenticated/bookings/$id': {
+      id: '/_authenticated/bookings/$id'
+      path: '/bookings/$id'
+      fullPath: '/bookings/$id'
+      preLoaderRoute: typeof AuthenticatedBookingsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/sessions/$id/': {
       id: '/_authenticated/sessions/$id/'
@@ -324,21 +383,27 @@ const AuthenticatedSessionsRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAudioRoute: typeof AuthenticatedAudioRoute
+  AuthenticatedAvailabilityRoute: typeof AuthenticatedAvailabilityRoute
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFrequenciesRoute: typeof AuthenticatedFrequenciesRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRouteWithChildren
+  AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
+  AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAudioRoute: AuthenticatedAudioRoute,
+  AuthenticatedAvailabilityRoute: AuthenticatedAvailabilityRoute,
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFrequenciesRoute: AuthenticatedFrequenciesRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRouteWithChildren,
+  AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,
+  AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

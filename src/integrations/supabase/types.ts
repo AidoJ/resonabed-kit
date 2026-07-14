@@ -65,6 +65,80 @@ export type Database = {
           },
         ]
       }
+      bookings: {
+        Row: {
+          client_id: string
+          created_at: string
+          ends_at: string
+          id: string
+          notes: string | null
+          org_id: string
+          practitioner_id: string
+          service_id: string
+          session_id: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          ends_at: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          practitioner_id: string
+          service_id: string
+          session_id?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          practitioner_id?: string
+          service_id?: string
+          session_id?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
@@ -183,6 +257,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      practitioner_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          org_id: string
+          practitioner_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          org_id: string
+          practitioner_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          org_id?: string
+          practitioner_id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practitioner_availability_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -408,6 +526,13 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "org_admin" | "practitioner"
+      booking_status:
+        | "pending"
+        | "confirmed"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "no_show"
       org_status: "active" | "suspended"
       payment_method: "cash" | "eftpos" | "payid" | "other" | "none"
       session_status: "draft" | "completed" | "cancelled"
@@ -539,6 +664,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "org_admin", "practitioner"],
+      booking_status: [
+        "pending",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "no_show",
+      ],
       org_status: ["active", "suspended"],
       payment_method: ["cash", "eftpos", "payid", "other", "none"],
       session_status: ["draft", "completed", "cancelled"],

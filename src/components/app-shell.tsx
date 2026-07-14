@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Users, Wrench, ClipboardList, Waves, Music, Shield, LogOut } from "lucide-react";
+import { Users, Wrench, ClipboardList, Waves, Music, Shield, LogOut, Calendar, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,8 @@ const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: Waves, roles: null },
   { to: "/clients", label: "Clients", icon: Users, roles: null },
   { to: "/services", label: "Services", icon: Wrench, roles: null },
+  { to: "/bookings", label: "Bookings", icon: Calendar, roles: null },
+  { to: "/availability", label: "Availability", icon: Clock, roles: null },
   { to: "/sessions", label: "Sessions", icon: ClipboardList, roles: null },
   { to: "/frequencies", label: "Frequencies", icon: Waves, roles: null },
   { to: "/audio", label: "Audio library", icon: Music, roles: null },

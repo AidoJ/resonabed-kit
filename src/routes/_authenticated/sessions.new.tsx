@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { WizardShell } from "@/components/session-wizard/wizard-shell";
 import { StepClient, type ClientOption } from "@/components/session-wizard/step-client";
@@ -13,20 +15,55 @@ import {
   createDraftSession,
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
+import { getBooking, startSessionFromBooking } from "@/lib/bookings.functions";
 import { computeTargetHz, rankFrequencies } from "@/lib/frequency-match";
 import { toast } from "sonner";
 
+const searchSchema = z.object({
+  booking_id: fallback(z.string().uuid().optional(), undefined),
+});
+
 export const Route = createFileRoute("/_authenticated/sessions/new")({
   head: () => ({ meta: [{ title: "New session — ResonaBed" }] }),
+  validateSearch: zodValidator(searchSchema),
   component: NewSession,
 });
 
 const STEP_TITLES = ["Client", "Service", "Symptoms", "Safety", "Frequency"];
 
 function NewSession() {
+  const { booking_id } = Route.useSearch();
+  const bookingFn = useServerFn(getBooking);
+  const { data: booking } = useQuery({
+    queryKey: ["booking", booking_id],
+    queryFn: () => bookingFn({ data: { id: booking_id! } }),
+    enabled: !!booking_id,
+  });
+
   const [step, setStep] = useState(0);
   const [client, setClient] = useState<ClientOption | null>(null);
   const [service, setService] = useState<ServiceOption | null>(null);
+
+  // Pre-fill from booking and jump to Symptoms step.
+  useEffect(() => {
+    if (!booking) return;
+    if (booking.client) {
+      setClient({
+        id: booking.client.id,
+        first_name: booking.client.first_name,
+        last_name: booking.client.last_name,
+      } as ClientOption);
+    }
+    if (booking.service) {
+      setService({
+        id: booking.service.id,
+        name: booking.service.name,
+        duration_minutes: booking.service.duration_minutes,
+      } as ServiceOption);
+    }
+    setStep((s) => (s < 2 ? 2 : s));
+  }, [booking]);
+
   const [symptoms, setSymptoms] = useState<SymptomsState>({
     painLevel: 3,
     stressLevel: 5,
@@ -67,6 +104,7 @@ function NewSession() {
 
   const activeFreqId = chosenFreqId ?? defaultFreqId;
   const createFn = useServerFn(createDraftSession);
+  const startFromBookingFn = useServerFn(startSessionFromBooking);
   const navigate = useNavigate();
 
   const canProceed = (() => {
@@ -82,24 +120,32 @@ function NewSession() {
     if (!client || !service || !activeFreqId) return;
     setSubmitting(true);
     try {
-      const res = await createFn({
-        data: {
-          client_id: client.id,
-          service_id: service.id,
-          pain_level: symptoms.painLevel,
-          stress_level: symptoms.stressLevel,
-          sleep_quality: symptoms.sleepQuality,
-          body_areas: symptoms.bodyAreas,
-          primary_goals: symptoms.goals,
-          health_concerns: [],
-          contraindications: safety.contraindications,
-          practitioner_notes: safety.notes || undefined,
-          consent_given: true as const,
-          recommended_frequency_id: activeFreqId,
-        },
-      });
+      const payload = {
+        pain_level: symptoms.painLevel,
+        stress_level: symptoms.stressLevel,
+        sleep_quality: symptoms.sleepQuality,
+        body_areas: symptoms.bodyAreas,
+        primary_goals: symptoms.goals,
+        health_concerns: [],
+        contraindications: safety.contraindications,
+        practitioner_notes: safety.notes || undefined,
+        consent_given: true as const,
+        recommended_frequency_id: activeFreqId,
+      };
+      let sessionId: string;
+      if (booking_id) {
+        const res = await startFromBookingFn({
+          data: { booking_id, ...payload },
+        });
+        sessionId = res.session_id;
+      } else {
+        const res = await createFn({
+          data: { client_id: client.id, service_id: service.id, ...payload },
+        });
+        sessionId = res.id;
+      }
       toast.success("Session created");
-      navigate({ to: "/sessions/$id/play", params: { id: res.id } });
+      navigate({ to: "/sessions/$id/play", params: { id: sessionId } });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create session");
     } finally {
