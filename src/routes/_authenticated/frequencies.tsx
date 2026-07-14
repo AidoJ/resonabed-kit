@@ -36,7 +36,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Slider } from "@/components/ui/slider";
+
 
 export const Route = createFileRoute("/_authenticated/frequencies")({
   head: () => ({ meta: [{ title: "Frequencies — ResonaBed" }] }),
