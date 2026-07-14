@@ -104,6 +104,7 @@ function NewSession() {
 
   const activeFreqId = chosenFreqId ?? defaultFreqId;
   const createFn = useServerFn(createDraftSession);
+  const startFromBookingFn = useServerFn(startSessionFromBooking);
   const navigate = useNavigate();
 
   const canProceed = (() => {
@@ -119,24 +120,32 @@ function NewSession() {
     if (!client || !service || !activeFreqId) return;
     setSubmitting(true);
     try {
-      const res = await createFn({
-        data: {
-          client_id: client.id,
-          service_id: service.id,
-          pain_level: symptoms.painLevel,
-          stress_level: symptoms.stressLevel,
-          sleep_quality: symptoms.sleepQuality,
-          body_areas: symptoms.bodyAreas,
-          primary_goals: symptoms.goals,
-          health_concerns: [],
-          contraindications: safety.contraindications,
-          practitioner_notes: safety.notes || undefined,
-          consent_given: true as const,
-          recommended_frequency_id: activeFreqId,
-        },
-      });
+      const payload = {
+        pain_level: symptoms.painLevel,
+        stress_level: symptoms.stressLevel,
+        sleep_quality: symptoms.sleepQuality,
+        body_areas: symptoms.bodyAreas,
+        primary_goals: symptoms.goals,
+        health_concerns: [],
+        contraindications: safety.contraindications,
+        practitioner_notes: safety.notes || undefined,
+        consent_given: true as const,
+        recommended_frequency_id: activeFreqId,
+      };
+      let sessionId: string;
+      if (booking_id) {
+        const res = await startFromBookingFn({
+          data: { booking_id, ...payload },
+        });
+        sessionId = res.session_id;
+      } else {
+        const res = await createFn({
+          data: { client_id: client.id, service_id: service.id, ...payload },
+        });
+        sessionId = res.id;
+      }
       toast.success("Session created");
-      navigate({ to: "/sessions/$id/play", params: { id: res.id } });
+      navigate({ to: "/sessions/$id/play", params: { id: sessionId } });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create session");
     } finally {
