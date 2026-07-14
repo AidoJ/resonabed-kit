@@ -112,30 +112,45 @@ export type Database = {
       frequencies: {
         Row: {
           benefits: string | null
+          body_area_tags: string[]
           color: string | null
           created_at: string
           description: string | null
+          goal_tags: string[]
           hz: number
           id: string
           name: string
+          pain_affinity: number
+          sleep_affinity: number
+          stress_affinity: number
         }
         Insert: {
           benefits?: string | null
+          body_area_tags?: string[]
           color?: string | null
           created_at?: string
           description?: string | null
+          goal_tags?: string[]
           hz: number
           id?: string
           name: string
+          pain_affinity?: number
+          sleep_affinity?: number
+          stress_affinity?: number
         }
         Update: {
           benefits?: string | null
+          body_area_tags?: string[]
           color?: string | null
           created_at?: string
           description?: string | null
+          goal_tags?: string[]
           hz?: number
           id?: string
           name?: string
+          pain_affinity?: number
+          sleep_affinity?: number
+          stress_affinity?: number
         }
         Relationships: []
       }
