@@ -14,15 +14,21 @@ export const listAvailability = createServerFn({ method: "POST" })
     let q = context.supabase
       .from("practitioner_availability")
       .select(
-        `id, practitioner_id, day_of_week, start_time, end_time, is_active,
-         practitioner:practitioner_id(id, display_name)`,
+        `id, practitioner_id, day_of_week, start_time, end_time, is_active`,
       )
       .order("day_of_week", { ascending: true })
       .order("start_time", { ascending: true });
     if (data.practitioner_id) q = q.eq("practitioner_id", data.practitioner_id);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    if (!rows || rows.length === 0) return [];
+    const ids = Array.from(new Set(rows.map((r) => r.practitioner_id)));
+    const { data: profs } = await context.supabase
+      .from("profiles")
+      .select("id, display_name")
+      .in("id", ids);
+    const map = new Map((profs ?? []).map((p) => [p.id, p]));
+    return rows.map((r) => ({ ...r, practitioner: map.get(r.practitioner_id) ?? null }));
   });
 
 const availabilityInput = z.object({
