@@ -342,6 +342,7 @@ export type Database = {
       }
       services: {
         Row: {
+          buffer_minutes: number
           created_at: string
           duration_minutes: number
           id: string
@@ -352,6 +353,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          buffer_minutes?: number
           created_at?: string
           duration_minutes: number
           id?: string
@@ -362,6 +364,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          buffer_minutes?: number
           created_at?: string
           duration_minutes?: number
           id?: string
