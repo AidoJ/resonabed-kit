@@ -12,13 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedFrequenciesRouteImport } from './routes/_authenticated/frequencies'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
 import { Route as AuthenticatedAudioRouteImport } from './routes/_authenticated/audio'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedSessionsRouteRouteImport } from './routes/_authenticated/sessions.route'
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
@@ -37,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
   id: '/services',
@@ -69,47 +74,41 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSessionsRouteRoute =
-  AuthenticatedSessionsRouteRouteImport.update({
-    id: '/sessions',
-    path: '/sessions',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedSessionsIndexRoute =
   AuthenticatedSessionsIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AuthenticatedSessionsRouteRoute,
+    getParentRoute: () => AuthenticatedSessionsRoute,
   } as any)
 const AuthenticatedSessionsNewRoute =
   AuthenticatedSessionsNewRouteImport.update({
     id: '/new',
     path: '/new',
-    getParentRoute: () => AuthenticatedSessionsRouteRoute,
+    getParentRoute: () => AuthenticatedSessionsRoute,
   } as any)
 const AuthenticatedSessionsIdIndexRoute =
   AuthenticatedSessionsIdIndexRouteImport.update({
     id: '/$id/',
     path: '/$id/',
-    getParentRoute: () => AuthenticatedSessionsRouteRoute,
+    getParentRoute: () => AuthenticatedSessionsRoute,
   } as any)
 const AuthenticatedSessionsIdPlayRoute =
   AuthenticatedSessionsIdPlayRouteImport.update({
     id: '/$id/play',
     path: '/$id/play',
-    getParentRoute: () => AuthenticatedSessionsRouteRoute,
+    getParentRoute: () => AuthenticatedSessionsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/sessions': typeof AuthenticatedSessionsRouteRouteWithChildren
   '/admin': typeof AuthenticatedAdminRoute
   '/audio': typeof AuthenticatedAudioRoute
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
@@ -134,13 +133,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/sessions': typeof AuthenticatedSessionsRouteRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/audio': typeof AuthenticatedAudioRoute
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/frequencies': typeof AuthenticatedFrequenciesRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
+  '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/_authenticated/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
@@ -151,13 +150,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/sessions'
     | '/admin'
     | '/audio'
     | '/clients'
     | '/dashboard'
     | '/frequencies'
     | '/services'
+    | '/sessions'
     | '/sessions/new'
     | '/sessions/'
     | '/sessions/$id/play'
@@ -181,13 +180,13 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/sessions'
     | '/_authenticated/admin'
     | '/_authenticated/audio'
     | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/frequencies'
     | '/_authenticated/services'
+    | '/_authenticated/sessions'
     | '/_authenticated/sessions/new'
     | '/_authenticated/sessions/'
     | '/_authenticated/sessions/$id/play'
@@ -222,6 +221,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/sessions': {
+      id: '/_authenticated/sessions'
+      path: '/sessions'
+      fullPath: '/sessions'
+      preLoaderRoute: typeof AuthenticatedSessionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/services': {
       id: '/_authenticated/services'
@@ -265,82 +271,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/sessions': {
-      id: '/_authenticated/sessions'
-      path: '/sessions'
-      fullPath: '/sessions'
-      preLoaderRoute: typeof AuthenticatedSessionsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/sessions/': {
       id: '/_authenticated/sessions/'
       path: '/'
       fullPath: '/sessions/'
       preLoaderRoute: typeof AuthenticatedSessionsIndexRouteImport
-      parentRoute: typeof AuthenticatedSessionsRouteRoute
+      parentRoute: typeof AuthenticatedSessionsRoute
     }
     '/_authenticated/sessions/new': {
       id: '/_authenticated/sessions/new'
       path: '/new'
       fullPath: '/sessions/new'
       preLoaderRoute: typeof AuthenticatedSessionsNewRouteImport
-      parentRoute: typeof AuthenticatedSessionsRouteRoute
+      parentRoute: typeof AuthenticatedSessionsRoute
     }
     '/_authenticated/sessions/$id/': {
       id: '/_authenticated/sessions/$id/'
       path: '/$id'
       fullPath: '/sessions/$id/'
       preLoaderRoute: typeof AuthenticatedSessionsIdIndexRouteImport
-      parentRoute: typeof AuthenticatedSessionsRouteRoute
+      parentRoute: typeof AuthenticatedSessionsRoute
     }
     '/_authenticated/sessions/$id/play': {
       id: '/_authenticated/sessions/$id/play'
       path: '/$id/play'
       fullPath: '/sessions/$id/play'
       preLoaderRoute: typeof AuthenticatedSessionsIdPlayRouteImport
-      parentRoute: typeof AuthenticatedSessionsRouteRoute
+      parentRoute: typeof AuthenticatedSessionsRoute
     }
   }
 }
 
-interface AuthenticatedSessionsRouteRouteChildren {
+interface AuthenticatedSessionsRouteChildren {
   AuthenticatedSessionsNewRoute: typeof AuthenticatedSessionsNewRoute
   AuthenticatedSessionsIndexRoute: typeof AuthenticatedSessionsIndexRoute
   AuthenticatedSessionsIdPlayRoute: typeof AuthenticatedSessionsIdPlayRoute
   AuthenticatedSessionsIdIndexRoute: typeof AuthenticatedSessionsIdIndexRoute
 }
 
-const AuthenticatedSessionsRouteRouteChildren: AuthenticatedSessionsRouteRouteChildren =
-  {
-    AuthenticatedSessionsNewRoute: AuthenticatedSessionsNewRoute,
-    AuthenticatedSessionsIndexRoute: AuthenticatedSessionsIndexRoute,
-    AuthenticatedSessionsIdPlayRoute: AuthenticatedSessionsIdPlayRoute,
-    AuthenticatedSessionsIdIndexRoute: AuthenticatedSessionsIdIndexRoute,
-  }
+const AuthenticatedSessionsRouteChildren: AuthenticatedSessionsRouteChildren = {
+  AuthenticatedSessionsNewRoute: AuthenticatedSessionsNewRoute,
+  AuthenticatedSessionsIndexRoute: AuthenticatedSessionsIndexRoute,
+  AuthenticatedSessionsIdPlayRoute: AuthenticatedSessionsIdPlayRoute,
+  AuthenticatedSessionsIdIndexRoute: AuthenticatedSessionsIdIndexRoute,
+}
 
-const AuthenticatedSessionsRouteRouteWithChildren =
-  AuthenticatedSessionsRouteRoute._addFileChildren(
-    AuthenticatedSessionsRouteRouteChildren,
+const AuthenticatedSessionsRouteWithChildren =
+  AuthenticatedSessionsRoute._addFileChildren(
+    AuthenticatedSessionsRouteChildren,
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedSessionsRouteRoute: typeof AuthenticatedSessionsRouteRouteWithChildren
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAudioRoute: typeof AuthenticatedAudioRoute
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFrequenciesRoute: typeof AuthenticatedFrequenciesRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
+  AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedSessionsRouteRoute: AuthenticatedSessionsRouteRouteWithChildren,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAudioRoute: AuthenticatedAudioRoute,
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFrequenciesRoute: AuthenticatedFrequenciesRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
+  AuthenticatedSessionsRoute: AuthenticatedSessionsRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
