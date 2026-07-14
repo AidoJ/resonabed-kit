@@ -115,7 +115,7 @@ function BookingsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const setSearch = (patch: Partial<z.infer<typeof searchSchema>>) => {
-    navigate({ search: (prev) => ({ ...prev, ...patch }) });
+    navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, ...patch }) });
   };
 
   const grouped = useMemo(() => {
