@@ -173,10 +173,16 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     setEndsLocal("");
   }, [open, booking, dayBookings, practitionerId]);
 
-  const startMinFromTop = (s: string) => {
-    const [sh, sm] = s.split(":").map(Number);
-    return sh * 60 + sm;
-  };
+  // Auto-fill ends_at from service duration when service/starts change.
+  useEffect(() => {
+    if (!startsLocal || !serviceId) return;
+    if (booking && endsLocal) return; // don't stomp existing edit
+    const svc = services.find((s) => s.id === serviceId);
+    if (!svc) return;
+    const start = new Date(startsLocal);
+    const end = new Date(start.getTime() + svc.duration_minutes * 60_000);
+    setEndsLocal(toLocalInput(end.toISOString()));
+  }, [startsLocal, serviceId, services, booking, endsLocal]);
 
   const warnings = useMemo(() => {
     const out: string[] = [];
@@ -200,8 +206,32 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
       });
       if (!inside) out.push("Slot falls outside this practitioner's availability.");
     }
+
+    // Buffer / overlap: practitioner is occupied until each booking's ends_at + its buffer.
+    const others = dayBookings.filter(
+      (b) => b.practitioner_id === practitionerId && b.id !== booking?.id,
+    );
+    for (const b of others) {
+      const bStart = new Date(b.starts_at).getTime();
+      const bBuffer = (b.service?.buffer_minutes ?? 0) * 60_000;
+      const bBusyEnd = new Date(b.ends_at).getTime() + bBuffer;
+      if (start.getTime() < bBusyEnd && end.getTime() > bStart) {
+        const bEndLabel = new Date(b.ends_at).toLocaleTimeString(undefined, {
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        const bufMin = b.service?.buffer_minutes ?? 0;
+        if (start.getTime() < new Date(b.ends_at).getTime()) {
+          out.push(`Overlaps another booking ending at ${bEndLabel}.`);
+        } else if (bufMin > 0) {
+          out.push(
+            `Starts during the ${bufMin}-min changeover after the booking ending at ${bEndLabel}.`,
+          );
+        }
+      }
+    }
     return out;
-  }, [startsLocal, endsLocal, practitionerId, availability]);
+  }, [startsLocal, endsLocal, practitionerId, availability, dayBookings, booking?.id]);
 
   const canSave =
     !!(clientId && serviceId && practitionerId && startsLocal && endsLocal) &&
