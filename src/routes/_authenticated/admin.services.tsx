@@ -80,6 +80,7 @@ function ServicesAdmin() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Duration</TableHead>
+            <TableHead>Changeover</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-24" />
