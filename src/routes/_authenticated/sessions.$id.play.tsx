@@ -160,12 +160,23 @@ function PlaySession() {
         ) : null}
 
         {/* Timer */}
-        <CountdownTimer durationSeconds={durationSeconds} onRunningChange={setAmbient} />
+        <CountdownTimer
+          durationSeconds={durationSeconds}
+          onRunningChange={setAmbient}
+          onStart={() => audioHandleRef.current?.play()}
+          onPause={() => audioHandleRef.current?.pause()}
+          onReset={() => audioHandleRef.current?.stop()}
+        />
 
         {/* Audio */}
         <div className="w-full max-w-2xl">
           {audio && signed?.url ? (
-            <AudioPlayer src={signed.url} title={audio.title} onPlayingChange={setAmbient} />
+            <AudioPlayer
+              ref={audioHandleRef}
+              src={signed.url}
+              title={audio.title}
+              onPlayingChange={setAmbient}
+            />
           ) : (
             <div className="flex items-center gap-3 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4 text-sm text-muted-foreground">
               <Music className="h-5 w-5" />
