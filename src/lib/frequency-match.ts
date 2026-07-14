@@ -128,10 +128,10 @@ export function computeRawTargetHz(i: IntakeInputs): number {
 // Theoretical min/max of computeRawTargetHz, derived from ANCHORS and the
 // slider/body-area pull ranges above.
 //   goal:   min(ANCHORS)=230, max=741
-//   slider: painPull 200..500, stressPull 396..496 → avg 298..498
+//   slider: min ≈ 215 (pain=10, sleep=0, stress=0), max ≈ 500 (stress=5 alone)
 //   area:   min(BODY_AREA_HZ)=220, max=640
-export const RAW_MIN = 230 * GOAL_WEIGHT + 298 * SLIDER_WEIGHT + 220 * AREA_WEIGHT;
-export const RAW_MAX = 741 * GOAL_WEIGHT + 498 * SLIDER_WEIGHT + 640 * AREA_WEIGHT;
+export const RAW_MIN = 230 * GOAL_WEIGHT + 215 * SLIDER_WEIGHT + 220 * AREA_WEIGHT;
+export const RAW_MAX = 741 * GOAL_WEIGHT + 500 * SLIDER_WEIGHT + 640 * AREA_WEIGHT;
 
 /**
  * Compute the target Hz, rescaled linearly from the raw theoretical range
