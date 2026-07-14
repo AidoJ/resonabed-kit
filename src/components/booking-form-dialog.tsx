@@ -151,16 +151,32 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     setNewClientMode(false);
   }, [open, booking, defaultStartsAt]);
 
-  // Auto-fill ends_at from service duration when service/starts change.
+  // When creating a new booking, suggest the next available start = last booking's
+  // ends_at + its service's buffer_minutes (scoped to the selected practitioner if any).
+  const suggestedStartRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!startsLocal || !serviceId) return;
-    if (booking && endsLocal) return; // don't stomp existing edit
-    const svc = services.find((s) => s.id === serviceId);
-    if (!svc) return;
-    const start = new Date(startsLocal);
-    const end = new Date(start.getTime() + svc.duration_minutes * 60_000);
-    setEndsLocal(toLocalInput(end.toISOString()));
-  }, [startsLocal, serviceId, services, booking, endsLocal]);
+    if (!open || booking) return;
+    if (dayBookings.length === 0) return;
+    const relevant = practitionerId
+      ? dayBookings.filter((b) => b.practitioner_id === practitionerId)
+      : dayBookings;
+    if (relevant.length === 0) return;
+    const last = relevant.reduce((a, b) =>
+      new Date(a.ends_at) > new Date(b.ends_at) ? a : b,
+    );
+    const buffer = last.service?.buffer_minutes ?? 0;
+    const suggested = new Date(new Date(last.ends_at).getTime() + buffer * 60_000);
+    const suggestedIso = suggested.toISOString();
+    if (suggestedStartRef.current === suggestedIso) return;
+    suggestedStartRef.current = suggestedIso;
+    setStartsLocal(toLocalInput(suggestedIso));
+    setEndsLocal("");
+  }, [open, booking, dayBookings, practitionerId]);
+
+  const startMinFromTop = (s: string) => {
+    const [sh, sm] = s.split(":").map(Number);
+    return sh * 60 + sm;
+  };
 
   const warnings = useMemo(() => {
     const out: string[] = [];
