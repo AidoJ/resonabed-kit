@@ -163,6 +163,7 @@ function NewSession() {
           ranked={ranked}
           hasAudio={hasAudio}
           targetHz={targetHz}
+          selectedId={activeFreqId}
           onChange={setChosenFreqId}
         />
 
