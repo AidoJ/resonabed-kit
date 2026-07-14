@@ -159,9 +159,11 @@ function NewSession() {
       {step === 4 && (
         <StepFrequency
           ranked={ranked}
+          hasAudio={hasAudio}
           selectedId={activeFreqId}
           onChange={setChosenFreqId}
         />
+
       )}
     </WizardShell>
   );
