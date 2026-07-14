@@ -45,7 +45,7 @@ function AdminLayout() {
           return (
             <Link
               key={t.to}
-              to={t.to}
+              to={t.to as "/admin"}
               className={cn(
                 "flex items-center gap-2 px-3 py-2 text-sm border-b-2 -mb-px transition-colors",
                 active
