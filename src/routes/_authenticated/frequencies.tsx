@@ -37,7 +37,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-
 export const Route = createFileRoute("/_authenticated/frequencies")({
   head: () => ({ meta: [{ title: "Frequencies — ResonaBed" }] }),
   component: FrequenciesPage,
@@ -52,9 +51,6 @@ interface FrequencyEditable {
   color: string;
   goal_tags: string[];
   body_area_tags: string[];
-  pain_affinity: number;
-  stress_affinity: number;
-  sleep_affinity: number;
 }
 
 const EMPTY: FrequencyEditable = {
@@ -65,9 +61,6 @@ const EMPTY: FrequencyEditable = {
   color: "#7B8FC7",
   goal_tags: [],
   body_area_tags: [],
-  pain_affinity: 0,
-  stress_affinity: 0,
-  sleep_affinity: 0,
 };
 
 // Wellbeing-only language: block obvious medical/therapeutic claims in text fields.
@@ -140,9 +133,6 @@ function FrequenciesAdmin() {
           color: v.color || null,
           goal_tags: v.goal_tags,
           body_area_tags: v.body_area_tags,
-          pain_affinity: v.pain_affinity,
-          stress_affinity: v.stress_affinity,
-          sleep_affinity: v.sleep_affinity,
         },
       }),
     onSuccess: () => {
@@ -187,7 +177,8 @@ function FrequenciesAdmin() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Frequencies</h1>
           <p className="text-sm text-muted-foreground">
-            Manage the frequency library and tune the matching signals used by the intake wizard.
+            Manage the frequency library. Matching uses the target-Hz model — the intake
+            wizard computes a target Hz and ranks frequencies by proximity.
           </p>
         </div>
         <Button onClick={() => setEditing({ ...EMPTY })} className="h-11">
@@ -211,22 +202,19 @@ function FrequenciesAdmin() {
               <TableHead>Name</TableHead>
               <TableHead>Goals</TableHead>
               <TableHead>Body areas</TableHead>
-              <TableHead className="text-center">Pain</TableHead>
-              <TableHead className="text-center">Stress</TableHead>
-              <TableHead className="text-center">Sleep</TableHead>
               <TableHead className="w-[140px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8}>
+                <TableCell colSpan={5}>
                   <Skeleton className="h-6 w-full" />
                 </TableCell>
               </TableRow>
             ) : (data ?? []).length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-sm text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
                   No frequencies yet.
                 </TableCell>
               </TableRow>
@@ -249,9 +237,6 @@ function FrequenciesAdmin() {
                   <TableCell className="text-xs text-muted-foreground">
                     {(f.body_area_tags ?? []).join(", ") || "—"}
                   </TableCell>
-                  <TableCell className="text-center tabular-nums">{f.pain_affinity}</TableCell>
-                  <TableCell className="text-center tabular-nums">{f.stress_affinity}</TableCell>
-                  <TableCell className="text-center tabular-nums">{f.sleep_affinity}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       size="sm"
@@ -266,9 +251,6 @@ function FrequenciesAdmin() {
                           color: f.color ?? "#7B8FC7",
                           goal_tags: f.goal_tags ?? [],
                           body_area_tags: f.body_area_tags ?? [],
-                          pain_affinity: f.pain_affinity ?? 0,
-                          stress_affinity: f.stress_affinity ?? 0,
-                          sleep_affinity: f.sleep_affinity ?? 0,
                         })
                       }
                     >
@@ -360,7 +342,7 @@ function FrequenciesAdmin() {
               </div>
 
               <ChipGroup
-                label="Goal tags"
+                label="Goal tags (used as a tiebreak when frequencies are within 10 Hz of the target)"
                 options={GOAL_OPTIONS.map((g) => ({ value: g.value, label: g.label }))}
                 selected={editing.goal_tags}
                 onToggle={(v) =>
@@ -386,24 +368,6 @@ function FrequenciesAdmin() {
                   })
                 }
               />
-
-              <div className="grid gap-4 sm:grid-cols-3">
-                <AffinityRow
-                  label="Pain affinity"
-                  value={editing.pain_affinity}
-                  onChange={(v) => setEditing({ ...editing, pain_affinity: v })}
-                />
-                <AffinityRow
-                  label="Stress affinity"
-                  value={editing.stress_affinity}
-                  onChange={(v) => setEditing({ ...editing, stress_affinity: v })}
-                />
-                <AffinityRow
-                  label="Sleep affinity"
-                  value={editing.sleep_affinity}
-                  onChange={(v) => setEditing({ ...editing, sleep_affinity: v })}
-                />
-              </div>
             </div>
           ) : null}
           <DialogFooter>
@@ -454,32 +418,6 @@ function ChipGroup({
           );
         })}
       </div>
-    </div>
-  );
-}
-
-function AffinityRow({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <div>
-      <div className="mb-2 flex items-baseline justify-between">
-        <Label>{label}</Label>
-        <span className="text-sm font-semibold tabular-nums">{value}</span>
-      </div>
-      <Slider
-        min={0}
-        max={5}
-        step={1}
-        value={[value]}
-        onValueChange={(v) => onChange(v[0] ?? 0)}
-      />
     </div>
   );
 }
