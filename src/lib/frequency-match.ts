@@ -1,5 +1,7 @@
-// Data-driven frequency scoring. All matching data (tags, affinities) lives on
-// the frequencies table; this module never hardcodes per-Hz behaviour.
+// Target-Hz frequency matching. The matcher computes a single target Hz from
+// the intake inputs (weighted average of goal anchors + slider + body-area
+// pulls) and then ranks all DB frequencies by absolute distance from that
+// target. Goal-tag overlap is used only as a tiebreak within 10 Hz.
 
 export type IntakeGoal =
   | "relaxation"
@@ -40,22 +42,74 @@ export interface FrequencyRow {
   color: string | null;
   goal_tags: string[];
   body_area_tags: string[];
-  pain_affinity: number; // 0..5
-  stress_affinity: number; // 0..5
-  sleep_affinity: number; // 0..5 (suited to poor sleep)
 }
 
 export interface RankedFrequency {
   frequency: FrequencyRow;
-  score: number;
+  distance: number;
 }
 
-// Tunable weights per contribution channel.
-const GOAL_WEIGHT = 3;
-const AREA_WEIGHT = 2;
-// Sliders are 0..10, affinity is 0..5 → normalise so a max-match on any single
-// channel is comparable to a couple of goal/area hits.
-const SLIDER_SCALE = 0.2; // affinity(5) * slider(10) * 0.2 = 10
+// Anchor Hz per primary goal. Tunable in a single place.
+export const ANCHORS: Record<IntakeGoal, number> = {
+  relaxation: 432,
+  stress_relief: 396,
+  better_sleep: 230, // low-weighted toward 174–285 range
+  comfort: 285,
+  energy: 741,
+  recovery: 417,
+};
+
+// Per body-area pull applied to the sliders/body-area component of the target.
+// Lower-body areas nudge downward, head/neck upward.
+const BODY_AREA_HZ: Record<BodyArea, number> = {
+  head: 640,
+  neck: 600,
+  shoulders: 500,
+  chest: 470,
+  arms: 460,
+  hands: 460,
+  upper_back: 440,
+  abdomen: 400,
+  lower_back: 320,
+  hips: 300,
+  legs: 260,
+  feet: 220,
+};
+
+// Mid-range fallback if the practitioner picked no goals at all.
+const NEUTRAL_HZ = 432;
+
+const GOAL_WEIGHT = 0.6;
+const SLIDER_WEIGHT = 0.3;
+const AREA_WEIGHT = 0.1;
+
+// Slider contribution: high pain pulls low, high stress pulls mid-range.
+// Returns a Hz value in roughly the 200–600 band.
+function sliderTargetHz(i: IntakeInputs): number {
+  const painPull = 200 + (10 - i.painLevel) * 30; // pain 0 → 500, pain 10 → 200
+  const stressPull = 396 + (5 - Math.abs(i.stressLevel - 5)) * 20; // peak near 5 → ~496
+  return (painPull + stressPull) / 2;
+}
+
+function goalTargetHz(goals: IntakeGoal[]): number {
+  if (goals.length === 0) return NEUTRAL_HZ;
+  const sum = goals.reduce((acc, g) => acc + ANCHORS[g], 0);
+  return sum / goals.length;
+}
+
+function bodyAreaTargetHz(areas: BodyArea[]): number {
+  if (areas.length === 0) return NEUTRAL_HZ;
+  const sum = areas.reduce((acc, a) => acc + BODY_AREA_HZ[a], 0);
+  return sum / areas.length;
+}
+
+export function computeTargetHz(i: IntakeInputs): number {
+  const t =
+    goalTargetHz(i.goals) * GOAL_WEIGHT +
+    sliderTargetHz(i) * SLIDER_WEIGHT +
+    bodyAreaTargetHz(i.bodyAreas) * AREA_WEIGHT;
+  return Math.round(t);
+}
 
 function overlapCount(a: string[] | null | undefined, b: string[]): number {
   if (!a || a.length === 0 || b.length === 0) return 0;
@@ -65,24 +119,26 @@ function overlapCount(a: string[] | null | undefined, b: string[]): number {
   return n;
 }
 
-export function scoreFrequency(f: FrequencyRow, i: IntakeInputs): number {
-  const goalHits = overlapCount(f.goal_tags, i.goals);
-  const areaHits = overlapCount(f.body_area_tags, i.bodyAreas);
-  const sleepDeficit = 10 - i.sleepQuality;
-  const sliderScore =
-    (f.pain_affinity * i.painLevel +
-      f.stress_affinity * i.stressLevel +
-      f.sleep_affinity * sleepDeficit) *
-    SLIDER_SCALE;
-  return goalHits * GOAL_WEIGHT + areaHits * AREA_WEIGHT + sliderScore;
-}
+const TIEBREAK_WINDOW_HZ = 10;
 
 export function rankFrequencies(
   frequencies: FrequencyRow[],
   intake: IntakeInputs,
 ): RankedFrequency[] {
-  const scored = frequencies.map((f) => ({ frequency: f, score: scoreFrequency(f, intake) }));
-  scored.sort((a, b) => b.score - a.score || a.frequency.hz - b.frequency.hz);
+  const target = computeTargetHz(intake);
+  const scored = frequencies.map((f) => ({
+    frequency: f,
+    distance: Math.abs(f.hz - target),
+  }));
+  scored.sort((a, b) => {
+    // Within a 10 Hz window, prefer more goal-tag overlap; otherwise pure distance.
+    if (Math.abs(a.distance - b.distance) <= TIEBREAK_WINDOW_HZ) {
+      const ao = overlapCount(a.frequency.goal_tags, intake.goals);
+      const bo = overlapCount(b.frequency.goal_tags, intake.goals);
+      if (ao !== bo) return bo - ao;
+    }
+    return a.distance - b.distance || a.frequency.hz - b.frequency.hz;
+  });
   return scored;
 }
 
