@@ -1,18 +1,20 @@
-import { Check, Sparkles } from "lucide-react";
+import { Check, Music, MusicIcon, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RankedFrequency } from "@/lib/frequency-match";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   ranked: RankedFrequency[];
+  hasAudio: Record<string, boolean>;
   selectedId: string | null;
   onChange: (id: string) => void;
 }
 
-export function StepFrequency({ ranked, selectedId, onChange }: Props) {
+export function StepFrequency({ ranked, hasAudio, selectedId, onChange }: Props) {
   if (ranked.length === 0) return null;
-  const top = ranked[0]!;
-  const rest = ranked.slice(1);
-  const selected = ranked.find((r) => r.frequency.id === selectedId) ?? top;
+  const selected = ranked.find((r) => r.frequency.id === selectedId) ?? ranked[0]!;
+  const rest = ranked.filter((r) => r.frequency.id !== selected.frequency.id);
+  const selectedHasAudio = hasAudio[selected.frequency.id] ?? false;
 
   return (
     <div className="space-y-6">
@@ -23,8 +25,19 @@ export function StepFrequency({ ranked, selectedId, onChange }: Props) {
           borderColor: selected.frequency.color ?? undefined,
         }}
       >
-        <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" /> Recommended for this intake
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5" /> Recommended for this intake
+          </div>
+          {selectedHasAudio ? (
+            <Badge variant="secondary" className="gap-1">
+              <MusicIcon className="h-3 w-3" /> Audio ready
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="gap-1 text-muted-foreground">
+              No audio uploaded
+            </Badge>
+          )}
         </div>
         <div className="mt-3 flex items-baseline gap-3">
           <span
@@ -49,6 +62,7 @@ export function StepFrequency({ ranked, selectedId, onChange }: Props) {
         <div className="grid gap-2 sm:grid-cols-2">
           {rest.map((r) => {
             const active = selected.frequency.id === r.frequency.id;
+            const audio = hasAudio[r.frequency.id] ?? false;
             return (
               <button
                 key={r.frequency.id}
@@ -64,9 +78,14 @@ export function StepFrequency({ ranked, selectedId, onChange }: Props) {
                   style={{ background: r.frequency.color ?? "#888" }}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">
-                    {r.frequency.hz} Hz · {r.frequency.name}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">
+                      {r.frequency.hz} Hz · {r.frequency.name}
+                    </p>
+                    {audio ? (
+                      <Music className="h-3.5 w-3.5 text-primary" aria-label="Audio available" />
+                    ) : null}
+                  </div>
                   <p className="truncate text-xs text-muted-foreground">
                     {r.frequency.description}
                   </p>

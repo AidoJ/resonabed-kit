@@ -1,5 +1,5 @@
-// Pure scoring: rank the 9 frequencies against intake inputs.
-// No side effects, deterministic, unit-testable.
+// Data-driven frequency scoring. All matching data (tags, affinities) lives on
+// the frequencies table; this module never hardcodes per-Hz behaviour.
 
 export type IntakeGoal =
   | "relaxation"
@@ -38,61 +38,11 @@ export interface FrequencyRow {
   description: string | null;
   benefits: string | null;
   color: string | null;
-}
-
-// Goal affinity per Hz.
-const GOAL_WEIGHTS: Record<number, Partial<Record<IntakeGoal, number>>> = {
-  174: { relaxation: 3, comfort: 4, stress_relief: 2 },
-  285: { recovery: 4, relaxation: 3, comfort: 2 },
-  396: { stress_relief: 5, relaxation: 3 },
-  417: { stress_relief: 4, relaxation: 3, better_sleep: 1 },
-  528: { relaxation: 4, comfort: 3, recovery: 3, energy: 2 },
-  639: { comfort: 4, relaxation: 2 },
-  741: { energy: 5, recovery: 3 },
-  852: { better_sleep: 4, relaxation: 3, stress_relief: 2 },
-  963: { better_sleep: 5, relaxation: 4 },
-};
-
-// Body-area affinity per Hz (grounding low tones for lower body, higher for upper).
-const AREA_WEIGHTS: Record<number, Partial<Record<BodyArea, number>>> = {
-  174: { feet: 3, legs: 3, hips: 2, lower_back: 2 },
-  285: { lower_back: 2, hips: 2, abdomen: 2 },
-  396: { lower_back: 3, hips: 2, upper_back: 2, shoulders: 2 },
-  417: { abdomen: 2, chest: 2, shoulders: 1 },
-  528: { chest: 3, abdomen: 2, upper_back: 2 },
-  639: { chest: 3, shoulders: 2, arms: 2, hands: 2 },
-  741: { neck: 3, shoulders: 3, upper_back: 2 },
-  852: { head: 3, neck: 2 },
-  963: { head: 4, neck: 2 },
-};
-
-function sliderContribution(hz: number, i: IntakeInputs): number {
-  const pain = i.painLevel;
-  const stress = i.stressLevel;
-  const sleepDeficit = 10 - i.sleepQuality; // higher = worse sleep
-
-  switch (hz) {
-    case 174:
-      return pain * 0.6 + stress * 0.2;
-    case 285:
-      return pain * 0.4 + sleepDeficit * 0.2;
-    case 396:
-      return stress * 0.7 + pain * 0.3;
-    case 417:
-      return stress * 0.5;
-    case 528:
-      return 2 + pain * 0.2; // steady baseline
-    case 639:
-      return stress * 0.2;
-    case 741:
-      return Math.max(0, (10 - pain) * 0.2); // energising when pain is low
-    case 852:
-      return sleepDeficit * 0.5 + stress * 0.3;
-    case 963:
-      return sleepDeficit * 0.8 + stress * 0.2;
-    default:
-      return 0;
-  }
+  goal_tags: string[];
+  body_area_tags: string[];
+  pain_affinity: number; // 0..5
+  stress_affinity: number; // 0..5
+  sleep_affinity: number; // 0..5 (suited to poor sleep)
 }
 
 export interface RankedFrequency {
@@ -100,18 +50,38 @@ export interface RankedFrequency {
   score: number;
 }
 
+// Tunable weights per contribution channel.
+const GOAL_WEIGHT = 3;
+const AREA_WEIGHT = 2;
+// Sliders are 0..10, affinity is 0..5 → normalise so a max-match on any single
+// channel is comparable to a couple of goal/area hits.
+const SLIDER_SCALE = 0.2; // affinity(5) * slider(10) * 0.2 = 10
+
+function overlapCount(a: string[] | null | undefined, b: string[]): number {
+  if (!a || a.length === 0 || b.length === 0) return 0;
+  const set = new Set(a);
+  let n = 0;
+  for (const v of b) if (set.has(v)) n++;
+  return n;
+}
+
+export function scoreFrequency(f: FrequencyRow, i: IntakeInputs): number {
+  const goalHits = overlapCount(f.goal_tags, i.goals);
+  const areaHits = overlapCount(f.body_area_tags, i.bodyAreas);
+  const sleepDeficit = 10 - i.sleepQuality;
+  const sliderScore =
+    (f.pain_affinity * i.painLevel +
+      f.stress_affinity * i.stressLevel +
+      f.sleep_affinity * sleepDeficit) *
+    SLIDER_SCALE;
+  return goalHits * GOAL_WEIGHT + areaHits * AREA_WEIGHT + sliderScore;
+}
+
 export function rankFrequencies(
   frequencies: FrequencyRow[],
   intake: IntakeInputs,
 ): RankedFrequency[] {
-  const scored = frequencies.map((f) => {
-    const gw = GOAL_WEIGHTS[f.hz] ?? {};
-    const aw = AREA_WEIGHTS[f.hz] ?? {};
-    let score = sliderContribution(f.hz, intake);
-    for (const g of intake.goals) score += gw[g] ?? 0;
-    for (const a of intake.bodyAreas) score += aw[a] ?? 0;
-    return { frequency: f, score };
-  });
+  const scored = frequencies.map((f) => ({ frequency: f, score: scoreFrequency(f, intake) }));
   scored.sort((a, b) => b.score - a.score || a.frequency.hz - b.frequency.hz);
   return scored;
 }

@@ -11,7 +11,7 @@ import { StepSafety, type SafetyState } from "@/components/session-wizard/step-s
 import { StepFrequency } from "@/components/session-wizard/step-frequency";
 import {
   createDraftSession,
-  listFrequencies,
+  listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
 import { rankFrequencies } from "@/lib/frequency-match";
 import { toast } from "sonner";
@@ -43,25 +43,27 @@ function NewSession() {
   const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const freqFn = useServerFn(listFrequencies);
-  const { data: freqs } = useQuery({ queryKey: ["frequencies"], queryFn: () => freqFn() });
+  const freqFn = useServerFn(listFrequenciesWithAudioFlag);
+  const { data: freqs } = useQuery({ queryKey: ["frequencies-with-audio"], queryFn: () => freqFn() });
 
   const ranked = useMemo(() => {
     if (!freqs) return [];
-    return rankFrequencies(
-      freqs.map((f) => ({
-        id: f.id,
-        hz: f.hz,
-        name: f.name,
-        description: f.description,
-        benefits: f.benefits,
-        color: f.color,
-      })),
-      symptoms,
-    );
+    return rankFrequencies(freqs, symptoms);
   }, [freqs, symptoms]);
 
-  const activeFreqId = chosenFreqId ?? ranked[0]?.frequency.id ?? null;
+  const hasAudio = useMemo(() => {
+    const m: Record<string, boolean> = {};
+    for (const f of freqs ?? []) m[f.id] = f.has_audio;
+    return m;
+  }, [freqs]);
+
+  // Default selection: top-ranked with audio, else top-ranked overall.
+  const defaultFreqId = useMemo(() => {
+    const withAudio = ranked.find((r) => hasAudio[r.frequency.id]);
+    return (withAudio ?? ranked[0])?.frequency.id ?? null;
+  }, [ranked, hasAudio]);
+
+  const activeFreqId = chosenFreqId ?? defaultFreqId;
   const createFn = useServerFn(createDraftSession);
   const navigate = useNavigate();
 
@@ -157,9 +159,11 @@ function NewSession() {
       {step === 4 && (
         <StepFrequency
           ranked={ranked}
+          hasAudio={hasAudio}
           selectedId={activeFreqId}
           onChange={setChosenFreqId}
         />
+
       )}
     </WizardShell>
   );
