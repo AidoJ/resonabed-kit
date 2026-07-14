@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/coming-soon";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/clients")({
-  head: () => ({ meta: [{ title: "Clients — ResonaBed" }] }),
-  component: () => <ComingSoon title="Clients" />,
+  beforeLoad: () => {
+    throw redirect({ to: "/admin/clients" });
+  },
 });
