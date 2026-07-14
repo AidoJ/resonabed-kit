@@ -103,12 +103,40 @@ function bodyAreaTargetHz(areas: BodyArea[]): number {
   return sum / areas.length;
 }
 
-export function computeTargetHz(i: IntakeInputs): number {
-  const t =
+export function computeRawTargetHz(i: IntakeInputs): number {
+  return (
     goalTargetHz(i.goals) * GOAL_WEIGHT +
     sliderTargetHz(i) * SLIDER_WEIGHT +
-    bodyAreaTargetHz(i.bodyAreas) * AREA_WEIGHT;
-  return Math.round(t);
+    bodyAreaTargetHz(i.bodyAreas) * AREA_WEIGHT
+  );
+}
+
+// Theoretical min/max of computeRawTargetHz, derived from ANCHORS and the
+// slider/body-area pull ranges above.
+//   goal:   min(ANCHORS)=230, max=741
+//   slider: painPull 200..500, stressPull 396..496 → avg 298..498
+//   area:   min(BODY_AREA_HZ)=220, max=640
+export const RAW_MIN = 230 * GOAL_WEIGHT + 298 * SLIDER_WEIGHT + 220 * AREA_WEIGHT;
+export const RAW_MAX = 741 * GOAL_WEIGHT + 498 * SLIDER_WEIGHT + 640 * AREA_WEIGHT;
+
+/**
+ * Compute the target Hz, rescaled linearly from the raw theoretical range
+ * [RAW_MIN, RAW_MAX] onto the [min, max] hz range of the provided frequency
+ * rows. Falls back to the raw value when no frequencies are supplied.
+ */
+export function computeTargetHz(i: IntakeInputs, frequencies?: FrequencyRow[]): number {
+  const raw = computeRawTargetHz(i);
+  if (!frequencies || frequencies.length === 0) return Math.round(raw);
+  let minHz = Infinity;
+  let maxHz = -Infinity;
+  for (const f of frequencies) {
+    if (f.hz < minHz) minHz = f.hz;
+    if (f.hz > maxHz) maxHz = f.hz;
+  }
+  if (minHz === maxHz) return Math.round(minHz);
+  const t = (raw - RAW_MIN) / (RAW_MAX - RAW_MIN);
+  const clamped = Math.max(0, Math.min(1, t));
+  return Math.round(minHz + clamped * (maxHz - minHz));
 }
 
 function overlapCount(a: string[] | null | undefined, b: string[]): number {
@@ -125,7 +153,7 @@ export function rankFrequencies(
   frequencies: FrequencyRow[],
   intake: IntakeInputs,
 ): RankedFrequency[] {
-  const target = computeTargetHz(intake);
+  const target = computeTargetHz(intake, frequencies);
   const scored = frequencies.map((f) => ({
     frequency: f,
     distance: Math.abs(f.hz - target),
