@@ -7,7 +7,15 @@ export interface UserContext {
   userId: string;
   email: string | null;
   displayName: string | null;
-  org: { id: string; name: string; brandColor: string | null; logoUrl: string | null } | null;
+  isActive: boolean;
+  mustChangePassword: boolean;
+  org: {
+    id: string;
+    name: string;
+    brandColor: string | null;
+    logoUrl: string | null;
+    logoPath: string | null;
+  } | null;
   roles: AppRole[];
 }
 
@@ -19,7 +27,9 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
     const [profileRes, rolesRes] = await Promise.all([
       supabase
         .from("profiles")
-        .select("display_name, org_id, organisations:org_id(id, name, brand_color, logo_url)")
+        .select(
+          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path)",
+        )
         .eq("id", userId)
         .maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
@@ -29,19 +39,34 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
     if (rolesRes.error) throw new Error(rolesRes.error.message);
 
     const profile = profileRes.data;
-    const org = profile?.organisations
+    const orgRow = profile?.organisations as
+      | {
+          id: string;
+          name: string;
+          brand_color: string | null;
+          logo_url: string | null;
+          logo_path: string | null;
+        }
+      | null
+      | undefined;
+    const org = orgRow
       ? {
-          id: (profile.organisations as { id: string }).id,
-          name: (profile.organisations as { name: string }).name,
-          brandColor: (profile.organisations as { brand_color: string | null }).brand_color,
-          logoUrl: (profile.organisations as { logo_url: string | null }).logo_url,
+          id: orgRow.id,
+          name: orgRow.name,
+          brandColor: orgRow.brand_color,
+          logoUrl: orgRow.logo_url,
+          logoPath: orgRow.logo_path,
         }
       : null;
+
+    const appMeta = (claims.app_metadata ?? {}) as Record<string, unknown>;
 
     return {
       userId,
       email: (claims.email as string) ?? null,
       displayName: profile?.display_name ?? null,
+      isActive: profile?.is_active ?? true,
+      mustChangePassword: Boolean(appMeta.must_change_password),
       org,
       roles: (rolesRes.data ?? []).map((r) => r.role as AppRole),
     };

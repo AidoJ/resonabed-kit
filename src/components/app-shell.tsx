@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Users, Wrench, ClipboardList, Waves, Music, Shield, LogOut, Calendar, Clock } from "lucide-react";
+import { Users, ClipboardList, Waves, Music, Shield, LogOut, Calendar, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -26,13 +27,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: Waves, roles: null },
-  { to: "/clients", label: "Clients", icon: Users, roles: null },
-  { to: "/services", label: "Services", icon: Wrench, roles: null },
   { to: "/bookings", label: "Bookings", icon: Calendar, roles: null },
   { to: "/availability", label: "Availability", icon: Clock, roles: null },
   { to: "/sessions", label: "Sessions", icon: ClipboardList, roles: null },
   { to: "/frequencies", label: "Frequencies", icon: Waves, roles: null },
   { to: "/audio", label: "Audio library", icon: Music, roles: null },
+  { to: "/admin/clients", label: "Clients", icon: Users, roles: ["super_admin", "org_admin"] as const },
   {
     to: "/admin",
     label: "Admin",
@@ -60,6 +60,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Force-change-password interceptor: signed-in users with must_change_password=true
+  // are redirected here and cannot access anything else.
+  useEffect(() => {
+    if (data?.mustChangePassword && currentPath !== "/change-password") {
+      navigate({ to: "/change-password", replace: true });
+    }
+  }, [data?.mustChangePassword, currentPath, navigate]);
 
   const handleSignOut = async () => {
     await queryClient.cancelQueries();

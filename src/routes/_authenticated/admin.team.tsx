@@ -1,0 +1,259 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
+import { toast } from "sonner";
+import { listTeam } from "@/lib/admin.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { UserPlus, Copy } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/admin/team")({
+  head: () => ({ meta: [{ title: "Team — Admin — ResonaBed" }] }),
+  component: TeamAdmin,
+});
+
+async function callManageTeam(body: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke("manage-team-member", {
+    body,
+  });
+  if (error) throw new Error(error.message);
+  if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+  return data as Record<string, unknown>;
+}
+
+function TeamAdmin() {
+  const fetchTeam = useServerFn(listTeam);
+  const fetchCtx = useServerFn(getCurrentUserContext);
+  const qc = useQueryClient();
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => fetchCtx() });
+  const { data: team, isLoading } = useQuery({
+    queryKey: ["admin-team"],
+    queryFn: () => fetchTeam(),
+  });
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({
+    email: "",
+    display_name: "",
+    role: "practitioner" as "practitioner" | "org_admin",
+  });
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+
+  const refresh = () => qc.invalidateQueries({ queryKey: ["admin-team"] });
+
+  const onCreate = async () => {
+    if (!ctx?.org?.id) {
+      toast.error("No organisation");
+      return;
+    }
+    try {
+      const res = await callManageTeam({
+        type: "create",
+        org_id: ctx.org.id,
+        email: form.email,
+        display_name: form.display_name || null,
+        role: form.role,
+      });
+      setTempPassword(res.temporary_password as string);
+      setForm({ email: "", display_name: "", role: "practitioner" });
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const onToggleActive = async (userId: string, isActive: boolean) => {
+    try {
+      await callManageTeam({
+        type: isActive ? "deactivate" : "reactivate",
+        user_id: userId,
+      });
+      toast.success(isActive ? "Account deactivated" : "Account reactivated");
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const onChangeRole = async (userId: string, role: "practitioner" | "org_admin") => {
+    try {
+      await callManageTeam({ type: "change_role", user_id: userId, role });
+      toast.success("Role updated");
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={() => setCreateOpen(true)}>
+          <UserPlus className="mr-2 h-4 w-4" /> Add team member
+        </Button>
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-64" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <TableRow><TableCell colSpan={4}>Loading…</TableCell></TableRow>
+          ) : (
+            (team ?? [])
+              .filter((m) =>
+                ctx?.roles.includes("super_admin") ? true : m.org_id === ctx?.org?.id,
+              )
+              .map((m) => {
+                const isSelf = m.id === ctx?.userId;
+                const isSuper = m.roles.includes("super_admin");
+                const primaryRole = isSuper
+                  ? "super_admin"
+                  : m.roles.includes("org_admin")
+                    ? "org_admin"
+                    : m.roles.includes("practitioner")
+                      ? "practitioner"
+                      : "none";
+                return (
+                  <TableRow key={m.id}>
+                    <TableCell>{m.display_name ?? "(no name)"}</TableCell>
+                    <TableCell>
+                      {isSuper ? (
+                        <Badge variant="destructive">Super admin</Badge>
+                      ) : (
+                        <Select
+                          value={primaryRole === "none" ? "practitioner" : primaryRole}
+                          onValueChange={(v) =>
+                            onChangeRole(m.id, v as "practitioner" | "org_admin")
+                          }
+                        >
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="practitioner">Practitioner</SelectItem>
+                            <SelectItem value="org_admin">Org admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {m.is_active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {!isSuper && !isSelf && (
+                        <Button
+                          size="sm"
+                          variant={m.is_active ? "outline" : "default"}
+                          onClick={() => onToggleActive(m.id, m.is_active)}
+                        >
+                          {m.is_active ? "Deactivate" : "Reactivate"}
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+          )}
+        </TableBody>
+      </Table>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add team member</DialogTitle>
+          </DialogHeader>
+          {tempPassword ? (
+            <div className="space-y-3">
+              <Alert>
+                <AlertDescription>
+                  Account created. Copy this temporary password now — it will not be shown again.
+                  The user must set a new password on first sign-in.
+                </AlertDescription>
+              </Alert>
+              <div className="flex items-center gap-2">
+                <Input value={tempPassword} readOnly className="font-mono" />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(tempPassword);
+                    toast.success("Copied");
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    setTempPassword(null);
+                    setCreateOpen(false);
+                  }}
+                >
+                  Done
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Display name</Label>
+                <Input
+                  value={form.display_name}
+                  onChange={(e) => setForm({ ...form, display_name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Role</Label>
+                <Select
+                  value={form.role}
+                  onValueChange={(v) => setForm({ ...form, role: v as typeof form.role })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="practitioner">Practitioner</SelectItem>
+                    <SelectItem value="org_admin">Org admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</Button>
+                <Button onClick={onCreate} disabled={!form.email}>Create</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

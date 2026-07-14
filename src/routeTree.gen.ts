@@ -17,13 +17,20 @@ import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedFrequenciesRouteImport } from './routes/_authenticated/frequencies'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
+import { Route as AuthenticatedChangePasswordRouteImport } from './routes/_authenticated/change-password'
 import { Route as AuthenticatedAvailabilityRouteImport } from './routes/_authenticated/availability'
 import { Route as AuthenticatedAudioRouteImport } from './routes/_authenticated/audio'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings.$id'
+import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
+import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated/admin.clients'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
 
@@ -67,6 +74,12 @@ const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChangePasswordRoute =
+  AuthenticatedChangePasswordRouteImport.update({
+    id: '/change-password',
+    path: '/change-password',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAvailabilityRoute =
   AuthenticatedAvailabilityRouteImport.update({
     id: '/availability',
@@ -95,6 +108,11 @@ const AuthenticatedBookingsIndexRoute =
     path: '/bookings/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedSessionsNewRoute =
   AuthenticatedSessionsNewRouteImport.update({
     id: '/new',
@@ -106,6 +124,35 @@ const AuthenticatedBookingsIdRoute = AuthenticatedBookingsIdRouteImport.update({
   path: '/bookings/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminServicesRoute =
+  AuthenticatedAdminServicesRouteImport.update({
+    id: '/services',
+    path: '/services',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminReportsRoute =
+  AuthenticatedAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminClientsRoute =
+  AuthenticatedAdminClientsRouteImport.update({
+    id: '/clients',
+    path: '/clients',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedSessionsIdIndexRoute =
   AuthenticatedSessionsIdIndexRouteImport.update({
     id: '/$id/',
@@ -122,16 +169,23 @@ const AuthenticatedSessionsIdPlayRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/audio': typeof AuthenticatedAudioRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
+  '/change-password': typeof AuthenticatedChangePasswordRoute
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/services': typeof AuthenticatedAdminServicesRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
@@ -140,15 +194,21 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/audio': typeof AuthenticatedAudioRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
+  '/change-password': typeof AuthenticatedChangePasswordRoute
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/services': typeof AuthenticatedAdminServicesRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/sessions': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
@@ -159,16 +219,23 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/audio': typeof AuthenticatedAudioRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
+  '/_authenticated/change-password': typeof AuthenticatedChangePasswordRoute
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/frequencies': typeof AuthenticatedFrequenciesRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/_authenticated/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
@@ -182,13 +249,20 @@ export interface FileRouteTypes {
     | '/admin'
     | '/audio'
     | '/availability'
+    | '/change-password'
     | '/clients'
     | '/dashboard'
     | '/frequencies'
     | '/services'
     | '/sessions'
+    | '/admin/clients'
+    | '/admin/reports'
+    | '/admin/services'
+    | '/admin/settings'
+    | '/admin/team'
     | '/bookings/$id'
     | '/sessions/new'
+    | '/admin/'
     | '/bookings/'
     | '/sessions/'
     | '/sessions/$id/play'
@@ -197,15 +271,21 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/admin'
     | '/audio'
     | '/availability'
+    | '/change-password'
     | '/clients'
     | '/dashboard'
     | '/frequencies'
     | '/services'
+    | '/admin/clients'
+    | '/admin/reports'
+    | '/admin/services'
+    | '/admin/settings'
+    | '/admin/team'
     | '/bookings/$id'
     | '/sessions/new'
+    | '/admin'
     | '/bookings'
     | '/sessions'
     | '/sessions/$id/play'
@@ -218,13 +298,20 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/audio'
     | '/_authenticated/availability'
+    | '/_authenticated/change-password'
     | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/frequencies'
     | '/_authenticated/services'
     | '/_authenticated/sessions'
+    | '/_authenticated/admin/clients'
+    | '/_authenticated/admin/reports'
+    | '/_authenticated/admin/services'
+    | '/_authenticated/admin/settings'
+    | '/_authenticated/admin/team'
     | '/_authenticated/bookings/$id'
     | '/_authenticated/sessions/new'
+    | '/_authenticated/admin/'
     | '/_authenticated/bookings/'
     | '/_authenticated/sessions/'
     | '/_authenticated/sessions/$id/play'
@@ -295,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/change-password': {
+      id: '/_authenticated/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof AuthenticatedChangePasswordRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/availability': {
       id: '/_authenticated/availability'
       path: '/availability'
@@ -330,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/sessions/new': {
       id: '/_authenticated/sessions/new'
       path: '/new'
@@ -343,6 +444,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/bookings/$id'
       preLoaderRoute: typeof AuthenticatedBookingsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/team': {
+      id: '/_authenticated/admin/team'
+      path: '/team'
+      fullPath: '/admin/team'
+      preLoaderRoute: typeof AuthenticatedAdminTeamRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/services': {
+      id: '/_authenticated/admin/services'
+      path: '/services'
+      fullPath: '/admin/services'
+      preLoaderRoute: typeof AuthenticatedAdminServicesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/reports': {
+      id: '/_authenticated/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/clients': {
+      id: '/_authenticated/admin/clients'
+      path: '/clients'
+      fullPath: '/admin/clients'
+      preLoaderRoute: typeof AuthenticatedAdminClientsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/sessions/$id/': {
       id: '/_authenticated/sessions/$id/'
@@ -360,6 +496,27 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRoute
+  AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
+  AuthenticatedAdminServicesRoute: typeof AuthenticatedAdminServicesRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRoute,
+  AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
+  AuthenticatedAdminServicesRoute: AuthenticatedAdminServicesRoute,
+  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedSessionsRouteChildren {
   AuthenticatedSessionsNewRoute: typeof AuthenticatedSessionsNewRoute
@@ -381,9 +538,10 @@ const AuthenticatedSessionsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAudioRoute: typeof AuthenticatedAudioRoute
   AuthenticatedAvailabilityRoute: typeof AuthenticatedAvailabilityRoute
+  AuthenticatedChangePasswordRoute: typeof AuthenticatedChangePasswordRoute
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFrequenciesRoute: typeof AuthenticatedFrequenciesRoute
@@ -394,9 +552,10 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAudioRoute: AuthenticatedAudioRoute,
   AuthenticatedAvailabilityRoute: AuthenticatedAvailabilityRoute,
+  AuthenticatedChangePasswordRoute: AuthenticatedChangePasswordRoute,
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFrequenciesRoute: AuthenticatedFrequenciesRoute,
