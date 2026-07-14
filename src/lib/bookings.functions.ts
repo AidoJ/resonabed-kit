@@ -79,14 +79,18 @@ export const getBooking = createServerFn({ method: "POST" })
         `id, org_id, starts_at, ends_at, status, notes, practitioner_id, session_id, client_id, service_id,
          client:client_id(id, first_name, last_name, email, phone),
          service:service_id(id, name, duration_minutes, price),
-         practitioner:practitioner_id(id, display_name),
          session:session_id(id, status, payment_method, payment_amount, created_at)`,
       )
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Booking not found");
-    return row;
+    const { data: prof } = await context.supabase
+      .from("profiles")
+      .select("id, display_name")
+      .eq("id", row.practitioner_id)
+      .maybeSingle();
+    return { ...row, practitioner: prof ?? null };
   });
 
 // ---------- Create / update / delete ----------
