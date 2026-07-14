@@ -18,7 +18,7 @@ function fmt(sec: number): string {
   return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
 }
 
-export function CountdownTimer({ durationSeconds, onComplete, onRunningChange }: Props) {
+export function CountdownTimer({ durationSeconds, onComplete, onRunningChange, onStart, onPause, onReset }: Props) {
   const [remaining, setRemaining] = useState(durationSeconds);
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState(false);
