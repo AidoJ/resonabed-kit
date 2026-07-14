@@ -5,7 +5,7 @@ import { getSession } from "@/lib/sessions.functions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/_authenticated/sessions/$id")({
+export const Route = createFileRoute("/_authenticated/sessions/$id/")({
   head: () => ({ meta: [{ title: "Session summary — ResonaBed" }] }),
   component: SessionSummary,
 });
