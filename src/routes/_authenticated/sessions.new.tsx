@@ -165,7 +165,8 @@ function NewSession() {
     <WizardShell
       step={step}
       totalSteps={STEP_TITLES.length}
-      title={`Step ${step + 1} — ${STEP_TITLES[step]}`}
+      stepLabels={STEP_TITLES}
+      title={STEP_TITLES[step]}
       subtitle={subtitles[step]}
       footer={
         <>

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import logo from "@/assets/resonabed-logo-transparent.png.asset.json";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -14,8 +14,8 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in — ResonaBed" },
-      { name: "description", content: "Sign in to your ResonaBed practitioner account." },
+      { title: "Sign in — Resonabed" },
+      { name: "description", content: "Sign in to your Resonabed practitioner account." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -62,16 +62,38 @@ function AuthPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl">ResonaBed</CardTitle>
-          <CardDescription>Sign in to your practitioner account.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-70"
+        style={{
+          background:
+            "radial-gradient(60% 45% at 50% 20%, color-mix(in oklab, var(--brand-violet) 14%, transparent), transparent 70%)",
+        }}
+      />
+      <div className="relative w-full max-w-md">
+        <div className="mb-6 flex flex-col items-center">
+          <img
+            src={logo.url}
+            alt="Resonabed"
+            className="h-24 w-auto"
+            draggable={false}
+          />
+        </div>
+        <div className="shadow-soft rounded-2xl bg-card p-8">
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl font-light tracking-tight text-brand-indigo">
+              Welcome back
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sign in to your practitioner account.
+            </p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-[13px] font-medium text-brand-indigo">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -79,10 +101,13 @@ function AuthPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="h-12 rounded-[10px] border-border bg-background"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-[13px] font-medium text-brand-indigo">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -90,23 +115,31 @@ function AuthPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="h-12 rounded-[10px] border-border bg-background"
               />
             </div>
             {error ? (
-              <p className="text-sm text-destructive" role="alert">
+              <p
+                className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                role="alert"
+              >
                 {error}
               </p>
             ) : null}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="h-12 w-full rounded-[10px] text-[15px] font-medium"
+            >
               {loading ? "Signing in…" : "Sign in"}
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Accounts are created by administrators. Contact your organisation admin if you need
-              access.
-            </p>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Accounts are created by administrators. Contact your organisation admin if you need
+          access.
+        </p>
+      </div>
     </main>
   );
 }
