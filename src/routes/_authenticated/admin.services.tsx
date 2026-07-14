@@ -88,14 +88,15 @@ function ServicesAdmin() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow><TableCell colSpan={5}>Loading…</TableCell></TableRow>
+            <TableRow><TableCell colSpan={6}>Loading…</TableCell></TableRow>
           ) : (data ?? []).length === 0 ? (
-            <TableRow><TableCell colSpan={5} className="text-muted-foreground">No services yet.</TableCell></TableRow>
+            <TableRow><TableCell colSpan={6} className="text-muted-foreground">No services yet.</TableCell></TableRow>
           ) : (
             (data ?? []).map((s) => (
               <TableRow key={s.id}>
                 <TableCell>{s.name}</TableCell>
                 <TableCell>{s.duration_minutes} min</TableCell>
+                <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
                 <TableCell>{Number(s.price).toFixed(2)}</TableCell>
                 <TableCell>
                   {s.is_active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
