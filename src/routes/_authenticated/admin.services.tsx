@@ -26,6 +26,7 @@ type Service = {
   id: string;
   name: string;
   duration_minutes: number;
+  buffer_minutes: number;
   price: number;
   is_active: boolean;
 };
