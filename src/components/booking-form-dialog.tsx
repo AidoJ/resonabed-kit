@@ -204,7 +204,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
         await createFn({ data: payload });
         toast.success("Booking created");
       }
-      onSaved();
+      onSaved(payload.starts_at);
       onOpenChange(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
