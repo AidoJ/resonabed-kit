@@ -61,6 +61,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Force-change-password interceptor: signed-in users with must_change_password=true
+  // are redirected here and cannot access anything else.
+  useEffect(() => {
+    if (data?.mustChangePassword && currentPath !== "/change-password") {
+      navigate({ to: "/change-password", replace: true });
+    }
+  }, [data?.mustChangePassword, currentPath, navigate]);
+
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
     queryClient.clear();
