@@ -20,6 +20,7 @@ import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAudioRouteImport } from './routes/_authenticated/audio'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
+import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
@@ -80,6 +81,12 @@ const AuthenticatedSessionsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSessionsRoute,
   } as any)
+const AuthenticatedBookingsIndexRoute =
+  AuthenticatedBookingsIndexRouteImport.update({
+    id: '/bookings/',
+    path: '/bookings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSessionsNewRoute =
   AuthenticatedSessionsNewRouteImport.update({
     id: '/new',
@@ -110,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/sessions/$id/': typeof AuthenticatedSessionsIdIndexRoute
@@ -124,6 +132,7 @@ export interface FileRoutesByTo {
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/sessions': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/sessions/$id': typeof AuthenticatedSessionsIdIndexRoute
@@ -141,6 +150,7 @@ export interface FileRoutesById {
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/_authenticated/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/_authenticated/sessions/$id/': typeof AuthenticatedSessionsIdIndexRoute
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/sessions'
     | '/sessions/new'
+    | '/bookings/'
     | '/sessions/'
     | '/sessions/$id/play'
     | '/sessions/$id/'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/frequencies'
     | '/services'
     | '/sessions/new'
+    | '/bookings'
     | '/sessions'
     | '/sessions/$id/play'
     | '/sessions/$id'
@@ -188,6 +200,7 @@ export interface FileRouteTypes {
     | '/_authenticated/services'
     | '/_authenticated/sessions'
     | '/_authenticated/sessions/new'
+    | '/_authenticated/bookings/'
     | '/_authenticated/sessions/'
     | '/_authenticated/sessions/$id/play'
     | '/_authenticated/sessions/$id/'
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSessionsIndexRouteImport
       parentRoute: typeof AuthenticatedSessionsRoute
     }
+    '/_authenticated/bookings/': {
+      id: '/_authenticated/bookings/'
+      path: '/bookings'
+      fullPath: '/bookings/'
+      preLoaderRoute: typeof AuthenticatedBookingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sessions/new': {
       id: '/_authenticated/sessions/new'
       path: '/new'
@@ -329,6 +349,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFrequenciesRoute: typeof AuthenticatedFrequenciesRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRouteWithChildren
+  AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -339,6 +360,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFrequenciesRoute: AuthenticatedFrequenciesRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRouteWithChildren,
+  AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -24,7 +24,7 @@ const searchSchema = z.object({
   filter: fallback(z.string(), "").default(""),
 });
 
-export const Route = createFileRoute("/_authenticated/bookings")({
+export const Route = createFileRoute("/_authenticated/bookings/")({
   head: () => ({ meta: [{ title: "Bookings — ResonaBed" }] }),
   validateSearch: zodValidator(searchSchema),
   component: BookingsPage,
