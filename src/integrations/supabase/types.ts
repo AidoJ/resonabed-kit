@@ -233,6 +233,7 @@ export type Database = {
           brand_color: string | null
           created_at: string
           id: string
+          logo_path: string | null
           logo_url: string | null
           name: string
           status: Database["public"]["Enums"]["org_status"]
@@ -242,6 +243,7 @@ export type Database = {
           brand_color?: string | null
           created_at?: string
           id?: string
+          logo_path?: string | null
           logo_url?: string | null
           name: string
           status?: Database["public"]["Enums"]["org_status"]
@@ -251,6 +253,7 @@ export type Database = {
           brand_color?: string | null
           created_at?: string
           id?: string
+          logo_path?: string | null
           logo_url?: string | null
           name?: string
           status?: Database["public"]["Enums"]["org_status"]
@@ -307,6 +310,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          is_active: boolean
           org_id: string | null
           updated_at: string
         }
@@ -314,6 +318,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          is_active?: boolean
           org_id?: string | null
           updated_at?: string
         }
@@ -321,6 +326,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_active?: boolean
           org_id?: string | null
           updated_at?: string
         }
