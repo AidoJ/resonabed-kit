@@ -34,7 +34,7 @@ export const listBookings = createServerFn({ method: "POST" })
       .select(
         `id, starts_at, ends_at, status, notes, practitioner_id, session_id,
          client:client_id(id, first_name, last_name),
-         service:service_id(id, name, duration_minutes, price),
+         service:service_id(id, name, duration_minutes, buffer_minutes, price),
          session:session_id(id, status, payment_method, payment_amount)`,
       )
       .gte("starts_at", data.from)
