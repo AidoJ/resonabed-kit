@@ -49,7 +49,7 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   booking?: BookingLite | null;
   defaultStartsAt?: string;
-  onSaved: () => void;
+  onSaved: (savedStartsAt?: string) => void;
 }
 
 function toLocalInput(iso: string): string {
