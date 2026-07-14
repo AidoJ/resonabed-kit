@@ -71,7 +71,7 @@ function ServicesAdmin() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={() => setEditing({ is_active: true, duration_minutes: 30, price: 0 })}>
+        <Button onClick={() => setEditing({ is_active: true, duration_minutes: 30, buffer_minutes: 15, price: 0 })}>
           <Plus className="mr-2 h-4 w-4" /> New service
         </Button>
       </div>
