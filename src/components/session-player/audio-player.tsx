@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Play, Pause, Square, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -9,6 +9,12 @@ interface Props {
   onPlayingChange?: (playing: boolean) => void;
 }
 
+export interface AudioPlayerHandle {
+  play: () => void;
+  pause: () => void;
+  stop: () => void;
+}
+
 function fmt(sec: number): string {
   if (!isFinite(sec) || sec < 0) return "00:00";
   const m = Math.floor(sec / 60);
@@ -16,26 +22,35 @@ function fmt(sec: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-export function AudioPlayer({ src, title, onPlayingChange }: Props) {
-  const ref = useRef<HTMLAudioElement>(null);
+export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPlayer(
+  { src, title, onPlayingChange },
+  ref,
+) {
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [dur, setDur] = useState(0);
   const [vol, setVol] = useState(0.8);
 
   useEffect(() => {
-    const el = ref.current;
+    const el = audioRef.current;
     if (!el) return;
     const onTime = () => setTime(el.currentTime);
     const onDur = () => setDur(el.duration);
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
     const onEnd = () => setPlaying(false);
     el.addEventListener("timeupdate", onTime);
     el.addEventListener("loadedmetadata", onDur);
+    el.addEventListener("play", onPlay);
+    el.addEventListener("pause", onPause);
     el.addEventListener("ended", onEnd);
     el.volume = vol;
     return () => {
       el.removeEventListener("timeupdate", onTime);
       el.removeEventListener("loadedmetadata", onDur);
+      el.removeEventListener("play", onPlay);
+      el.removeEventListener("pause", onPause);
       el.removeEventListener("ended", onEnd);
     };
   }, [vol]);
@@ -44,29 +59,28 @@ export function AudioPlayer({ src, title, onPlayingChange }: Props) {
     onPlayingChange?.(playing);
   }, [playing, onPlayingChange]);
 
-  const toggle = () => {
-    const el = ref.current;
+  const doPlay = () => {
+    const el = audioRef.current;
     if (!el) return;
-    if (playing) {
-      el.pause();
-      setPlaying(false);
-    } else {
-      void el.play();
-      setPlaying(true);
-    }
+    void el.play().catch(() => {});
   };
-
-  const stop = () => {
-    const el = ref.current;
+  const doPause = () => {
+    audioRef.current?.pause();
+  };
+  const doStop = () => {
+    const el = audioRef.current;
     if (!el) return;
     el.pause();
     el.currentTime = 0;
-    setPlaying(false);
     setTime(0);
   };
 
+  useImperativeHandle(ref, () => ({ play: doPlay, pause: doPause, stop: doStop }), []);
+
+  const toggle = () => (playing ? doPause() : doPlay());
+
   const seek = (v: number) => {
-    const el = ref.current;
+    const el = audioRef.current;
     if (!el) return;
     el.currentTime = v;
     setTime(v);
@@ -80,7 +94,7 @@ export function AudioPlayer({ src, title, onPlayingChange }: Props) {
           {fmt(time)} / {fmt(dur)}
         </span>
       </div>
-      <audio ref={ref} src={src} preload="metadata" />
+      <audio ref={audioRef} src={src} preload="metadata" />
       <Slider
         min={0}
         max={dur || 1}
@@ -94,6 +108,7 @@ export function AudioPlayer({ src, title, onPlayingChange }: Props) {
           onClick={toggle}
           className="h-16 w-16 rounded-full p-0 shadow-lift"
           aria-label={playing ? "Pause" : "Play"}
+          type="button"
         >
           {playing ? (
             <Pause className="h-6 w-6" fill="currentColor" strokeWidth={0} />
@@ -102,10 +117,11 @@ export function AudioPlayer({ src, title, onPlayingChange }: Props) {
           )}
         </Button>
         <Button
-          onClick={stop}
+          onClick={doStop}
           variant="ghost"
           className="h-12 w-12 rounded-full p-0 text-foreground/80 hover:bg-white/5"
           aria-label="Stop"
+          type="button"
         >
           <Square className="h-5 w-5" fill="currentColor" strokeWidth={0} />
         </Button>
@@ -123,5 +139,4 @@ export function AudioPlayer({ src, title, onPlayingChange }: Props) {
       </div>
     </div>
   );
-}
-
+});
