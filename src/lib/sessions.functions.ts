@@ -75,15 +75,96 @@ export const listMyOrgServices = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+const FREQ_COLUMNS =
+  "id, hz, name, description, benefits, color, goal_tags, body_area_tags, pain_affinity, stress_affinity, sleep_affinity";
+
 export const listFrequencies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("frequencies")
-      .select("id, hz, name, description, benefits, color")
+      .select(FREQ_COLUMNS)
       .order("hz", { ascending: true });
     if (error) throw new Error(error.message);
     return data ?? [];
+  });
+
+// Frequencies plus a flag indicating whether the caller's org has an active
+// audio file for each. Used to bias the recommendation UI.
+export const listFrequenciesWithAudioFlag = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [freqRes, audioRes] = await Promise.all([
+      context.supabase.from("frequencies").select(FREQ_COLUMNS).order("hz", { ascending: true }),
+      context.supabase.from("audio_files").select("frequency_id").eq("is_active", true),
+    ]);
+    if (freqRes.error) throw new Error(freqRes.error.message);
+    if (audioRes.error) throw new Error(audioRes.error.message);
+    const withAudio = new Set(
+      (audioRes.data ?? []).map((r) => r.frequency_id).filter((v): v is string => !!v),
+    );
+    return (freqRes.data ?? []).map((f) => ({ ...f, has_audio: withAudio.has(f.id) }));
+  });
+
+// Admin: upsert a frequency. RLS restricts write access to super_admin.
+const frequencyInput = z.object({
+  id: uuid.optional(),
+  hz: z.number().int().min(1).max(20000),
+  name: z.string().min(1).max(80),
+  description: z.string().max(1000).nullable().optional(),
+  benefits: z.string().max(1000).nullable().optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .nullable()
+    .optional(),
+  goal_tags: z.array(z.string().max(40)).max(20),
+  body_area_tags: z.array(z.string().max(40)).max(20),
+  pain_affinity: z.number().int().min(0).max(5),
+  stress_affinity: z.number().int().min(0).max(5),
+  sleep_affinity: z.number().int().min(0).max(5),
+});
+
+export const upsertFrequency = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => frequencyInput.parse(data))
+  .handler(async ({ data, context }) => {
+    const payload = {
+      hz: data.hz,
+      name: data.name,
+      description: data.description ?? null,
+      benefits: data.benefits ?? null,
+      color: data.color ?? null,
+      goal_tags: data.goal_tags,
+      body_area_tags: data.body_area_tags,
+      pain_affinity: data.pain_affinity,
+      stress_affinity: data.stress_affinity,
+      sleep_affinity: data.sleep_affinity,
+    };
+    if (data.id) {
+      const { error } = await context.supabase
+        .from("frequencies")
+        .update(payload)
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+      return { id: data.id };
+    }
+    const { data: row, error } = await context.supabase
+      .from("frequencies")
+      .insert(payload)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const deleteFrequency = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("frequencies").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 // ---------- Sessions ----------
