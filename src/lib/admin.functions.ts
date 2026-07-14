@@ -302,7 +302,11 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       .eq("id", context.userId)
       .maybeSingle();
     if (!profile?.org_id) throw new Error("No organisation");
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      name?: string;
+      brand_color?: string | null;
+      logo_path?: string | null;
+    } = {};
     if (data.name !== undefined) patch.name = data.name;
     if (data.brand_color !== undefined) patch.brand_color = data.brand_color;
     if (data.logo_path !== undefined) patch.logo_path = data.logo_path;
