@@ -162,7 +162,7 @@ function NewSession() {
         <StepFrequency
           ranked={ranked}
           hasAudio={hasAudio}
-          selectedId={activeFreqId}
+          targetHz={targetHz}
           onChange={setChosenFreqId}
         />
 
