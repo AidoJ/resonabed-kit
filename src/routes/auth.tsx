@@ -11,6 +11,7 @@ const searchSchema = z.object({ redirect: z.string().optional() });
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Sign in — ResonaBed" },
@@ -19,7 +20,6 @@ export const Route = createFileRoute("/auth")({
     ],
   }),
   beforeLoad: async ({ search }) => {
-    if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (data.session) {
       throw redirect({ to: search.redirect ?? "/dashboard" });
