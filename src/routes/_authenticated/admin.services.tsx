@@ -26,6 +26,7 @@ type Service = {
   id: string;
   name: string;
   duration_minutes: number;
+  buffer_minutes: number;
   price: number;
   is_active: boolean;
 };
@@ -45,6 +46,7 @@ function ServicesAdmin() {
           id: payload.id,
           name: payload.name ?? "",
           duration_minutes: Number(payload.duration_minutes ?? 30),
+          buffer_minutes: Number(payload.buffer_minutes ?? 15),
           price: Number(payload.price ?? 0),
           is_active: payload.is_active ?? true,
         },
@@ -69,7 +71,7 @@ function ServicesAdmin() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={() => setEditing({ is_active: true, duration_minutes: 30, price: 0 })}>
+        <Button onClick={() => setEditing({ is_active: true, duration_minutes: 30, buffer_minutes: 15, price: 0 })}>
           <Plus className="mr-2 h-4 w-4" /> New service
         </Button>
       </div>
@@ -78,6 +80,7 @@ function ServicesAdmin() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Duration</TableHead>
+            <TableHead>Changeover</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-24" />
@@ -85,14 +88,15 @@ function ServicesAdmin() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow><TableCell colSpan={5}>Loading…</TableCell></TableRow>
+            <TableRow><TableCell colSpan={6}>Loading…</TableCell></TableRow>
           ) : (data ?? []).length === 0 ? (
-            <TableRow><TableCell colSpan={5} className="text-muted-foreground">No services yet.</TableCell></TableRow>
+            <TableRow><TableCell colSpan={6} className="text-muted-foreground">No services yet.</TableCell></TableRow>
           ) : (
             (data ?? []).map((s) => (
               <TableRow key={s.id}>
                 <TableCell>{s.name}</TableCell>
                 <TableCell>{s.duration_minutes} min</TableCell>
+                <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
                 <TableCell>{Number(s.price).toFixed(2)}</TableCell>
                 <TableCell>
                   {s.is_active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
@@ -152,6 +156,21 @@ function ServicesAdmin() {
                     onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })}
                   />
                 </div>
+              </div>
+              <div>
+                <Label>Changeover time (minutes)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={240}
+                  value={editing.buffer_minutes ?? 15}
+                  onChange={(e) =>
+                    setEditing({ ...editing, buffer_minutes: Number(e.target.value) })
+                  }
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Turnaround after each appointment for cleaning and reset. Not shown to clients; blocks the practitioner from being double-booked.
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Switch

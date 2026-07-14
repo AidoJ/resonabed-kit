@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import {
   createBooking,
   updateBooking,
   listOrgPractitioners,
+  listBookings,
 } from "@/lib/bookings.functions";
 import {
   listMyOrgClients,
@@ -41,7 +42,7 @@ interface BookingLite {
   client_id?: string;
   service_id?: string;
   client?: { id: string; first_name: string; last_name: string } | null;
-  service?: { id: string; name: string; duration_minutes: number } | null;
+  service?: { id: string; name: string; duration_minutes: number; buffer_minutes?: number } | null;
 }
 
 interface Props {
@@ -69,6 +70,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   const listServices = useServerFn(listMyOrgServices);
   const listPracs = useServerFn(listOrgPractitioners);
   const listAvail = useServerFn(listAvailability);
+  const listBooks = useServerFn(listBookings);
   const createFn = useServerFn(createBooking);
   const updateFn = useServerFn(updateBooking);
   const createClientFn = useServerFn(createClientRecord);
@@ -94,6 +96,26 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     queryFn: () => listAvail({ data: {} }),
     enabled: open,
   });
+
+  // Anchor day for fetching neighbouring bookings (for buffer/overlap checks).
+  const anchorDayIso = useMemo(() => {
+    const src = booking?.starts_at ?? defaultStartsAt ?? new Date().toISOString();
+    const d = new Date(src);
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  }, [booking, defaultStartsAt]);
+  const anchorDayEndIso = useMemo(() => {
+    const d = new Date(anchorDayIso);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString();
+  }, [anchorDayIso]);
+  const { data: dayBookings = [] } = useQuery({
+    queryKey: ["day-bookings", anchorDayIso],
+    queryFn: () =>
+      listBooks({ data: { from: anchorDayIso, to: anchorDayEndIso } }),
+    enabled: open,
+  });
+
 
   const [clientId, setClientId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
@@ -129,6 +151,28 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     setNewClientMode(false);
   }, [open, booking, defaultStartsAt]);
 
+  // When creating a new booking, suggest the next available start = last booking's
+  // ends_at + its service's buffer_minutes (scoped to the selected practitioner if any).
+  const suggestedStartRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || booking) return;
+    if (dayBookings.length === 0) return;
+    const relevant = practitionerId
+      ? dayBookings.filter((b) => b.practitioner_id === practitionerId)
+      : dayBookings;
+    if (relevant.length === 0) return;
+    const last = relevant.reduce((a, b) =>
+      new Date(a.ends_at) > new Date(b.ends_at) ? a : b,
+    );
+    const buffer = last.service?.buffer_minutes ?? 0;
+    const suggested = new Date(new Date(last.ends_at).getTime() + buffer * 60_000);
+    const suggestedIso = suggested.toISOString();
+    if (suggestedStartRef.current === suggestedIso) return;
+    suggestedStartRef.current = suggestedIso;
+    setStartsLocal(toLocalInput(suggestedIso));
+    setEndsLocal("");
+  }, [open, booking, dayBookings, practitionerId]);
+
   // Auto-fill ends_at from service duration when service/starts change.
   useEffect(() => {
     if (!startsLocal || !serviceId) return;
@@ -162,8 +206,32 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
       });
       if (!inside) out.push("Slot falls outside this practitioner's availability.");
     }
+
+    // Buffer / overlap: practitioner is occupied until each booking's ends_at + its buffer.
+    const others = dayBookings.filter(
+      (b) => b.practitioner_id === practitionerId && b.id !== booking?.id,
+    );
+    for (const b of others) {
+      const bStart = new Date(b.starts_at).getTime();
+      const bBuffer = (b.service?.buffer_minutes ?? 0) * 60_000;
+      const bBusyEnd = new Date(b.ends_at).getTime() + bBuffer;
+      if (start.getTime() < bBusyEnd && end.getTime() > bStart) {
+        const bEndLabel = new Date(b.ends_at).toLocaleTimeString(undefined, {
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        const bufMin = b.service?.buffer_minutes ?? 0;
+        if (start.getTime() < new Date(b.ends_at).getTime()) {
+          out.push(`Overlaps another booking ending at ${bEndLabel}.`);
+        } else if (bufMin > 0) {
+          out.push(
+            `Starts during the ${bufMin}-min changeover after the booking ending at ${bEndLabel}.`,
+          );
+        }
+      }
+    }
     return out;
-  }, [startsLocal, endsLocal, practitionerId, availability]);
+  }, [startsLocal, endsLocal, practitionerId, availability, dayBookings, booking?.id]);
 
   const canSave =
     !!(clientId && serviceId && practitionerId && startsLocal && endsLocal) &&
