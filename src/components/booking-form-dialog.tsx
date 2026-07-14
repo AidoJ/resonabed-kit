@@ -42,7 +42,7 @@ interface BookingLite {
   client_id?: string;
   service_id?: string;
   client?: { id: string; first_name: string; last_name: string } | null;
-  service?: { id: string; name: string; duration_minutes: number } | null;
+  service?: { id: string; name: string; duration_minutes: number; buffer_minutes?: number } | null;
 }
 
 interface Props {
