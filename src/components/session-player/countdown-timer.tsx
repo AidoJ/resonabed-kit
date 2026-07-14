@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 interface Props {
   durationSeconds: number;
   onComplete?: () => void;
+  onRunningChange?: (running: boolean) => void;
 }
 
 function fmt(sec: number): string {
@@ -14,19 +15,52 @@ function fmt(sec: number): string {
   return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
 }
 
-export function CountdownTimer({ durationSeconds, onComplete }: Props) {
+export function CountdownTimer({ durationSeconds, onComplete, onRunningChange }: Props) {
   const [remaining, setRemaining] = useState(durationSeconds);
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState(false);
   const endTsRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const completedRef = useRef(false);
+  const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
 
   useEffect(() => {
     setRemaining(durationSeconds);
     setCompleted(false);
     completedRef.current = false;
   }, [durationSeconds]);
+
+  useEffect(() => {
+    onRunningChange?.(running);
+  }, [running, onRunningChange]);
+
+  // Screen Wake Lock while running.
+  useEffect(() => {
+    let cancelled = false;
+    async function acquire() {
+      const nav = navigator as Navigator & {
+        wakeLock?: { request: (type: "screen") => Promise<{ release: () => Promise<void> }> };
+      };
+      if (!nav.wakeLock) return;
+      try {
+        const sentinel = await nav.wakeLock.request("screen");
+        if (cancelled) {
+          void sentinel.release();
+          return;
+        }
+        wakeLockRef.current = sentinel;
+      } catch {
+        /* ignore */
+      }
+    }
+    if (running) void acquire();
+    return () => {
+      cancelled = true;
+      const s = wakeLockRef.current;
+      wakeLockRef.current = null;
+      if (s) void s.release().catch(() => {});
+    };
+  }, [running]);
 
   useEffect(() => {
     if (!running) return;
@@ -66,24 +100,93 @@ export function CountdownTimer({ durationSeconds, onComplete }: Props) {
     completedRef.current = false;
   };
 
+  const progress =
+    durationSeconds > 0 ? Math.max(0, Math.min(1, 1 - remaining / durationSeconds)) : 0;
+
+  const size = 360;
+  const stroke = 3;
+  const radius = size / 2 - stroke;
+  const circ = 2 * Math.PI * radius;
+
   return (
-    <div className="flex flex-col items-center gap-6">
-      <div className="text-7xl font-bold tabular-nums md:text-8xl">{fmt(remaining)}</div>
-      {completed ? (
-        <p className="text-lg font-medium text-primary">Session time complete</p>
-      ) : null}
-      <div className="flex gap-3">
+    <div className="flex flex-col items-center gap-8">
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        <svg
+          className="absolute inset-0 -rotate-90"
+          width={size}
+          height={size}
+          aria-hidden="true"
+        >
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="color-mix(in oklab, var(--foreground) 12%, transparent)"
+            strokeWidth={stroke}
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="var(--primary)"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={circ}
+            strokeDashoffset={circ * (1 - progress)}
+            style={{ transition: running ? "stroke-dashoffset 0.2s linear" : undefined }}
+          />
+        </svg>
+        <div className="flex flex-col items-center">
+          <span
+            className="font-light tabular-nums text-foreground"
+            style={{ fontSize: "clamp(72px, 12vw, 112px)", lineHeight: 1, letterSpacing: "-0.02em" }}
+          >
+            {fmt(remaining)}
+          </span>
+          {completed ? (
+            <p className="mt-4 text-[15px] font-medium uppercase tracking-[0.16em] text-primary">
+              Session complete
+            </p>
+          ) : (
+            <p className="mt-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              {running ? "In session" : remaining < durationSeconds ? "Paused" : "Ready"}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
         {!running ? (
-          <Button size="lg" onClick={start} disabled={remaining <= 0} className="h-14 px-8 text-base">
-            <Play className="mr-2 h-5 w-5" /> Start
+          <Button
+            onClick={start}
+            disabled={remaining <= 0}
+            className="h-16 min-w-16 rounded-full px-8 text-[15px] font-medium shadow-lift"
+          >
+            <Play className="mr-2 h-5 w-5" fill="currentColor" strokeWidth={0} />
+            Start
           </Button>
         ) : (
-          <Button size="lg" onClick={pause} variant="secondary" className="h-14 px-8 text-base">
-            <Pause className="mr-2 h-5 w-5" /> Pause
+          <Button
+            onClick={pause}
+            variant="secondary"
+            className="h-16 min-w-16 rounded-full px-8 text-[15px] font-medium"
+          >
+            <Pause className="mr-2 h-5 w-5" fill="currentColor" strokeWidth={0} />
+            Pause
           </Button>
         )}
-        <Button size="lg" onClick={reset} variant="outline" className="h-14 px-6 text-base">
-          <RotateCcw className="mr-2 h-5 w-5" /> Reset
+        <Button
+          onClick={reset}
+          variant="ghost"
+          className="h-16 rounded-full px-6 text-[15px] font-medium text-foreground/80 hover:bg-white/5"
+        >
+          <RotateCcw className="mr-2 h-5 w-5" />
+          Reset
         </Button>
       </div>
     </div>
