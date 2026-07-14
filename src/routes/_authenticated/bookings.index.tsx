@@ -225,6 +225,11 @@ function BookingsPage() {
                         }).session;
                         const unpaid =
                           session?.status === "completed" && session.payment_method === "none";
+                        const bufferMin = (b.service as unknown as { buffer_minutes?: number } | null)
+                          ?.buffer_minutes ?? 0;
+                        const bufferEnd = new Date(
+                          new Date(b.ends_at).getTime() + bufferMin * 60_000,
+                        );
                         return (
                           <li key={b.id}>
                             <Link
@@ -253,6 +258,21 @@ function BookingsPage() {
                                 <Badge className={STATUS_STYLES[status]}>{status.replace("_", " ")}</Badge>
                               </div>
                             </Link>
+                            {bufferMin > 0 && (
+                              <div
+                                aria-label={`${bufferMin} minute changeover, not bookable`}
+                                className="flex items-center gap-4 border-t border-dashed bg-muted/30 px-4 py-2 text-xs text-muted-foreground"
+                              >
+                                <div className="w-24 shrink-0 tabular-nums opacity-70">
+                                  {fmtTime(b.ends_at)}
+                                  <span className="mx-1">–</span>
+                                  {fmtTime(bufferEnd.toISOString())}
+                                </div>
+                                <div className="italic">
+                                  Changeover · {bufferMin} min · not bookable
+                                </div>
+                              </div>
+                            )}
                           </li>
                         );
                       })}
