@@ -32,9 +32,38 @@ export const Route = createFileRoute("/_authenticated/sessions/new")({
 const STEP_TITLES = ["Client", "Service", "Symptoms", "Safety", "Frequency"];
 
 function NewSession() {
+  const { booking_id } = Route.useSearch();
+  const bookingFn = useServerFn(getBooking);
+  const { data: booking } = useQuery({
+    queryKey: ["booking", booking_id],
+    queryFn: () => bookingFn({ data: { id: booking_id! } }),
+    enabled: !!booking_id,
+  });
+
   const [step, setStep] = useState(0);
   const [client, setClient] = useState<ClientOption | null>(null);
   const [service, setService] = useState<ServiceOption | null>(null);
+
+  // Pre-fill from booking and jump to Symptoms step.
+  useEffect(() => {
+    if (!booking) return;
+    if (booking.client) {
+      setClient({
+        id: booking.client.id,
+        first_name: booking.client.first_name,
+        last_name: booking.client.last_name,
+      } as ClientOption);
+    }
+    if (booking.service) {
+      setService({
+        id: booking.service.id,
+        name: booking.service.name,
+        duration_minutes: booking.service.duration_minutes,
+      } as ServiceOption);
+    }
+    setStep((s) => (s < 2 ? 2 : s));
+  }, [booking]);
+
   const [symptoms, setSymptoms] = useState<SymptomsState>({
     painLevel: 3,
     stressLevel: 5,
