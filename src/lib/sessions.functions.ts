@@ -313,11 +313,14 @@ export const getAudioForFrequency = createServerFn({ method: "POST" })
     z.object({ frequency_id: uuid }).parse(data),
   )
   .handler(async ({ data, context }) => {
+    // If multiple active audio files exist for the frequency, use the most
+    // recently created one.
     const { data: rows, error } = await context.supabase
       .from("audio_files")
-      .select("id, title, file_url, duration_seconds")
+      .select("id, title, file_url, duration_seconds, created_at")
       .eq("frequency_id", data.frequency_id)
       .eq("is_active", true)
+      .order("created_at", { ascending: false })
       .limit(1);
     if (error) throw new Error(error.message);
     return rows?.[0] ?? null;
