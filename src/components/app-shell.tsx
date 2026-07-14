@@ -111,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <SidebarMenuButton
           asChild
           isActive={isActive}
-          className="h-11 rounded-lg text-[15px] font-normal text-sidebar-foreground/85 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-medium hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+          className="h-11 rounded-lg text-[15px] font-normal text-white data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium hover:bg-sidebar-accent/60 hover:text-white"
         >
           <Link to={item.to} className="flex items-center gap-3">
             <Icon className="h-[18px] w-[18px]" />
@@ -126,22 +126,22 @@ export function AppShell({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar collapsible="icon" className="border-r-0">
-          <SidebarHeader className="px-4 pb-4 pt-5">
+          <SidebarHeader className="px-5 pb-6 pt-6">
             <Link
               to="/dashboard"
-              className="flex items-center gap-2 rounded-xl bg-white/95 px-3 py-2"
+              className="flex items-center justify-center rounded-2xl bg-white/95 px-4 py-5"
             >
               <img
                 src={logo.url}
                 alt="Resonabed"
-                className="h-9 w-auto"
+                className="h-10 w-auto"
                 draggable={false}
               />
             </Link>
           </SidebarHeader>
           <SidebarContent className="px-2">
             <SidebarGroup>
-              <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-sidebar-foreground/50">
+              <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
                 Session
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -151,7 +151,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {scheduling.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-sidebar-foreground/50">
+                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
                   Diary
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -162,7 +162,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {admin.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-sidebar-foreground/50">
+                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
                   Administration
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -174,7 +174,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SidebarFooter className="px-3 pb-4">
             <Button
               variant="ghost"
-              className="h-11 w-full justify-start rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+              className="h-11 w-full justify-start rounded-lg text-white hover:bg-sidebar-accent/60 hover:text-white"
               onClick={handleSignOut}
             >
               <LogOut className="mr-3 h-[18px] w-[18px]" />

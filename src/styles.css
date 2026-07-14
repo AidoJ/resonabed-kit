@@ -132,7 +132,7 @@
 
   /* Sidebar: deep indigo body */
   --sidebar: #26106c;
-  --sidebar-foreground: #ede4f6;
+  --sidebar-foreground: #ffffff;
   --sidebar-primary: #884bc7;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: color-mix(in oklab, #884bc7 22%, transparent);
