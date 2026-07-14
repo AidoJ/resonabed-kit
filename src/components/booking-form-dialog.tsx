@@ -70,6 +70,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   const listServices = useServerFn(listMyOrgServices);
   const listPracs = useServerFn(listOrgPractitioners);
   const listAvail = useServerFn(listAvailability);
+  const listBooks = useServerFn(listBookings);
   const createFn = useServerFn(createBooking);
   const updateFn = useServerFn(updateBooking);
   const createClientFn = useServerFn(createClientRecord);
