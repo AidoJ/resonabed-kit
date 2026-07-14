@@ -46,7 +46,7 @@ function NewSession() {
   const freqFn = useServerFn(listFrequenciesWithAudioFlag);
   const { data: freqs } = useQuery({ queryKey: ["frequencies-with-audio"], queryFn: () => freqFn() });
 
-  const targetHz = useMemo(() => computeTargetHz(symptoms), [symptoms]);
+  const targetHz = useMemo(() => computeTargetHz(symptoms, freqs ?? []), [symptoms, freqs]);
 
   const ranked = useMemo(() => {
     if (!freqs) return [];
