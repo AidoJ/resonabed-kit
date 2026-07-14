@@ -46,6 +46,7 @@ function ServicesAdmin() {
           id: payload.id,
           name: payload.name ?? "",
           duration_minutes: Number(payload.duration_minutes ?? 30),
+          buffer_minutes: Number(payload.buffer_minutes ?? 15),
           price: Number(payload.price ?? 0),
           is_active: payload.is_active ?? true,
         },
