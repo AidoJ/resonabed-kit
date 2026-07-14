@@ -24,7 +24,7 @@ import { UserPlus, Copy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
   head: () => ({ meta: [{ title: "Team — Admin — ResonaBed" }] }),
-  component: TeamAdmin;
+  component: TeamAdmin,
 });
 
 async function callManageTeam(body: Record<string, unknown>) {
