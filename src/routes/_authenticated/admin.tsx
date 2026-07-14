@@ -10,14 +10,14 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const TABS = [
+const TABS: { to: string; label: string; icon: typeof BarChart3; exact?: boolean }[] = [
   { to: "/admin", label: "Overview", icon: BarChart3, exact: true },
   { to: "/admin/services", label: "Services", icon: Wrench },
   { to: "/admin/team", label: "Team", icon: UserCog },
   { to: "/admin/clients", label: "Clients", icon: Users },
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   { to: "/admin/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 function AdminLayout() {
   const fetchCtx = useServerFn(getCurrentUserContext);
