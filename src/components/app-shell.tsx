@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Users, Wrench, ClipboardList, Waves, Music, Shield, LogOut } from "lucide-react";
+import { Users, Wrench, ClipboardList, Waves, Music, Shield, LogOut, Calendar, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
