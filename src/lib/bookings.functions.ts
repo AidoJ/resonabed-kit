@@ -35,7 +35,6 @@ export const listBookings = createServerFn({ method: "POST" })
         `id, starts_at, ends_at, status, notes, practitioner_id, session_id,
          client:client_id(id, first_name, last_name),
          service:service_id(id, name, duration_minutes, price),
-         practitioner:practitioner_id(id, display_name),
          session:session_id(id, status, payment_method, payment_amount)`,
       )
       .gte("starts_at", data.from)
@@ -44,7 +43,22 @@ export const listBookings = createServerFn({ method: "POST" })
     if (data.practitioner_id) q = q.eq("practitioner_id", data.practitioner_id);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    let filtered = rows ?? [];
+    // Fetch practitioners separately (bookings.practitioner_id FKs auth.users,
+    // not profiles, so we can't auto-join to profiles.display_name).
+    const practIds = Array.from(new Set((rows ?? []).map((r) => r.practitioner_id)));
+    const practById: Record<string, { id: string; display_name: string | null }> = {};
+    if (practIds.length > 0) {
+      const { data: profs, error: pErr } = await context.supabase
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", practIds);
+      if (pErr) throw new Error(pErr.message);
+      for (const p of profs ?? []) practById[p.id] = p;
+    }
+    let filtered = (rows ?? []).map((r) => ({
+      ...r,
+      practitioner: practById[r.practitioner_id] ?? null,
+    }));
     if (data.unpaid_only) {
       filtered = filtered.filter((b) => {
         const s = (b as unknown as { session?: { status?: string; payment_method?: string } })
