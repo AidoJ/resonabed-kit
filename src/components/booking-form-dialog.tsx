@@ -97,6 +97,26 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     enabled: open,
   });
 
+  // Anchor day for fetching neighbouring bookings (for buffer/overlap checks).
+  const anchorDayIso = useMemo(() => {
+    const src = booking?.starts_at ?? defaultStartsAt ?? new Date().toISOString();
+    const d = new Date(src);
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  }, [booking, defaultStartsAt]);
+  const anchorDayEndIso = useMemo(() => {
+    const d = new Date(anchorDayIso);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString();
+  }, [anchorDayIso]);
+  const { data: dayBookings = [] } = useQuery({
+    queryKey: ["day-bookings", anchorDayIso],
+    queryFn: () =>
+      listBooks({ data: { from: anchorDayIso, to: anchorDayEndIso } }),
+    enabled: open,
+  });
+
+
   const [clientId, setClientId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
   const [practitionerId, setPractitionerId] = useState<string>("");
