@@ -83,12 +83,26 @@ const GOAL_WEIGHT = 0.6;
 const SLIDER_WEIGHT = 0.3;
 const AREA_WEIGHT = 0.1;
 
-// Slider contribution: high pain pulls low, high stress pulls mid-range.
-// Returns a Hz value in roughly the 200–600 band.
+// Slider contribution. Each slider only votes when it has moved off neutral,
+// weighted by intensity — pain=0 stops the pain slider from dragging the
+// target upward, and sleepQuality now grounds the target when sleep is poor.
+//   pain: neutral 432 → 200 as pain → 10
+//   stress: neutral 432 → ~500 near stress = 5 (mid-range activation)
+//   sleep: neutral 432 → 230 as sleepQuality → 0 (poor sleep grounds low)
+// If no slider has moved, returns NEUTRAL_HZ.
 function sliderTargetHz(i: IntakeInputs): number {
-  const painPull = 200 + (10 - i.painLevel) * 30; // pain 0 → 500, pain 10 → 200
-  const stressPull = 396 + (5 - Math.abs(i.stressLevel - 5)) * 20; // peak near 5 → ~496
-  return (painPull + stressPull) / 2;
+  const painVal = 432 - i.painLevel * 23.2; // 0 → 432, 10 → 200
+  const painW = i.painLevel / 10;
+
+  const stressVal = 432 + (5 - Math.abs(i.stressLevel - 5)) * 13.6; // peak 500 at 5
+  const stressW = i.stressLevel / 10;
+
+  const sleepVal = 230 + i.sleepQuality * 20.2; // 0 → 230, 10 → 432
+  const sleepW = (10 - i.sleepQuality) / 10;
+
+  const totalW = painW + stressW + sleepW;
+  if (totalW === 0) return NEUTRAL_HZ;
+  return (painVal * painW + stressVal * stressW + sleepVal * sleepW) / totalW;
 }
 
 function goalTargetHz(goals: IntakeGoal[]): number {
