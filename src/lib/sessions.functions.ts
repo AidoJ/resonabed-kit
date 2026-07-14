@@ -68,7 +68,7 @@ export const listMyOrgServices = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("services")
-      .select("id, name, duration_minutes, price, is_active")
+      .select("id, name, duration_minutes, buffer_minutes, price, is_active")
       .eq("is_active", true)
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
