@@ -23,6 +23,7 @@ function PlaySession() {
   const signFn = useServerFn(getSignedAudioUrl);
 
   const [ambient, setAmbient] = useState(false);
+  const audioHandleRef = useRef<AudioPlayerHandle | null>(null);
 
   const { data: session, isLoading } = useQuery({
     queryKey: ["session", id],
