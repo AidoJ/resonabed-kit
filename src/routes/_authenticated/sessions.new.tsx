@@ -11,7 +11,7 @@ import { StepSafety, type SafetyState } from "@/components/session-wizard/step-s
 import { StepFrequency } from "@/components/session-wizard/step-frequency";
 import {
   createDraftSession,
-  listFrequencies,
+  listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
 import { rankFrequencies } from "@/lib/frequency-match";
 import { toast } from "sonner";
