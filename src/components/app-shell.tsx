@@ -111,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <SidebarMenuButton
           asChild
           isActive={isActive}
-          className="h-11 rounded-lg text-[15px] font-normal text-white/90 data-[active=true]:bg-sidebar-accent data-[active=true]:text-white data-[active=true]:font-medium hover:bg-sidebar-accent/60 hover:text-white"
+          className="h-11 rounded-lg text-[15px] font-normal text-white data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium hover:bg-sidebar-accent/60 hover:text-white"
         >
           <Link to={item.to} className="flex items-center gap-3">
             <Icon className="h-[18px] w-[18px]" />
@@ -141,7 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </SidebarHeader>
           <SidebarContent className="px-2">
             <SidebarGroup>
-              <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/65">
+              <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
                 Session
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -151,7 +151,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {scheduling.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/65">
+                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
                   Diary
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -162,7 +162,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {admin.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/65">
+                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
                   Administration
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -174,7 +174,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SidebarFooter className="px-3 pb-4">
             <Button
               variant="ghost"
-              className="h-11 w-full justify-start rounded-lg text-white/90 hover:bg-sidebar-accent/60 hover:text-white"
+              className="h-11 w-full justify-start rounded-lg text-white hover:bg-sidebar-accent/60 hover:text-white"
               onClick={handleSignOut}
             >
               <LogOut className="mr-3 h-[18px] w-[18px]" />
