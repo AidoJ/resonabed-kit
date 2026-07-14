@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Music, X } from "lucide-react";
 import { getSession, getAudioForFrequency, getSignedAudioUrl } from "@/lib/sessions.functions";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
-import { AudioPlayer } from "@/components/session-player/audio-player";
+import { AudioPlayer, type AudioPlayerHandle } from "@/components/session-player/audio-player";
 import { CompletePanel } from "@/components/session-player/complete-panel";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
