@@ -106,12 +106,19 @@ function AuthPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-[13px] font-medium text-brand-indigo">
-                Password
-              </Label>
-              <Input
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-[13px] font-medium text-brand-indigo">
+                  Password
+                </Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-[12px] font-medium text-brand-violet-strong hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <PasswordInput
                 id="password"
-                type="password"
                 autoComplete="current-password"
                 required
                 value={password}
