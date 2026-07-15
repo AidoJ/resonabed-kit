@@ -40,7 +40,9 @@ type Action =
     }
   | { type: "suspend"; org_id: string }
   | { type: "reactivate"; org_id: string }
-  | { type: "set_template"; org_id: string };
+  | { type: "set_template"; org_id: string }
+  | { type: "list_admins"; org_id: string }
+  | { type: "reset_admin_password"; org_id: string; user_id: string };
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
