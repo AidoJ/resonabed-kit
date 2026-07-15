@@ -15,6 +15,7 @@ export interface UserContext {
     brandColor: string | null;
     logoUrl: string | null;
     logoPath: string | null;
+    isConfigured: boolean;
   } | null;
   roles: AppRole[];
 }
