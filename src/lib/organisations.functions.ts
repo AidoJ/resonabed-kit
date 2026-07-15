@@ -43,9 +43,9 @@ export const listOrganisations = createServerFn({ method: "GET" })
       context.supabase.from("profiles").select("org_id").in("org_id", orgIds),
       context.supabase
         .from("sessions")
-        .select("org_id, started_at")
+        .select("org_id, created_at")
         .in("org_id", orgIds)
-        .gte("started_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
     ]);
 
     const userCounts = new Map<string, number>();
