@@ -59,6 +59,7 @@ const SCHEDULING_NAV: NavItem[] = [
 
 const ADMIN_NAV: NavItem[] = [
   { to: "/admin", label: "Admin", icon: Shield, roles: ["super_admin", "org_admin"] },
+  { to: "/admin/organisations", label: "Organisations", icon: Shield, roles: ["super_admin"] },
 ];
 
 function filterNav(items: NavItem[], roles: readonly Role[]) {

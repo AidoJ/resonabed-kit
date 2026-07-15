@@ -284,6 +284,7 @@ export type Database = {
           health_policy_text: string | null
           id: string
           is_configured: boolean
+          is_template: boolean
           logo_path: string | null
           logo_url: string | null
           name: string
@@ -305,6 +306,7 @@ export type Database = {
           health_policy_text?: string | null
           id?: string
           is_configured?: boolean
+          is_template?: boolean
           logo_path?: string | null
           logo_url?: string | null
           name: string
@@ -326,6 +328,7 @@ export type Database = {
           health_policy_text?: string | null
           id?: string
           is_configured?: boolean
+          is_template?: boolean
           logo_path?: string | null
           logo_url?: string | null
           name?: string
