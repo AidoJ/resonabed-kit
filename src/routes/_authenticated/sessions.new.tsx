@@ -16,7 +16,10 @@ import {
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
 import { getBooking, startSessionFromBooking } from "@/lib/bookings.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { computeTargetHz, rankFrequencies } from "@/lib/frequency-match";
+import { Link } from "@tanstack/react-router";
+import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
