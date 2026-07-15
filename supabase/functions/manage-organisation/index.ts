@@ -77,16 +77,16 @@ async function seedAudioFromTemplate(
 ): Promise<{ copied: number }> {
   const { data: rows, error } = await admin
     .from("audio_files")
-    .select("id, title, frequency_id, storage_path, duration_seconds, mime_type, is_active")
+    .select("id, title, frequency_id, file_url, duration_seconds, is_active")
     .eq("org_id", templateOrgId);
   if (error) throw new Error(`audio list: ${error.message}`);
   if (!rows || rows.length === 0) return { copied: 0 };
 
   let copied = 0;
   for (const src of rows) {
-    if (!src.storage_path) continue;
+    if (!src.file_url) continue;
     // Insert audio_files row FIRST so the new id becomes the storage filename.
-    const ext = (src.storage_path.split(".").pop() ?? "bin").toLowerCase();
+    const ext = (src.file_url.split(".").pop() ?? "bin").toLowerCase();
     const { data: inserted, error: insErr } = await admin
       .from("audio_files")
       .insert({
@@ -94,9 +94,8 @@ async function seedAudioFromTemplate(
         title: src.title,
         frequency_id: src.frequency_id,
         duration_seconds: src.duration_seconds,
-        mime_type: src.mime_type,
         is_active: src.is_active,
-        storage_path: "", // placeholder, updated after upload
+        file_url: "", // placeholder, updated after upload
       })
       .select("id")
       .single();
@@ -104,26 +103,27 @@ async function seedAudioFromTemplate(
 
     const newPath = `${newOrgId}/${inserted.id}.${ext}`;
 
-    const { data: blob, error: dlErr } = await admin.storage.from("audio-files").download(src.storage_path);
+    const { data: blob, error: dlErr } = await admin.storage.from("audio-files").download(src.file_url);
     if (dlErr || !blob) {
-      // Clean up the placeholder row so we don't leave orphans.
       await admin.from("audio_files").delete().eq("id", inserted.id);
-      throw new Error(`audio download (${src.storage_path}): ${dlErr?.message}`);
+      throw new Error(`audio download (${src.file_url}): ${dlErr?.message}`);
     }
+    const contentType = ext === "wav" ? "audio/wav" : "audio/mpeg";
     const { error: upErr } = await admin.storage
       .from("audio-files")
-      .upload(newPath, blob, { contentType: src.mime_type ?? "audio/mpeg", upsert: false });
+      .upload(newPath, blob, { contentType, upsert: false });
     if (upErr) {
       await admin.from("audio_files").delete().eq("id", inserted.id);
       throw new Error(`audio upload: ${upErr.message}`);
     }
     const { error: pathErr } = await admin
       .from("audio_files")
-      .update({ storage_path: newPath })
+      .update({ file_url: newPath })
       .eq("id", inserted.id);
     if (pathErr) throw new Error(`audio path update: ${pathErr.message}`);
     copied++;
   }
+
   return { copied };
 }
 
