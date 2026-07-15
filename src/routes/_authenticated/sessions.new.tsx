@@ -37,11 +37,17 @@ const STEP_TITLES = ["Client", "Service", "Symptoms", "Safety", "Frequency"];
 function NewSession() {
   const { booking_id } = Route.useSearch();
   const bookingFn = useServerFn(getBooking);
+  const ctxFn = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
   const { data: booking } = useQuery({
     queryKey: ["booking", booking_id],
     queryFn: () => bookingFn({ data: { id: booking_id! } }),
     enabled: !!booking_id,
   });
+
+  const isConfigured = ctx?.isConfigured ?? true;
+  const isAdmin =
+    ctx?.roles?.includes("super_admin") || ctx?.roles?.includes("org_admin");
 
   const [step, setStep] = useState(0);
   const [client, setClient] = useState<ClientOption | null>(null);
