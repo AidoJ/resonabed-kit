@@ -31,7 +31,7 @@ function SettingsAdmin() {
   useEffect(() => {
     if (ctx?.org) {
       setName(ctx.org.name);
-      setBrand(ctx.org.brandColor ?? "#000000");
+      setBrand(ctx.org.brandColor ?? "#884bc7");
     }
   }, [ctx?.org]);
 
