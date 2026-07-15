@@ -380,9 +380,9 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
 
     for (const field of POLICY_FIELDS) {
       const v = data[field];
-      if (v !== undefined && v !== (existing as Record<string, unknown>)[field]) {
+      const oldVal = (existing as unknown as Record<string, string | null>)[field] ?? null;
+      if (v !== undefined && v !== oldVal) {
         patch[field] = v;
-        auditRows.push({
           org_id: profile.org_id,
           field,
           old_value: (existing as Record<string, string | null>)[field] ?? null,
