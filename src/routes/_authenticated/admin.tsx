@@ -2,7 +2,7 @@ import { createFileRoute, redirect, Outlet, Link, useRouterState } from "@tansta
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
-import { Users, Wrench, BarChart3, UserCog, Settings } from "lucide-react";
+import { Users, Wrench, BarChart3, UserCog, Settings, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -10,8 +10,10 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const TABS: { to: string; label: string; icon: typeof BarChart3; exact?: boolean }[] = [
+type Tab = { to: string; label: string; icon: typeof BarChart3; exact?: boolean; superOnly?: boolean };
+const TABS: Tab[] = [
   { to: "/admin", label: "Overview", icon: BarChart3, exact: true },
+  { to: "/admin/organisations", label: "Organisations", icon: Building2, superOnly: true },
   { to: "/admin/services", label: "Services", icon: Wrench },
   { to: "/admin/team", label: "Team", icon: UserCog },
   { to: "/admin/clients", label: "Clients", icon: Users },
