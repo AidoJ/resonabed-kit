@@ -91,6 +91,28 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   }, [data?.mustChangePassword, currentPath, navigate]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const brand = data?.org?.brandColor;
+    if (brand && /^#[0-9a-fA-F]{6}$/.test(brand)) {
+      root.style.setProperty("--primary", brand);
+      root.style.setProperty("--ring", brand);
+      root.style.setProperty("--sidebar-ring", brand);
+      root.style.setProperty("--chart-1", brand);
+    } else {
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--ring");
+      root.style.removeProperty("--sidebar-ring");
+      root.style.removeProperty("--chart-1");
+    }
+    return () => {
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--ring");
+      root.style.removeProperty("--sidebar-ring");
+      root.style.removeProperty("--chart-1");
+    };
+  }, [data?.org?.brandColor]);
+
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
     queryClient.clear();
