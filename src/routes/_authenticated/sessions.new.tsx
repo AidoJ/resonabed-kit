@@ -170,6 +170,33 @@ function NewSession() {
     "Suggested frequency for this intake — override if you prefer.",
   ];
 
+  if (!isConfigured) {
+    return (
+      <div className="mx-auto max-w-2xl rounded-xl border border-amber-300 bg-amber-50 p-6 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="mt-0.5 h-6 w-6 shrink-0" />
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold">Setup not complete</h2>
+            <p className="text-sm">
+              Sessions are blocked until your organisation admin has completed the clinic setup —
+              business identity, logo, consent wording, privacy policy, and health &amp; safety
+              policy — and signed the go-live acknowledgement.
+            </p>
+            {isAdmin ? (
+              <Button asChild>
+                <Link to="/admin/settings">Go to settings</Link>
+              </Button>
+            ) : (
+              <p className="text-sm text-amber-900/80 dark:text-amber-100/80">
+                Please contact your organisation admin to complete setup.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <WizardShell
       step={step}
