@@ -45,7 +45,7 @@ function NewSession() {
     enabled: !!booking_id,
   });
 
-  const isConfigured = ctx?.isConfigured ?? true;
+  const isConfigured = ctx?.org?.isConfigured ?? true;
   const isAdmin =
     ctx?.roles?.includes("super_admin") || ctx?.roles?.includes("org_admin");
 
