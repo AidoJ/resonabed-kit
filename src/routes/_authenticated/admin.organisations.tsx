@@ -31,7 +31,7 @@ async function callManageOrg(body: unknown): Promise<Record<string, unknown>> {
   const { data: sessionRes } = await supabase.auth.getSession();
   const token = sessionRes.session?.access_token;
   const { data, error } = await supabase.functions.invoke("manage-organisation", {
-    body,
+    body: body as Record<string, unknown>,
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
   if (error) {
