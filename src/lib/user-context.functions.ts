@@ -15,6 +15,7 @@ export interface UserContext {
     brandColor: string | null;
     logoUrl: string | null;
     logoPath: string | null;
+    isConfigured: boolean;
   } | null;
   roles: AppRole[];
 }
@@ -28,7 +29,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       supabase
         .from("profiles")
         .select(
-          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path)",
+          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, is_configured)",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -46,6 +47,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           brand_color: string | null;
           logo_url: string | null;
           logo_path: string | null;
+          is_configured: boolean;
         }
       | null
       | undefined;
@@ -56,6 +58,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           brandColor: orgRow.brand_color,
           logoUrl: orgRow.logo_url,
           logoPath: orgRow.logo_path,
+          isConfigured: Boolean(orgRow.is_configured),
         }
       : null;
 

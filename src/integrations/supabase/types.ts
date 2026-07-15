@@ -228,34 +228,108 @@ export type Database = {
         }
         Relationships: []
       }
+      org_policy_audit: {
+        Row: {
+          created_at: string
+          edited_by: string
+          edited_by_name: string | null
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          edited_by: string
+          edited_by_name?: string | null
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          edited_by?: string
+          edited_by_name?: string | null
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_policy_audit_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisations: {
         Row: {
+          abn: string | null
           brand_color: string | null
+          business_name: string | null
+          configured_acknowledgement_at: string | null
+          configured_acknowledgement_by: string | null
+          configured_at: string | null
+          consent_text: string | null
+          consent_version: number
+          contact_email: string | null
           created_at: string
+          health_policy_text: string | null
           id: string
+          is_configured: boolean
           logo_path: string | null
           logo_url: string | null
           name: string
+          privacy_policy_text: string | null
           status: Database["public"]["Enums"]["org_status"]
           updated_at: string
         }
         Insert: {
+          abn?: string | null
           brand_color?: string | null
+          business_name?: string | null
+          configured_acknowledgement_at?: string | null
+          configured_acknowledgement_by?: string | null
+          configured_at?: string | null
+          consent_text?: string | null
+          consent_version?: number
+          contact_email?: string | null
           created_at?: string
+          health_policy_text?: string | null
           id?: string
+          is_configured?: boolean
           logo_path?: string | null
           logo_url?: string | null
           name: string
+          privacy_policy_text?: string | null
           status?: Database["public"]["Enums"]["org_status"]
           updated_at?: string
         }
         Update: {
+          abn?: string | null
           brand_color?: string | null
+          business_name?: string | null
+          configured_acknowledgement_at?: string | null
+          configured_acknowledgement_by?: string | null
+          configured_at?: string | null
+          consent_text?: string | null
+          consent_version?: number
+          contact_email?: string | null
           created_at?: string
+          health_policy_text?: string | null
           id?: string
+          is_configured?: boolean
           logo_path?: string | null
           logo_url?: string | null
           name?: string
+          privacy_policy_text?: string | null
           status?: Database["public"]["Enums"]["org_status"]
           updated_at?: string
         }

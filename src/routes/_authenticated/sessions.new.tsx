@@ -16,7 +16,10 @@ import {
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
 import { getBooking, startSessionFromBooking } from "@/lib/bookings.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { computeTargetHz, rankFrequencies } from "@/lib/frequency-match";
+import { Link } from "@tanstack/react-router";
+import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
@@ -34,11 +37,17 @@ const STEP_TITLES = ["Client", "Service", "Symptoms", "Safety", "Frequency"];
 function NewSession() {
   const { booking_id } = Route.useSearch();
   const bookingFn = useServerFn(getBooking);
+  const ctxFn = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
   const { data: booking } = useQuery({
     queryKey: ["booking", booking_id],
     queryFn: () => bookingFn({ data: { id: booking_id! } }),
     enabled: !!booking_id,
   });
+
+  const isConfigured = ctx?.org?.isConfigured ?? true;
+  const isAdmin =
+    ctx?.roles?.includes("super_admin") || ctx?.roles?.includes("org_admin");
 
   const [step, setStep] = useState(0);
   const [client, setClient] = useState<ClientOption | null>(null);
@@ -160,6 +169,33 @@ function NewSession() {
     "Screen for contraindications and confirm consent.",
     "Suggested frequency for this intake — override if you prefer.",
   ];
+
+  if (!isConfigured) {
+    return (
+      <div className="mx-auto max-w-2xl rounded-xl border border-amber-300 bg-amber-50 p-6 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="mt-0.5 h-6 w-6 shrink-0" />
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold">Setup not complete</h2>
+            <p className="text-sm">
+              Sessions are blocked until your organisation admin has completed the clinic setup —
+              business identity, logo, consent wording, privacy policy, and health &amp; safety
+              policy — and signed the go-live acknowledgement.
+            </p>
+            {isAdmin ? (
+              <Button asChild>
+                <Link to="/admin/settings">Go to settings</Link>
+              </Button>
+            ) : (
+              <p className="text-sm text-amber-900/80 dark:text-amber-100/80">
+                Please contact your organisation admin to complete setup.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <WizardShell

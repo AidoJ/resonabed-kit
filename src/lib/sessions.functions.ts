@@ -211,7 +211,14 @@ export const createDraftSession = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (error.message.includes("organisation_not_configured")) {
+        throw new Error(
+          "Your organisation is still in setup mode. An admin must complete setup and acknowledgement before sessions can be created.",
+        );
+      }
+      throw new Error(error.message);
+    }
     return row;
   });
 
