@@ -1,10 +1,12 @@
-import { createFileRoute, redirect, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
+import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
