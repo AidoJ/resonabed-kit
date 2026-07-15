@@ -151,6 +151,9 @@ function OrganisationsPage() {
                   <Button size="sm" variant="outline" onClick={() => setEditing(o)}>
                     <Pencil className="mr-1 h-3.5 w-3.5" /> Edit
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setResetting(o)}>
+                    <KeyRound className="mr-1 h-3.5 w-3.5" /> Reset admin password
+                  </Button>
                   {!o.is_template && (
                     <Button
                       size="sm"
