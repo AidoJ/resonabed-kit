@@ -99,12 +99,35 @@ function SettingsAdmin() {
                 className="w-16 h-10 p-1"
               />
               <Input value={brand} onChange={(e) => setBrand(e.target.value)} className="font-mono" />
+              <div
+                className="h-10 w-10 rounded-md border"
+                style={{ backgroundColor: brand }}
+                aria-label="Brand colour preview"
+              />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Stored now. Applied to the app theme in a later phase.
+              Tints primary buttons, focus rings, and chart accents across the app for
+              everyone in your organisation. Save to apply — the change is live immediately.
             </p>
           </div>
-          <Button onClick={onSaveDetails}>Save</Button>
+          <div className="flex gap-2">
+            <Button onClick={onSaveDetails}>Save</Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await saveOrg({ data: { name, brand_color: null } });
+                  setBrand("#884bc7");
+                  toast.success("Brand colour reset");
+                  qc.invalidateQueries({ queryKey: ["user-context"] });
+                } catch (e) {
+                  toast.error((e as Error).message);
+                }
+              }}
+            >
+              Reset to ResonaBed default
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
