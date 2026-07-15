@@ -215,6 +215,17 @@ function OrganisationsPage() {
         />
       )}
 
+      {resetting && (
+        <ResetAdminPasswordDialog
+          org={resetting}
+          onOpenChange={(v) => !v && setResetting(null)}
+          onReset={(res) => {
+            setResetting(null);
+            setTempPassword(res);
+          }}
+        />
+      )}
+
       {tempPassword && (
         <TempPasswordDialog details={tempPassword} onClose={() => setTempPassword(null)} />
       )}
