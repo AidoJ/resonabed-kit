@@ -41,7 +41,7 @@ function AdminLayout() {
         </p>
       </div>
       <nav className="flex flex-wrap gap-1 border-b">
-        {TABS.map((t) => {
+        {TABS.filter((t) => !t.superOnly || data?.roles.includes("super_admin")).map((t) => {
           const active = t.exact ? path === t.to : path.startsWith(t.to);
           const Icon = t.icon;
           return (
