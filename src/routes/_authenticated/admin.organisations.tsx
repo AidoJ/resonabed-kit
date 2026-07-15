@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert } from "lucide-react";
+import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
   head: () => ({ meta: [{ title: "Organisations — ResonaBed" }] }),
@@ -73,6 +73,7 @@ function OrganisationsPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<OrgRow | null>(null);
+  const [resetting, setResetting] = useState<OrgRow | null>(null);
   const [tempPassword, setTempPassword] = useState<{
     email: string;
     password: string;
@@ -150,6 +151,9 @@ function OrganisationsPage() {
                   <Button size="sm" variant="outline" onClick={() => setEditing(o)}>
                     <Pencil className="mr-1 h-3.5 w-3.5" /> Edit
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setResetting(o)}>
+                    <KeyRound className="mr-1 h-3.5 w-3.5" /> Reset admin password
+                  </Button>
                   {!o.is_template && (
                     <Button
                       size="sm"
@@ -207,6 +211,17 @@ function OrganisationsPage() {
           onSaved={() => {
             setEditing(null);
             invalidate();
+          }}
+        />
+      )}
+
+      {resetting && (
+        <ResetAdminPasswordDialog
+          org={resetting}
+          onOpenChange={(v) => !v && setResetting(null)}
+          onReset={(res) => {
+            setResetting(null);
+            setTempPassword(res);
           }}
         />
       )}
@@ -460,6 +475,98 @@ function TempPasswordDialog({
         </div>
         <DialogFooter>
           <Button onClick={onClose}>Done</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResetAdminPasswordDialog({
+  org,
+  onOpenChange,
+  onReset,
+}: {
+  org: OrgRow;
+  onOpenChange: (v: boolean) => void;
+  onReset: (res: { email: string; password: string; orgName: string }) => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["org-admins", org.id],
+    queryFn: () => callManageOrg({ type: "list_admins", org_id: org.id }),
+  });
+  const admins =
+    (data?.admins as Array<{ user_id: string; email: string | null; display_name: string | null }> | undefined) ?? [];
+  const [selected, setSelected] = useState<string | null>(null);
+  const activeId = selected ?? admins[0]?.user_id ?? null;
+
+  const reset = useMutation({
+    mutationFn: (user_id: string) =>
+      callManageOrg({ type: "reset_admin_password", org_id: org.id, user_id }),
+    onSuccess: (res) => {
+      const target = admins.find((a) => a.user_id === activeId);
+      onReset({
+        email: (res.email as string) ?? target?.email ?? "",
+        password: res.temporary_password as string,
+        orgName: org.name,
+      });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <KeyRound className="h-5 w-5" /> Reset admin password
+          </DialogTitle>
+          <DialogDescription>
+            Generates a new temporary password for an org admin of <strong>{org.name}</strong>. The
+            admin will be signed out of every device and forced to set a new password on next login.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading admins…</p>
+          ) : admins.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              This organisation has no org admin accounts.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <Label>Select admin</Label>
+              <div className="space-y-1 rounded-md border p-2">
+                {admins.map((a) => (
+                  <label
+                    key={a.user_id}
+                    className="flex cursor-pointer items-center gap-2 rounded p-2 text-sm hover:bg-muted"
+                  >
+                    <input
+                      type="radio"
+                      name="admin"
+                      checked={activeId === a.user_id}
+                      onChange={() => setSelected(a.user_id)}
+                    />
+                    <span className="flex-1">
+                      {a.display_name ? `${a.display_name} · ` : ""}
+                      <span className="text-muted-foreground">{a.email ?? a.user_id}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => activeId && reset.mutate(activeId)}
+            disabled={!activeId || reset.isPending}
+          >
+            {reset.isPending ? "Resetting…" : "Generate new password"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
