@@ -59,11 +59,11 @@ function ChangePassword() {
           </Alert>
           <div>
             <Label>New password</Label>
-            <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} />
+            <PasswordInput value={pw} onChange={(e) => setPw(e.target.value)} />
           </div>
           <div>
             <Label>Confirm password</Label>
-            <Input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} />
+            <PasswordInput value={pw2} onChange={(e) => setPw2(e.target.value)} />
           </div>
           <Button onClick={onSubmit} disabled={busy} className="w-full">
             Update password
