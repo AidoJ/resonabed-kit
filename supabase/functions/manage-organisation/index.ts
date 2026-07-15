@@ -358,6 +358,64 @@ Deno.serve(async (req) => {
         return json(200, { ok: true });
       }
 
+      case "list_admins": {
+        const { data: roleRows, error: rolesErr } = await admin
+          .from("user_roles")
+          .select("user_id")
+          .eq("org_id", body.org_id)
+          .eq("role", "org_admin");
+        if (rolesErr) return json(400, { error: rolesErr.message });
+        const ids = (roleRows ?? []).map((r) => r.user_id as string);
+        if (ids.length === 0) return json(200, { admins: [] });
+
+        const { data: profs } = await admin
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", ids);
+        const nameById = new Map((profs ?? []).map((p) => [p.id as string, (p.display_name as string | null) ?? null]));
+
+        const admins: Array<{ user_id: string; email: string | null; display_name: string | null }> = [];
+        for (const uid of ids) {
+          const { data: u } = await admin.auth.admin.getUserById(uid);
+          admins.push({
+            user_id: uid,
+            email: u.user?.email ?? null,
+            display_name: nameById.get(uid) ?? null,
+          });
+        }
+        return json(200, { admins });
+      }
+
+      case "reset_admin_password": {
+        // Confirm the target really is an org_admin of that org.
+        const { data: role, error: roleErr } = await admin
+          .from("user_roles")
+          .select("user_id")
+          .eq("org_id", body.org_id)
+          .eq("role", "org_admin")
+          .eq("user_id", body.user_id)
+          .maybeSingle();
+        if (roleErr) return json(400, { error: roleErr.message });
+        if (!role) return json(404, { error: "User is not an org_admin of this organisation" });
+
+        const password = generatePassword(20);
+        const { data: updated, error: updErr } = await admin.auth.admin.updateUserById(body.user_id, {
+          password,
+          app_metadata: { must_change_password: true },
+        });
+        if (updErr) return json(400, { error: updErr.message });
+
+        // Force re-login so the new password takes effect immediately.
+        await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
+
+        return json(200, {
+          ok: true,
+          user_id: body.user_id,
+          email: updated.user?.email ?? null,
+          temporary_password: password,
+        });
+      }
+
       default:
         return json(400, { error: "Unknown action" });
     }
