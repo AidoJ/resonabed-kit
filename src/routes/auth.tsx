@@ -92,6 +92,11 @@ function AuthPage() {
             <p className="mt-2 text-sm text-muted-foreground">
               Sign in to your practitioner account.
             </p>
+            {search.reset === "success" ? (
+              <p className="mt-4 rounded-lg bg-success/10 px-3 py-2 text-sm text-success">
+                Password updated. Sign in with your new password.
+              </p>
+            ) : null}
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
