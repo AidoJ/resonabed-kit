@@ -383,9 +383,10 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       const oldVal = (existing as unknown as Record<string, string | null>)[field] ?? null;
       if (v !== undefined && v !== oldVal) {
         patch[field] = v;
+        auditRows.push({
           org_id: profile.org_id,
           field,
-          old_value: (existing as Record<string, string | null>)[field] ?? null,
+          old_value: oldVal,
           new_value: v,
           edited_by: context.userId,
           edited_by_name: profile.display_name ?? null,
@@ -401,7 +402,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
     if (Object.keys(patch).length > 0) {
       const { error } = await context.supabase
         .from("organisations")
-        .update(patch)
+        .update(patch as never)
         .eq("id", profile.org_id);
       if (error) throw new Error(error.message);
     }
