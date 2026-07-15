@@ -209,7 +209,7 @@ function ClientsAdmin() {
               ) : (
                 (historyQuery.data ?? []).map((s) => {
                   const svc = s.service as { name: string } | null;
-                  const f = s.frequency as { hz: number; label: string } | null;
+                  const f = s.frequency as { hz: number; name: string } | null;
                   return (
                     <TableRow key={s.id}>
                       <TableCell>{new Date(s.created_at as string).toLocaleString()}</TableCell>

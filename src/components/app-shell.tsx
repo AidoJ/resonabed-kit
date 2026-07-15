@@ -156,7 +156,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <img
                 src={logo.url}
                 alt="Resonabed"
-                className="h-10 w-auto"
+                className="h-[3.125rem] w-auto"
                 draggable={false}
               />
             </Link>

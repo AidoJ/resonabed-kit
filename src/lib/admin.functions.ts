@@ -208,7 +208,7 @@ export const getClientSessionHistory = createServerFn({ method: "POST" })
       .select(
         `id, created_at, status, payment_method, payment_amount,
          service:service_id(name),
-         frequency:recommended_frequency_id(hz, label)`,
+         frequency:recommended_frequency_id(hz, name)`,
       )
       .eq("client_id", data.client_id)
       .order("created_at", { ascending: false });
@@ -228,7 +228,7 @@ export const getReports = createServerFn({ method: "POST" })
     const { data: sessions, error } = await context.supabase
       .from("sessions")
       .select(
-        "id, created_at, status, payment_method, payment_amount, recommended_frequency_id, frequency:recommended_frequency_id(hz, label)",
+        "id, created_at, status, payment_method, payment_amount, recommended_frequency_id, frequency:recommended_frequency_id(hz, name)",
       )
       .gte("created_at", data.from)
       .lte("created_at", data.to);
@@ -260,9 +260,9 @@ export const getReports = createServerFn({ method: "POST" })
         revenueByMethod.set(m, (revenueByMethod.get(m) ?? 0) + Number(r.payment_amount));
       }
       if (r.recommended_frequency_id) {
-        const f = r.frequency as { hz: number; label: string } | null;
+        const f = r.frequency as { hz: number; name: string } | null;
         const key = r.recommended_frequency_id as string;
-        const cur = freqCounts.get(key) ?? { hz: f?.hz ?? 0, label: f?.label ?? "", count: 0 };
+        const cur = freqCounts.get(key) ?? { hz: f?.hz ?? 0, label: f?.name ?? "", count: 0 };
         cur.count += 1;
         freqCounts.set(key, cur);
       }

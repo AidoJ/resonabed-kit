@@ -1,13 +1,17 @@
-import { createFileRoute, redirect, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
-const searchSchema = z.object({ redirect: z.string().optional() });
+const searchSchema = z.object({
+  redirect: z.string().optional(),
+  reset: z.enum(["success"]).optional(),
+});
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
@@ -88,6 +92,11 @@ function AuthPage() {
             <p className="mt-2 text-sm text-muted-foreground">
               Sign in to your practitioner account.
             </p>
+            {search.reset === "success" ? (
+              <p className="mt-4 rounded-lg bg-success/10 px-3 py-2 text-sm text-success">
+                Password updated. Sign in with your new password.
+              </p>
+            ) : null}
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
@@ -105,12 +114,19 @@ function AuthPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-[13px] font-medium text-brand-indigo">
-                Password
-              </Label>
-              <Input
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-[13px] font-medium text-brand-indigo">
+                  Password
+                </Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-[12px] font-medium text-brand-violet-strong hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <PasswordInput
                 id="password"
-                type="password"
                 autoComplete="current-password"
                 required
                 value={password}

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -59,11 +59,11 @@ function ChangePassword() {
           </Alert>
           <div>
             <Label>New password</Label>
-            <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} />
+            <PasswordInput value={pw} onChange={(e) => setPw(e.target.value)} />
           </div>
           <div>
             <Label>Confirm password</Label>
-            <Input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} />
+            <PasswordInput value={pw2} onChange={(e) => setPw2(e.target.value)} />
           </div>
           <Button onClick={onSubmit} disabled={busy} className="w-full">
             Update password
