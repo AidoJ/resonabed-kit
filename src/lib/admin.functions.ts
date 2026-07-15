@@ -283,18 +283,142 @@ export const getReports = createServerFn({ method: "POST" })
 
 // ---------- Org settings ----------
 
+const POLICY_FIELDS = ["consent_text", "privacy_policy_text", "health_policy_text"] as const;
+
+export const getOrgSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context);
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", context.userId)
+      .maybeSingle();
+    if (!profile?.org_id) throw new Error("No organisation");
+    const { data, error } = await context.supabase
+      .from("organisations")
+      .select(
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at",
+      )
+      .eq("id", profile.org_id)
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
+  });
+
+export const listPolicyAudit = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context);
+    const { data, error } = await context.supabase
+      .from("org_policy_audit")
+      .select("id, field, old_value, new_value, edited_by, edited_by_name, created_at")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
 export const updateOrgSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z
       .object({
         name: z.string().min(1).max(160).optional(),
+        business_name: z.string().min(1).max(160).nullable().optional(),
+        contact_email: z.string().email().max(200).nullable().optional(),
+        abn: z.string().max(60).nullable().optional(),
         brand_color: z
           .string()
           .regex(/^#[0-9a-fA-F]{6}$/)
           .nullable()
           .optional(),
         logo_path: z.string().max(400).nullable().optional(),
+        consent_text: z.string().max(20000).nullable().optional(),
+        privacy_policy_text: z.string().max(40000).nullable().optional(),
+        health_policy_text: z.string().max(40000).nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("org_id, display_name")
+      .eq("id", context.userId)
+      .maybeSingle();
+    if (!profile?.org_id) throw new Error("No organisation");
+
+    const { data: existing, error: exErr } = await context.supabase
+      .from("organisations")
+      .select("consent_text, consent_version, privacy_policy_text, health_policy_text")
+      .eq("id", profile.org_id)
+      .single();
+    if (exErr) throw new Error(exErr.message);
+
+    const patch: Record<string, unknown> = {};
+    const auditRows: Array<{
+      org_id: string;
+      field: string;
+      old_value: string | null;
+      new_value: string | null;
+      edited_by: string;
+      edited_by_name: string | null;
+    }> = [];
+
+    for (const key of [
+      "name",
+      "business_name",
+      "contact_email",
+      "abn",
+      "brand_color",
+      "logo_path",
+    ] as const) {
+      const v = data[key];
+      if (v !== undefined) patch[key] = v;
+    }
+
+    for (const field of POLICY_FIELDS) {
+      const v = data[field];
+      if (v !== undefined && v !== (existing as Record<string, unknown>)[field]) {
+        patch[field] = v;
+        auditRows.push({
+          org_id: profile.org_id,
+          field,
+          old_value: (existing as Record<string, string | null>)[field] ?? null,
+          new_value: v,
+          edited_by: context.userId,
+          edited_by_name: profile.display_name ?? null,
+        });
+      }
+    }
+
+    // Bump consent_version when consent_text changes.
+    if (patch.consent_text !== undefined) {
+      patch.consent_version = (existing.consent_version ?? 1) + 1;
+    }
+
+    if (Object.keys(patch).length > 0) {
+      const { error } = await context.supabase
+        .from("organisations")
+        .update(patch)
+        .eq("id", profile.org_id);
+      if (error) throw new Error(error.message);
+    }
+    if (auditRows.length > 0) {
+      const { error: aErr } = await context.supabase.from("org_policy_audit").insert(auditRows);
+      if (aErr) throw new Error(aErr.message);
+    }
+    return { ok: true };
+  });
+
+export const completeOrgSetup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        acknowledger_name: z.string().min(2).max(200),
+        acknowledged: z.literal(true),
       })
       .parse(d),
   )
@@ -306,17 +430,40 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       .eq("id", context.userId)
       .maybeSingle();
     if (!profile?.org_id) throw new Error("No organisation");
-    const patch: {
-      name?: string;
-      brand_color?: string | null;
-      logo_path?: string | null;
-    } = {};
-    if (data.name !== undefined) patch.name = data.name;
-    if (data.brand_color !== undefined) patch.brand_color = data.brand_color;
-    if (data.logo_path !== undefined) patch.logo_path = data.logo_path;
+
+    const { data: org, error: oErr } = await context.supabase
+      .from("organisations")
+      .select(
+        "business_name, contact_email, logo_path, consent_text, privacy_policy_text, health_policy_text, is_configured",
+      )
+      .eq("id", profile.org_id)
+      .single();
+    if (oErr) throw new Error(oErr.message);
+
+    if (org.is_configured) {
+      throw new Error("Organisation is already live. The acknowledgement is immutable.");
+    }
+
+    const missing: string[] = [];
+    if (!org.business_name?.trim()) missing.push("business name");
+    if (!org.contact_email?.trim()) missing.push("contact email");
+    if (!org.logo_path?.trim()) missing.push("logo");
+    if (!org.consent_text?.trim()) missing.push("consent wording");
+    if (!org.privacy_policy_text?.trim()) missing.push("privacy policy");
+    if (!org.health_policy_text?.trim()) missing.push("health & safety policy");
+    if (missing.length > 0) {
+      throw new Error(`Complete these before go-live: ${missing.join(", ")}.`);
+    }
+
+    const now = new Date().toISOString();
     const { error } = await context.supabase
       .from("organisations")
-      .update(patch)
+      .update({
+        is_configured: true,
+        configured_at: now,
+        configured_acknowledgement_by: data.acknowledger_name.trim(),
+        configured_acknowledgement_at: now,
+      })
       .eq("id", profile.org_id);
     if (error) throw new Error(error.message);
     return { ok: true };
