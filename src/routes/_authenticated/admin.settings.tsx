@@ -102,12 +102,20 @@ function SettingsAdmin() {
 
   const canGoLive = missing.length === 0 && !org?.is_configured;
 
-  const save = async (
-    payload: Parameters<typeof saveOrg>[0] extends { data: infer D } ? D : never,
-    successMsg = "Saved",
-  ) => {
+  type OrgPatch = {
+    name?: string;
+    business_name?: string | null;
+    contact_email?: string | null;
+    abn?: string | null;
+    brand_color?: string | null;
+    logo_path?: string | null;
+    consent_text?: string | null;
+    privacy_policy_text?: string | null;
+    health_policy_text?: string | null;
+  };
+  const save = async (payload: OrgPatch, successMsg = "Saved") => {
     try {
-      await saveOrg({ data: payload });
+      await saveOrg({ data: payload as never });
       toast.success(successMsg);
       qc.invalidateQueries({ queryKey: ["org-settings"] });
       qc.invalidateQueries({ queryKey: ["user-context"] });
