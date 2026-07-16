@@ -42,7 +42,13 @@ type Action =
   | { type: "reactivate"; org_id: string }
   | { type: "set_template"; org_id: string }
   | { type: "list_admins"; org_id: string }
-  | { type: "reset_admin_password"; org_id: string; user_id: string };
+  | { type: "reset_admin_password"; org_id: string; user_id: string }
+  | {
+      type: "create_admin";
+      org_id: string;
+      admin_email: string;
+      admin_display_name?: string | null;
+    };
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
