@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
 
           if (templateId && templateId !== newOrgId) {
             if (body.seed_services) await seedServicesFromTemplate(admin, templateId, newOrgId);
-            if (body.seed_audio) await seedAudioFromTemplate(admin, templateId, newOrgId);
+            // seed_audio is deprecated — the global audio library is shared via RLS.
           }
           // seed_frequencies is a no-op: frequencies table is global (no org_id).
         } catch (e) {
