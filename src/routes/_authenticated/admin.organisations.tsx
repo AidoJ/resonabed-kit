@@ -230,6 +230,18 @@ function OrganisationsPage() {
         />
       )}
 
+      {addingAdminTo && (
+        <AddAdminDialog
+          org={addingAdminTo}
+          onOpenChange={(v) => !v && setAddingAdminTo(null)}
+          onAdded={(res) => {
+            setAddingAdminTo(null);
+            if (res) setTempPassword(res);
+            invalidate();
+          }}
+        />
+      )}
+
       {tempPassword && (
         <TempPasswordDialog details={tempPassword} onClose={() => setTempPassword(null)} />
       )}
