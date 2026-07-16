@@ -115,7 +115,7 @@ async function readAudioDuration(file: File): Promise<number | null> {
   });
 }
 
-function AudioLibrary() {
+function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const qc = useQueryClient();
   const listFreqFn = useServerFn(listFrequencies);
   const listFn = useServerFn(listOrgAudioFiles);
