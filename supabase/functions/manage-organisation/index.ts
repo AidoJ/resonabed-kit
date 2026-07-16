@@ -43,6 +43,7 @@ type Action =
   | { type: "set_template"; org_id: string }
   | { type: "list_admins"; org_id: string }
   | { type: "reset_admin_password"; org_id: string; user_id: string }
+  | { type: "revoke_admin"; org_id: string; user_id: string }
   | {
       type: "create_admin";
       org_id: string;
@@ -511,6 +512,33 @@ Deno.serve(async (req) => {
           temporary_password: tempPassword, // null when reusing an existing user
           reused_existing_user: !tempPassword,
         });
+      }
+
+      case "revoke_admin": {
+        // Confirm the target really is an org_admin of that org.
+        const { data: role, error: roleLookupErr } = await admin
+          .from("user_roles")
+          .select("user_id")
+          .eq("org_id", body.org_id)
+          .eq("role", "org_admin")
+          .eq("user_id", body.user_id)
+          .maybeSingle();
+        if (roleLookupErr) return json(400, { error: roleLookupErr.message });
+        if (!role)
+          return json(404, { error: "User is not an org_admin of this organisation" });
+
+        const { error: delErr } = await admin
+          .from("user_roles")
+          .delete()
+          .eq("org_id", body.org_id)
+          .eq("role", "org_admin")
+          .eq("user_id", body.user_id);
+        if (delErr) return json(400, { error: delErr.message });
+
+        // Force sign-out so the revoked admin loses access on all devices immediately.
+        await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
+
+        return json(200, { ok: true, user_id: body.user_id });
       }
 
       default:

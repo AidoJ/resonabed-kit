@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound, UserPlus } from "lucide-react";
+import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound, UserPlus, Users, UserMinus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
   head: () => ({ meta: [{ title: "Organisations — ResonaBed" }] }),
@@ -156,7 +156,7 @@ function OrganisationsPage() {
                     <UserPlus className="mr-1 h-3.5 w-3.5" /> Add admin
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => setResetting(o)}>
-                    <KeyRound className="mr-1 h-3.5 w-3.5" /> Reset admin password
+                    <Users className="mr-1 h-3.5 w-3.5" /> Manage admins
                   </Button>
                   {!o.is_template && (
                     <Button
@@ -506,20 +506,19 @@ function ResetAdminPasswordDialog({
   onOpenChange: (v: boolean) => void;
   onReset: (res: { email: string; password: string; orgName: string }) => void;
 }) {
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["org-admins", org.id],
     queryFn: () => callManageOrg({ type: "list_admins", org_id: org.id }),
   });
   const admins =
     (data?.admins as Array<{ user_id: string; email: string | null; display_name: string | null }> | undefined) ?? [];
-  const [selected, setSelected] = useState<string | null>(null);
-  const activeId = selected ?? admins[0]?.user_id ?? null;
 
   const reset = useMutation({
     mutationFn: (user_id: string) =>
       callManageOrg({ type: "reset_admin_password", org_id: org.id, user_id }),
-    onSuccess: (res) => {
-      const target = admins.find((a) => a.user_id === activeId);
+    onSuccess: (res, user_id) => {
+      const target = admins.find((a) => a.user_id === user_id);
       onReset({
         email: (res.email as string) ?? target?.email ?? "",
         password: res.temporary_password as string,
@@ -529,16 +528,29 @@ function ResetAdminPasswordDialog({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const revoke = useMutation({
+    mutationFn: (user_id: string) =>
+      callManageOrg({ type: "revoke_admin", org_id: org.id, user_id }),
+    onSuccess: () => {
+      toast.success("Admin access revoked. The user was signed out on all devices.");
+      qc.invalidateQueries({ queryKey: ["org-admins", org.id] });
+      qc.invalidateQueries({ queryKey: ["organisations-super"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" /> Reset admin password
+            <Users className="h-5 w-5" /> Manage admins
           </DialogTitle>
           <DialogDescription>
-            Generates a new temporary password for an org admin of <strong>{org.name}</strong>. The
-            admin will be signed out of every device and forced to set a new password on next login.
+            Admins for <strong>{org.name}</strong>. Reset a password to issue a new temporary one and
+            sign the admin out everywhere. Revoke to remove their org_admin role — their account
+            stays, but they lose all access to this organisation. Add a replacement with "Add admin"
+            before revoking the last one.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -546,42 +558,65 @@ function ResetAdminPasswordDialog({
             <p className="text-sm text-muted-foreground">Loading admins…</p>
           ) : admins.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              This organisation has no org admin accounts.
+              This organisation has no org admin accounts. Use "Add admin" to seat one.
             </p>
           ) : (
-            <div className="space-y-2">
-              <Label>Select admin</Label>
-              <div className="space-y-1 rounded-md border p-2">
-                {admins.map((a) => (
-                  <label
+            <div className="divide-y rounded-md border">
+              {admins.map((a) => {
+                const busy =
+                  (reset.isPending && reset.variables === a.user_id) ||
+                  (revoke.isPending && revoke.variables === a.user_id);
+                return (
+                  <div
                     key={a.user_id}
-                    className="flex cursor-pointer items-center gap-2 rounded p-2 text-sm hover:bg-muted"
+                    className="flex flex-wrap items-center justify-between gap-3 p-3"
                   >
-                    <input
-                      type="radio"
-                      name="admin"
-                      checked={activeId === a.user_id}
-                      onChange={() => setSelected(a.user_id)}
-                    />
-                    <span className="flex-1">
-                      {a.display_name ? `${a.display_name} · ` : ""}
-                      <span className="text-muted-foreground">{a.email ?? a.user_id}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
+                    <div className="min-w-0 text-sm">
+                      <div className="font-medium">{a.display_name ?? "—"}</div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {a.email ?? a.user_id}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => reset.mutate(a.user_id)}
+                      >
+                        <KeyRound className="mr-1 h-3.5 w-3.5" /> Reset password
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={busy || admins.length <= 1}
+                        title={
+                          admins.length <= 1
+                            ? "Add another admin before revoking the last one"
+                            : undefined
+                        }
+                        onClick={() => {
+                          const label = a.display_name ?? a.email ?? a.user_id;
+                          if (
+                            confirm(
+                              `Revoke org_admin from ${label}? They'll be signed out and lose all access to ${org.name}.`,
+                            )
+                          )
+                            revoke.mutate(a.user_id);
+                        }}
+                      >
+                        <UserMinus className="mr-1 h-3.5 w-3.5" /> Revoke
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={() => activeId && reset.mutate(activeId)}
-            disabled={!activeId || reset.isPending}
-          >
-            {reset.isPending ? "Resetting…" : "Generate new password"}
+            Close
           </Button>
         </DialogFooter>
       </DialogContent>
