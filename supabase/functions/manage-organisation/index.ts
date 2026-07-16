@@ -422,6 +422,97 @@ Deno.serve(async (req) => {
         });
       }
 
+      case "create_admin": {
+        if (!body.admin_email?.trim()) return json(400, { error: "Admin email is required" });
+
+        // Confirm org exists.
+        const { data: org, error: orgErr } = await admin
+          .from("organisations")
+          .select("id")
+          .eq("id", body.org_id)
+          .maybeSingle();
+        if (orgErr) return json(400, { error: orgErr.message });
+        if (!org) return json(404, { error: "Organisation not found" });
+
+        const email = body.admin_email.trim();
+        const displayName = body.admin_display_name?.trim() || null;
+
+        // Look for an existing auth user with that email (paginate).
+        let existingId: string | null = null;
+        for (let page = 1; page <= 20 && !existingId; page++) {
+          const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+          if (listErr) return json(400, { error: listErr.message });
+          const hit = list.users.find((u) => (u.email ?? "").toLowerCase() === email.toLowerCase());
+          if (hit) existingId = hit.id;
+          if (list.users.length < 200) break;
+        }
+
+        let uid: string;
+        let tempPassword: string | null = null;
+
+        if (existingId) {
+          uid = existingId;
+          // Refuse to co-opt a user already tied to a different org.
+          const { data: prof } = await admin
+            .from("profiles")
+            .select("org_id")
+            .eq("id", uid)
+            .maybeSingle();
+          if (prof?.org_id && prof.org_id !== body.org_id) {
+            return json(400, {
+              error: "That user already belongs to a different organisation.",
+            });
+          }
+          const { error: upProfErr } = await admin
+            .from("profiles")
+            .update({
+              org_id: body.org_id,
+              display_name: displayName ?? undefined,
+              is_active: true,
+            })
+            .eq("id", uid);
+          if (upProfErr) return json(400, { error: upProfErr.message });
+        } else {
+          tempPassword = generatePassword(20);
+          const { data: created, error: createErr } = await admin.auth.admin.createUser({
+            email,
+            password: tempPassword,
+            email_confirm: true,
+            user_metadata: { display_name: displayName },
+            app_metadata: { must_change_password: true },
+          });
+          if (createErr || !created.user) {
+            return json(400, { error: createErr?.message ?? "Admin create failed" });
+          }
+          uid = created.user.id;
+          const { error: profileErr } = await admin
+            .from("profiles")
+            .update({ org_id: body.org_id, display_name: displayName, is_active: true })
+            .eq("id", uid);
+          if (profileErr) {
+            await admin.auth.admin.deleteUser(uid);
+            return json(400, { error: profileErr.message });
+          }
+        }
+
+        // Idempotent role grant.
+        const { error: roleErr } = await admin
+          .from("user_roles")
+          .upsert(
+            { user_id: uid, org_id: body.org_id, role: "org_admin" },
+            { onConflict: "user_id,org_id,role", ignoreDuplicates: true },
+          );
+        if (roleErr) return json(400, { error: roleErr.message });
+
+        return json(200, {
+          ok: true,
+          user_id: uid,
+          email,
+          temporary_password: tempPassword, // null when reusing an existing user
+          reused_existing_user: !tempPassword,
+        });
+      }
+
       default:
         return json(400, { error: "Unknown action" });
     }
