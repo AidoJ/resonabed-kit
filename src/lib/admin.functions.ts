@@ -334,6 +334,21 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
           .regex(/^#[0-9a-fA-F]{6}$/)
           .nullable()
           .optional(),
+        theme_primary: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .nullable()
+          .optional(),
+        theme_sidebar: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .nullable()
+          .optional(),
+        theme_accent: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .nullable()
+          .optional(),
         logo_path: z.string().max(400).nullable().optional(),
         consent_text: z.string().max(20000).nullable().optional(),
         privacy_policy_text: z.string().max(40000).nullable().optional(),
@@ -373,6 +388,9 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "contact_email",
       "abn",
       "brand_color",
+      "theme_primary",
+      "theme_sidebar",
+      "theme_accent",
       "logo_path",
     ] as const) {
       const v = data[key];
