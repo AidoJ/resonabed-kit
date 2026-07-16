@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound } from "lucide-react";
+import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound, UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
   head: () => ({ meta: [{ title: "Organisations — ResonaBed" }] }),
