@@ -931,3 +931,13 @@ function LicenceDialog({
   );
 }
 
+
+function GlobalSettingsCard() {
+  const fetchSetting = useServerFn(
+    (
+      await import("@/lib/app-settings.functions")
+    ).getAppSetting as never,
+  );
+  // Placeholder — replaced below
+  return null as never;
+}
