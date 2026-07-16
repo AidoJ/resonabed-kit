@@ -383,6 +383,7 @@ function UploadDialog({
   const [title, setTitle] = useState("");
   const [frequencyId, setFrequencyId] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
+  const [isGlobal, setIsGlobal] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Reset when opened.
