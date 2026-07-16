@@ -20,7 +20,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { UserPlus, Copy } from "lucide-react";
+import { UserPlus, Copy, MailWarning } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
   head: () => ({ meta: [{ title: "Team — Admin — ResonaBed" }] }),
@@ -137,7 +138,28 @@ function TeamAdmin() {
                       : "none";
                 return (
                   <TableRow key={m.id}>
-                    <TableCell>{m.display_name ?? "(no name)"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span>{m.display_name ?? "(no name)"}</span>
+                        {m.email_status && m.email_status !== "valid" && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="destructive" className="gap-1">
+                                <MailWarning className="h-3 w-3" />
+                                {m.email_status === "bounced" ? "Email undeliverable" : m.email_status === "complained" ? "Marked spam" : "Unsubscribed"}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {m.email_status === "bounced"
+                                ? "This user's email address bounced. Auth emails (password reset, invites) will not reach them."
+                                : m.email_status === "complained"
+                                  ? "Recipient marked our email as spam. Further sends are suppressed."
+                                  : "Recipient unsubscribed."}
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {isSuper ? (
                         <Badge variant="destructive">Super admin</Badge>
