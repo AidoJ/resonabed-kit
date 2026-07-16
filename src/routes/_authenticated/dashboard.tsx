@@ -9,6 +9,7 @@ import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listMyOrgSessions } from "@/lib/sessions.functions";
 import { listBookings } from "@/lib/bookings.functions";
 import { getMyOrgLicence } from "@/lib/licence.functions";
+import { getAppSetting, MUSIC_RENEWAL_PRICE_KEY } from "@/lib/app-settings.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -50,9 +51,14 @@ function DashboardPage() {
   const listSessions = useServerFn(listMyOrgSessions);
   const listBookingsFn = useServerFn(listBookings);
   const fetchLicence = useServerFn(getMyOrgLicence);
+  const fetchSetting = useServerFn(getAppSetting);
   const { data: licence } = useQuery({
     queryKey: ["my-org-licence"],
     queryFn: () => fetchLicence(),
+  });
+  const { data: renewalPrice } = useQuery({
+    queryKey: ["app-setting", MUSIC_RENEWAL_PRICE_KEY],
+    queryFn: () => fetchSetting({ data: { key: MUSIC_RENEWAL_PRICE_KEY } }),
   });
 
   const { data: ctx, isLoading: ctxLoading } = useQuery({
@@ -149,13 +155,15 @@ function DashboardPage() {
             {!licence.is_ok ? (
               <>
                 <strong>Music licence expired.</strong> The 9 global Solfeggio tracks are locked
-                until renewal. Your own uploaded audio still plays. Contact ResonaBed to renew.
+                until renewal. Your own uploaded audio still plays.{" "}
+                {renewalPrice ? <>Renew for {renewalPrice} — c</> : <>C</>}ontact ResonaBed to renew.
               </>
             ) : (
               <>
                 <strong>Music licence expiring soon.</strong> Renew before{" "}
-                {new Date(licence.expires_at).toLocaleDateString()} to keep uninterrupted access to
-                the global track library.
+                {new Date(licence.expires_at).toLocaleDateString()}
+                {renewalPrice ? <> ({renewalPrice})</> : null} to keep uninterrupted access to the
+                global track library.
               </>
             )}
           </div>

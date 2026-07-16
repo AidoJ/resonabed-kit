@@ -8,6 +8,11 @@ import {
   extendMusicLicence,
   expireMusicLicence,
 } from "@/lib/licence.functions";
+import {
+  getAppSetting,
+  setAppSetting,
+  MUSIC_RENEWAL_PRICE_KEY,
+} from "@/lib/app-settings.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,6 +146,10 @@ function OrganisationsPage() {
           New organisation
         </Button>
       </div>
+
+      <GlobalSettingsCard />
+
+
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
@@ -924,6 +933,78 @@ function LicenceDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+
+function GlobalSettingsCard() {
+  const fetchSetting = useServerFn(getAppSetting);
+  const saveSetting = useServerFn(setAppSetting);
+  const qc = useQueryClient();
+  const { data: current, isLoading } = useQuery({
+    queryKey: ["app-setting", MUSIC_RENEWAL_PRICE_KEY],
+    queryFn: () => fetchSetting({ data: { key: MUSIC_RENEWAL_PRICE_KEY } }),
+  });
+  const [value, setValue] = useState<string>("");
+  const [dirty, setDirty] = useState(false);
+  const shown = dirty ? value : (current ?? "");
+
+  const save = useMutation({
+    mutationFn: (v: string | null) =>
+      saveSetting({ data: { key: MUSIC_RENEWAL_PRICE_KEY, value: v } }),
+    onSuccess: () => {
+      toast.success("Renewal price updated");
+      setDirty(false);
+      qc.invalidateQueries({ queryKey: ["app-setting", MUSIC_RENEWAL_PRICE_KEY] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Global settings</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-2">
+          <Label htmlFor="renewal-price">Music licence renewal price (display only)</Label>
+          <div className="flex flex-wrap gap-2">
+            <Input
+              id="renewal-price"
+              placeholder="e.g. $49.50/year"
+              value={shown}
+              disabled={isLoading}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setDirty(true);
+              }}
+              className="max-w-sm"
+            />
+            <Button
+              onClick={() => save.mutate(value.trim() ? value.trim() : null)}
+              disabled={!dirty || save.isPending}
+            >
+              {save.isPending ? "Saving…" : "Save"}
+            </Button>
+            {current ? (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setValue("");
+                  setDirty(true);
+                }}
+                disabled={save.isPending}
+              >
+                Clear
+              </Button>
+            ) : null}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Shown in each org's licence-expiry banner. Leave blank to hide the price.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
