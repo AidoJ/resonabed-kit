@@ -186,6 +186,9 @@ function OrganisationsPage() {
                   <Button size="sm" variant="outline" onClick={() => setResetting(o)}>
                     <Users className="mr-1 h-3.5 w-3.5" /> Manage admins
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setManagingLicence(o)}>
+                    <Music className="mr-1 h-3.5 w-3.5" /> Music licence
+                  </Button>
                   {!o.is_template && (
                     <Button
                       size="sm"
