@@ -183,6 +183,18 @@ function PlaySession() {
               title={audio.title}
               onPlayingChange={setAmbient}
             />
+          ) : licence && !licence.is_ok ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-foreground/90">
+              <Music className="h-5 w-5" />
+              <span>
+                Music licence expired — the global track for this frequency is locked. Contact
+                ResonaBed to renew, or upload your own audio under{" "}
+                <Link to="/audio" className="underline">
+                  Audio
+                </Link>
+                .
+              </span>
+            </div>
           ) : (
             <div className="flex items-center gap-3 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4 text-sm text-muted-foreground">
               <Music className="h-5 w-5" />
