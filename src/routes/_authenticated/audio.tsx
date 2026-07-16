@@ -331,6 +331,7 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
         onOpenChange={setUploadOpen}
         frequencies={frequencies ?? []}
         presetFrequencyId={presetFreqId}
+        isSuperAdmin={isSuperAdmin}
         createRow={async (v) => createRowFn({ data: v })}
         finalize={async (v) => finalizeFn({ data: v })}
         remove={async (id) => deleteFn({ data: { id } })}
