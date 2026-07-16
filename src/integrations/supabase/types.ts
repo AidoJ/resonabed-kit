@@ -22,7 +22,7 @@ export type Database = {
           frequency_id: string | null
           id: string
           is_active: boolean
-          org_id: string
+          org_id: string | null
           title: string
           updated_at: string
         }
@@ -33,7 +33,7 @@ export type Database = {
           frequency_id?: string | null
           id?: string
           is_active?: boolean
-          org_id: string
+          org_id?: string | null
           title: string
           updated_at?: string
         }
@@ -44,7 +44,7 @@ export type Database = {
           frequency_id?: string | null
           id?: string
           is_active?: boolean
-          org_id?: string
+          org_id?: string | null
           title?: string
           updated_at?: string
         }
