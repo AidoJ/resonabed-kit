@@ -348,9 +348,10 @@ interface UploadDialogProps {
   onOpenChange: (v: boolean) => void;
   frequencies: Array<{ id: string; hz: number; name: string }>;
   presetFrequencyId: string | null;
-  createRow: (v: { title: string; frequency_id: string }) => Promise<{
+  isSuperAdmin: boolean;
+  createRow: (v: { title: string; frequency_id: string; is_global?: boolean }) => Promise<{
     id: string;
-    org_id: string;
+    org_id: string | null;
   }>;
   finalize: (v: {
     id: string;
