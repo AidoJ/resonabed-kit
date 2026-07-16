@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound } from "lucide-react";
+import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound, UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
   head: () => ({ meta: [{ title: "Organisations — ResonaBed" }] }),
@@ -74,6 +74,7 @@ function OrganisationsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<OrgRow | null>(null);
   const [resetting, setResetting] = useState<OrgRow | null>(null);
+  const [addingAdminTo, setAddingAdminTo] = useState<OrgRow | null>(null);
   const [tempPassword, setTempPassword] = useState<{
     email: string;
     password: string;
@@ -151,6 +152,9 @@ function OrganisationsPage() {
                   <Button size="sm" variant="outline" onClick={() => setEditing(o)}>
                     <Pencil className="mr-1 h-3.5 w-3.5" /> Edit
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setAddingAdminTo(o)}>
+                    <UserPlus className="mr-1 h-3.5 w-3.5" /> Add admin
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => setResetting(o)}>
                     <KeyRound className="mr-1 h-3.5 w-3.5" /> Reset admin password
                   </Button>
@@ -222,6 +226,18 @@ function OrganisationsPage() {
           onReset={(res) => {
             setResetting(null);
             setTempPassword(res);
+          }}
+        />
+      )}
+
+      {addingAdminTo && (
+        <AddAdminDialog
+          org={addingAdminTo}
+          onOpenChange={(v) => !v && setAddingAdminTo(null)}
+          onAdded={(res) => {
+            setAddingAdminTo(null);
+            if (res) setTempPassword(res);
+            invalidate();
           }}
         />
       )}
@@ -566,6 +582,89 @@ function ResetAdminPasswordDialog({
             disabled={!activeId || reset.isPending}
           >
             {reset.isPending ? "Resetting…" : "Generate new password"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AddAdminDialog({
+  org,
+  onOpenChange,
+  onAdded,
+}: {
+  org: OrgRow;
+  onOpenChange: (v: boolean) => void;
+  onAdded: (res: { email: string; password: string; orgName: string } | null) => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+
+  const add = useMutation({
+    mutationFn: () =>
+      callManageOrg({
+        type: "create_admin",
+        org_id: org.id,
+        admin_email: email,
+        admin_display_name: displayName || null,
+      }),
+    onSuccess: (res) => {
+      const password = res.temporary_password as string | null;
+      const reused = !!res.reused_existing_user;
+      if (reused) {
+        toast.success(
+          "Existing user promoted to org_admin. Use 'Reset admin password' if they need a new password.",
+        );
+        onAdded(null);
+      } else if (password) {
+        toast.success("Admin created");
+        onAdded({ email, password, orgName: org.name });
+      } else {
+        onAdded(null);
+      }
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5" /> Add org admin
+          </DialogTitle>
+          <DialogDescription>
+            Seat a new org admin for <strong>{org.name}</strong>. If the email already belongs to a
+            user in this org, they're promoted to org_admin; otherwise a new account is created and
+            a temporary password is shown once.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="add-admin-email">Email</Label>
+            <Input
+              id="add-admin-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="add-admin-name">Display name (optional)</Label>
+            <Input
+              id="add-admin-name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => add.mutate()} disabled={add.isPending || !email.trim()}>
+            {add.isPending ? "Adding…" : "Add admin"}
           </Button>
         </DialogFooter>
       </DialogContent>
