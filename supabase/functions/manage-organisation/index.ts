@@ -43,6 +43,7 @@ type Action =
   | { type: "set_template"; org_id: string }
   | { type: "list_admins"; org_id: string }
   | { type: "reset_admin_password"; org_id: string; user_id: string }
+  | { type: "revoke_admin"; org_id: string; user_id: string }
   | {
       type: "create_admin";
       org_id: string;
