@@ -76,7 +76,7 @@ function AudioPage() {
     );
   }
 
-  return <AudioLibrary />;
+  return <AudioLibrary isSuperAdmin={!!ctx?.roles.includes("super_admin")} />;
 }
 
 interface AudioRow {
