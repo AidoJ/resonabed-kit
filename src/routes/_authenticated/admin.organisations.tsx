@@ -142,6 +142,10 @@ function OrganisationsPage() {
         </Button>
       </div>
 
+      <GlobalSettingsCard />
+
+
+
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (
