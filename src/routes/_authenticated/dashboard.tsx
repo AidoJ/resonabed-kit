@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useMemo } from "react";
+
 import { Sparkles, Calendar, ArrowRight } from "lucide-react";
 
 import { getCurrentUserContext } from "@/lib/user-context.functions";
@@ -55,10 +57,24 @@ function DashboardPage() {
     queryKey: ["dash-sessions"],
     queryFn: () => listSessions(),
   });
+  const bookingsRange = useMemo(() => {
+    const from = new Date();
+    from.setHours(0, 0, 0, 0);
+    const to = new Date(from);
+    to.setDate(to.getDate() + 7);
+    return { from, to };
+  }, []);
   const { data: bookings } = useQuery({
-    queryKey: ["dash-bookings"],
-    queryFn: () => listBookingsFn({ data: {} }),
+    queryKey: ["dash-bookings", bookingsRange.from.toISOString(), bookingsRange.to.toISOString()],
+    queryFn: () =>
+      listBookingsFn({
+        data: {
+          from: bookingsRange.from.toISOString(),
+          to: bookingsRange.to.toISOString(),
+        },
+      }),
   });
+
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
