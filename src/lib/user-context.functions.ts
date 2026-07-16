@@ -15,6 +15,10 @@ export interface UserContext {
     brandColor: string | null;
     logoUrl: string | null;
     logoPath: string | null;
+    logoSignedUrl: string | null;
+    themePrimary: string | null;
+    themeSidebar: string | null;
+    themeAccent: string | null;
     isConfigured: boolean;
   } | null;
   roles: AppRole[];
@@ -29,7 +33,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       supabase
         .from("profiles")
         .select(
-          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, is_configured)",
+          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, theme_primary, theme_sidebar, theme_accent, is_configured)",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -47,10 +51,22 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           brand_color: string | null;
           logo_url: string | null;
           logo_path: string | null;
+          theme_primary: string | null;
+          theme_sidebar: string | null;
+          theme_accent: string | null;
           is_configured: boolean;
         }
       | null
       | undefined;
+
+    let logoSignedUrl: string | null = null;
+    if (orgRow?.logo_path) {
+      const { data: signed } = await supabase.storage
+        .from("org-logos")
+        .createSignedUrl(orgRow.logo_path, 3600);
+      logoSignedUrl = signed?.signedUrl ?? null;
+    }
+
     const org = orgRow
       ? {
           id: orgRow.id,
@@ -58,6 +74,10 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           brandColor: orgRow.brand_color,
           logoUrl: orgRow.logo_url,
           logoPath: orgRow.logo_path,
+          logoSignedUrl,
+          themePrimary: orgRow.theme_primary,
+          themeSidebar: orgRow.theme_sidebar,
+          themeAccent: orgRow.theme_accent,
           isConfigured: Boolean(orgRow.is_configured),
         }
       : null;

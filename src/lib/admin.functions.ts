@@ -299,7 +299,7 @@ export const getOrgSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, business_name, contact_email, abn, brand_color, logo_path, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at",
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at",
       )
       .eq("id", profile.org_id)
       .single();
@@ -330,6 +330,21 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         contact_email: z.string().email().max(200).nullable().optional(),
         abn: z.string().max(60).nullable().optional(),
         brand_color: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .nullable()
+          .optional(),
+        theme_primary: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .nullable()
+          .optional(),
+        theme_sidebar: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .nullable()
+          .optional(),
+        theme_accent: z
           .string()
           .regex(/^#[0-9a-fA-F]{6}$/)
           .nullable()
@@ -373,6 +388,9 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "contact_email",
       "abn",
       "brand_color",
+      "theme_primary",
+      "theme_sidebar",
+      "theme_accent",
       "logo_path",
     ] as const) {
       const v = data[key];

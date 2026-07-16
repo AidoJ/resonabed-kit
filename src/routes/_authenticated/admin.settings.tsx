@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   updateOrgSettings,
@@ -12,6 +12,13 @@ import {
   completeOrgSetup,
   listPolicyAudit,
 } from "@/lib/admin.functions";
+import {
+  DEFAULT_THEME,
+  contrastRatio,
+  extractPalette,
+  isHex6,
+  textOn,
+} from "@/lib/theme-colors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +35,13 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
 
 const POLICY_HELPER =
   "This is your clinic's legal wording. You are the responsible party. Review with your own insurer or legal advisor. Resonabed stores and displays what you enter and does not review it for legal sufficiency.";
+
+// Text colour used on top of sidebar/primary. Matches what the shell renders.
+const SIDEBAR_TEXT_FALLBACK = "#ffffff";
+const PRIMARY_TEXT_FALLBACK = "#ffffff";
+
+// WCAG AA for normal text ≈ 4.5. We warn below 4.0 as a "readable enough" threshold.
+const MIN_CONTRAST = 4.0;
 
 function SettingsAdmin() {
   const fetchSettings = useServerFn(getOrgSettings);
@@ -51,7 +65,10 @@ function SettingsAdmin() {
   const [businessName, setBusinessName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [abn, setAbn] = useState("");
-  const [brand, setBrand] = useState("#884bc7");
+  const [themePrimary, setThemePrimary] = useState<string>(DEFAULT_THEME.primary);
+  const [themeSidebar, setThemeSidebar] = useState<string>(DEFAULT_THEME.sidebar);
+  const [themeAccent, setThemeAccent] = useState<string>(DEFAULT_THEME.accent);
+  const [suggestedSwatches, setSuggestedSwatches] = useState<string[]>([]);
   const [consent, setConsent] = useState("");
   const [privacy, setPrivacy] = useState("");
   const [health, setHealth] = useState("");
@@ -68,7 +85,15 @@ function SettingsAdmin() {
     setBusinessName(org.business_name ?? "");
     setContactEmail(org.contact_email ?? "");
     setAbn(org.abn ?? "");
-    setBrand(org.brand_color ?? "#884bc7");
+    setThemePrimary(
+      isHex6(org.theme_primary)
+        ? org.theme_primary
+        : isHex6(org.brand_color)
+          ? org.brand_color
+          : DEFAULT_THEME.primary,
+    );
+    setThemeSidebar(isHex6(org.theme_sidebar) ? org.theme_sidebar : DEFAULT_THEME.sidebar);
+    setThemeAccent(isHex6(org.theme_accent) ? org.theme_accent : DEFAULT_THEME.accent);
     setConsent(org.consent_text ?? "");
     setPrivacy(org.privacy_policy_text ?? "");
     setHealth(org.health_policy_text ?? "");
@@ -80,11 +105,20 @@ function SettingsAdmin() {
         try {
           const { url } = await signLogo({ data: { path: org.logo_path } });
           setLogoPreview(url);
+          // Extract palette once logo url is available.
+          try {
+            const palette = await extractPalette(url, 6);
+            setSuggestedSwatches(palette);
+          } catch {
+            /* ignore extraction errors */
+          }
         } catch {
           setLogoPreview(null);
+          setSuggestedSwatches([]);
         }
       } else {
         setLogoPreview(null);
+        setSuggestedSwatches([]);
       }
     })();
   }, [org?.logo_path, signLogo]);
@@ -102,12 +136,21 @@ function SettingsAdmin() {
 
   const canGoLive = missing.length === 0 && !org?.is_configured;
 
+  const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
+  const sidebarContrast = contrastRatio(themeSidebar, SIDEBAR_TEXT_FALLBACK);
+  const primaryReadable = primaryContrast >= MIN_CONTRAST;
+  const sidebarReadable = sidebarContrast >= MIN_CONTRAST;
+  const themeReadable = primaryReadable && sidebarReadable;
+
   type OrgPatch = {
     name?: string;
     business_name?: string | null;
     contact_email?: string | null;
     abn?: string | null;
     brand_color?: string | null;
+    theme_primary?: string | null;
+    theme_sidebar?: string | null;
+    theme_accent?: string | null;
     logo_path?: string | null;
     consent_text?: string | null;
     privacy_policy_text?: string | null;
@@ -141,6 +184,32 @@ function SettingsAdmin() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const saveTheme = () => {
+    if (!themeReadable) {
+      toast.error("Fix the contrast warning before saving your theme.");
+      return;
+    }
+    save(
+      {
+        theme_primary: themePrimary,
+        theme_sidebar: themeSidebar,
+        theme_accent: themeAccent,
+        brand_color: themePrimary,
+      },
+      "Theme saved",
+    );
+  };
+
+  const resetTheme = () => {
+    setThemePrimary(DEFAULT_THEME.primary);
+    setThemeSidebar(DEFAULT_THEME.sidebar);
+    setThemeAccent(DEFAULT_THEME.accent);
+    save(
+      { theme_primary: null, theme_sidebar: null, theme_accent: null },
+      "Theme reset to Resonabed defaults",
+    );
   };
 
   const onAcknowledge = async () => {
@@ -222,28 +291,6 @@ function SettingsAdmin() {
               </div>
 
               <div>
-                <Label>Brand colour (optional)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="color"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    className="h-10 w-16 p-1"
-                  />
-                  <Input
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    className="font-mono"
-                  />
-                  <div
-                    className="h-10 w-10 rounded-md border"
-                    style={{ backgroundColor: brand }}
-                    aria-label="Brand colour preview"
-                  />
-                </div>
-              </div>
-
-              <div>
                 <Label>Logo</Label>
                 <div className="flex items-start gap-4">
                   {logoPreview ? (
@@ -259,7 +306,7 @@ function SettingsAdmin() {
                   )}
                   <Input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/jpg,image/svg+xml"
                     disabled={uploading}
                     onChange={(e) => {
                       const f = e.target.files?.[0];
@@ -268,9 +315,12 @@ function SettingsAdmin() {
                     className="max-w-xs"
                   />
                 </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  PNG, JPG or SVG. Displayed in the sidebar and on the sign-in page for your users.
+                </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-2">
                 <Button
                   onClick={() =>
                     save({
@@ -278,20 +328,103 @@ function SettingsAdmin() {
                       business_name: businessName || null,
                       contact_email: contactEmail || null,
                       abn: abn || null,
-                      brand_color: brand,
                     })
                   }
                 >
                   Save identity
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setBrand("#884bc7");
-                    save({ brand_color: null }, "Brand colour reset");
-                  }}
-                >
-                  Reset brand colour
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Colour theme */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Colour theme
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {suggestedSwatches.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium">Suggested from your logo</p>
+                  <p className="text-xs text-muted-foreground">
+                    Click a swatch to assign it to a role. These are suggestions, not applied
+                    automatically.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {suggestedSwatches.map((hex) => (
+                      <SwatchButton
+                        key={hex}
+                        hex={hex}
+                        onAssignPrimary={() => setThemePrimary(hex)}
+                        onAssignSidebar={() => setThemeSidebar(hex)}
+                        onAssignAccent={() => setThemeAccent(hex)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <ColourRoleField
+                label="Primary"
+                description="Buttons, active states, accents."
+                value={themePrimary}
+                onChange={setThemePrimary}
+                swatches={suggestedSwatches}
+                contrastAgainst={PRIMARY_TEXT_FALLBACK}
+                minContrast={MIN_CONTRAST}
+                textLabel="white text"
+              />
+              <ColourRoleField
+                label="Sidebar"
+                description="Sidebar background."
+                value={themeSidebar}
+                onChange={setThemeSidebar}
+                swatches={suggestedSwatches}
+                contrastAgainst={SIDEBAR_TEXT_FALLBACK}
+                minContrast={MIN_CONTRAST}
+                textLabel="white text"
+              />
+              <ColourRoleField
+                label="Accent"
+                description="Highlights, badges, subtle chips."
+                value={themeAccent}
+                onChange={setThemeAccent}
+                swatches={suggestedSwatches}
+                contrastAgainst={textOn(themeAccent)}
+                minContrast={3.0}
+                textLabel="its own foreground"
+              />
+
+              {!themeReadable && (
+                <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    {!primaryReadable && (
+                      <>
+                        Primary colour has low contrast against white text (
+                        {primaryContrast.toFixed(2)}:1). Pick a darker shade.
+                      </>
+                    )}
+                    {!primaryReadable && !sidebarReadable && <br />}
+                    {!sidebarReadable && (
+                      <>
+                        Sidebar colour has low contrast against white text (
+                        {sidebarContrast.toFixed(2)}:1). Pick a darker shade.
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button onClick={saveTheme} disabled={!themeReadable}>
+                  Save theme
+                </Button>
+                <Button variant="outline" onClick={resetTheme}>
+                  Reset to Resonabed defaults
                 </Button>
               </div>
             </CardContent>
@@ -438,22 +571,13 @@ function SettingsAdmin() {
               <CardTitle>Live preview</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div
-                className="rounded-lg border p-4"
-                style={{ borderColor: brand }}
-              >
-                <div className="flex items-center gap-3">
-                  {logoPreview && (
-                    <img src={logoPreview} alt="" className="h-10 w-auto" />
-                  )}
-                  <div>
-                    <p className="font-semibold" style={{ color: brand }}>
-                      {businessName || name || "Your clinic"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{contactEmail}</p>
-                  </div>
-                </div>
-              </div>
+              <ThemePreview
+                primary={themePrimary}
+                sidebar={themeSidebar}
+                accent={themeAccent}
+                logoUrl={logoPreview}
+                orgName={businessName || name || "Your clinic"}
+              />
               <Separator />
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -466,6 +590,196 @@ function SettingsAdmin() {
             </CardContent>
           </Card>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ThemePreview({
+  primary,
+  sidebar,
+  accent,
+  logoUrl,
+  orgName,
+}: {
+  primary: string;
+  sidebar: string;
+  accent: string;
+  logoUrl: string | null;
+  orgName: string;
+}) {
+  const sidebarFg = textOn(sidebar);
+  const primaryFg = textOn(primary);
+  const accentFg = textOn(accent);
+  return (
+    <div className="overflow-hidden rounded-lg border">
+      <div className="grid grid-cols-[110px_1fr]">
+        {/* Mini sidebar */}
+        <div
+          className="flex flex-col gap-2 p-2"
+          style={{ backgroundColor: sidebar, color: sidebarFg }}
+        >
+          <div className="flex h-12 items-center justify-center rounded-md bg-white/95 p-1">
+            {logoUrl ? (
+              <img src={logoUrl} alt="" className="h-full w-auto object-contain" />
+            ) : (
+              <span className="text-[10px] font-medium text-brand-indigo">Resonabed</span>
+            )}
+          </div>
+          <div
+            className="rounded-md px-2 py-1.5 text-[11px] font-medium"
+            style={{ backgroundColor: `color-mix(in oklab, ${primary} 30%, transparent)` }}
+          >
+            Sessions
+          </div>
+          <div className="rounded-md px-2 py-1.5 text-[11px] opacity-80">Clients</div>
+          <div className="rounded-md px-2 py-1.5 text-[11px] opacity-80">Bookings</div>
+        </div>
+        {/* Mini main */}
+        <div className="space-y-2 bg-card p-3">
+          <div className="text-[11px] font-medium text-foreground">{orgName}</div>
+          <div className="rounded-md border p-2">
+            <p className="text-[11px] font-medium">Today's session</p>
+            <p className="text-[10px] text-muted-foreground">Alex J · 20 min</p>
+            <div className="mt-2 flex gap-1.5">
+              <span
+                className="rounded-md px-2 py-0.5 text-[10px] font-medium"
+                style={{ backgroundColor: accent, color: accentFg }}
+              >
+                Sleep
+              </span>
+              <span
+                className="rounded-md px-2 py-0.5 text-[10px] font-medium"
+                style={{ backgroundColor: accent, color: accentFg }}
+              >
+                Calm
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="w-full rounded-md py-1.5 text-[11px] font-medium"
+            style={{ backgroundColor: primary, color: primaryFg }}
+          >
+            Start session
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ColourRoleField({
+  label,
+  description,
+  value,
+  onChange,
+  swatches,
+  contrastAgainst,
+  minContrast,
+  textLabel,
+}: {
+  label: string;
+  description: string;
+  value: string;
+  onChange: (v: string) => void;
+  swatches: string[];
+  contrastAgainst: string;
+  minContrast: number;
+  textLabel: string;
+}) {
+  const ratio = contrastRatio(value, contrastAgainst);
+  const ok = ratio >= minContrast;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between">
+        <div>
+          <Label className="text-sm">{label}</Label>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+        <span
+          className={`text-[11px] ${ok ? "text-muted-foreground" : "text-amber-700 dark:text-amber-300"}`}
+        >
+          {ratio.toFixed(2)}:1 vs {textLabel}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-10 w-16 p-1"
+        />
+        <Input
+          value={value}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v);
+          }}
+          className="font-mono uppercase"
+          maxLength={7}
+        />
+      </div>
+      {swatches.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {swatches.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => onChange(s)}
+              className="h-6 w-6 rounded-full border border-border transition-transform hover:scale-110"
+              style={{ backgroundColor: s }}
+              title={`Use ${s} for ${label.toLowerCase()}`}
+              aria-label={`Use ${s} for ${label}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SwatchButton({
+  hex,
+  onAssignPrimary,
+  onAssignSidebar,
+  onAssignAccent,
+}: {
+  hex: string;
+  onAssignPrimary: () => void;
+  onAssignSidebar: () => void;
+  onAssignAccent: () => void;
+}) {
+  return (
+    <div className="group relative">
+      <div
+        className="h-10 w-10 rounded-md border border-border shadow-sm"
+        style={{ backgroundColor: hex }}
+        title={hex}
+      />
+      <div className="pointer-events-none absolute left-0 top-full z-10 mt-1 hidden min-w-[130px] flex-col overflow-hidden rounded-md border bg-popover text-xs shadow-lg group-hover:pointer-events-auto group-hover:flex">
+        <button
+          type="button"
+          onClick={onAssignPrimary}
+          className="px-3 py-1.5 text-left hover:bg-muted"
+        >
+          Use as Primary
+        </button>
+        <button
+          type="button"
+          onClick={onAssignSidebar}
+          className="px-3 py-1.5 text-left hover:bg-muted"
+        >
+          Use as Sidebar
+        </button>
+        <button
+          type="button"
+          onClick={onAssignAccent}
+          className="px-3 py-1.5 text-left hover:bg-muted"
+        >
+          Use as Accent
+        </button>
+        <div className="border-t px-3 py-1 font-mono text-[10px] text-muted-foreground">{hex}</div>
       </div>
     </div>
   );
