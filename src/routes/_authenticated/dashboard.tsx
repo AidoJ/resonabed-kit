@@ -155,13 +155,15 @@ function DashboardPage() {
             {!licence.is_ok ? (
               <>
                 <strong>Music licence expired.</strong> The 9 global Solfeggio tracks are locked
-                until renewal. Your own uploaded audio still plays. Contact ResonaBed to renew.
+                until renewal. Your own uploaded audio still plays.{" "}
+                {renewalPrice ? <>Renew for {renewalPrice} — c</> : <>C</>}ontact ResonaBed to renew.
               </>
             ) : (
               <>
                 <strong>Music licence expiring soon.</strong> Renew before{" "}
-                {new Date(licence.expires_at).toLocaleDateString()} to keep uninterrupted access to
-                the global track library.
+                {new Date(licence.expires_at).toLocaleDateString()}
+                {renewalPrice ? <> ({renewalPrice})</> : null} to keep uninterrupted access to the
+                global track library.
               </>
             )}
           </div>
