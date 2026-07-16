@@ -4,6 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listOrganisations, type OrgRow } from "@/lib/organisations.functions";
+import {
+  extendMusicLicence,
+  expireMusicLicence,
+} from "@/lib/licence.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +25,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound, UserPlus, Users, UserMinus } from "lucide-react";
+import {
+  Copy,
+  Star,
+  Ban,
+  Play,
+  Pencil,
+  Plus,
+  ShieldAlert,
+  KeyRound,
+  UserPlus,
+  Users,
+  UserMinus,
+  Music,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
   head: () => ({ meta: [{ title: "Organisations — ResonaBed" }] }),
