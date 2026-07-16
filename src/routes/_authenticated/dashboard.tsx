@@ -51,9 +51,14 @@ function DashboardPage() {
   const listSessions = useServerFn(listMyOrgSessions);
   const listBookingsFn = useServerFn(listBookings);
   const fetchLicence = useServerFn(getMyOrgLicence);
+  const fetchSetting = useServerFn(getAppSetting);
   const { data: licence } = useQuery({
     queryKey: ["my-org-licence"],
     queryFn: () => fetchLicence(),
+  });
+  const { data: renewalPrice } = useQuery({
+    queryKey: ["app-setting", MUSIC_RENEWAL_PRICE_KEY],
+    queryFn: () => fetchSetting({ data: { key: MUSIC_RENEWAL_PRICE_KEY } }),
   });
 
   const { data: ctx, isLoading: ctxLoading } = useQuery({
