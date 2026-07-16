@@ -293,6 +293,10 @@ export type Database = {
           is_template: boolean
           logo_path: string | null
           logo_url: string | null
+          music_licence_expires_at: string | null
+          music_licence_note: string | null
+          music_licence_plan: Database["public"]["Enums"]["music_licence_plan"]
+          music_licence_status: Database["public"]["Enums"]["music_licence_status"]
           name: string
           privacy_policy_text: string | null
           status: Database["public"]["Enums"]["org_status"]
@@ -318,6 +322,10 @@ export type Database = {
           is_template?: boolean
           logo_path?: string | null
           logo_url?: string | null
+          music_licence_expires_at?: string | null
+          music_licence_note?: string | null
+          music_licence_plan?: Database["public"]["Enums"]["music_licence_plan"]
+          music_licence_status?: Database["public"]["Enums"]["music_licence_status"]
           name: string
           privacy_policy_text?: string | null
           status?: Database["public"]["Enums"]["org_status"]
@@ -343,6 +351,10 @@ export type Database = {
           is_template?: boolean
           logo_path?: string | null
           logo_url?: string | null
+          music_licence_expires_at?: string | null
+          music_licence_note?: string | null
+          music_licence_plan?: Database["public"]["Enums"]["music_licence_plan"]
+          music_licence_status?: Database["public"]["Enums"]["music_licence_status"]
           name?: string
           privacy_policy_text?: string | null
           status?: Database["public"]["Enums"]["org_status"]
@@ -630,6 +642,7 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      org_music_licence_ok: { Args: { _org_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "super_admin" | "org_admin" | "practitioner"
@@ -641,6 +654,8 @@ export type Database = {
         | "cancelled"
         | "no_show"
       email_status: "valid" | "bounced" | "complained" | "unsubscribed"
+      music_licence_plan: "none" | "basic" | "pro"
+      music_licence_status: "trial" | "active" | "expired"
       org_status: "active" | "suspended"
       payment_method: "cash" | "eftpos" | "payid" | "other" | "none"
       session_status: "draft" | "completed" | "cancelled"
@@ -781,6 +796,8 @@ export const Constants = {
         "no_show",
       ],
       email_status: ["valid", "bounced", "complained", "unsubscribed"],
+      music_licence_plan: ["none", "basic", "pro"],
+      music_licence_status: ["trial", "active", "expired"],
       org_status: ["active", "suspended"],
       payment_method: ["cash", "eftpos", "payid", "other", "none"],
       session_status: ["draft", "completed", "cancelled"],

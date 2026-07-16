@@ -3,11 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 
-import { Sparkles, Calendar, ArrowRight } from "lucide-react";
+import { Sparkles, Calendar, ArrowRight, Music } from "lucide-react";
 
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listMyOrgSessions } from "@/lib/sessions.functions";
 import { listBookings } from "@/lib/bookings.functions";
+import { getMyOrgLicence } from "@/lib/licence.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,11 @@ function DashboardPage() {
   const fetchCtx = useServerFn(getCurrentUserContext);
   const listSessions = useServerFn(listMyOrgSessions);
   const listBookingsFn = useServerFn(listBookings);
+  const fetchLicence = useServerFn(getMyOrgLicence);
+  const { data: licence } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => fetchLicence(),
+  });
 
   const { data: ctx, isLoading: ctxLoading } = useQuery({
     queryKey: ["user-context"],
@@ -126,6 +132,35 @@ function DashboardPage() {
           </Button>
         </div>
       </div>
+
+      {licence &&
+      licence.expires_at &&
+      (!licence.is_ok ||
+        new Date(licence.expires_at).getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000) ? (
+        <div
+          className={`shadow-soft flex items-start gap-3 rounded-2xl border p-4 text-sm ${
+            !licence.is_ok
+              ? "border-destructive/40 bg-destructive/5 text-destructive"
+              : "border-amber-500/40 bg-amber-500/5 text-amber-900 dark:text-amber-200"
+          }`}
+        >
+          <Music className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            {!licence.is_ok ? (
+              <>
+                <strong>Music licence expired.</strong> The 9 global Solfeggio tracks are locked
+                until renewal. Your own uploaded audio still plays. Contact ResonaBed to renew.
+              </>
+            ) : (
+              <>
+                <strong>Music licence expiring soon.</strong> Renew before{" "}
+                {new Date(licence.expires_at).toLocaleDateString()} to keep uninterrupted access to
+                the global track library.
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {!ctx?.org && !ctx?.roles.includes("super_admin") ? (
         <Card className="shadow-soft border-0">

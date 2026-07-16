@@ -4,6 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listOrganisations, type OrgRow } from "@/lib/organisations.functions";
+import {
+  extendMusicLicence,
+  expireMusicLicence,
+} from "@/lib/licence.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +25,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Copy, Star, Ban, Play, Pencil, Plus, ShieldAlert, KeyRound, UserPlus, Users, UserMinus } from "lucide-react";
+import {
+  Copy,
+  Star,
+  Ban,
+  Play,
+  Pencil,
+  Plus,
+  ShieldAlert,
+  KeyRound,
+  UserPlus,
+  Users,
+  UserMinus,
+  Music,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
   head: () => ({ meta: [{ title: "Organisations — ResonaBed" }] }),
@@ -75,6 +93,7 @@ function OrganisationsPage() {
   const [editing, setEditing] = useState<OrgRow | null>(null);
   const [resetting, setResetting] = useState<OrgRow | null>(null);
   const [addingAdminTo, setAddingAdminTo] = useState<OrgRow | null>(null);
+  const [managingLicence, setManagingLicence] = useState<OrgRow | null>(null);
   const [tempPassword, setTempPassword] = useState<{
     email: string;
     password: string;
@@ -142,10 +161,19 @@ function OrganisationsPage() {
                       {o.status}
                     </Badge>
                     {!o.is_configured && <Badge variant="outline">Setup pending</Badge>}
+                    <LicenceBadge org={o} />
                   </CardTitle>
                   <p className="text-xs text-muted-foreground">
                     {o.user_count} user{o.user_count === 1 ? "" : "s"} ·{" "}
                     {o.session_count_30d} session{o.session_count_30d === 1 ? "" : "s"} in last 30 days
+                    {o.music_licence_expires_at ? (
+                      <>
+                        {" · "}Music licence{" "}
+                        {o.music_licence_effective === "ok"
+                          ? `expires ${new Date(o.music_licence_expires_at).toLocaleDateString()} (${o.music_licence_days_remaining} days)`
+                          : `expired ${new Date(o.music_licence_expires_at).toLocaleDateString()}`}
+                      </>
+                    ) : null}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -157,6 +185,9 @@ function OrganisationsPage() {
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => setResetting(o)}>
                     <Users className="mr-1 h-3.5 w-3.5" /> Manage admins
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setManagingLicence(o)}>
+                    <Music className="mr-1 h-3.5 w-3.5" /> Music licence
                   </Button>
                   {!o.is_template && (
                     <Button
@@ -237,6 +268,17 @@ function OrganisationsPage() {
           onAdded={(res) => {
             setAddingAdminTo(null);
             if (res) setTempPassword(res);
+            invalidate();
+          }}
+        />
+      )}
+
+      {managingLicence && (
+        <LicenceDialog
+          org={managingLicence}
+          onOpenChange={(v) => !v && setManagingLicence(null)}
+          onSaved={() => {
+            setManagingLicence(null);
             invalidate();
           }}
         />
@@ -694,3 +736,194 @@ function AddAdminDialog({
     </Dialog>
   );
 }
+
+function LicenceBadge({ org }: { org: OrgRow }) {
+  if (org.music_licence_effective === "expired") {
+    return <Badge variant="destructive">Licence expired</Badge>;
+  }
+  const days = org.music_licence_days_remaining ?? 0;
+  if (org.music_licence_status === "trial") {
+    return <Badge variant="secondary">Trial · {days}d left</Badge>;
+  }
+  const variant = days <= 30 ? "outline" : "default";
+  return <Badge variant={variant}>Licence · {days}d</Badge>;
+}
+
+function LicenceDialog({
+  org,
+  onOpenChange,
+  onSaved,
+}: {
+  org: OrgRow;
+  onOpenChange: (v: boolean) => void;
+  onSaved: () => void;
+}) {
+  const extendFn = useServerFn(extendMusicLicence);
+  const expireFn = useServerFn(expireMusicLicence);
+  const [preset, setPreset] = useState<"1" | "12" | "custom">("12");
+  const [customMonths, setCustomMonths] = useState<number>(6);
+  const [plan, setPlan] = useState<"basic" | "pro" | "none">("pro");
+  const [note, setNote] = useState<string>("");
+
+  const months = preset === "1" ? 1 : preset === "12" ? 12 : Math.max(1, customMonths);
+
+  const extend = useMutation({
+    mutationFn: () =>
+      extendFn({
+        data: { org_id: org.id, months, plan, note: note.trim() || undefined },
+      }),
+    onSuccess: (res) => {
+      toast.success(
+        `+${res.months_added} months. New expiry: ${new Date(res.expires_at).toLocaleDateString()}`,
+      );
+      onSaved();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const expire = useMutation({
+    mutationFn: () =>
+      expireFn({ data: { org_id: org.id, note: note.trim() || undefined } }),
+    onSuccess: () => {
+      toast.success("Licence marked expired");
+      onSaved();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const currentExpiry = org.music_licence_expires_at
+    ? new Date(org.music_licence_expires_at)
+    : null;
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Music className="h-5 w-5" /> Music licence — {org.name}
+          </DialogTitle>
+          <DialogDescription>
+            Extensions stack onto the existing expiry, so no unused days are lost. The
+            org's own uploaded audio is unaffected — only the 9 global tracks are gated.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="rounded-md border bg-muted/40 p-3 text-sm space-y-1">
+            <div>
+              <span className="text-muted-foreground">Status:</span>{" "}
+              <strong>{org.music_licence_status}</strong>
+              {" · "}
+              <span className="text-muted-foreground">Effective:</span>{" "}
+              <strong>{org.music_licence_effective}</strong>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Expires:</span>{" "}
+              {currentExpiry ? currentExpiry.toLocaleString() : "—"}
+              {org.music_licence_days_remaining !== null
+                ? ` (${org.music_licence_days_remaining} days remaining)`
+                : ""}
+            </div>
+            <div>
+              <span className="text-muted-foreground">Plan:</span>{" "}
+              {org.music_licence_plan}
+            </div>
+            {org.music_licence_note ? (
+              <div>
+                <span className="text-muted-foreground">Last note:</span>{" "}
+                {org.music_licence_note}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Extend by</Label>
+            <RadioGroup
+              value={preset}
+              onValueChange={(v) => setPreset(v as "1" | "12" | "custom")}
+              className="grid grid-cols-3 gap-2"
+            >
+              <label className="flex items-center gap-2 rounded-md border p-2 cursor-pointer">
+                <RadioGroupItem value="12" id="lic-12" />
+                <span className="text-sm">+12 months (annual)</span>
+              </label>
+              <label className="flex items-center gap-2 rounded-md border p-2 cursor-pointer">
+                <RadioGroupItem value="1" id="lic-1" />
+                <span className="text-sm">+1 month</span>
+              </label>
+              <label className="flex items-center gap-2 rounded-md border p-2 cursor-pointer">
+                <RadioGroupItem value="custom" id="lic-c" />
+                <span className="text-sm">Custom</span>
+              </label>
+            </RadioGroup>
+            {preset === "custom" && (
+              <Input
+                type="number"
+                min={1}
+                max={120}
+                value={customMonths}
+                onChange={(e) => setCustomMonths(parseInt(e.target.value) || 1)}
+                className="max-w-[140px]"
+              />
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Plan label</Label>
+            <RadioGroup
+              value={plan}
+              onValueChange={(v) => setPlan(v as "basic" | "pro" | "none")}
+              className="flex gap-3"
+            >
+              <label className="flex items-center gap-2 text-sm">
+                <RadioGroupItem value="pro" /> Pro / Platinum
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <RadioGroupItem value="basic" /> Basic
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <RadioGroupItem value="none" /> None
+              </label>
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="lic-note">Note (optional)</Label>
+            <Input
+              id="lic-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. Pro bundle 13mo — $49.50 paid"
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="flex flex-wrap gap-2">
+          <Button
+            variant="destructive"
+            onClick={() => {
+              if (
+                confirm(
+                  `Expire licence for "${org.name}" immediately? Their access to the 9 global tracks will stop.`,
+                )
+              )
+                expire.mutate();
+            }}
+            disabled={expire.isPending || extend.isPending}
+          >
+            Expire now
+          </Button>
+          <div className="ml-auto flex gap-2">
+            <Button variant="ghost" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => extend.mutate()} disabled={extend.isPending}>
+              {extend.isPending ? "Extending…" : `Extend +${months} months`}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
