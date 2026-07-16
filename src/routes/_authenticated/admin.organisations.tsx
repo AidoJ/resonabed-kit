@@ -273,6 +273,17 @@ function OrganisationsPage() {
         />
       )}
 
+      {managingLicence && (
+        <LicenceDialog
+          org={managingLicence}
+          onOpenChange={(v) => !v && setManagingLicence(null)}
+          onSaved={() => {
+            setManagingLicence(null);
+            invalidate();
+          }}
+        />
+      )}
+
       {tempPassword && (
         <TempPasswordDialog details={tempPassword} onClose={() => setTempPassword(null)} />
       )}
