@@ -142,14 +142,13 @@ export const expireMusicLicence = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireSuperAdmin(context);
-    const patch: Record<string, unknown> = {
-      music_licence_status: "expired",
-      music_licence_expires_at: new Date().toISOString(),
-    };
-    if (data.note !== undefined) patch.music_licence_note = data.note;
     const { error } = await context.supabase
       .from("organisations")
-      .update(patch)
+      .update({
+        music_licence_status: "expired" as const,
+        music_licence_expires_at: new Date().toISOString(),
+        ...(data.note !== undefined ? { music_licence_note: data.note } : {}),
+      })
       .eq("id", data.org_id);
     if (error) throw new Error(error.message);
     return { ok: true };
