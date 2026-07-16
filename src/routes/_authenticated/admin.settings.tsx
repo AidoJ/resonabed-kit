@@ -228,7 +228,18 @@ function SettingsAdmin() {
     }
   };
 
-  if (isLoading || !org) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (!org) {
+    return (
+      <Card>
+        <CardHeader><CardTitle>No organisation selected</CardTitle></CardHeader>
+        <CardContent className="text-sm text-muted-foreground space-y-2">
+          <p>Your account isn't attached to an organisation, so there are no clinic settings to edit here.</p>
+          <p>Super admins can manage clinics from the Organisations page.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
