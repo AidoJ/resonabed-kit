@@ -144,6 +144,8 @@ export type Database = {
           created_at: string
           date_of_birth: string | null
           email: string | null
+          email_status: Database["public"]["Enums"]["email_status"]
+          email_status_updated_at: string | null
           first_name: string
           id: string
           last_name: string
@@ -155,6 +157,8 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
+          email_status?: Database["public"]["Enums"]["email_status"]
+          email_status_updated_at?: string | null
           first_name: string
           id?: string
           last_name: string
@@ -166,6 +170,8 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
+          email_status?: Database["public"]["Enums"]["email_status"]
+          email_status_updated_at?: string | null
           first_name?: string
           id?: string
           last_name?: string
@@ -386,6 +392,8 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string | null
+          email_status: Database["public"]["Enums"]["email_status"]
+          email_status_updated_at: string | null
           id: string
           is_active: boolean
           org_id: string | null
@@ -394,6 +402,8 @@ export type Database = {
         Insert: {
           created_at?: string
           display_name?: string | null
+          email_status?: Database["public"]["Enums"]["email_status"]
+          email_status_updated_at?: string | null
           id: string
           is_active?: boolean
           org_id?: string | null
@@ -402,6 +412,8 @@ export type Database = {
         Update: {
           created_at?: string
           display_name?: string | null
+          email_status?: Database["public"]["Enums"]["email_status"]
+          email_status_updated_at?: string | null
           id?: string
           is_active?: boolean
           org_id?: string | null
@@ -619,6 +631,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "no_show"
+      email_status: "valid" | "bounced" | "complained" | "unsubscribed"
       org_status: "active" | "suspended"
       payment_method: "cash" | "eftpos" | "payid" | "other" | "none"
       session_status: "draft" | "completed" | "cancelled"
@@ -758,6 +771,7 @@ export const Constants = {
         "cancelled",
         "no_show",
       ],
+      email_status: ["valid", "bounced", "complained", "unsubscribed"],
       org_status: ["active", "suspended"],
       payment_method: ["cash", "eftpos", "payid", "other", "none"],
       session_status: ["draft", "completed", "cancelled"],

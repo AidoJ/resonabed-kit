@@ -114,7 +114,7 @@ export const listTeam = createServerFn({ method: "GET" })
       await Promise.all([
         context.supabase
           .from("profiles")
-          .select("id, display_name, is_active, org_id")
+          .select("id, display_name, is_active, org_id, email_status")
           .order("display_name"),
         context.supabase.from("user_roles").select("user_id, role"),
       ]);
@@ -131,6 +131,7 @@ export const listTeam = createServerFn({ method: "GET" })
       display_name: p.display_name,
       is_active: p.is_active,
       org_id: p.org_id,
+      email_status: (p as { email_status?: string }).email_status ?? "valid",
       roles: rolesByUser.get(p.id) ?? [],
     }));
   });
@@ -144,7 +145,7 @@ export const listClientsAdmin = createServerFn({ method: "POST" })
     await requireAdmin(context);
     let q = context.supabase
       .from("clients")
-      .select("id, first_name, last_name, email, phone, date_of_birth, created_at")
+      .select("id, first_name, last_name, email, phone, date_of_birth, email_status, created_at")
       .order("last_name");
     if (data.search) {
       const s = `%${data.search}%`;

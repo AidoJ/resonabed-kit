@@ -18,7 +18,8 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Pencil, Plus, History } from "lucide-react";
+import { Pencil, Plus, History, MailWarning } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_authenticated/admin/clients")({
   head: () => ({ meta: [{ title: "Clients — Admin — ResonaBed" }] }),
@@ -32,6 +33,13 @@ type ClientRow = {
   email: string | null;
   phone: string | null;
   date_of_birth: string | null;
+  email_status?: "valid" | "bounced" | "complained" | "unsubscribed";
+};
+
+const EMAIL_STATUS_LABEL: Record<string, string> = {
+  bounced: "Email undeliverable (bounced)",
+  complained: "Recipient marked as spam",
+  unsubscribed: "Recipient unsubscribed",
 };
 
 function ClientsAdmin() {
@@ -104,7 +112,26 @@ function ClientsAdmin() {
             (data ?? []).map((c) => (
               <TableRow key={c.id}>
                 <TableCell>{c.last_name}, {c.first_name}</TableCell>
-                <TableCell>{c.email ?? "—"}</TableCell>
+                <TableCell>
+                  {c.email ? (
+                    <div className="flex items-center gap-2">
+                      <span className={c.email_status && c.email_status !== "valid" ? "line-through text-muted-foreground" : ""}>
+                        {c.email}
+                      </span>
+                      {c.email_status && c.email_status !== "valid" && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge variant="destructive" className="gap-1">
+                              <MailWarning className="h-3 w-3" />
+                              {c.email_status === "bounced" ? "Undeliverable" : c.email_status === "complained" ? "Spam" : "Unsubscribed"}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>{EMAIL_STATUS_LABEL[c.email_status]}</TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  ) : "—"}
+                </TableCell>
                 <TableCell>{c.phone ?? "—"}</TableCell>
                 <TableCell className="text-right">
                   <Button size="icon" variant="ghost" onClick={() => setHistoryOf(c)}>
