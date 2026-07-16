@@ -500,7 +500,7 @@ Deno.serve(async (req) => {
           .from("user_roles")
           .upsert(
             { user_id: uid, org_id: body.org_id, role: "org_admin" },
-            { onConflict: "user_id,org_id,role", ignoreDuplicates: true },
+            { onConflict: "user_id,role,org_id", ignoreDuplicates: true },
           );
         if (roleErr) return json(400, { error: roleErr.message });
 
