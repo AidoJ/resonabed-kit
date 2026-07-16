@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Music, X } from "lucide-react";
 import { getSession, getAudioForFrequency, getSignedAudioUrl } from "@/lib/sessions.functions";
+import { getMyOrgLicence } from "@/lib/licence.functions";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
 import { AudioPlayer, type AudioPlayerHandle } from "@/components/session-player/audio-player";
 import { CompletePanel } from "@/components/session-player/complete-panel";
