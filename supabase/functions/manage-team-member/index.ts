@@ -198,11 +198,10 @@ Deno.serve(async (req) => {
       case "clear_must_change_password": {
         // Caller must be clearing their own flag (after successful password update)
         if (body.user_id !== callerId) return json(403, { error: "Forbidden" });
-        const { data: u } = await admin.auth.admin.getUserById(callerId);
-        const meta = { ...(u.user?.app_metadata ?? {}) };
-        delete meta.must_change_password;
+        // Supabase MERGES app_metadata on updateUserById — deleting the key
+        // locally has no effect. Set it to null explicitly to clear it.
         const { error: updErr } = await admin.auth.admin.updateUserById(callerId, {
-          app_metadata: meta,
+          app_metadata: { must_change_password: null },
         });
         if (updErr) return json(400, { error: updErr.message });
         return json(200, { ok: true });
