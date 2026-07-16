@@ -20,7 +20,6 @@ const SITE_URL = `https://${ROOT_DOMAIN}`
 const handler = createAuthEmailHandler({
   apiKey: process.env.LOVABLE_API_KEY!,
   from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-  replyTo: `info@${ROOT_DOMAIN}`,
   senderDomain: SENDER_DOMAIN,
   sendUrl: process.env.LOVABLE_SEND_URL,
   emails: {
