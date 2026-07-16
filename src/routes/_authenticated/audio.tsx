@@ -81,6 +81,7 @@ function AudioPage() {
 
 interface AudioRow {
   id: string;
+  org_id: string | null;
   title: string;
   frequency_id: string | null;
   file_url: string | null;
