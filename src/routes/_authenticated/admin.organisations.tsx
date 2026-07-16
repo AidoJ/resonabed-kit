@@ -161,10 +161,19 @@ function OrganisationsPage() {
                       {o.status}
                     </Badge>
                     {!o.is_configured && <Badge variant="outline">Setup pending</Badge>}
+                    <LicenceBadge org={o} />
                   </CardTitle>
                   <p className="text-xs text-muted-foreground">
                     {o.user_count} user{o.user_count === 1 ? "" : "s"} ·{" "}
                     {o.session_count_30d} session{o.session_count_30d === 1 ? "" : "s"} in last 30 days
+                    {o.music_licence_expires_at ? (
+                      <>
+                        {" · "}Music licence{" "}
+                        {o.music_licence_effective === "ok"
+                          ? `expires ${new Date(o.music_licence_expires_at).toLocaleDateString()} (${o.music_licence_days_remaining} days)`
+                          : `expired ${new Date(o.music_licence_expires_at).toLocaleDateString()}`}
+                      </>
+                    ) : null}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
