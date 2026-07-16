@@ -296,6 +296,9 @@ export type Database = {
           name: string
           privacy_policy_text: string | null
           status: Database["public"]["Enums"]["org_status"]
+          theme_accent: string | null
+          theme_primary: string | null
+          theme_sidebar: string | null
           updated_at: string
         }
         Insert: {
@@ -318,6 +321,9 @@ export type Database = {
           name: string
           privacy_policy_text?: string | null
           status?: Database["public"]["Enums"]["org_status"]
+          theme_accent?: string | null
+          theme_primary?: string | null
+          theme_sidebar?: string | null
           updated_at?: string
         }
         Update: {
@@ -340,6 +346,9 @@ export type Database = {
           name?: string
           privacy_policy_text?: string | null
           status?: Database["public"]["Enums"]["org_status"]
+          theme_accent?: string | null
+          theme_primary?: string | null
+          theme_sidebar?: string | null
           updated_at?: string
         }
         Relationships: []
