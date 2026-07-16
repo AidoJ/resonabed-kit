@@ -514,6 +514,33 @@ Deno.serve(async (req) => {
         });
       }
 
+      case "revoke_admin": {
+        // Confirm the target really is an org_admin of that org.
+        const { data: role, error: roleLookupErr } = await admin
+          .from("user_roles")
+          .select("user_id")
+          .eq("org_id", body.org_id)
+          .eq("role", "org_admin")
+          .eq("user_id", body.user_id)
+          .maybeSingle();
+        if (roleLookupErr) return json(400, { error: roleLookupErr.message });
+        if (!role)
+          return json(404, { error: "User is not an org_admin of this organisation" });
+
+        const { error: delErr } = await admin
+          .from("user_roles")
+          .delete()
+          .eq("org_id", body.org_id)
+          .eq("role", "org_admin")
+          .eq("user_id", body.user_id);
+        if (delErr) return json(400, { error: delErr.message });
+
+        // Force sign-out so the revoked admin loses access on all devices immediately.
+        await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
+
+        return json(200, { ok: true, user_id: body.user_id });
+      }
+
       default:
         return json(400, { error: "Unknown action" });
     }
