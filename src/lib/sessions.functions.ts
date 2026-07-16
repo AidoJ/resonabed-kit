@@ -314,23 +314,71 @@ export const listMyOrgSessions = createServerFn({ method: "GET" })
 
 // ---------- Audio ----------
 
+/**
+ * Effective licence check: global (org_id IS NULL) tracks are only playable
+ * when the caller's org has a valid trial/active licence whose expiry is in
+ * the future. The org's own uploaded tracks are always available.
+ */
+async function callerHasGlobalLicence(context: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+}): Promise<boolean> {
+  const { data: profile } = await context.supabase
+    .from("profiles")
+    .select("org_id")
+    .eq("id", context.userId)
+    .maybeSingle();
+  if (!profile?.org_id) return true; // super_admin with no org: allow
+  const { data: org } = await context.supabase
+    .from("organisations")
+    .select("music_licence_status, music_licence_expires_at")
+    .eq("id", profile.org_id)
+    .maybeSingle();
+  if (!org) return false;
+  if (org.music_licence_status === "expired") return false;
+  if (!org.music_licence_expires_at) return false;
+  return new Date(org.music_licence_expires_at as string).getTime() > Date.now();
+}
+
 export const getAudioForFrequency = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { frequency_id: string }) =>
     z.object({ frequency_id: uuid }).parse(data),
   )
   .handler(async ({ data, context }) => {
-    // If multiple active audio files exist for the frequency, use the most
-    // recently created one.
-    const { data: rows, error } = await context.supabase
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", context.userId)
+      .maybeSingle();
+
+    // Prefer the org's own uploaded track (unaffected by licence).
+    if (profile?.org_id) {
+      const { data: own } = await context.supabase
+        .from("audio_files")
+        .select("id, title, file_url, duration_seconds, created_at, org_id")
+        .eq("frequency_id", data.frequency_id)
+        .eq("is_active", true)
+        .eq("org_id", profile.org_id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (own && own[0]) return { ...own[0], is_global: false };
+    }
+
+    // Fall back to a global track if the licence is valid.
+    const licensed = await callerHasGlobalLicence(context);
+    if (!licensed) return null;
+    const { data: global, error } = await context.supabase
       .from("audio_files")
-      .select("id, title, file_url, duration_seconds, created_at")
+      .select("id, title, file_url, duration_seconds, created_at, org_id")
       .eq("frequency_id", data.frequency_id)
       .eq("is_active", true)
+      .is("org_id", null)
       .order("created_at", { ascending: false })
       .limit(1);
     if (error) throw new Error(error.message);
-    return rows?.[0] ?? null;
+    if (!global?.[0]) return null;
+    return { ...global[0], is_global: true };
   });
 
 export const getSignedAudioUrl = createServerFn({ method: "POST" })
@@ -341,14 +389,23 @@ export const getSignedAudioUrl = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("audio_files")
-      .select("file_url")
+      .select("file_url, org_id")
       .eq("id", data.audio_file_id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row?.file_url) throw new Error("Audio file has no stored path");
+    if (row.org_id === null) {
+      const licensed = await callerHasGlobalLicence(context);
+      if (!licensed) {
+        throw new Error(
+          "Music licence expired — contact ResonaBed to renew access to the global library.",
+        );
+      }
+    }
     const { data: signed, error: sErr } = await context.supabase.storage
       .from("audio-files")
       .createSignedUrl(row.file_url, 3600);
     if (sErr) throw new Error(sErr.message);
     return { url: signed.signedUrl };
   });
+
