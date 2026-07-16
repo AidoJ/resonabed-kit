@@ -275,7 +275,6 @@ function CreateOrgDialog({
         admin_display_name: adminName || null,
         seed_services: seedServices,
         seed_frequencies: seedFrequencies,
-        seed_audio: seedAudio,
       }),
     onSuccess: (res) => {
       const password = res.temporary_password as string;
