@@ -493,6 +493,22 @@ function UploadDialog({
               </p>
             ) : null}
           </div>
+          {isSuperAdmin ? (
+            <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={isGlobal}
+                onChange={(e) => setIsGlobal(e.target.checked)}
+              />
+              <span className="text-sm">
+                <span className="font-medium">Upload to global library</span>
+                <span className="block text-xs text-muted-foreground">
+                  Shared with every organisation. Only super admins can manage global tracks.
+                </span>
+              </span>
+            </label>
+          ) : null}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
