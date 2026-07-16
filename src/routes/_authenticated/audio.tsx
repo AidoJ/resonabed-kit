@@ -375,6 +375,7 @@ function UploadDialog({
   onOpenChange,
   frequencies,
   presetFrequencyId,
+  isSuperAdmin,
   createRow,
   finalize,
   remove,
