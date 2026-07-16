@@ -198,9 +198,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="flex items-center justify-center rounded-2xl bg-white/95 px-4 py-5"
             >
               <img
-                src={logo.url}
-                alt="Resonabed"
-                className="h-[3.125rem] w-auto"
+                src={data?.org?.logoSignedUrl ?? logo.url}
+                alt={data?.org?.name ?? "Resonabed"}
+                className="h-[3.125rem] w-auto object-contain"
                 draggable={false}
               />
             </Link>
