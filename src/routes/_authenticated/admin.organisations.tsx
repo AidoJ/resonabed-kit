@@ -264,7 +264,6 @@ function CreateOrgDialog({
   const [adminName, setAdminName] = useState("");
   const [seedServices, setSeedServices] = useState(true);
   const [seedFrequencies, setSeedFrequencies] = useState(true);
-  const [seedAudio, setSeedAudio] = useState(true);
 
   const create = useMutation({
     mutationFn: () =>
