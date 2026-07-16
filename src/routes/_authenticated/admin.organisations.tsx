@@ -354,19 +354,9 @@ function CreateOrgDialog({
                 Frequencies (global — always available)
               </Label>
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="seed-audio"
-                checked={seedAudio}
-                onCheckedChange={(v) => setSeedAudio(!!v)}
-              />
-              <Label htmlFor="seed-audio" className="font-normal">
-                Copy audio library (files duplicated into new org's storage)
-              </Label>
-            </div>
             <p className="text-xs text-muted-foreground">
-              Frequencies are global to ResonaBed — this option is a no-op and shown for clarity.
-              If no template is set or the template has no audio, seeding is skipped silently.
+              Audio library is global — new organisations inherit the shipped Solfeggio tracks
+              automatically. Frequencies are global too.
             </p>
           </div>
         </div>
