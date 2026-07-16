@@ -264,7 +264,14 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                         className="flex flex-wrap items-center gap-3 px-4 py-3"
                       >
                         <div className="flex-1 min-w-[160px]">
-                          <p className="text-sm font-medium">{r.title}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium">{r.title}</p>
+                            {r.org_id === null ? (
+                              <Badge variant="secondary" className="text-[10px]">
+                                Global
+                              </Badge>
+                            ) : null}
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {fmtDuration(r.duration_seconds)} ·{" "}
                             {new Date(r.created_at).toLocaleDateString()}
