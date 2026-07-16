@@ -29,7 +29,7 @@ type Action =
       admin_display_name?: string | null;
       seed_services: boolean;
       seed_frequencies: boolean; // no-op flag (frequencies are global)
-      seed_audio: boolean;
+      seed_audio?: boolean; // deprecated no-op: global audio library is shared, not copied
     }
   | {
       type: "update";
