@@ -94,25 +94,68 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    const brand = data?.org?.brandColor;
-    if (brand && /^#[0-9a-fA-F]{6}$/.test(brand)) {
-      root.style.setProperty("--primary", brand);
-      root.style.setProperty("--ring", brand);
-      root.style.setProperty("--sidebar-ring", brand);
-      root.style.setProperty("--chart-1", brand);
-    } else {
-      root.style.removeProperty("--primary");
-      root.style.removeProperty("--ring");
-      root.style.removeProperty("--sidebar-ring");
-      root.style.removeProperty("--chart-1");
+    const org = data?.org;
+    const hex = /^#[0-9a-fA-F]{6}$/;
+    const primary = org?.themePrimary && hex.test(org.themePrimary) ? org.themePrimary : null;
+    const sidebar = org?.themeSidebar && hex.test(org.themeSidebar) ? org.themeSidebar : null;
+    const accent = org?.themeAccent && hex.test(org.themeAccent) ? org.themeAccent : null;
+
+    // Best readable text on a given hex background (white vs near-black).
+    const lum = (h: string) => {
+      const r = parseInt(h.slice(1, 3), 16),
+        g = parseInt(h.slice(3, 5), 16),
+        b = parseInt(h.slice(5, 7), 16);
+      const lin = (c: number) => {
+        const s = c / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    };
+    const fgFor = (h: string) => (lum(h) > 0.45 ? "#100a2e" : "#ffffff");
+
+    const clearVars = [
+      "--primary",
+      "--primary-foreground",
+      "--ring",
+      "--sidebar-ring",
+      "--sidebar",
+      "--sidebar-primary",
+      "--sidebar-primary-foreground",
+      "--sidebar-accent",
+      "--sidebar-border",
+      "--accent",
+      "--accent-foreground",
+      "--chart-1",
+    ];
+    for (const v of clearVars) root.style.removeProperty(v);
+
+    if (primary) {
+      root.style.setProperty("--primary", primary);
+      root.style.setProperty("--primary-foreground", fgFor(primary));
+      root.style.setProperty("--ring", primary);
+      root.style.setProperty("--sidebar-ring", primary);
+      root.style.setProperty("--sidebar-primary", primary);
+      root.style.setProperty("--sidebar-primary-foreground", fgFor(primary));
+      root.style.setProperty("--sidebar-accent", `color-mix(in oklab, ${primary} 22%, transparent)`);
+      root.style.setProperty("--chart-1", primary);
+    }
+    if (sidebar) {
+      root.style.setProperty("--sidebar", sidebar);
+      root.style.setProperty("--sidebar-foreground", fgFor(sidebar));
+    }
+    if (accent) {
+      root.style.setProperty("--accent", accent);
+      root.style.setProperty("--accent-foreground", fgFor(accent));
     }
     return () => {
-      root.style.removeProperty("--primary");
-      root.style.removeProperty("--ring");
-      root.style.removeProperty("--sidebar-ring");
-      root.style.removeProperty("--chart-1");
+      for (const v of clearVars) root.style.removeProperty(v);
+      root.style.removeProperty("--sidebar-foreground");
     };
-  }, [data?.org?.brandColor]);
+  }, [
+    data?.org?.themePrimary,
+    data?.org?.themeSidebar,
+    data?.org?.themeAccent,
+  ]);
 
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
