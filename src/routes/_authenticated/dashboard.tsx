@@ -49,6 +49,11 @@ function DashboardPage() {
   const fetchCtx = useServerFn(getCurrentUserContext);
   const listSessions = useServerFn(listMyOrgSessions);
   const listBookingsFn = useServerFn(listBookings);
+  const fetchLicence = useServerFn(getMyOrgLicence);
+  const { data: licence } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => fetchLicence(),
+  });
 
   const { data: ctx, isLoading: ctxLoading } = useQuery({
     queryKey: ["user-context"],
