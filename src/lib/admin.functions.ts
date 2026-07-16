@@ -295,7 +295,7 @@ export const getOrgSettings = createServerFn({ method: "GET" })
       .select("org_id")
       .eq("id", context.userId)
       .maybeSingle();
-    if (!profile?.org_id) throw new Error("No organisation");
+    if (!profile?.org_id) return null;
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
