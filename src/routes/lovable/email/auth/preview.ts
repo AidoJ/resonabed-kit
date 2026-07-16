@@ -18,7 +18,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "resona-calm-sync"
+const SITE_NAME = "ResonaBed"
 const ROOT_DOMAIN = "resonabed.com"
 
 // Sample data for preview mode ONLY (not used in actual email sending).

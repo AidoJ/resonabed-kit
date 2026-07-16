@@ -9,7 +9,7 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 // Configuration
-const SITE_NAME = "resona-calm-sync"
+const SITE_NAME = "ResonaBed"
 const SENDER_DOMAIN = "notify.resonabed.com"
 const ROOT_DOMAIN = "resonabed.com"
 const FROM_DOMAIN = "notify.resonabed.com"
