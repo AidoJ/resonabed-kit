@@ -22,6 +22,11 @@ function PlaySession() {
   const getFn = useServerFn(getSession);
   const audioFn = useServerFn(getAudioForFrequency);
   const signFn = useServerFn(getSignedAudioUrl);
+  const licenceFn = useServerFn(getMyOrgLicence);
+  const { data: licence } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => licenceFn(),
+  });
 
   const [ambient, setAmbient] = useState(false);
   const audioHandleRef = useRef<AudioPlayerHandle | null>(null);
