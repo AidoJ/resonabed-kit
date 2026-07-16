@@ -9,6 +9,7 @@ import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listMyOrgSessions } from "@/lib/sessions.functions";
 import { listBookings } from "@/lib/bookings.functions";
 import { getMyOrgLicence } from "@/lib/licence.functions";
+import { getAppSetting, MUSIC_RENEWAL_PRICE_KEY } from "@/lib/app-settings.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
