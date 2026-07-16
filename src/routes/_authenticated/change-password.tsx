@@ -14,6 +14,14 @@ export const Route = createFileRoute("/_authenticated/change-password")({
   component: ChangePassword,
 });
 
+const rules = [
+  { label: "At least 8 characters", test: (s: string) => s.length >= 8 },
+  { label: "One uppercase letter (A–Z)", test: (s: string) => /[A-Z]/.test(s) },
+  { label: "One lowercase letter (a–z)", test: (s: string) => /[a-z]/.test(s) },
+  { label: "One number (0–9)", test: (s: string) => /[0-9]/.test(s) },
+  { label: "One symbol (e.g. ! @ # $ %)", test: (s: string) => /[^A-Za-z0-9]/.test(s) },
+];
+
 function ChangePassword() {
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -22,13 +30,15 @@ function ChangePassword() {
   const nav = useNavigate();
   const qc = useQueryClient();
 
-  const canSubmit = pw.length >= 10 && pw === pw2 && !busy;
+  const ruleResults = rules.map((r) => ({ ...r, ok: r.test(pw) }));
+  const allRulesPass = ruleResults.every((r) => r.ok);
+  const canSubmit = allRulesPass && pw === pw2 && !busy;
 
   const onSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     setMessage(null);
-    if (pw.length < 10) {
-      setMessage("Use at least 10 characters.");
+    if (!allRulesPass) {
+      setMessage("Password must meet all the requirements below.");
       return;
     }
     if (pw !== pw2) {
@@ -51,7 +61,6 @@ function ChangePassword() {
         },
       });
       if (fnErr) throw new Error(fnErr.message);
-      // Refresh session so the JWT reflects cleared app_metadata
       await supabase.auth.refreshSession();
       qc.invalidateQueries({ queryKey: ["user-context"] });
       toast.success("Password updated");
@@ -84,6 +93,21 @@ function ChangePassword() {
           <div>
             <Label>New password</Label>
             <PasswordInput value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" />
+          </div>
+          <div className="rounded-md border p-3 text-sm space-y-1 bg-muted/30">
+            <div className="font-medium mb-1">Password must include:</div>
+            <ul className="space-y-1">
+              {ruleResults.map((r) => (
+                <li key={r.label} className={r.ok ? "text-green-600" : "text-muted-foreground"}>
+                  <span aria-hidden className="inline-block w-4">{r.ok ? "✓" : "○"}</span>
+                  {r.label}
+                </li>
+              ))}
+              <li className={pw.length > 0 && pw === pw2 ? "text-green-600" : "text-muted-foreground"}>
+                <span aria-hidden className="inline-block w-4">{pw.length > 0 && pw === pw2 ? "✓" : "○"}</span>
+                Passwords match
+              </li>
+            </ul>
           </div>
           <div>
             <Label>Confirm password</Label>
