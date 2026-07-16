@@ -74,6 +74,7 @@ function OrganisationsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<OrgRow | null>(null);
   const [resetting, setResetting] = useState<OrgRow | null>(null);
+  const [addingAdminTo, setAddingAdminTo] = useState<OrgRow | null>(null);
   const [tempPassword, setTempPassword] = useState<{
     email: string;
     password: string;
