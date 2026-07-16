@@ -264,7 +264,6 @@ function CreateOrgDialog({
   const [adminName, setAdminName] = useState("");
   const [seedServices, setSeedServices] = useState(true);
   const [seedFrequencies, setSeedFrequencies] = useState(true);
-  const [seedAudio, setSeedAudio] = useState(true);
 
   const create = useMutation({
     mutationFn: () =>
@@ -276,7 +275,6 @@ function CreateOrgDialog({
         admin_display_name: adminName || null,
         seed_services: seedServices,
         seed_frequencies: seedFrequencies,
-        seed_audio: seedAudio,
       }),
     onSuccess: (res) => {
       const password = res.temporary_password as string;
@@ -356,19 +354,9 @@ function CreateOrgDialog({
                 Frequencies (global — always available)
               </Label>
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="seed-audio"
-                checked={seedAudio}
-                onCheckedChange={(v) => setSeedAudio(!!v)}
-              />
-              <Label htmlFor="seed-audio" className="font-normal">
-                Copy audio library (files duplicated into new org's storage)
-              </Label>
-            </div>
             <p className="text-xs text-muted-foreground">
-              Frequencies are global to ResonaBed — this option is a no-op and shown for clarity.
-              If no template is set or the template has no audio, seeding is skipped silently.
+              Audio library is global — new organisations inherit the shipped Solfeggio tracks
+              automatically. Frequencies are global too.
             </p>
           </div>
         </div>

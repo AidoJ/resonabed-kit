@@ -7,9 +7,11 @@ const uuid = z.string().uuid();
 export const listOrgAudioFiles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    // Returns both global (org_id IS NULL) and the caller's own org rows — RLS
+    // filters the rest. The session player uses the same visibility.
     const { data, error } = await context.supabase
       .from("audio_files")
-      .select("id, title, frequency_id, file_url, duration_seconds, is_active, created_at")
+      .select("id, org_id, title, frequency_id, file_url, duration_seconds, is_active, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -22,10 +24,33 @@ export const createAudioFileRow = createServerFn({ method: "POST" })
       .object({
         title: z.string().min(1).max(160),
         frequency_id: uuid,
+        is_global: z.boolean().optional(),
       })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
+    // Super_admin can upload to the shared global library (org_id = null).
+    if (data.is_global) {
+      const { data: isSuper, error: rErr } = await context.supabase.rpc("is_super_admin", {
+        _user_id: context.userId,
+      });
+      if (rErr) throw new Error(rErr.message);
+      if (!isSuper) throw new Error("Only super admins can upload to the global library");
+
+      const { data: row, error } = await context.supabase
+        .from("audio_files")
+        .insert({
+          org_id: null,
+          title: data.title,
+          frequency_id: data.frequency_id,
+          is_active: true,
+        })
+        .select("id, org_id")
+        .single();
+      if (error) throw new Error(error.message);
+      return { id: row.id, org_id: row.org_id as string | null };
+    }
+
     const { data: profile, error: pErr } = await context.supabase
       .from("profiles")
       .select("org_id")
@@ -45,7 +70,7 @@ export const createAudioFileRow = createServerFn({ method: "POST" })
       .select("id, org_id")
       .single();
     if (error) throw new Error(error.message);
-    return row;
+    return { id: row.id, org_id: row.org_id as string | null };
   });
 
 export const finalizeAudioFile = createServerFn({ method: "POST" })

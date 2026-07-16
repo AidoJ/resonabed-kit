@@ -29,7 +29,7 @@ type Action =
       admin_display_name?: string | null;
       seed_services: boolean;
       seed_frequencies: boolean; // no-op flag (frequencies are global)
-      seed_audio: boolean;
+      seed_audio?: boolean; // deprecated no-op: global audio library is shared, not copied
     }
   | {
       type: "update";
@@ -78,63 +78,10 @@ async function isSuperAdmin(admin: SupabaseClient, userId: string): Promise<bool
   return !!data;
 }
 
-// Copy audio_files rows + underlying storage objects from template org into the new org.
-async function seedAudioFromTemplate(
-  admin: SupabaseClient,
-  templateOrgId: string,
-  newOrgId: string,
-): Promise<{ copied: number }> {
-  const { data: rows, error } = await admin
-    .from("audio_files")
-    .select("id, title, frequency_id, file_url, duration_seconds, is_active")
-    .eq("org_id", templateOrgId);
-  if (error) throw new Error(`audio list: ${error.message}`);
-  if (!rows || rows.length === 0) return { copied: 0 };
+// Audio seeding is deliberately not done — the shipped Solfeggio library is
+// global (org_id IS NULL) and shared with every organisation via RLS, so new
+// clinics inherit it automatically without any copying.
 
-  let copied = 0;
-  for (const src of rows) {
-    if (!src.file_url) continue;
-    // Insert audio_files row FIRST so the new id becomes the storage filename.
-    const ext = (src.file_url.split(".").pop() ?? "bin").toLowerCase();
-    const { data: inserted, error: insErr } = await admin
-      .from("audio_files")
-      .insert({
-        org_id: newOrgId,
-        title: src.title,
-        frequency_id: src.frequency_id,
-        duration_seconds: src.duration_seconds,
-        is_active: src.is_active,
-        file_url: "", // placeholder, updated after upload
-      })
-      .select("id")
-      .single();
-    if (insErr || !inserted) throw new Error(`audio row: ${insErr?.message}`);
-
-    const newPath = `${newOrgId}/${inserted.id}.${ext}`;
-
-    const { data: blob, error: dlErr } = await admin.storage.from("audio-files").download(src.file_url);
-    if (dlErr || !blob) {
-      await admin.from("audio_files").delete().eq("id", inserted.id);
-      throw new Error(`audio download (${src.file_url}): ${dlErr?.message}`);
-    }
-    const contentType = ext === "wav" ? "audio/wav" : "audio/mpeg";
-    const { error: upErr } = await admin.storage
-      .from("audio-files")
-      .upload(newPath, blob, { contentType, upsert: false });
-    if (upErr) {
-      await admin.from("audio_files").delete().eq("id", inserted.id);
-      throw new Error(`audio upload: ${upErr.message}`);
-    }
-    const { error: pathErr } = await admin
-      .from("audio_files")
-      .update({ file_url: newPath })
-      .eq("id", inserted.id);
-    if (pathErr) throw new Error(`audio path update: ${pathErr.message}`);
-    copied++;
-  }
-
-  return { copied };
-}
 
 async function seedServicesFromTemplate(
   admin: SupabaseClient,
@@ -220,7 +167,7 @@ Deno.serve(async (req) => {
 
           if (templateId && templateId !== newOrgId) {
             if (body.seed_services) await seedServicesFromTemplate(admin, templateId, newOrgId);
-            if (body.seed_audio) await seedAudioFromTemplate(admin, templateId, newOrgId);
+            // seed_audio is deprecated — the global audio library is shared via RLS.
           }
           // seed_frequencies is a no-op: frequencies table is global (no org_id).
         } catch (e) {

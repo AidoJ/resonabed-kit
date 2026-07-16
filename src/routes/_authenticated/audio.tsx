@@ -76,11 +76,12 @@ function AudioPage() {
     );
   }
 
-  return <AudioLibrary />;
+  return <AudioLibrary isSuperAdmin={!!ctx?.roles.includes("super_admin")} />;
 }
 
 interface AudioRow {
   id: string;
+  org_id: string | null;
   title: string;
   frequency_id: string | null;
   file_url: string | null;
@@ -114,7 +115,7 @@ async function readAudioDuration(file: File): Promise<number | null> {
   });
 }
 
-function AudioLibrary() {
+function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const qc = useQueryClient();
   const listFreqFn = useServerFn(listFrequencies);
   const listFn = useServerFn(listOrgAudioFiles);
@@ -263,7 +264,14 @@ function AudioLibrary() {
                         className="flex flex-wrap items-center gap-3 px-4 py-3"
                       >
                         <div className="flex-1 min-w-[160px]">
-                          <p className="text-sm font-medium">{r.title}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium">{r.title}</p>
+                            {r.org_id === null ? (
+                              <Badge variant="secondary" className="text-[10px]">
+                                Global
+                              </Badge>
+                            ) : null}
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {fmtDuration(r.duration_seconds)} ·{" "}
                             {new Date(r.created_at).toLocaleDateString()}
@@ -330,6 +338,7 @@ function AudioLibrary() {
         onOpenChange={setUploadOpen}
         frequencies={frequencies ?? []}
         presetFrequencyId={presetFreqId}
+        isSuperAdmin={isSuperAdmin}
         createRow={async (v) => createRowFn({ data: v })}
         finalize={async (v) => finalizeFn({ data: v })}
         remove={async (id) => deleteFn({ data: { id } })}
@@ -347,9 +356,10 @@ interface UploadDialogProps {
   onOpenChange: (v: boolean) => void;
   frequencies: Array<{ id: string; hz: number; name: string }>;
   presetFrequencyId: string | null;
-  createRow: (v: { title: string; frequency_id: string }) => Promise<{
+  isSuperAdmin: boolean;
+  createRow: (v: { title: string; frequency_id: string; is_global?: boolean }) => Promise<{
     id: string;
-    org_id: string;
+    org_id: string | null;
   }>;
   finalize: (v: {
     id: string;
@@ -365,6 +375,7 @@ function UploadDialog({
   onOpenChange,
   frequencies,
   presetFrequencyId,
+  isSuperAdmin,
   createRow,
   finalize,
   remove,
@@ -373,6 +384,7 @@ function UploadDialog({
   const [title, setTitle] = useState("");
   const [frequencyId, setFrequencyId] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
+  const [isGlobal, setIsGlobal] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Reset when opened.
@@ -382,6 +394,7 @@ function UploadDialog({
     setTitle("");
     setFrequencyId(presetFrequencyId ?? "");
     setFile(null);
+    setIsGlobal(false);
   } else if (!open && openedRef.current) {
     openedRef.current = false;
   }
@@ -400,9 +413,14 @@ function UploadDialog({
     let createdId: string | null = null;
     try {
       const duration = await readAudioDuration(file);
-      const row = await createRow({ title: title.trim(), frequency_id: frequencyId });
+      const row = await createRow({
+        title: title.trim(),
+        frequency_id: frequencyId,
+        is_global: isSuperAdmin && isGlobal ? true : undefined,
+      });
       createdId = row.id;
-      const path = `${row.org_id}/${row.id}.${ext}`;
+      const folder = row.org_id ?? "global";
+      const path = `${folder}/${row.id}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from("audio-files")
@@ -475,6 +493,22 @@ function UploadDialog({
               </p>
             ) : null}
           </div>
+          {isSuperAdmin ? (
+            <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={isGlobal}
+                onChange={(e) => setIsGlobal(e.target.checked)}
+              />
+              <span className="text-sm">
+                <span className="font-medium">Upload to global library</span>
+                <span className="block text-xs text-muted-foreground">
+                  Shared with every organisation. Only super admins can manage global tracks.
+                </span>
+              </span>
+            </label>
+          ) : null}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
