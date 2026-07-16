@@ -393,6 +393,7 @@ function UploadDialog({
     setTitle("");
     setFrequencyId(presetFrequencyId ?? "");
     setFile(null);
+    setIsGlobal(false);
   } else if (!open && openedRef.current) {
     openedRef.current = false;
   }
