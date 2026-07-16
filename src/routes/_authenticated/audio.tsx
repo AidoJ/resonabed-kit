@@ -412,9 +412,14 @@ function UploadDialog({
     let createdId: string | null = null;
     try {
       const duration = await readAudioDuration(file);
-      const row = await createRow({ title: title.trim(), frequency_id: frequencyId });
+      const row = await createRow({
+        title: title.trim(),
+        frequency_id: frequencyId,
+        is_global: isSuperAdmin && isGlobal ? true : undefined,
+      });
       createdId = row.id;
-      const path = `${row.org_id}/${row.id}.${ext}`;
+      const folder = row.org_id ?? "global";
+      const path = `${folder}/${row.id}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from("audio-files")
