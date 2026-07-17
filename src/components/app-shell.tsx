@@ -262,7 +262,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <img
                 src={data?.org?.logoSignedUrl ?? logo.url}
                 alt={data?.org?.name ?? "Resonabed"}
-                className="h-[3.125rem] w-auto object-contain"
+                className="h-[4.6875rem] w-auto object-contain"
                 draggable={false}
               />
             </Link>
