@@ -228,13 +228,16 @@ export const getReports = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
-    const { data: sessions, error } = await context.supabase
+    const { orgId } = await resolveEffectiveOrgId(context);
+    let q = context.supabase
       .from("sessions")
       .select(
         "id, created_at, status, payment_method, payment_amount, recommended_frequency_id, frequency:recommended_frequency_id(hz, name)",
       )
       .gte("created_at", data.from)
       .lte("created_at", data.to);
+    if (orgId) q = q.eq("org_id", orgId);
+    const { data: sessions, error } = await q;
     if (error) throw new Error(error.message);
 
     const rows = sessions ?? [];
