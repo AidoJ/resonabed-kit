@@ -111,6 +111,13 @@ function DashboardPage() {
     return <Skeleton className="h-40 w-full max-w-xl" />;
   }
 
+  // Super_admin (platform operator) sees a platform overview, never clinic data.
+  const roles = ctx?.roles ?? [];
+  if (roles.includes("super_admin") && !ctx?.activeSupportSession) {
+    return <SuperAdminDashboard displayName={ctx?.displayName ?? null} />;
+  }
+
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       {/* Hero */}
