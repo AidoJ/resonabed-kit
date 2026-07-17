@@ -172,6 +172,8 @@ Deno.serve(async (req) => {
         // 3. Create or reuse the first org_admin user.
         const email = body.admin_email.trim();
         const displayName = body.admin_display_name ?? null;
+        const phone = (body.admin_phone ?? null)?.toString().trim() || null;
+
 
         // Look for an existing auth user with that email (paginate).
         let existingId: string | null = null;
