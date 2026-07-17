@@ -387,8 +387,10 @@ function CreateOrgDialog({
   const [brandColor, setBrandColor] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminName, setAdminName] = useState("");
+  const [adminPhone, setAdminPhone] = useState("");
   const [seedServices, setSeedServices] = useState(true);
   const [seedFrequencies, setSeedFrequencies] = useState(true);
+  const sendInvite = useServerFn(sendAdminInviteEmail);
 
   const create = useMutation({
     mutationFn: () =>
@@ -398,17 +400,37 @@ function CreateOrgDialog({
         brand_color: brandColor || null,
         admin_email: adminEmail,
         admin_display_name: adminName || null,
+        admin_phone: adminPhone || null,
         seed_services: seedServices,
         seed_frequencies: seedFrequencies,
       }),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const password = res.temporary_password as string;
+      // Fire-and-forget email; do not block dialog on delivery failure.
+      try {
+        await sendInvite({
+          data: {
+            email: adminEmail,
+            orgName: name,
+            recipientName: adminName || null,
+            tempPassword: password,
+            isReset: false,
+          },
+        });
+        toast.success("Invite email sent to " + adminEmail);
+      } catch (e) {
+        toast.error(
+          "Org created but the invite email failed to send. Share the temporary password manually. " +
+            ((e as Error).message ?? ""),
+        );
+      }
       onCreated({ email: adminEmail, password, orgName: name });
       onOpenChange(false);
       setName("");
       setBrandColor("");
       setAdminEmail("");
       setAdminName("");
+      setAdminPhone("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -419,7 +441,8 @@ function CreateOrgDialog({
         <DialogHeader>
           <DialogTitle>Create organisation</DialogTitle>
           <DialogDescription>
-            Provisions a clinic and its first org admin. A temporary password is shown once.
+            Provisions a clinic and its first org admin. A temporary password is emailed to the
+            admin and shown here once.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -446,11 +469,22 @@ function CreateOrgDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-name">Display name (optional)</Label>
+              <Label htmlFor="admin-name">Contact name</Label>
               <Input
                 id="admin-name"
+                placeholder="Full name of the primary contact"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-phone">Phone number (optional)</Label>
+              <Input
+                id="admin-phone"
+                type="tel"
+                placeholder="+61 …"
+                value={adminPhone}
+                onChange={(e) => setAdminPhone(e.target.value)}
               />
             </div>
           </div>
@@ -489,7 +523,9 @@ function CreateOrgDialog({
           </Button>
           <Button
             onClick={() => create.mutate()}
-            disabled={create.isPending || !name.trim() || !adminEmail.trim()}
+            disabled={
+              create.isPending || !name.trim() || !adminEmail.trim() || !adminName.trim()
+            }
           >
             {create.isPending ? "Creating…" : "Create organisation"}
           </Button>
@@ -498,6 +534,7 @@ function CreateOrgDialog({
     </Dialog>
   );
 }
+
 
 function EditOrgDialog({
   org,
