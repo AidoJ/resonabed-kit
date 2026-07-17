@@ -534,15 +534,11 @@ function EditOrgDialog({
             <Label htmlFor="edit-name">Name</Label>
             <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-brand">Brand colour</Label>
-            <Input
-              id="edit-brand"
-              placeholder="#884bc7"
-              value={brandColor}
-              onChange={(e) => setBrandColor(e.target.value)}
-            />
-          </div>
+          <BrandColorPicker
+            id="edit-brand"
+            value={brandColor}
+            onChange={setBrandColor}
+          />
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
