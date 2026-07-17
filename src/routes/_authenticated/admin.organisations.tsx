@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listOrganisations, type OrgRow } from "@/lib/organisations.functions";
+import { sendAdminInviteEmail } from "@/lib/emails.functions";
+
 import {
   extendMusicLicence,
   expireMusicLicence,
