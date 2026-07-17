@@ -40,8 +40,9 @@ export const listOrganisations = createServerFn({ method: "GET" })
     const { data: orgs, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, status, brand_color, logo_path, is_template, is_configured, created_at, music_licence_status, music_licence_plan, music_licence_expires_at, music_licence_note",
+        "id, name, status, brand_color, logo_path, is_configured, created_at, music_licence_status, music_licence_plan, music_licence_expires_at, music_licence_note",
       )
+
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     if (!orgs || orgs.length === 0) return [];
