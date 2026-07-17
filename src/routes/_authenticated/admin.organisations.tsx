@@ -216,6 +216,9 @@ function OrganisationsPage() {
                   <Button size="sm" variant="outline" onClick={() => setManagingLicence(o)}>
                     <Music className="mr-1 h-3.5 w-3.5" /> Music licence
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setSupportOrg(o)}>
+                    <LifeBuoy className="mr-1 h-3.5 w-3.5" /> Access for support
+                  </Button>
                   {!o.is_template && (
                     <Button
                       size="sm"
