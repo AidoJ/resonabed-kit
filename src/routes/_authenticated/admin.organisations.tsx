@@ -8,6 +8,7 @@ import {
   extendMusicLicence,
   expireMusicLicence,
 } from "@/lib/licence.functions";
+import { enterSupportMode } from "@/lib/support-mode.functions";
 import {
   getAppSetting,
   setAppSetting,
