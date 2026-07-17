@@ -157,20 +157,10 @@ Deno.serve(async (req) => {
         if (orgErr || !org) return json(400, { error: orgErr?.message ?? "org insert failed" });
         const newOrgId = org.id as string;
 
-        // 2. Seed from template (best-effort atomic — rollback org on failure).
+        // 2. Seed services from the global catalogue (best-effort atomic).
         try {
-          const { data: template } = await admin
-            .from("organisations")
-            .select("id")
-            .eq("is_template", true)
-            .maybeSingle();
-          const templateId = template?.id as string | undefined;
-
-          if (templateId && templateId !== newOrgId) {
-            if (body.seed_services) await seedServicesFromTemplate(admin, templateId, newOrgId);
-            // seed_audio is deprecated — the global audio library is shared via RLS.
-          }
-          // seed_frequencies is a no-op: frequencies table is global (no org_id).
+          if (body.seed_services) await seedServicesFromGlobalCatalogue(admin, newOrgId);
+          // Frequencies and audio are shared globally via RLS — no copy needed.
         } catch (e) {
           await admin.from("organisations").delete().eq("id", newOrgId);
           return json(400, { error: `Seeding failed: ${e instanceof Error ? e.message : String(e)}` });
