@@ -36,7 +36,7 @@ import {
 import { toast } from "sonner";
 import {
   Copy,
-  Star,
+  
   Ban,
   Play,
   Pencil,
