@@ -15,6 +15,7 @@ import {
   MUSIC_RENEWAL_PRICE_KEY,
 } from "@/lib/app-settings.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { BrandColorPicker } from "@/components/brand-color-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
