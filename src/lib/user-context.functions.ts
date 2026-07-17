@@ -3,6 +3,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type AppRole = "super_admin" | "org_admin" | "practitioner";
 
+export interface SupportSessionSummary {
+  id: string;
+  org_id: string;
+  org_name: string;
+  reason: string | null;
+  entered_at: string;
+}
+
 export interface UserContext {
   userId: string;
   email: string | null;
@@ -22,6 +30,13 @@ export interface UserContext {
     isConfigured: boolean;
   } | null;
   roles: AppRole[];
+  /**
+   * When a super_admin has an open support_sessions row, this is populated
+   * and the UI unlocks that org's clinical screens (Sessions/Clients/
+   * Bookings/Availability) with a persistent banner. Outside support mode
+   * super_admin has NO access to individual org records via the UI.
+   */
+  activeSupportSession: SupportSessionSummary | null;
 }
 
 export const getCurrentUserContext = createServerFn({ method: "GET" })
