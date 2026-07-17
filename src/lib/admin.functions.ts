@@ -111,12 +111,15 @@ export const listTeam = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await requireAdmin(context);
+    const { orgId } = await resolveEffectiveOrgId(context);
+    let profilesQ = context.supabase
+      .from("profiles")
+      .select("id, display_name, is_active, org_id, email_status")
+      .order("display_name");
+    if (orgId) profilesQ = profilesQ.eq("org_id", orgId);
     const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] =
       await Promise.all([
-        context.supabase
-          .from("profiles")
-          .select("id, display_name, is_active, org_id, email_status")
-          .order("display_name"),
+        profilesQ,
         context.supabase.from("user_roles").select("user_id, role"),
       ]);
     if (pErr) throw new Error(pErr.message);
