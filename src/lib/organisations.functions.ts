@@ -20,7 +20,7 @@ export type OrgRow = {
   status: "active" | "suspended";
   brand_color: string | null;
   logo_path: string | null;
-  is_template: boolean;
+  
   is_configured: boolean;
   created_at: string;
   user_count: number;
