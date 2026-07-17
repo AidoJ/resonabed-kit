@@ -101,6 +101,22 @@ function OrganisationsPage() {
   const [resetting, setResetting] = useState<OrgRow | null>(null);
   const [addingAdminTo, setAddingAdminTo] = useState<OrgRow | null>(null);
   const [managingLicence, setManagingLicence] = useState<OrgRow | null>(null);
+  const [supportOrg, setSupportOrg] = useState<OrgRow | null>(null);
+  const [supportReason, setSupportReason] = useState("");
+  const navigate = useNavigate();
+  const enterSupportFn = useServerFn(enterSupportMode);
+  const enterSupport = useMutation({
+    mutationFn: (v: { org_id: string; reason: string }) =>
+      enterSupportFn({ data: v }),
+    onSuccess: async () => {
+      toast.success("Support mode active");
+      setSupportOrg(null);
+      setSupportReason("");
+      await qc.invalidateQueries({ queryKey: ["user-context"] });
+      navigate({ to: "/dashboard" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [tempPassword, setTempPassword] = useState<{
     email: string;
     password: string;
