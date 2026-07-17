@@ -317,6 +317,56 @@ function OrganisationsPage() {
       {tempPassword && (
         <TempPasswordDialog details={tempPassword} onClose={() => setTempPassword(null)} />
       )}
+
+      <Dialog
+        open={!!supportOrg}
+        onOpenChange={(v) => {
+          if (!v) {
+            setSupportOrg(null);
+            setSupportReason("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Access {supportOrg?.name} for support</DialogTitle>
+            <DialogDescription>
+              You will be able to view this clinic's clients, bookings and sessions. This is
+              logged to a permanent, append-only audit trail visible to the clinic. Provide a
+              short reason so the clinic can see why platform access occurred.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="support-reason">Reason for access</Label>
+            <Input
+              id="support-reason"
+              placeholder="e.g. Investigating booking sync issue reported by admin"
+              value={supportReason}
+              onChange={(e) => setSupportReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSupportOrg(null);
+                setSupportReason("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={supportReason.trim().length < 3 || enterSupport.isPending}
+              onClick={() =>
+                supportOrg &&
+                enterSupport.mutate({ org_id: supportOrg.id, reason: supportReason.trim() })
+              }
+            >
+              Enter support mode
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
