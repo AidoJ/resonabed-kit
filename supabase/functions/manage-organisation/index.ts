@@ -480,8 +480,9 @@ Deno.serve(async (req) => {
           uid = created.user.id;
           const { error: profileErr } = await admin
             .from("profiles")
-            .update({ org_id: body.org_id, display_name: displayName, is_active: true })
+            .update({ org_id: body.org_id, display_name: displayName, phone, is_active: true })
             .eq("id", uid);
+
           if (profileErr) {
             await admin.auth.admin.deleteUser(uid);
             return json(400, { error: profileErr.message });
