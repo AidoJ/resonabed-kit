@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { resolveEffectiveOrgId } from "@/lib/org-context";
 
 const uuid = z.string().uuid();
 
@@ -28,15 +29,19 @@ async function requireAdmin(context: {
   return { isSuper, adminOrgs };
 }
 
-// ---------- Services CRUD ----------
+// ---------- Services CRUD (org-scoped only — global catalogue lives elsewhere) ----------
 
 export const listServices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { orgId } = await resolveEffectiveOrgId(context);
+    let q = context.supabase
       .from("services")
       .select("id, name, duration_minutes, buffer_minutes, price, is_active, created_at")
+      .not("org_id", "is", null)
       .order("name");
+    if (orgId) q = q.eq("org_id", orgId);
+    const { data, error } = await q;
     if (error) throw new Error(error.message);
     return data ?? [];
   });
