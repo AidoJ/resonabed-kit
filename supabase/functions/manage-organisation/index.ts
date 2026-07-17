@@ -3,11 +3,11 @@
 // before doing anything. The client is never trusted.
 //
 // Actions:
-//   - create:        Create org + first org_admin + optional seed from template.
+//   - create:        Create org + first org_admin + seed services from the global catalogue.
 //   - update:        Rename / rebrand an existing org.
 //   - suspend:       status=suspended AND ban every user in the org.
 //   - reactivate:    status=active AND lift bans on every user in the org.
-//   - set_template:  Mark one org as the seeding template (clears the previous one).
+
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
