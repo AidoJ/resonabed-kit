@@ -98,6 +98,28 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       : null;
 
     const appMeta = (claims.app_metadata ?? {}) as Record<string, unknown>;
+    const roles = (rolesRes.data ?? []).map((r) => r.role as AppRole);
+
+    // Only super_admin can be in support mode; look up an open row.
+    let activeSupportSession: SupportSessionSummary | null = null;
+    if (roles.includes("super_admin")) {
+      const { data: sup } = await supabase
+        .from("support_sessions")
+        .select("id, org_id, reason, entered_at, organisations:org_id(name)")
+        .eq("super_admin_id", userId)
+        .is("exited_at", null)
+        .maybeSingle();
+      if (sup) {
+        const supOrg = sup.organisations as { name: string } | null;
+        activeSupportSession = {
+          id: sup.id as string,
+          org_id: sup.org_id as string,
+          org_name: supOrg?.name ?? "Organisation",
+          reason: (sup.reason as string | null) ?? null,
+          entered_at: sup.entered_at as string,
+        };
+      }
+    }
 
     return {
       userId,
@@ -106,6 +128,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       isActive: profile?.is_active ?? true,
       mustChangePassword: Boolean(appMeta.must_change_password),
       org,
-      roles: (rolesRes.data ?? []).map((r) => r.role as AppRole),
+      roles,
+      activeSupportSession,
     };
   });
