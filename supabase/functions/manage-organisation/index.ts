@@ -207,8 +207,9 @@ Deno.serve(async (req) => {
           uid = existingId;
           const { error: upProfErr } = await admin
             .from("profiles")
-            .update({ org_id: newOrgId, display_name: displayName ?? undefined, is_active: true })
+            .update({ org_id: newOrgId, display_name: displayName ?? undefined, phone: phone ?? undefined, is_active: true })
             .eq("id", uid);
+
           if (upProfErr) {
             await admin.from("organisations").delete().eq("id", newOrgId);
             return json(400, { error: upProfErr.message });
