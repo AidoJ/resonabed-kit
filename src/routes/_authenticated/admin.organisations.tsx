@@ -44,6 +44,7 @@ import {
   Users,
   UserMinus,
   Music,
+  LifeBuoy,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
