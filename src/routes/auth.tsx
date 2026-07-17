@@ -69,6 +69,17 @@ function AuthPage() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
       <div
         aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `url(${logo.url})`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: "min(90vw, 900px) auto",
+          opacity: 0.08,
+        }}
+      />
+      <div
+        aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-70"
         style={{
           background:
@@ -80,7 +91,7 @@ function AuthPage() {
           <img
             src={logo.url}
             alt="Resonabed"
-            className="h-24 w-auto"
+            className="h-36 w-auto"
             draggable={false}
           />
         </div>
