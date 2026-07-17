@@ -27,6 +27,7 @@ type Action =
       logo_path?: string | null;
       admin_email: string;
       admin_display_name?: string | null;
+      admin_phone?: string | null;
       seed_services: boolean;
       seed_frequencies: boolean; // no-op flag (frequencies are global)
       seed_audio?: boolean; // deprecated no-op: global audio library is shared, not copied
@@ -49,7 +50,9 @@ type Action =
       org_id: string;
       admin_email: string;
       admin_display_name?: string | null;
+      admin_phone?: string | null;
     };
+
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -169,6 +172,8 @@ Deno.serve(async (req) => {
         // 3. Create or reuse the first org_admin user.
         const email = body.admin_email.trim();
         const displayName = body.admin_display_name ?? null;
+        const phone = (body.admin_phone ?? null)?.toString().trim() || null;
+
 
         // Look for an existing auth user with that email (paginate).
         let existingId: string | null = null;
@@ -202,8 +207,9 @@ Deno.serve(async (req) => {
           uid = existingId;
           const { error: upProfErr } = await admin
             .from("profiles")
-            .update({ org_id: newOrgId, display_name: displayName ?? undefined, is_active: true })
+            .update({ org_id: newOrgId, display_name: displayName ?? undefined, phone: phone ?? undefined, is_active: true })
             .eq("id", uid);
+
           if (upProfErr) {
             await admin.from("organisations").delete().eq("id", newOrgId);
             return json(400, { error: upProfErr.message });
@@ -224,8 +230,9 @@ Deno.serve(async (req) => {
           uid = created.user.id;
           const { error: profileErr } = await admin
             .from("profiles")
-            .update({ org_id: newOrgId, display_name: displayName, is_active: true })
+            .update({ org_id: newOrgId, display_name: displayName, phone, is_active: true })
             .eq("id", uid);
+
           if (profileErr) {
             await admin.auth.admin.deleteUser(uid);
             await admin.from("organisations").delete().eq("id", newOrgId);
@@ -418,6 +425,8 @@ Deno.serve(async (req) => {
 
         const email = body.admin_email.trim();
         const displayName = body.admin_display_name?.trim() || null;
+        const phone = (body.admin_phone ?? null)?.toString().trim() || null;
+
 
         // Look for an existing auth user with that email (paginate).
         let existingId: string | null = null;
@@ -450,10 +459,12 @@ Deno.serve(async (req) => {
             .update({
               org_id: body.org_id,
               display_name: displayName ?? undefined,
+              phone: phone ?? undefined,
               is_active: true,
             })
             .eq("id", uid);
           if (upProfErr) return json(400, { error: upProfErr.message });
+
         } else {
           tempPassword = generatePassword(20);
           const { data: created, error: createErr } = await admin.auth.admin.createUser({
@@ -469,8 +480,9 @@ Deno.serve(async (req) => {
           uid = created.user.id;
           const { error: profileErr } = await admin
             .from("profiles")
-            .update({ org_id: body.org_id, display_name: displayName, is_active: true })
+            .update({ org_id: body.org_id, display_name: displayName, phone, is_active: true })
             .eq("id", uid);
+
           if (profileErr) {
             await admin.auth.admin.deleteUser(uid);
             return json(400, { error: profileErr.message });

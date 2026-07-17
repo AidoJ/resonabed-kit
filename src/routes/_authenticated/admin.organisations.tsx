@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listOrganisations, type OrgRow } from "@/lib/organisations.functions";
+import { sendAdminInviteEmail } from "@/lib/emails.functions";
+
 import {
   extendMusicLicence,
   expireMusicLicence,
@@ -385,8 +387,10 @@ function CreateOrgDialog({
   const [brandColor, setBrandColor] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminName, setAdminName] = useState("");
+  const [adminPhone, setAdminPhone] = useState("");
   const [seedServices, setSeedServices] = useState(true);
   const [seedFrequencies, setSeedFrequencies] = useState(true);
+  const sendInvite = useServerFn(sendAdminInviteEmail);
 
   const create = useMutation({
     mutationFn: () =>
@@ -396,17 +400,37 @@ function CreateOrgDialog({
         brand_color: brandColor || null,
         admin_email: adminEmail,
         admin_display_name: adminName || null,
+        admin_phone: adminPhone || null,
         seed_services: seedServices,
         seed_frequencies: seedFrequencies,
       }),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const password = res.temporary_password as string;
+      // Fire-and-forget email; do not block dialog on delivery failure.
+      try {
+        await sendInvite({
+          data: {
+            email: adminEmail,
+            orgName: name,
+            recipientName: adminName || null,
+            tempPassword: password,
+            isReset: false,
+          },
+        });
+        toast.success("Invite email sent to " + adminEmail);
+      } catch (e) {
+        toast.error(
+          "Org created but the invite email failed to send. Share the temporary password manually. " +
+            ((e as Error).message ?? ""),
+        );
+      }
       onCreated({ email: adminEmail, password, orgName: name });
       onOpenChange(false);
       setName("");
       setBrandColor("");
       setAdminEmail("");
       setAdminName("");
+      setAdminPhone("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -417,7 +441,8 @@ function CreateOrgDialog({
         <DialogHeader>
           <DialogTitle>Create organisation</DialogTitle>
           <DialogDescription>
-            Provisions a clinic and its first org admin. A temporary password is shown once.
+            Provisions a clinic and its first org admin. A temporary password is emailed to the
+            admin and shown here once.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -444,11 +469,22 @@ function CreateOrgDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-name">Display name (optional)</Label>
+              <Label htmlFor="admin-name">Contact name</Label>
               <Input
                 id="admin-name"
+                placeholder="Full name of the primary contact"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-phone">Phone number (optional)</Label>
+              <Input
+                id="admin-phone"
+                type="tel"
+                placeholder="+61 …"
+                value={adminPhone}
+                onChange={(e) => setAdminPhone(e.target.value)}
               />
             </div>
           </div>
@@ -487,7 +523,9 @@ function CreateOrgDialog({
           </Button>
           <Button
             onClick={() => create.mutate()}
-            disabled={create.isPending || !name.trim() || !adminEmail.trim()}
+            disabled={
+              create.isPending || !name.trim() || !adminEmail.trim() || !adminName.trim()
+            }
           >
             {create.isPending ? "Creating…" : "Create organisation"}
           </Button>
@@ -496,6 +534,7 @@ function CreateOrgDialog({
     </Dialog>
   );
 }
+
 
 function EditOrgDialog({
   org,
@@ -619,19 +658,37 @@ function ResetAdminPasswordDialog({
   const admins =
     (data?.admins as Array<{ user_id: string; email: string | null; display_name: string | null }> | undefined) ?? [];
 
+  const sendInvite = useServerFn(sendAdminInviteEmail);
   const reset = useMutation({
     mutationFn: (user_id: string) =>
       callManageOrg({ type: "reset_admin_password", org_id: org.id, user_id }),
-    onSuccess: (res, user_id) => {
+    onSuccess: async (res, user_id) => {
       const target = admins.find((a) => a.user_id === user_id);
-      onReset({
-        email: (res.email as string) ?? target?.email ?? "",
-        password: res.temporary_password as string,
-        orgName: org.name,
-      });
+      const email = (res.email as string) ?? target?.email ?? "";
+      const password = res.temporary_password as string;
+      if (email && password) {
+        try {
+          await sendInvite({
+            data: {
+              email,
+              orgName: org.name,
+              recipientName: target?.display_name ?? null,
+              tempPassword: password,
+              isReset: true,
+            },
+          });
+          toast.success("Reset email sent to " + email);
+        } catch (e) {
+          toast.error(
+            "Password reset, but email failed. Share manually. " + ((e as Error).message ?? ""),
+          );
+        }
+      }
+      onReset({ email, password, orgName: org.name });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const revoke = useMutation({
     mutationFn: (user_id: string) =>
@@ -739,7 +796,9 @@ function AddAdminDialog({
   onAdded: (res: { email: string; password: string; orgName: string } | null) => void;
 }) {
   const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [phone, setPhone] = useState("");
+  const sendInvite = useServerFn(sendAdminInviteEmail);
 
   const add = useMutation({
     mutationFn: () =>
@@ -747,9 +806,10 @@ function AddAdminDialog({
         type: "create_admin",
         org_id: org.id,
         admin_email: email,
-        admin_display_name: displayName || null,
+        admin_display_name: contactName || null,
+        admin_phone: phone || null,
       }),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const password = res.temporary_password as string | null;
       const reused = !!res.reused_existing_user;
       if (reused) {
@@ -758,7 +818,23 @@ function AddAdminDialog({
         );
         onAdded(null);
       } else if (password) {
-        toast.success("Admin created");
+        try {
+          await sendInvite({
+            data: {
+              email,
+              orgName: org.name,
+              recipientName: contactName || null,
+              tempPassword: password,
+              isReset: false,
+            },
+          });
+          toast.success("Invite email sent to " + email);
+        } catch (e) {
+          toast.error(
+            "Admin created but the invite email failed. Share the temporary password manually. " +
+              ((e as Error).message ?? ""),
+          );
+        }
         onAdded({ email, password, orgName: org.name });
       } else {
         onAdded(null);
@@ -777,7 +853,7 @@ function AddAdminDialog({
           <DialogDescription>
             Seat a new org admin for <strong>{org.name}</strong>. If the email already belongs to a
             user in this org, they're promoted to org_admin; otherwise a new account is created and
-            a temporary password is shown once.
+            a temporary password is emailed and shown once.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -791,11 +867,22 @@ function AddAdminDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="add-admin-name">Display name (optional)</Label>
+            <Label htmlFor="add-admin-name">Contact name</Label>
             <Input
               id="add-admin-name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Full name"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="add-admin-phone">Phone number (optional)</Label>
+            <Input
+              id="add-admin-phone"
+              type="tel"
+              placeholder="+61 …"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
         </div>
@@ -803,7 +890,10 @@ function AddAdminDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => add.mutate()} disabled={add.isPending || !email.trim()}>
+          <Button
+            onClick={() => add.mutate()}
+            disabled={add.isPending || !email.trim() || !contactName.trim()}
+          >
             {add.isPending ? "Adding…" : "Add admin"}
           </Button>
         </DialogFooter>
@@ -811,6 +901,7 @@ function AddAdminDialog({
     </Dialog>
   );
 }
+
 
 function LicenceBadge({ org }: { org: OrgRow }) {
   if (org.music_licence_effective === "expired") {
