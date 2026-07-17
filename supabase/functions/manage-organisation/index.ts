@@ -249,8 +249,9 @@ Deno.serve(async (req) => {
           ok: true,
           org_id: newOrgId,
           admin_user_id: uid,
-          admin_email: body.admin_email.trim(),
-          temporary_password: password,
+          admin_email: email,
+          temporary_password: password, // null when reusing an existing user
+          reused_existing_user: !password,
         });
       }
 
