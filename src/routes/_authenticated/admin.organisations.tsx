@@ -658,19 +658,37 @@ function ResetAdminPasswordDialog({
   const admins =
     (data?.admins as Array<{ user_id: string; email: string | null; display_name: string | null }> | undefined) ?? [];
 
+  const sendInvite = useServerFn(sendAdminInviteEmail);
   const reset = useMutation({
     mutationFn: (user_id: string) =>
       callManageOrg({ type: "reset_admin_password", org_id: org.id, user_id }),
-    onSuccess: (res, user_id) => {
+    onSuccess: async (res, user_id) => {
       const target = admins.find((a) => a.user_id === user_id);
-      onReset({
-        email: (res.email as string) ?? target?.email ?? "",
-        password: res.temporary_password as string,
-        orgName: org.name,
-      });
+      const email = (res.email as string) ?? target?.email ?? "";
+      const password = res.temporary_password as string;
+      if (email && password) {
+        try {
+          await sendInvite({
+            data: {
+              email,
+              orgName: org.name,
+              recipientName: target?.display_name ?? null,
+              tempPassword: password,
+              isReset: true,
+            },
+          });
+          toast.success("Reset email sent to " + email);
+        } catch (e) {
+          toast.error(
+            "Password reset, but email failed. Share manually. " + ((e as Error).message ?? ""),
+          );
+        }
+      }
+      onReset({ email, password, orgName: org.name });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const revoke = useMutation({
     mutationFn: (user_id: string) =>
