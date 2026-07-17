@@ -15,6 +15,7 @@ import {
   MUSIC_RENEWAL_PRICE_KEY,
 } from "@/lib/app-settings.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { BrandColorPicker } from "@/components/brand-color-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -424,15 +425,13 @@ function CreateOrgDialog({
             <Label htmlFor="org-name">Organisation name</Label>
             <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="org-brand">Brand colour (optional)</Label>
-            <Input
-              id="org-brand"
-              placeholder="#884bc7"
-              value={brandColor}
-              onChange={(e) => setBrandColor(e.target.value)}
-            />
-          </div>
+          <BrandColorPicker
+            id="org-brand"
+            label="Brand colour (optional)"
+            value={brandColor}
+            onChange={setBrandColor}
+          />
+
           <div className="rounded-md border p-3 space-y-3">
             <p className="text-sm font-medium">First org admin</p>
             <div className="space-y-2">
@@ -535,15 +534,11 @@ function EditOrgDialog({
             <Label htmlFor="edit-name">Name</Label>
             <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-brand">Brand colour</Label>
-            <Input
-              id="edit-brand"
-              placeholder="#884bc7"
-              value={brandColor}
-              onChange={(e) => setBrandColor(e.target.value)}
-            />
-          </div>
+          <BrandColorPicker
+            id="edit-brand"
+            value={brandColor}
+            onChange={setBrandColor}
+          />
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
