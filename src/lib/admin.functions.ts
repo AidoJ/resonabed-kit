@@ -403,7 +403,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
           old_value: oldVal,
           new_value: v,
           edited_by: context.userId,
-          edited_by_name: profile.display_name ?? null,
+          edited_by_name: profile?.display_name ?? null,
         });
       }
     }
