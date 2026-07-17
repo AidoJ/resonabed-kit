@@ -83,18 +83,19 @@ async function isSuperAdmin(admin: SupabaseClient, userId: string): Promise<bool
 // clinics inherit it automatically without any copying.
 
 
-async function seedServicesFromTemplate(
+async function seedServicesFromGlobalCatalogue(
   admin: SupabaseClient,
-  templateOrgId: string,
   newOrgId: string,
 ): Promise<{ copied: number }> {
+  // Copy the master catalogue (org_id IS NULL) into the new org as its OWN
+  // editable rows. Price starts at 0 — each clinic sets its own price.
   const { data: rows, error } = await admin
     .from("services")
-    .select("name, duration_minutes, buffer_minutes, price, is_active")
-    .eq("org_id", templateOrgId);
-  if (error) throw new Error(`services list: ${error.message}`);
+    .select("name, duration_minutes, buffer_minutes, is_active")
+    .is("org_id", null);
+  if (error) throw new Error(`global services list: ${error.message}`);
   if (!rows || rows.length === 0) return { copied: 0 };
-  const payload = rows.map((r) => ({ ...r, org_id: newOrgId }));
+  const payload = rows.map((r) => ({ ...r, org_id: newOrgId, price: 0 }));
   const { error: insErr } = await admin.from("services").insert(payload);
   if (insErr) throw new Error(`services insert: ${insErr.message}`);
   return { copied: rows.length };
