@@ -3,11 +3,11 @@
 // before doing anything. The client is never trusted.
 //
 // Actions:
-//   - create:        Create org + first org_admin + optional seed from template.
+//   - create:        Create org + first org_admin + seed services from the global catalogue.
 //   - update:        Rename / rebrand an existing org.
 //   - suspend:       status=suspended AND ban every user in the org.
 //   - reactivate:    status=active AND lift bans on every user in the org.
-//   - set_template:  Mark one org as the seeding template (clears the previous one).
+
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
@@ -41,7 +41,7 @@ type Action =
     }
   | { type: "suspend"; org_id: string }
   | { type: "reactivate"; org_id: string }
-  | { type: "set_template"; org_id: string }
+  
   | { type: "list_admins"; org_id: string }
   | { type: "reset_admin_password"; org_id: string; user_id: string }
   | { type: "revoke_admin"; org_id: string; user_id: string }
@@ -338,20 +338,8 @@ Deno.serve(async (req) => {
         return json(200, { ok: true, users_affected: (users ?? []).length });
       }
 
-      case "set_template": {
-        // Clear any existing template first, then set the new one.
-        const { error: clearErr } = await admin
-          .from("organisations")
-          .update({ is_template: false })
-          .eq("is_template", true);
-        if (clearErr) return json(400, { error: clearErr.message });
-        const { error: setErr } = await admin
-          .from("organisations")
-          .update({ is_template: true })
-          .eq("id", body.org_id);
-        if (setErr) return json(400, { error: setErr.message });
-        return json(200, { ok: true });
-      }
+
+
 
       case "list_admins": {
         const { data: roleRows, error: rolesErr } = await admin

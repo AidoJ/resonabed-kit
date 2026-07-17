@@ -20,7 +20,7 @@ export type OrgRow = {
   status: "active" | "suspended";
   brand_color: string | null;
   logo_path: string | null;
-  is_template: boolean;
+  
   is_configured: boolean;
   created_at: string;
   user_count: number;
@@ -40,8 +40,9 @@ export const listOrganisations = createServerFn({ method: "GET" })
     const { data: orgs, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, status, brand_color, logo_path, is_template, is_configured, created_at, music_licence_status, music_licence_plan, music_licence_expires_at, music_licence_note",
+        "id, name, status, brand_color, logo_path, is_configured, created_at, music_licence_status, music_licence_plan, music_licence_expires_at, music_licence_note",
       )
+
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     if (!orgs || orgs.length === 0) return [];
@@ -81,7 +82,7 @@ export const listOrganisations = createServerFn({ method: "GET" })
         status: o.status as "active" | "suspended",
         brand_color: (o.brand_color as string | null) ?? null,
         logo_path: (o.logo_path as string | null) ?? null,
-        is_template: !!o.is_template,
+        
         is_configured: !!o.is_configured,
         created_at: o.created_at as string,
         user_count: userCounts.get(o.id as string) ?? 0,
