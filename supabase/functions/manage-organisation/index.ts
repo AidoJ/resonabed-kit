@@ -338,20 +338,8 @@ Deno.serve(async (req) => {
         return json(200, { ok: true, users_affected: (users ?? []).length });
       }
 
-      case "set_template": {
-        // Clear any existing template first, then set the new one.
-        const { error: clearErr } = await admin
-          .from("organisations")
-          .update({ is_template: false })
-          .eq("is_template", true);
-        if (clearErr) return json(400, { error: clearErr.message });
-        const { error: setErr } = await admin
-          .from("organisations")
-          .update({ is_template: true })
-          .eq("id", body.org_id);
-        if (setErr) return json(400, { error: setErr.message });
-        return json(200, { ok: true });
-      }
+
+
 
       case "list_admins": {
         const { data: roleRows, error: rolesErr } = await admin
