@@ -62,9 +62,12 @@ function ChangePassword() {
       });
       if (fnErr) throw new Error(fnErr.message);
       await supabase.auth.refreshSession();
-      qc.invalidateQueries({ queryKey: ["user-context"] });
+      // Wait for the refetch to complete so the app-shell guard sees the
+      // cleared mustChangePassword flag before we navigate — otherwise it
+      // redirects us straight back to /change-password.
+      await qc.refetchQueries({ queryKey: ["user-context"] });
       toast.success("Password updated");
-      nav({ to: "/dashboard" });
+      nav({ to: "/dashboard", replace: true });
     } catch (e) {
       const text = (e as Error).message;
       setMessage(text);
