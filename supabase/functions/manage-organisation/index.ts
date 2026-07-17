@@ -27,6 +27,7 @@ type Action =
       logo_path?: string | null;
       admin_email: string;
       admin_display_name?: string | null;
+      admin_phone?: string | null;
       seed_services: boolean;
       seed_frequencies: boolean; // no-op flag (frequencies are global)
       seed_audio?: boolean; // deprecated no-op: global audio library is shared, not copied
@@ -49,7 +50,9 @@ type Action =
       org_id: string;
       admin_email: string;
       admin_display_name?: string | null;
+      admin_phone?: string | null;
     };
+
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
