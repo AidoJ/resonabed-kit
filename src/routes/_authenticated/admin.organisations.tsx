@@ -144,14 +144,8 @@ function OrganisationsPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  const setTemplate = useMutation({
-    mutationFn: (org_id: string) => callManageOrg({ type: "set_template", org_id }),
-    onSuccess: () => {
-      toast.success("Template organisation updated");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
+
+
 
   return (
     <div className="space-y-6">
