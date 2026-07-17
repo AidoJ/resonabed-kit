@@ -176,11 +176,6 @@ function OrganisationsPage() {
                 <div className="space-y-1">
                   <CardTitle className="flex items-center gap-2 text-base">
                     {o.name}
-                    {o.is_template && (
-                      <Badge variant="secondary" className="gap-1">
-                        <Star className="h-3 w-3" /> Template
-                      </Badge>
-                    )}
                     <Badge variant={o.status === "active" ? "default" : "destructive"}>
                       {o.status}
                     </Badge>
@@ -216,16 +211,7 @@ function OrganisationsPage() {
                   <Button size="sm" variant="outline" onClick={() => setSupportOrg(o)}>
                     <LifeBuoy className="mr-1 h-3.5 w-3.5" /> Access for support
                   </Button>
-                  {!o.is_template && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setTemplate.mutate(o.id)}
-                      disabled={setTemplate.isPending}
-                    >
-                      <Star className="mr-1 h-3.5 w-3.5" /> Set as template
-                    </Button>
-                  )}
+
                   {o.status === "active" ? (
                     <Button
                       size="sm"
