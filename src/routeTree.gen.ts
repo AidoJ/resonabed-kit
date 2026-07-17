@@ -34,6 +34,7 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminOrganisationsRouteImport } from './routes/_authenticated/admin.organisations'
+import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated/admin.clients'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -174,6 +175,12 @@ const AuthenticatedAdminOrganisationsRoute =
     path: '/organisations',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminGlobalServicesRoute =
+  AuthenticatedAdminGlobalServicesRouteImport.update({
+    id: '/global-services',
+    path: '/global-services',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminClientsRoute =
   AuthenticatedAdminClientsRouteImport.update({
     id: '/clients',
@@ -218,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
@@ -247,6 +255,7 @@ export interface FileRoutesByTo {
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
@@ -280,6 +289,7 @@ export interface FileRoutesById {
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/_authenticated/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/sessions'
     | '/admin/clients'
+    | '/admin/global-services'
     | '/admin/organisations'
     | '/admin/reports'
     | '/admin/services'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/frequencies'
     | '/services'
     | '/admin/clients'
+    | '/admin/global-services'
     | '/admin/organisations'
     | '/admin/reports'
     | '/admin/services'
@@ -374,6 +386,7 @@ export interface FileRouteTypes {
     | '/_authenticated/services'
     | '/_authenticated/sessions'
     | '/_authenticated/admin/clients'
+    | '/_authenticated/admin/global-services'
     | '/_authenticated/admin/organisations'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/services'
@@ -579,6 +592,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOrganisationsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/global-services': {
+      id: '/_authenticated/admin/global-services'
+      path: '/global-services'
+      fullPath: '/admin/global-services'
+      preLoaderRoute: typeof AuthenticatedAdminGlobalServicesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/clients': {
       id: '/_authenticated/admin/clients'
       path: '/clients'
@@ -619,6 +639,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRoute
+  AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
   AuthenticatedAdminOrganisationsRoute: typeof AuthenticatedAdminOrganisationsRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminServicesRoute: typeof AuthenticatedAdminServicesRoute
@@ -629,6 +650,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRoute,
+  AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
   AuthenticatedAdminOrganisationsRoute: AuthenticatedAdminOrganisationsRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminServicesRoute: AuthenticatedAdminServicesRoute,
