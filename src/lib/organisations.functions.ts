@@ -82,7 +82,7 @@ export const listOrganisations = createServerFn({ method: "GET" })
         status: o.status as "active" | "suspended",
         brand_color: (o.brand_color as string | null) ?? null,
         logo_path: (o.logo_path as string | null) ?? null,
-        is_template: !!o.is_template,
+        
         is_configured: !!o.is_configured,
         created_at: o.created_at as string,
         user_count: userCounts.get(o.id as string) ?? 0,
