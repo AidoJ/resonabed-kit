@@ -479,7 +479,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
-          org_id: string
+          org_id: string | null
           price: number
           updated_at: string
         }
@@ -490,7 +490,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
-          org_id: string
+          org_id?: string | null
           price?: number
           updated_at?: string
         }
@@ -501,7 +501,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
-          org_id?: string
+          org_id?: string | null
           price?: number
           updated_at?: string
         }
@@ -609,6 +609,47 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_sessions: {
+        Row: {
+          created_at: string
+          entered_at: string
+          exited_at: string | null
+          id: string
+          org_id: string
+          reason: string | null
+          super_admin_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entered_at?: string
+          exited_at?: string | null
+          id?: string
+          org_id: string
+          reason?: string | null
+          super_admin_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entered_at?: string
+          exited_at?: string | null
+          id?: string
+          org_id?: string
+          reason?: string | null
+          super_admin_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_sessions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
         ]
