@@ -147,10 +147,12 @@ export const listClientsAdmin = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ search: z.string().max(120).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
+    const { orgId } = await resolveEffectiveOrgId(context);
     let q = context.supabase
       .from("clients")
       .select("id, first_name, last_name, email, phone, date_of_birth, email_status, created_at")
       .order("last_name");
+    if (orgId) q = q.eq("org_id", orgId);
     if (data.search) {
       const s = `%${data.search}%`;
       q = q.or(`first_name.ilike.${s},last_name.ilike.${s},email.ilike.${s}`);
