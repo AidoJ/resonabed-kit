@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
+import logoMark from "@/assets/resonabed-logo-mark.svg";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
