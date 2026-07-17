@@ -796,7 +796,9 @@ function AddAdminDialog({
   onAdded: (res: { email: string; password: string; orgName: string } | null) => void;
 }) {
   const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [phone, setPhone] = useState("");
+  const sendInvite = useServerFn(sendAdminInviteEmail);
 
   const add = useMutation({
     mutationFn: () =>
@@ -804,9 +806,10 @@ function AddAdminDialog({
         type: "create_admin",
         org_id: org.id,
         admin_email: email,
-        admin_display_name: displayName || null,
+        admin_display_name: contactName || null,
+        admin_phone: phone || null,
       }),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const password = res.temporary_password as string | null;
       const reused = !!res.reused_existing_user;
       if (reused) {
@@ -815,7 +818,23 @@ function AddAdminDialog({
         );
         onAdded(null);
       } else if (password) {
-        toast.success("Admin created");
+        try {
+          await sendInvite({
+            data: {
+              email,
+              orgName: org.name,
+              recipientName: contactName || null,
+              tempPassword: password,
+              isReset: false,
+            },
+          });
+          toast.success("Invite email sent to " + email);
+        } catch (e) {
+          toast.error(
+            "Admin created but the invite email failed. Share the temporary password manually. " +
+              ((e as Error).message ?? ""),
+          );
+        }
         onAdded({ email, password, orgName: org.name });
       } else {
         onAdded(null);
@@ -834,7 +853,7 @@ function AddAdminDialog({
           <DialogDescription>
             Seat a new org admin for <strong>{org.name}</strong>. If the email already belongs to a
             user in this org, they're promoted to org_admin; otherwise a new account is created and
-            a temporary password is shown once.
+            a temporary password is emailed and shown once.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -848,11 +867,22 @@ function AddAdminDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="add-admin-name">Display name (optional)</Label>
+            <Label htmlFor="add-admin-name">Contact name</Label>
             <Input
               id="add-admin-name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Full name"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="add-admin-phone">Phone number (optional)</Label>
+            <Input
+              id="add-admin-phone"
+              type="tel"
+              placeholder="+61 …"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
         </div>
@@ -860,7 +890,10 @@ function AddAdminDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => add.mutate()} disabled={add.isPending || !email.trim()}>
+          <Button
+            onClick={() => add.mutate()}
+            disabled={add.isPending || !email.trim() || !contactName.trim()}
+          >
             {add.isPending ? "Adding…" : "Add admin"}
           </Button>
         </DialogFooter>
@@ -868,6 +901,7 @@ function AddAdminDialog({
     </Dialog>
   );
 }
+
 
 function LicenceBadge({ org }: { org: OrgRow }) {
   if (org.music_licence_effective === "expired") {
