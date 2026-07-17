@@ -2,7 +2,16 @@ import { createFileRoute, redirect, Outlet, Link, useRouterState } from "@tansta
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
-import { Users, Wrench, BarChart3, UserCog, Settings, Building2 } from "lucide-react";
+import {
+  Users,
+  Wrench,
+  BarChart3,
+  UserCog,
+  Settings,
+  Building2,
+  Waves,
+  Music,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -10,12 +19,19 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-type Tab = { to: string; label: string; icon: typeof BarChart3; exact?: boolean; superOnly?: boolean };
-const TABS: Tab[] = [
-  { to: "/admin", label: "Overview", icon: BarChart3, exact: true },
-  { to: "/admin/organisations", label: "Organisations", icon: Building2, superOnly: true },
-  { to: "/admin/services", label: "Services", icon: Wrench },
+type Tab = { to: string; label: string; icon: typeof BarChart3; exact?: boolean };
+
+const SUPER_TABS: Tab[] = [
+  { to: "/admin/organisations", label: "Organisations", icon: Building2 },
+  { to: "/admin/global-services", label: "Global services", icon: Wrench },
+  { to: "/frequencies", label: "Global frequencies", icon: Waves },
+  { to: "/audio", label: "Global audio", icon: Music },
+  { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
+];
+
+const ORG_ADMIN_TABS: Tab[] = [
   { to: "/admin/team", label: "Team", icon: UserCog },
+  { to: "/admin/services", label: "Services", icon: Wrench },
   { to: "/admin/clients", label: "Clients", icon: Users },
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   { to: "/admin/settings", label: "Settings", icon: Settings },
@@ -29,19 +45,26 @@ function AdminLayout() {
   });
   const path = useRouterState({ select: (s) => s.location.pathname });
   if (isLoading) return null;
-  const allowed = data?.roles.includes("super_admin") || data?.roles.includes("org_admin");
-  if (!allowed) throw redirect({ to: "/dashboard" });
+
+  const roles = data?.roles ?? [];
+  const isSuper = roles.includes("super_admin");
+  const isOrgAdmin = roles.includes("org_admin");
+  if (!isSuper && !isOrgAdmin) throw redirect({ to: "/dashboard" });
+
+  const tabs = isSuper ? SUPER_TABS : ORG_ADMIN_TABS;
+  const title = isSuper ? "Platform administration" : "Clinic administration";
+  const subtitle = isSuper
+    ? "Organisations, global content, and platform-level metrics."
+    : "Your team, services, clients, reports and settings.";
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Admin</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your organisation, team, services, clients and reports.
-        </p>
+        <h1 className="text-2xl font-semibold">{title}</h1>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
       <nav className="flex flex-wrap gap-1 border-b">
-        {TABS.filter((t) => !t.superOnly || data?.roles.includes("super_admin")).map((t) => {
+        {tabs.map((t) => {
           const active = t.exact ? path === t.to : path.startsWith(t.to);
           const Icon = t.icon;
           return (

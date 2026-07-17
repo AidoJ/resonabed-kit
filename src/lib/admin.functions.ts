@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { resolveEffectiveOrgId } from "@/lib/org-context";
 
 const uuid = z.string().uuid();
 
@@ -28,15 +29,19 @@ async function requireAdmin(context: {
   return { isSuper, adminOrgs };
 }
 
-// ---------- Services CRUD ----------
+// ---------- Services CRUD (org-scoped only — global catalogue lives elsewhere) ----------
 
 export const listServices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { orgId } = await resolveEffectiveOrgId(context);
+    let q = context.supabase
       .from("services")
       .select("id, name, duration_minutes, buffer_minutes, price, is_active, created_at")
+      .not("org_id", "is", null)
       .order("name");
+    if (orgId) q = q.eq("org_id", orgId);
+    const { data, error } = await q;
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -57,12 +62,8 @@ export const upsertService = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", context.userId)
-      .maybeSingle();
-    if (!profile?.org_id) throw new Error("No organisation");
+    const { orgId: _org_id } = await resolveEffectiveOrgId(context);
+    if (!_org_id) throw new Error("No organisation");
     if (data.id) {
       const { error } = await context.supabase
         .from("services")
@@ -80,7 +81,7 @@ export const upsertService = createServerFn({ method: "POST" })
     const { data: row, error } = await context.supabase
       .from("services")
       .insert({
-        org_id: profile.org_id,
+        org_id: _org_id,
         name: data.name,
         duration_minutes: data.duration_minutes,
         buffer_minutes: data.buffer_minutes,
@@ -110,12 +111,15 @@ export const listTeam = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await requireAdmin(context);
+    const { orgId } = await resolveEffectiveOrgId(context);
+    let profilesQ = context.supabase
+      .from("profiles")
+      .select("id, display_name, is_active, org_id, email_status")
+      .order("display_name");
+    if (orgId) profilesQ = profilesQ.eq("org_id", orgId);
     const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] =
       await Promise.all([
-        context.supabase
-          .from("profiles")
-          .select("id, display_name, is_active, org_id, email_status")
-          .order("display_name"),
+        profilesQ,
         context.supabase.from("user_roles").select("user_id, role"),
       ]);
     if (pErr) throw new Error(pErr.message);
@@ -143,10 +147,12 @@ export const listClientsAdmin = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ search: z.string().max(120).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
+    const { orgId } = await resolveEffectiveOrgId(context);
     let q = context.supabase
       .from("clients")
       .select("id, first_name, last_name, email, phone, date_of_birth, email_status, created_at")
       .order("last_name");
+    if (orgId) q = q.eq("org_id", orgId);
     if (data.search) {
       const s = `%${data.search}%`;
       q = q.or(`first_name.ilike.${s},last_name.ilike.${s},email.ilike.${s}`);
@@ -172,12 +178,8 @@ export const upsertClient = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", context.userId)
-      .maybeSingle();
-    if (!profile?.org_id) throw new Error("No organisation");
+    const { orgId: _org_id } = await resolveEffectiveOrgId(context);
+    if (!_org_id) throw new Error("No organisation");
     const payload = {
       first_name: data.first_name,
       last_name: data.last_name,
@@ -192,7 +194,7 @@ export const upsertClient = createServerFn({ method: "POST" })
     }
     const { data: row, error } = await context.supabase
       .from("clients")
-      .insert({ ...payload, org_id: profile.org_id })
+      .insert({ ...payload, org_id: _org_id })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
@@ -226,13 +228,16 @@ export const getReports = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
-    const { data: sessions, error } = await context.supabase
+    const { orgId } = await resolveEffectiveOrgId(context);
+    let q = context.supabase
       .from("sessions")
       .select(
         "id, created_at, status, payment_method, payment_amount, recommended_frequency_id, frequency:recommended_frequency_id(hz, name)",
       )
       .gte("created_at", data.from)
       .lte("created_at", data.to);
+    if (orgId) q = q.eq("org_id", orgId);
+    const { data: sessions, error } = await q;
     if (error) throw new Error(error.message);
 
     const rows = sessions ?? [];
@@ -290,18 +295,14 @@ export const getOrgSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await requireAdmin(context);
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", context.userId)
-      .maybeSingle();
-    if (!profile?.org_id) return null;
+    const { orgId: _org_id } = await resolveEffectiveOrgId(context);
+    if (!_org_id) return null;
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
         "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at",
       )
-      .eq("id", profile.org_id)
+      .eq("id", _org_id)
       .single();
     if (error) throw new Error(error.message);
     return data;
@@ -358,17 +359,16 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
+    const { orgId } = await resolveEffectiveOrgId(context);
     const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("org_id, display_name")
-      .eq("id", context.userId)
-      .maybeSingle();
-    if (!profile?.org_id) throw new Error("No organisation");
+      .from("profiles").select("display_name").eq("id", context.userId).maybeSingle();
+    const _org_id = orgId;
+    if (!_org_id) throw new Error("No organisation");
 
     const { data: existing, error: exErr } = await context.supabase
       .from("organisations")
       .select("consent_text, consent_version, privacy_policy_text, health_policy_text")
-      .eq("id", profile.org_id)
+      .eq("id", _org_id)
       .single();
     if (exErr) throw new Error(exErr.message);
 
@@ -403,12 +403,12 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       if (v !== undefined && v !== oldVal) {
         patch[field] = v;
         auditRows.push({
-          org_id: profile.org_id,
+          org_id: _org_id,
           field,
           old_value: oldVal,
           new_value: v,
           edited_by: context.userId,
-          edited_by_name: profile.display_name ?? null,
+          edited_by_name: profile?.display_name ?? null,
         });
       }
     }
@@ -422,7 +422,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       const { error } = await context.supabase
         .from("organisations")
         .update(patch as never)
-        .eq("id", profile.org_id);
+        .eq("id", _org_id);
       if (error) throw new Error(error.message);
     }
     if (auditRows.length > 0) {
@@ -444,19 +444,15 @@ export const completeOrgSetup = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", context.userId)
-      .maybeSingle();
-    if (!profile?.org_id) throw new Error("No organisation");
+    const { orgId: _org_id } = await resolveEffectiveOrgId(context);
+    if (!_org_id) throw new Error("No organisation");
 
     const { data: org, error: oErr } = await context.supabase
       .from("organisations")
       .select(
         "business_name, contact_email, logo_path, consent_text, privacy_policy_text, health_policy_text, is_configured",
       )
-      .eq("id", profile.org_id)
+      .eq("id", _org_id)
       .single();
     if (oErr) throw new Error(oErr.message);
 
@@ -484,7 +480,7 @@ export const completeOrgSetup = createServerFn({ method: "POST" })
         configured_acknowledgement_by: data.acknowledger_name.trim(),
         configured_acknowledgement_at: now,
       })
-      .eq("id", profile.org_id);
+      .eq("id", _org_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

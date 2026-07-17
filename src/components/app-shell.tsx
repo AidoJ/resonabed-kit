@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Users,
-  ClipboardList,
   Waves,
   Music,
   Shield,
@@ -12,11 +11,18 @@ import {
   Calendar,
   Clock,
   Sparkles,
+  Building2,
+  BarChart3,
+  Wrench,
+  LifeBuoy,
+  Settings,
+  ClipboardList,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { exitSupportMode } from "@/lib/support-mode.functions";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import {
   Sidebar,
@@ -41,29 +47,76 @@ interface NavItem {
   to: string;
   label: string;
   icon: typeof Users;
-  roles: readonly Role[] | null;
 }
 
-const PRIMARY_NAV: NavItem[] = [
-  { to: "/sessions", label: "Sessions", icon: Sparkles, roles: null },
-  { to: "/admin/clients", label: "Clients", icon: Users, roles: ["super_admin", "org_admin"] },
-  { to: "/clients", label: "Clients", icon: Users, roles: ["practitioner"] },
-  { to: "/frequencies", label: "Frequencies", icon: Waves, roles: null },
-  { to: "/audio", label: "Audio library", icon: Music, roles: null },
-];
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
 
-const SCHEDULING_NAV: NavItem[] = [
-  { to: "/bookings", label: "Bookings", icon: Calendar, roles: null },
-  { to: "/availability", label: "Availability", icon: Clock, roles: null },
-];
+// Three role-driven navigation trees. Each role sees ONLY its own tree.
+function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
+  if (roles.includes("super_admin")) {
+    const groups: NavGroup[] = [
+      {
+        label: "Platform",
+        items: [
+          { to: "/admin/organisations", label: "Organisations", icon: Building2 },
+          { to: "/admin/global-services", label: "Global services", icon: Wrench },
+          { to: "/frequencies", label: "Global frequencies", icon: Waves },
+          { to: "/audio", label: "Global audio", icon: Music },
+          { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
+        ],
+      },
+    ];
+    if (inSupportMode) {
+      groups.push({
+        label: "Support access (clinic)",
+        items: [
+          { to: "/sessions", label: "Sessions", icon: Sparkles },
+          { to: "/admin/clients", label: "Clients", icon: Users },
+          { to: "/bookings", label: "Bookings", icon: Calendar },
+          { to: "/availability", label: "Availability", icon: Clock },
+        ],
+      });
+    }
+    return groups;
+  }
 
-const ADMIN_NAV: NavItem[] = [
-  { to: "/admin", label: "Admin", icon: Shield, roles: ["super_admin", "org_admin"] },
-  { to: "/admin/organisations", label: "Organisations", icon: Shield, roles: ["super_admin"] },
-];
+  if (roles.includes("org_admin")) {
+    return [
+      {
+        label: "Clinic",
+        items: [
+          { to: "/sessions", label: "Sessions", icon: Sparkles },
+          { to: "/admin/clients", label: "Clients", icon: Users },
+          { to: "/bookings", label: "Bookings", icon: Calendar },
+          { to: "/availability", label: "Availability", icon: Clock },
+        ],
+      },
+      {
+        label: "Administration",
+        items: [
+          { to: "/admin/team", label: "Team", icon: Users },
+          { to: "/admin/services", label: "Services", icon: Wrench },
+          { to: "/admin/reports", label: "Reports", icon: ClipboardList },
+          { to: "/admin/settings", label: "Settings", icon: Settings },
+        ],
+      },
+    ];
+  }
 
-function filterNav(items: NavItem[], roles: readonly Role[]) {
-  return items.filter((item) => !item.roles || item.roles.some((r) => roles.includes(r)));
+  // Practitioner
+  return [
+    {
+      label: "Clinic",
+      items: [
+        { to: "/sessions", label: "Sessions", icon: Sparkles },
+        { to: "/clients", label: "Clients", icon: Users },
+        { to: "/availability", label: "My availability", icon: Clock },
+      ],
+    },
+  ];
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -81,6 +134,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       : roles.includes("practitioner")
         ? "Practitioner"
         : "No role";
+
+  const support = data?.activeSupportSession ?? null;
+  const inSupportMode = !!support;
 
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
@@ -100,7 +156,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     const sidebar = org?.themeSidebar && hex.test(org.themeSidebar) ? org.themeSidebar : null;
     const accent = org?.themeAccent && hex.test(org.themeAccent) ? org.themeAccent : null;
 
-    // Best readable text on a given hex background (white vs near-black).
     const lum = (h: string) => {
       const r = parseInt(h.slice(1, 3), 16),
         g = parseInt(h.slice(3, 5), 16),
@@ -164,9 +219,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   };
 
-  const primary = filterNav(PRIMARY_NAV, roles);
-  const scheduling = filterNav(SCHEDULING_NAV, roles);
-  const admin = filterNav(ADMIN_NAV, roles);
+  const exitSupportFn = useServerFn(exitSupportMode);
+  const exitMut = useMutation({
+    mutationFn: () => exitSupportFn(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["user-context"] });
+      navigate({ to: "/admin/organisations", replace: true });
+    },
+  });
+
+  const nav = buildNav(roles, inSupportMode);
 
   const renderItem = (item: NavItem) => {
     const Icon = item.icon;
@@ -206,36 +268,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           </SidebarHeader>
           <SidebarContent className="px-2">
-            <SidebarGroup>
-              <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
-                Session
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>{primary.map(renderItem)}</SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            {scheduling.length > 0 && (
-              <SidebarGroup>
+            {nav.map((group) => (
+              <SidebarGroup key={group.label}>
                 <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
-                  Diary
+                  {group.label}
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
-                  <SidebarMenu>{scheduling.map(renderItem)}</SidebarMenu>
+                  <SidebarMenu>{group.items.map(renderItem)}</SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
-            )}
-
-            {admin.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="px-3 pt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">
-                  Administration
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>{admin.map(renderItem)}</SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
+            ))}
           </SidebarContent>
           <SidebarFooter className="px-3 pb-4">
             <Button
@@ -250,6 +292,28 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Sidebar>
 
         <div className="flex flex-1 flex-col">
+          {inSupportMode && (
+            <div
+              role="alert"
+              className="flex items-center justify-between gap-4 border-b border-amber-500/40 bg-amber-500/15 px-6 py-2 text-sm text-amber-100"
+            >
+              <div className="flex items-center gap-2">
+                <LifeBuoy className="h-4 w-4" />
+                <span>
+                  Support mode — viewing <strong>{support!.org_name}</strong>
+                  {support!.reason ? <> · {support!.reason}</> : null}
+                </span>
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => exitMut.mutate()}
+                disabled={exitMut.isPending}
+              >
+                Exit support mode
+              </Button>
+            </div>
+          )}
           <header className="flex h-16 items-center gap-4 border-b border-border/60 bg-card px-6">
             <SidebarTrigger className="text-brand-indigo" />
             <div className="min-w-0 flex-1">
@@ -258,11 +322,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               ) : (
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="truncate text-[15px] font-medium text-foreground">
-                    {data?.org?.name ?? "No organisation assigned"}
+                    {inSupportMode
+                      ? support!.org_name
+                      : data?.org?.name ?? (roles.includes("super_admin") ? "Resonabed platform" : "No organisation assigned")}
                   </span>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-secondary px-3 py-1 text-[11px] font-medium uppercase tracking-[0.1em] text-secondary-foreground">
                     {roleLabel}
                   </span>
+                  {inSupportMode && (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-500/20 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.1em] text-amber-200">
+                      <Shield className="h-3 w-3" /> Support
+                    </span>
+                  )}
                 </div>
               )}
             </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
@@ -8,6 +8,7 @@ import {
   extendMusicLicence,
   expireMusicLicence,
 } from "@/lib/licence.functions";
+import { enterSupportMode } from "@/lib/support-mode.functions";
 import {
   getAppSetting,
   setAppSetting,
@@ -43,6 +44,7 @@ import {
   Users,
   UserMinus,
   Music,
+  LifeBuoy,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
@@ -99,6 +101,22 @@ function OrganisationsPage() {
   const [resetting, setResetting] = useState<OrgRow | null>(null);
   const [addingAdminTo, setAddingAdminTo] = useState<OrgRow | null>(null);
   const [managingLicence, setManagingLicence] = useState<OrgRow | null>(null);
+  const [supportOrg, setSupportOrg] = useState<OrgRow | null>(null);
+  const [supportReason, setSupportReason] = useState("");
+  const navigate = useNavigate();
+  const enterSupportFn = useServerFn(enterSupportMode);
+  const enterSupport = useMutation({
+    mutationFn: (v: { org_id: string; reason: string }) =>
+      enterSupportFn({ data: v }),
+    onSuccess: async () => {
+      toast.success("Support mode active");
+      setSupportOrg(null);
+      setSupportReason("");
+      await qc.invalidateQueries({ queryKey: ["user-context"] });
+      navigate({ to: "/dashboard" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [tempPassword, setTempPassword] = useState<{
     email: string;
     password: string;
@@ -198,6 +216,9 @@ function OrganisationsPage() {
                   <Button size="sm" variant="outline" onClick={() => setManagingLicence(o)}>
                     <Music className="mr-1 h-3.5 w-3.5" /> Music licence
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setSupportOrg(o)}>
+                    <LifeBuoy className="mr-1 h-3.5 w-3.5" /> Access for support
+                  </Button>
                   {!o.is_template && (
                     <Button
                       size="sm"
@@ -296,6 +317,56 @@ function OrganisationsPage() {
       {tempPassword && (
         <TempPasswordDialog details={tempPassword} onClose={() => setTempPassword(null)} />
       )}
+
+      <Dialog
+        open={!!supportOrg}
+        onOpenChange={(v) => {
+          if (!v) {
+            setSupportOrg(null);
+            setSupportReason("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Access {supportOrg?.name} for support</DialogTitle>
+            <DialogDescription>
+              You will be able to view this clinic's clients, bookings and sessions. This is
+              logged to a permanent, append-only audit trail visible to the clinic. Provide a
+              short reason so the clinic can see why platform access occurred.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="support-reason">Reason for access</Label>
+            <Input
+              id="support-reason"
+              placeholder="e.g. Investigating booking sync issue reported by admin"
+              value={supportReason}
+              onChange={(e) => setSupportReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSupportOrg(null);
+                setSupportReason("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={supportReason.trim().length < 3 || enterSupport.isPending}
+              onClick={() =>
+                supportOrg &&
+                enterSupport.mutate({ org_id: supportOrg.id, reason: supportReason.trim() })
+              }
+            >
+              Enter support mode
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

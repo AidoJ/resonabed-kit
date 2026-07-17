@@ -111,6 +111,13 @@ function DashboardPage() {
     return <Skeleton className="h-40 w-full max-w-xl" />;
   }
 
+  // Super_admin (platform operator) sees a platform overview, never clinic data.
+  const roles = ctx?.roles ?? [];
+  if (roles.includes("super_admin") && !ctx?.activeSupportSession) {
+    return <SuperAdminDashboard displayName={ctx?.displayName ?? null} />;
+  }
+
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       {/* Hero */}
@@ -376,3 +383,54 @@ function EmptyRow({ text, cta }: { text: string; cta?: React.ReactNode }) {
     </div>
   );
 }
+
+function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
+  return (
+    <div className="mx-auto max-w-6xl space-y-8">
+      <div className="shadow-soft rounded-2xl bg-card p-8">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          ResonaBed platform
+        </p>
+        <h1 className="mt-2 text-3xl font-light tracking-tight text-brand-indigo">
+          Welcome{displayName ? `, ${displayName.split(" ")[0]}` : ""}
+        </h1>
+        <p className="mt-2 text-[15px] text-muted-foreground">
+          You are signed in as a platform operator. Individual clinic records are not visible from
+          here — use <strong>Access for support</strong> on the Organisations list to enter a
+          specific clinic's data with a logged audit trail.
+        </p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <PlatformCard title="Organisations" href="/admin/organisations" description="Create, provision, licence and manage clinics." />
+        <PlatformCard title="Global services" href="/admin/global-services" description="Default service catalogue seeded into new clinics." />
+        <PlatformCard title="Global frequencies" href="/frequencies" description="Master frequency tuning used by every clinic." />
+        <PlatformCard title="Global audio" href="/audio" description="Shipped tracks available to every clinic under licence." />
+        <PlatformCard title="Platform metrics" href="/admin/metrics" description="Aggregate, non-identifiable usage and licence data." />
+      </div>
+    </div>
+  );
+}
+
+function PlatformCard({
+  title,
+  href,
+  description,
+}: {
+  title: string;
+  href: string;
+  description: string;
+}) {
+  return (
+    <Link
+      to={href as "/admin/organisations"}
+      className="shadow-soft group flex flex-col rounded-2xl bg-card p-6 transition hover:shadow-lift"
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-brand-indigo">{title}</h3>
+        <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5" />
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+    </Link>
+  );
+}
+
