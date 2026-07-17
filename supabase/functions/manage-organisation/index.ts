@@ -459,10 +459,12 @@ Deno.serve(async (req) => {
             .update({
               org_id: body.org_id,
               display_name: displayName ?? undefined,
+              phone: phone ?? undefined,
               is_active: true,
             })
             .eq("id", uid);
           if (upProfErr) return json(400, { error: upProfErr.message });
+
         } else {
           tempPassword = generatePassword(20);
           const { data: created, error: createErr } = await admin.auth.admin.createUser({
