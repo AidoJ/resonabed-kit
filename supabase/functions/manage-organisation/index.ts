@@ -166,39 +166,81 @@ Deno.serve(async (req) => {
           return json(400, { error: `Seeding failed: ${e instanceof Error ? e.message : String(e)}` });
         }
 
-        // 3. Create first org_admin user.
-        const password = generatePassword(20);
-        const { data: created, error: createErr } = await admin.auth.admin.createUser({
-          email: body.admin_email.trim(),
-          password,
-          email_confirm: true,
-          user_metadata: { display_name: body.admin_display_name ?? null },
-          app_metadata: { must_change_password: true },
-        });
-        if (createErr || !created.user) {
-          await admin.from("organisations").delete().eq("id", newOrgId);
-          return json(400, { error: createErr?.message ?? "Admin create failed" });
-        }
-        const uid = created.user.id;
+        // 3. Create or reuse the first org_admin user.
+        const email = body.admin_email.trim();
+        const displayName = body.admin_display_name ?? null;
 
-        const { error: profileErr } = await admin
-          .from("profiles")
-          .update({
-            org_id: newOrgId,
-            display_name: body.admin_display_name ?? null,
-            is_active: true,
-          })
-          .eq("id", uid);
-        if (profileErr) {
-          await admin.auth.admin.deleteUser(uid);
-          await admin.from("organisations").delete().eq("id", newOrgId);
-          return json(400, { error: profileErr.message });
+        // Look for an existing auth user with that email (paginate).
+        let existingId: string | null = null;
+        for (let page = 1; page <= 20 && !existingId; page++) {
+          const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+          if (listErr) {
+            await admin.from("organisations").delete().eq("id", newOrgId);
+            return json(400, { error: listErr.message });
+          }
+          const hit = list.users.find((u) => (u.email ?? "").toLowerCase() === email.toLowerCase());
+          if (hit) existingId = hit.id;
+          if (list.users.length < 200) break;
         }
+
+        let uid: string;
+        let password: string | null = null;
+
+        if (existingId) {
+          // Refuse to co-opt a user already tied to a different org.
+          const { data: prof } = await admin
+            .from("profiles")
+            .select("org_id")
+            .eq("id", existingId)
+            .maybeSingle();
+          if (prof?.org_id && prof.org_id !== newOrgId) {
+            await admin.from("organisations").delete().eq("id", newOrgId);
+            return json(400, {
+              error: "That user already belongs to a different organisation. Choose a different admin email.",
+            });
+          }
+          uid = existingId;
+          const { error: upProfErr } = await admin
+            .from("profiles")
+            .update({ org_id: newOrgId, display_name: displayName ?? undefined, is_active: true })
+            .eq("id", uid);
+          if (upProfErr) {
+            await admin.from("organisations").delete().eq("id", newOrgId);
+            return json(400, { error: upProfErr.message });
+          }
+        } else {
+          password = generatePassword(20);
+          const { data: created, error: createErr } = await admin.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: { display_name: displayName },
+            app_metadata: { must_change_password: true },
+          });
+          if (createErr || !created.user) {
+            await admin.from("organisations").delete().eq("id", newOrgId);
+            return json(400, { error: createErr?.message ?? "Admin create failed" });
+          }
+          uid = created.user.id;
+          const { error: profileErr } = await admin
+            .from("profiles")
+            .update({ org_id: newOrgId, display_name: displayName, is_active: true })
+            .eq("id", uid);
+          if (profileErr) {
+            await admin.auth.admin.deleteUser(uid);
+            await admin.from("organisations").delete().eq("id", newOrgId);
+            return json(400, { error: profileErr.message });
+          }
+        }
+
         const { error: roleErr } = await admin
           .from("user_roles")
-          .insert({ user_id: uid, org_id: newOrgId, role: "org_admin" });
+          .upsert(
+            { user_id: uid, org_id: newOrgId, role: "org_admin" },
+            { onConflict: "user_id,role,org_id", ignoreDuplicates: true },
+          );
         if (roleErr) {
-          await admin.auth.admin.deleteUser(uid);
+          if (password) await admin.auth.admin.deleteUser(uid);
           await admin.from("organisations").delete().eq("id", newOrgId);
           return json(400, { error: roleErr.message });
         }
@@ -207,8 +249,9 @@ Deno.serve(async (req) => {
           ok: true,
           org_id: newOrgId,
           admin_user_id: uid,
-          admin_email: body.admin_email.trim(),
-          temporary_password: password,
+          admin_email: email,
+          temporary_password: password, // null when reusing an existing user
+          reused_existing_user: !password,
         });
       }
 
