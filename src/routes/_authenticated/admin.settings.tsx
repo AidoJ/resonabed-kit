@@ -192,7 +192,7 @@ function SettingsAdmin() {
         .from("org-logos")
         .upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw new Error(upErr.message);
-      await save({ logo_path: path }, "Logo updated");
+      await save({ logo_path: path }, "Logo updated", "identity");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -213,6 +213,7 @@ function SettingsAdmin() {
         brand_color: themePrimary,
       },
       "Theme saved",
+      "theme",
     );
   };
 
