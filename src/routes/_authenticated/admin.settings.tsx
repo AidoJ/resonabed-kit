@@ -475,13 +475,23 @@ function SettingsAdmin() {
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <Button onClick={saveTheme} disabled={!themeReadable}>
-                  Save theme
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  onClick={saveTheme}
+                  disabled={!themeReadable || !themeDirty || savingSection === "theme"}
+                >
+                  {savingSection === "theme" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : themeDirty ? "Save theme" : "Saved"}
                 </Button>
                 <Button variant="outline" onClick={resetTheme}>
                   Reset to Resonabed defaults
                 </Button>
+                <SaveStatus
+                  dirty={themeDirty}
+                  saving={savingSection === "theme"}
+                  savedAt={savedAt.theme}
+                />
               </div>
             </CardContent>
           </Card>
