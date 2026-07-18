@@ -490,6 +490,43 @@ function CreateOrgDialog({
           </div>
 
           <div className="rounded-md border p-3 space-y-2">
+            <p className="text-sm font-medium">Music licence bundle</p>
+            <div className="flex items-start gap-2">
+              <input
+                type="radio"
+                id="bundle-basic"
+                name="bundle"
+                className="mt-1"
+                checked={bundle === "basic"}
+                onChange={() => setBundle("basic")}
+              />
+              <Label htmlFor="bundle-basic" className="font-normal">
+                Basic — 1 month trial only
+                <span className="block text-xs text-muted-foreground">
+                  Default. Org starts with the standard 1-month trial.
+                </span>
+              </Label>
+            </div>
+            <div className="flex items-start gap-2">
+              <input
+                type="radio"
+                id="bundle-pro"
+                name="bundle"
+                className="mt-1"
+                checked={bundle === "pro"}
+                onChange={() => setBundle("pro")}
+              />
+              <Label htmlFor="bundle-pro" className="font-normal">
+                Pro / Platinum — trial + 12 months
+                <span className="block text-xs text-muted-foreground">
+                  Stacks 12 months on top of the trial (~13 months total from creation).
+                </span>
+              </Label>
+            </div>
+          </div>
+
+          <div className="rounded-md border p-3 space-y-2">
+
             <p className="text-sm font-medium">Seed from template organisation</p>
             <div className="flex items-center gap-2">
               <Checkbox
