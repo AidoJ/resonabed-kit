@@ -370,7 +370,9 @@ function CreateOrgDialog({
   const [adminPhone, setAdminPhone] = useState("");
   const [seedServices, setSeedServices] = useState(true);
   const [seedFrequencies, setSeedFrequencies] = useState(true);
+  const [bundle, setBundle] = useState<"basic" | "pro">("basic");
   const sendInvite = useServerFn(sendAdminInviteEmail);
+  const extendFn = useServerFn(extendMusicLicence);
 
   const create = useMutation({
     mutationFn: () =>
@@ -386,6 +388,24 @@ function CreateOrgDialog({
       }),
     onSuccess: async (res) => {
       const password = res.temporary_password as string;
+      // Apply Pro bundle: stack +12 months on top of the auto-created 1-month trial.
+      if (bundle === "pro" && res.org_id) {
+        try {
+          await extendFn({
+            data: {
+              org_id: res.org_id as string,
+              months: 12,
+              plan: "pro",
+              note: "Pro bundle 13mo (trial + 12)",
+            },
+          });
+        } catch (e) {
+          toast.error(
+            "Org created but Pro bundle extension failed. Apply manually via Extend licence. " +
+              ((e as Error).message ?? ""),
+          );
+        }
+      }
       // Fire-and-forget email; do not block dialog on delivery failure.
       try {
         await sendInvite({
@@ -411,6 +431,7 @@ function CreateOrgDialog({
       setAdminEmail("");
       setAdminName("");
       setAdminPhone("");
+      setBundle("basic");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -470,6 +491,43 @@ function CreateOrgDialog({
           </div>
 
           <div className="rounded-md border p-3 space-y-2">
+            <p className="text-sm font-medium">Music licence bundle</p>
+            <div className="flex items-start gap-2">
+              <input
+                type="radio"
+                id="bundle-basic"
+                name="bundle"
+                className="mt-1"
+                checked={bundle === "basic"}
+                onChange={() => setBundle("basic")}
+              />
+              <Label htmlFor="bundle-basic" className="font-normal">
+                Basic — 1 month trial only
+                <span className="block text-xs text-muted-foreground">
+                  Default. Org starts with the standard 1-month trial.
+                </span>
+              </Label>
+            </div>
+            <div className="flex items-start gap-2">
+              <input
+                type="radio"
+                id="bundle-pro"
+                name="bundle"
+                className="mt-1"
+                checked={bundle === "pro"}
+                onChange={() => setBundle("pro")}
+              />
+              <Label htmlFor="bundle-pro" className="font-normal">
+                Pro / Platinum — trial + 12 months
+                <span className="block text-xs text-muted-foreground">
+                  Stacks 12 months on top of the trial (~13 months total from creation).
+                </span>
+              </Label>
+            </div>
+          </div>
+
+          <div className="rounded-md border p-3 space-y-2">
+
             <p className="text-sm font-medium">Seed from template organisation</p>
             <div className="flex items-center gap-2">
               <Checkbox
