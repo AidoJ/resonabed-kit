@@ -388,6 +388,24 @@ function CreateOrgDialog({
       }),
     onSuccess: async (res) => {
       const password = res.temporary_password as string;
+      // Apply Pro bundle: stack +12 months on top of the auto-created 1-month trial.
+      if (bundle === "pro" && res.org_id) {
+        try {
+          await extendFn({
+            data: {
+              org_id: res.org_id as string,
+              months: 12,
+              plan: "pro",
+              note: "Pro bundle 13mo (trial + 12)",
+            },
+          });
+        } catch (e) {
+          toast.error(
+            "Org created but Pro bundle extension failed. Apply manually via Extend licence. " +
+              ((e as Error).message ?? ""),
+          );
+        }
+      }
       // Fire-and-forget email; do not block dialog on delivery failure.
       try {
         await sendInvite({
