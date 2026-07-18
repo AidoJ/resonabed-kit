@@ -72,7 +72,7 @@ function AuthPage() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: `url(${logo.url})`,
+          backgroundImage: `url(${logoMark})`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundSize: "min(90vw, 900px) auto",
