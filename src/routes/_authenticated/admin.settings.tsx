@@ -164,15 +164,21 @@ function SettingsAdmin() {
     privacy_policy_text?: string | null;
     health_policy_text?: string | null;
   };
-  const save = async (payload: OrgPatch, successMsg = "Saved") => {
+  const save = async (payload: OrgPatch, successMsg = "Saved", section?: SectionKey) => {
+    if (section) setSavingSection(section);
     try {
       await saveOrg({ data: payload as never });
       toast.success(successMsg);
+      if (section) {
+        setSavedAt((s) => ({ ...s, [section]: Date.now() }));
+      }
       qc.invalidateQueries({ queryKey: ["org-settings"] });
       qc.invalidateQueries({ queryKey: ["user-context"] });
       qc.invalidateQueries({ queryKey: ["org-policy-audit"] });
     } catch (e) {
       toast.error((e as Error).message);
+    } finally {
+      if (section) setSavingSection((cur) => (cur === section ? null : cur));
     }
   };
 
