@@ -523,20 +523,31 @@ function SettingsAdmin() {
                 helper={POLICY_HELPER}
                 rows={8}
               />
-              <Button
-                onClick={() =>
-                  save(
-                    {
-                      consent_text: consent,
-                      privacy_policy_text: privacy,
-                      health_policy_text: health,
-                    },
-                    "Policies saved",
-                  )
-                }
-              >
-                Save policies
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  disabled={!policiesDirty || savingSection === "policies"}
+                  onClick={() =>
+                    save(
+                      {
+                        consent_text: consent,
+                        privacy_policy_text: privacy,
+                        health_policy_text: health,
+                      },
+                      "Policies saved",
+                      "policies",
+                    )
+                  }
+                >
+                  {savingSection === "policies" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : policiesDirty ? "Save policies" : "Saved"}
+                </Button>
+                <SaveStatus
+                  dirty={policiesDirty}
+                  saving={savingSection === "policies"}
+                  savedAt={savedAt.policies}
+                />
+              </div>
             </CardContent>
           </Card>
 
