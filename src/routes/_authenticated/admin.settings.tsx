@@ -75,6 +75,14 @@ function SettingsAdmin() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  type SectionKey = "identity" | "theme" | "policies";
+  const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
+  const [savedAt, setSavedAt] = useState<Record<SectionKey, number | null>>({
+    identity: null,
+    theme: null,
+    policies: null,
+  });
+
   const [ackName, setAckName] = useState("");
   const [ackChecked, setAckChecked] = useState(false);
   const [acking, setAcking] = useState(false);
