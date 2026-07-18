@@ -364,19 +364,31 @@ function SettingsAdmin() {
                 </p>
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex items-center gap-3 pt-2">
                 <Button
+                  disabled={!identityDirty || savingSection === "identity"}
                   onClick={() =>
-                    save({
-                      name,
-                      business_name: businessName || null,
-                      contact_email: contactEmail || null,
-                      abn: abn || null,
-                    })
+                    save(
+                      {
+                        name,
+                        business_name: businessName || null,
+                        contact_email: contactEmail || null,
+                        abn: abn || null,
+                      },
+                      "Identity saved",
+                      "identity",
+                    )
                   }
                 >
-                  Save identity
+                  {savingSection === "identity" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : identityDirty ? "Save identity" : "Saved"}
                 </Button>
+                <SaveStatus
+                  dirty={identityDirty}
+                  saving={savingSection === "identity"}
+                  savedAt={savedAt.identity}
+                />
               </div>
             </CardContent>
           </Card>
