@@ -431,6 +431,7 @@ function CreateOrgDialog({
       setAdminEmail("");
       setAdminName("");
       setAdminPhone("");
+      setBundle("basic");
     },
     onError: (e: Error) => toast.error(e.message),
   });
