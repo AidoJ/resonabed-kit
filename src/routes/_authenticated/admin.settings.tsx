@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AlertCircle, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, ShieldCheck, Sparkles, Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   updateOrgSettings,
@@ -75,6 +75,14 @@ function SettingsAdmin() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  type SectionKey = "identity" | "theme" | "policies";
+  const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
+  const [savedAt, setSavedAt] = useState<Record<SectionKey, number | null>>({
+    identity: null,
+    theme: null,
+    policies: null,
+  });
+
   const [ackName, setAckName] = useState("");
   const [ackChecked, setAckChecked] = useState(false);
   const [acking, setAcking] = useState(false);
@@ -136,6 +144,24 @@ function SettingsAdmin() {
 
   const canGoLive = missing.length === 0 && !org?.is_configured;
 
+  // Dirty detection per section — compares live form state against loaded org.
+  const identityDirty = !!org && (
+    name !== org.name ||
+    (businessName || "") !== (org.business_name ?? "") ||
+    (contactEmail || "") !== (org.contact_email ?? "") ||
+    (abn || "") !== (org.abn ?? "")
+  );
+  const themeDirty = !!org && (
+    themePrimary !== (isHex6(org.theme_primary) ? org.theme_primary : isHex6(org.brand_color) ? org.brand_color : DEFAULT_THEME.primary) ||
+    themeSidebar !== (isHex6(org.theme_sidebar) ? org.theme_sidebar : DEFAULT_THEME.sidebar) ||
+    themeAccent !== (isHex6(org.theme_accent) ? org.theme_accent : DEFAULT_THEME.accent)
+  );
+  const policiesDirty = !!org && (
+    (consent || "") !== (org.consent_text ?? "") ||
+    (privacy || "") !== (org.privacy_policy_text ?? "") ||
+    (health || "") !== (org.health_policy_text ?? "")
+  );
+
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
   const sidebarContrast = contrastRatio(themeSidebar, SIDEBAR_TEXT_FALLBACK);
   const primaryReadable = primaryContrast >= MIN_CONTRAST;
@@ -156,15 +182,21 @@ function SettingsAdmin() {
     privacy_policy_text?: string | null;
     health_policy_text?: string | null;
   };
-  const save = async (payload: OrgPatch, successMsg = "Saved") => {
+  const save = async (payload: OrgPatch, successMsg = "Saved", section?: SectionKey) => {
+    if (section) setSavingSection(section);
     try {
       await saveOrg({ data: payload as never });
       toast.success(successMsg);
+      if (section) {
+        setSavedAt((s) => ({ ...s, [section]: Date.now() }));
+      }
       qc.invalidateQueries({ queryKey: ["org-settings"] });
       qc.invalidateQueries({ queryKey: ["user-context"] });
       qc.invalidateQueries({ queryKey: ["org-policy-audit"] });
     } catch (e) {
       toast.error((e as Error).message);
+    } finally {
+      if (section) setSavingSection((cur) => (cur === section ? null : cur));
     }
   };
 
@@ -178,7 +210,7 @@ function SettingsAdmin() {
         .from("org-logos")
         .upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw new Error(upErr.message);
-      await save({ logo_path: path }, "Logo updated");
+      await save({ logo_path: path }, "Logo updated", "identity");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -199,6 +231,7 @@ function SettingsAdmin() {
         brand_color: themePrimary,
       },
       "Theme saved",
+      "theme",
     );
   };
 
@@ -331,19 +364,31 @@ function SettingsAdmin() {
                 </p>
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex items-center gap-3 pt-2">
                 <Button
+                  disabled={!identityDirty || savingSection === "identity"}
                   onClick={() =>
-                    save({
-                      name,
-                      business_name: businessName || null,
-                      contact_email: contactEmail || null,
-                      abn: abn || null,
-                    })
+                    save(
+                      {
+                        name,
+                        business_name: businessName || null,
+                        contact_email: contactEmail || null,
+                        abn: abn || null,
+                      },
+                      "Identity saved",
+                      "identity",
+                    )
                   }
                 >
-                  Save identity
+                  {savingSection === "identity" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : identityDirty ? "Save identity" : "Saved"}
                 </Button>
+                <SaveStatus
+                  dirty={identityDirty}
+                  saving={savingSection === "identity"}
+                  savedAt={savedAt.identity}
+                />
               </div>
             </CardContent>
           </Card>
@@ -430,13 +475,23 @@ function SettingsAdmin() {
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <Button onClick={saveTheme} disabled={!themeReadable}>
-                  Save theme
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  onClick={saveTheme}
+                  disabled={!themeReadable || !themeDirty || savingSection === "theme"}
+                >
+                  {savingSection === "theme" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : themeDirty ? "Save theme" : "Saved"}
                 </Button>
                 <Button variant="outline" onClick={resetTheme}>
                   Reset to Resonabed defaults
                 </Button>
+                <SaveStatus
+                  dirty={themeDirty}
+                  saving={savingSection === "theme"}
+                  savedAt={savedAt.theme}
+                />
               </div>
             </CardContent>
           </Card>
@@ -468,20 +523,31 @@ function SettingsAdmin() {
                 helper={POLICY_HELPER}
                 rows={8}
               />
-              <Button
-                onClick={() =>
-                  save(
-                    {
-                      consent_text: consent,
-                      privacy_policy_text: privacy,
-                      health_policy_text: health,
-                    },
-                    "Policies saved",
-                  )
-                }
-              >
-                Save policies
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  disabled={!policiesDirty || savingSection === "policies"}
+                  onClick={() =>
+                    save(
+                      {
+                        consent_text: consent,
+                        privacy_policy_text: privacy,
+                        health_policy_text: health,
+                      },
+                      "Policies saved",
+                      "policies",
+                    )
+                  }
+                >
+                  {savingSection === "policies" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : policiesDirty ? "Save policies" : "Saved"}
+                </Button>
+                <SaveStatus
+                  dirty={policiesDirty}
+                  saving={savingSection === "policies"}
+                  savedAt={savedAt.policies}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -824,4 +890,56 @@ function PolicyField({
       <p className="text-xs text-muted-foreground">{helper}</p>
     </div>
   );
+}
+
+function SaveStatus({
+  dirty,
+  saving,
+  savedAt,
+}: {
+  dirty: boolean;
+  saving: boolean;
+  savedAt: number | null;
+}) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!savedAt) return;
+    const i = setInterval(() => tick((n) => n + 1), 30_000);
+    return () => clearInterval(i);
+  }, [savedAt]);
+
+  if (saving) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Saving…
+      </span>
+    );
+  }
+  if (dirty) {
+    return (
+      <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300">
+        Unsaved changes
+      </Badge>
+    );
+  }
+  if (savedAt) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400">
+        <Check className="h-3.5 w-3.5" />
+        Saved {formatRelative(savedAt)}
+      </span>
+    );
+  }
+  return null;
+}
+
+function formatRelative(ts: number): string {
+  const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return new Date(ts).toLocaleDateString();
 }
