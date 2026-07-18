@@ -891,3 +891,55 @@ function PolicyField({
     </div>
   );
 }
+
+function SaveStatus({
+  dirty,
+  saving,
+  savedAt,
+}: {
+  dirty: boolean;
+  saving: boolean;
+  savedAt: number | null;
+}) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!savedAt) return;
+    const i = setInterval(() => tick((n) => n + 1), 30_000);
+    return () => clearInterval(i);
+  }, [savedAt]);
+
+  if (saving) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Saving…
+      </span>
+    );
+  }
+  if (dirty) {
+    return (
+      <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300">
+        Unsaved changes
+      </Badge>
+    );
+  }
+  if (savedAt) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400">
+        <Check className="h-3.5 w-3.5" />
+        Saved {formatRelative(savedAt)}
+      </span>
+    );
+  }
+  return null;
+}
+
+function formatRelative(ts: number): string {
+  const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return new Date(ts).toLocaleDateString();
+}
