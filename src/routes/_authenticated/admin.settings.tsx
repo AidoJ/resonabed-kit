@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AlertCircle, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, ShieldCheck, Sparkles, Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   updateOrgSettings,
