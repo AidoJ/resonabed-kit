@@ -144,6 +144,24 @@ function SettingsAdmin() {
 
   const canGoLive = missing.length === 0 && !org?.is_configured;
 
+  // Dirty detection per section — compares live form state against loaded org.
+  const identityDirty = !!org && (
+    name !== org.name ||
+    (businessName || "") !== (org.business_name ?? "") ||
+    (contactEmail || "") !== (org.contact_email ?? "") ||
+    (abn || "") !== (org.abn ?? "")
+  );
+  const themeDirty = !!org && (
+    themePrimary !== (isHex6(org.theme_primary) ? org.theme_primary : isHex6(org.brand_color) ? org.brand_color : DEFAULT_THEME.primary) ||
+    themeSidebar !== (isHex6(org.theme_sidebar) ? org.theme_sidebar : DEFAULT_THEME.sidebar) ||
+    themeAccent !== (isHex6(org.theme_accent) ? org.theme_accent : DEFAULT_THEME.accent)
+  );
+  const policiesDirty = !!org && (
+    (consent || "") !== (org.consent_text ?? "") ||
+    (privacy || "") !== (org.privacy_policy_text ?? "") ||
+    (health || "") !== (org.health_policy_text ?? "")
+  );
+
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
   const sidebarContrast = contrastRatio(themeSidebar, SIDEBAR_TEXT_FALLBACK);
   const primaryReadable = primaryContrast >= MIN_CONTRAST;
