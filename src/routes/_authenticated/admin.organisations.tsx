@@ -370,7 +370,9 @@ function CreateOrgDialog({
   const [adminPhone, setAdminPhone] = useState("");
   const [seedServices, setSeedServices] = useState(true);
   const [seedFrequencies, setSeedFrequencies] = useState(true);
+  const [bundle, setBundle] = useState<"basic" | "pro">("basic");
   const sendInvite = useServerFn(sendAdminInviteEmail);
+  const extendFn = useServerFn(extendMusicLicence);
 
   const create = useMutation({
     mutationFn: () =>
