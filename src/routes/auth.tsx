@@ -75,7 +75,7 @@ function AuthPage() {
           backgroundImage: `url(${logoMark})`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
-          backgroundSize: "min(90vw, 900px) auto",
+          backgroundSize: "min(140vw, 1400px) auto",
           opacity: 0.08,
         }}
       />
