@@ -309,6 +309,7 @@ function OrganisationsPage() {
           if (!v) {
             setSupportOrg(null);
             setSupportReason("");
+            setSupportEmergency(false);
           }
         }}
       >
@@ -316,11 +317,12 @@ function OrganisationsPage() {
           <DialogHeader>
             <DialogTitle>Access {supportOrg?.name} for support</DialogTitle>
             <DialogDescription>
-              You will be able to view this clinic's clients, bookings and sessions. This is
-              logged to a permanent, append-only audit trail visible to the clinic. Provide a
-              short reason so the clinic can see why platform access occurred.
+              Normal access requires the clinic to have granted a support-access window in
+              their Settings. Every entry — normal or emergency — is logged in a permanent
+              audit trail visible to the clinic.
             </DialogDescription>
           </DialogHeader>
+          {supportOrg && <GrantStatus orgId={supportOrg.id} />}
           <div className="space-y-2">
             <Label htmlFor="support-reason">Reason for access</Label>
             <Input
@@ -330,28 +332,66 @@ function OrganisationsPage() {
               onChange={(e) => setSupportReason(e.target.value)}
             />
           </div>
+          <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3">
+            <Checkbox
+              id="emergency"
+              checked={supportEmergency}
+              onCheckedChange={(v) => setSupportEmergency(Boolean(v))}
+            />
+            <Label htmlFor="emergency" className="text-sm font-normal">
+              <strong className="text-destructive">Emergency access</strong> — bypass the
+              grant requirement because the clinic cannot grant access right now (e.g. they're
+              locked out). This will be flagged prominently in their audit trail.
+            </Label>
+          </div>
           <DialogFooter>
             <Button
               variant="ghost"
               onClick={() => {
                 setSupportOrg(null);
                 setSupportReason("");
+                setSupportEmergency(false);
               }}
             >
               Cancel
             </Button>
             <Button
+              variant={supportEmergency ? "destructive" : "default"}
               disabled={supportReason.trim().length < 3 || enterSupport.isPending}
               onClick={() =>
                 supportOrg &&
-                enterSupport.mutate({ org_id: supportOrg.id, reason: supportReason.trim() })
+                enterSupport.mutate({
+                  org_id: supportOrg.id,
+                  reason: supportReason.trim(),
+                  emergency: supportEmergency,
+                })
               }
             >
-              Enter support mode
+              {supportEmergency ? "Emergency enter" : "Enter support mode"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function GrantStatus({ orgId }: { orgId: string }) {
+  const fetchGrant = useServerFn(checkOrgSupportGrantForSuper);
+  const { data } = useQuery({
+    queryKey: ["support-grant-check", orgId],
+    queryFn: () => fetchGrant({ data: { org_id: orgId } }),
+  });
+  if (!data) return null;
+  return data.active ? (
+    <div className="rounded-md border border-primary/40 bg-primary/5 p-2 text-sm">
+      <Badge className="mr-2">Grant active</Badge>
+      Until {data.expires_at ? new Date(data.expires_at).toLocaleString() : "—"}
+    </div>
+  ) : (
+    <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-sm">
+      <Badge variant="secondary" className="mr-2">No active grant</Badge>
+      Normal entry will be blocked. Use emergency access only if the clinic cannot grant it.
     </div>
   );
 }
