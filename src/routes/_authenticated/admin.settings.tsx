@@ -23,6 +23,7 @@ import {
   textOn,
 } from "@/lib/theme-colors";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -93,13 +94,17 @@ function SettingsAdmin() {
   const [health, setHealth] = useState("");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [permManageClients, setPermManageClients] = useState(true);
+  const [permViewAllClients, setPermViewAllClients] = useState(true);
+  const [permManageBookings, setPermManageBookings] = useState(true);
 
-  type SectionKey = "identity" | "theme" | "policies";
+  type SectionKey = "identity" | "theme" | "policies" | "permissions";
   const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
   const [savedAt, setSavedAt] = useState<Record<SectionKey, number | null>>({
     identity: null,
     theme: null,
     policies: null,
+    permissions: null,
   });
 
   const [ackName, setAckName] = useState("");
@@ -124,6 +129,9 @@ function SettingsAdmin() {
     setConsent(org.consent_text ?? "");
     setPrivacy(org.privacy_policy_text ?? "");
     setHealth(org.health_policy_text ?? "");
+    setPermManageClients(org.practitioners_can_manage_clients ?? true);
+    setPermViewAllClients(org.practitioners_can_view_all_clients ?? true);
+    setPermManageBookings(org.practitioners_can_manage_bookings ?? true);
   }, [org]);
 
   useEffect(() => {
@@ -202,6 +210,11 @@ function SettingsAdmin() {
     (privacy || "") !== (org.privacy_policy_text ?? "") ||
     (health || "") !== (org.health_policy_text ?? "")
   );
+  const permissionsDirty = !!org && (
+    permManageClients !== (org.practitioners_can_manage_clients ?? true) ||
+    permViewAllClients !== (org.practitioners_can_view_all_clients ?? true) ||
+    permManageBookings !== (org.practitioners_can_manage_bookings ?? true)
+  );
 
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
   const sidebarContrast = contrastRatio(themeSidebar, SIDEBAR_TEXT_FALLBACK);
@@ -222,6 +235,9 @@ function SettingsAdmin() {
     consent_text?: string | null;
     privacy_policy_text?: string | null;
     health_policy_text?: string | null;
+    practitioners_can_manage_clients?: boolean;
+    practitioners_can_view_all_clients?: boolean;
+    practitioners_can_manage_bookings?: boolean;
   };
   const save = async (payload: OrgPatch, successMsg = "Saved", section?: SectionKey) => {
     if (section) setSavingSection(section);
@@ -607,6 +623,64 @@ function SettingsAdmin() {
 
             </CardContent>
           </Card>
+
+          {/* Practitioner permissions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Practitioner permissions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Control what practitioners in your clinic can do. Org admins and super admins
+                always have full access. Session delivery is always available to practitioners —
+                these toggles never block running a session.
+              </p>
+              <PermissionToggle
+                label="Can create and edit clients"
+                description="When off, practitioners can still choose a client for a session, but can't add or change client records."
+                checked={permManageClients}
+                onChange={setPermManageClients}
+              />
+              <PermissionToggle
+                label="Can view the full client list"
+                description="When off, practitioners must search for a specific client by name or email — they can't browse everyone."
+                checked={permViewAllClients}
+                onChange={setPermViewAllClients}
+              />
+              <PermissionToggle
+                label="Can create and edit bookings"
+                description="When off, practitioners can only run and start sessions from bookings that admins have already created."
+                checked={permManageBookings}
+                onChange={setPermManageBookings}
+              />
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  disabled={!permissionsDirty || savingSection === "permissions"}
+                  onClick={() =>
+                    save(
+                      {
+                        practitioners_can_manage_clients: permManageClients,
+                        practitioners_can_view_all_clients: permViewAllClients,
+                        practitioners_can_manage_bookings: permManageBookings,
+                      },
+                      "Permissions saved",
+                      "permissions",
+                    )
+                  }
+                >
+                  {savingSection === "permissions" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : permissionsDirty ? "Save permissions" : "Saved"}
+                </Button>
+                <SaveStatus
+                  dirty={permissionsDirty}
+                  saving={savingSection === "permissions"}
+                  savedAt={savedAt.permissions}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
 
           {/* Go-live gate */}
           {!org.is_configured && (
@@ -1069,4 +1143,26 @@ function formatRelative(ts: number): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
   return new Date(ts).toLocaleDateString();
+}
+
+function PermissionToggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-md border p-3">
+      <div className="space-y-1">
+        <Label className="text-sm font-medium">{label}</Label>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
 }

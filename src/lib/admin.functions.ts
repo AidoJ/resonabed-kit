@@ -300,7 +300,7 @@ export const getOrgSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at",
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings",
       )
       .eq("id", _org_id)
       .single();
@@ -354,6 +354,9 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         consent_text: z.string().max(20000).nullable().optional(),
         privacy_policy_text: z.string().max(40000).nullable().optional(),
         health_policy_text: z.string().max(40000).nullable().optional(),
+        practitioners_can_manage_clients: z.boolean().optional(),
+        practitioners_can_view_all_clients: z.boolean().optional(),
+        practitioners_can_manage_bookings: z.boolean().optional(),
       })
       .parse(d),
   )
@@ -392,6 +395,9 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "theme_sidebar",
       "theme_accent",
       "logo_path",
+      "practitioners_can_manage_clients",
+      "practitioners_can_view_all_clients",
+      "practitioners_can_manage_bookings",
     ] as const) {
       const v = data[key];
       if (v !== undefined) patch[key] = v;

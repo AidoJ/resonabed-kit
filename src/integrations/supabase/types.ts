@@ -318,6 +318,9 @@ export type Database = {
           music_licence_plan: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status: Database["public"]["Enums"]["music_licence_status"]
           name: string
+          practitioners_can_manage_bookings: boolean
+          practitioners_can_manage_clients: boolean
+          practitioners_can_view_all_clients: boolean
           privacy_policy_text: string | null
           status: Database["public"]["Enums"]["org_status"]
           theme_accent: string | null
@@ -346,6 +349,9 @@ export type Database = {
           music_licence_plan?: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status?: Database["public"]["Enums"]["music_licence_status"]
           name: string
+          practitioners_can_manage_bookings?: boolean
+          practitioners_can_manage_clients?: boolean
+          practitioners_can_view_all_clients?: boolean
           privacy_policy_text?: string | null
           status?: Database["public"]["Enums"]["org_status"]
           theme_accent?: string | null
@@ -374,6 +380,9 @@ export type Database = {
           music_licence_plan?: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status?: Database["public"]["Enums"]["music_licence_status"]
           name?: string
+          practitioners_can_manage_bookings?: boolean
+          practitioners_can_manage_clients?: boolean
+          practitioners_can_view_all_clients?: boolean
           privacy_policy_text?: string | null
           status?: Database["public"]["Enums"]["org_status"]
           theme_accent?: string | null
@@ -729,6 +738,10 @@ export type Database = {
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       org_music_licence_ok: { Args: { _org_id: string }; Returns: boolean }
+      org_practitioner_permission: {
+        Args: { _flag: string; _org_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "super_admin" | "org_admin" | "practitioner"

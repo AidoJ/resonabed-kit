@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { computePractitionerPermissions } from "@/lib/practitioner-permissions";
 
 export type AppRole = "super_admin" | "org_admin" | "practitioner";
 
@@ -37,6 +38,16 @@ export interface UserContext {
    * super_admin has NO access to individual org records via the UI.
    */
   activeSupportSession: SupportSessionSummary | null;
+  /**
+   * Effective UI-level permission flags. Admins / super_admins are always
+   * true. Practitioners reflect their org's toggles. Server-side enforcement
+   * is the real gate — these are for hiding/disabling UI affordances.
+   */
+  permissions: {
+    manageClients: boolean;
+    viewAllClients: boolean;
+    manageBookings: boolean;
+  };
 }
 
 export const getCurrentUserContext = createServerFn({ method: "GET" })
@@ -121,6 +132,11 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       }
     }
 
+    const permissions = await computePractitionerPermissions(
+      { supabase, userId },
+      org?.id ?? null,
+    );
+
     return {
       userId,
       email: (claims.email as string) ?? null,
@@ -130,5 +146,6 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       org,
       roles,
       activeSupportSession,
+      permissions,
     };
   });

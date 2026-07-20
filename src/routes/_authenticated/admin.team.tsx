@@ -124,6 +124,22 @@ function TeamAdmin() {
     }
   };
 
+  const [confirmDelete, setConfirmDelete] = useState<
+    | { id: string; name: string }
+    | null
+  >(null);
+  const onDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      await callManageTeam({ type: "delete", user_id: confirmDelete.id });
+      toast.success("Team member removed");
+      setConfirmDelete(null);
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -207,15 +223,28 @@ function TeamAdmin() {
                       {m.is_active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
                     </TableCell>
                     <TableCell className="text-right">
-                      {!isSuper && !isSelf && (
-                        <Button
-                          size="sm"
-                          variant={m.is_active ? "outline" : "default"}
-                          onClick={() => onToggleActive(m.id, m.is_active)}
-                        >
-                          {m.is_active ? "Deactivate" : "Reactivate"}
-                        </Button>
-                      )}
+                      <div className="flex justify-end gap-2">
+                        {!isSuper && !isSelf && (
+                          <Button
+                            size="sm"
+                            variant={m.is_active ? "outline" : "default"}
+                            onClick={() => onToggleActive(m.id, m.is_active)}
+                          >
+                            {m.is_active ? "Deactivate" : "Reactivate"}
+                          </Button>
+                        )}
+                        {!isSuper && !isSelf && !m.roles.includes("org_admin") && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() =>
+                              setConfirmDelete({ id: m.id, name: m.display_name ?? "this user" })
+                            }
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -297,6 +326,22 @@ function TeamAdmin() {
               </DialogFooter>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!confirmDelete} onOpenChange={(v) => !v && setConfirmDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {confirmDelete?.name}?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This permanently deletes the user account and revokes access. Sessions they created
+            remain on the client's history for your records. This cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmDelete(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={onDelete}>Remove user</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

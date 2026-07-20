@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { listBookings, listOrgPractitioners, type BookingStatus } from "@/lib/bookings.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { BookingFormDialog } from "@/components/booking-form-dialog";
 
 const searchSchema = z.object({
@@ -114,6 +115,10 @@ function BookingsPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const fetchCtx = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => fetchCtx() });
+  const canManageBookings = ctx?.permissions?.manageBookings ?? true;
+
   const setSearch = (patch: Partial<z.infer<typeof searchSchema>>) => {
     navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, ...patch }) });
   };
@@ -191,9 +196,11 @@ function BookingsPage() {
           >
             Unpaid only
           </Button>
-          <Button onClick={() => setDialogOpen(true)} className="h-10">
-            <CalendarPlus className="mr-2 h-4 w-4" /> New booking
-          </Button>
+          {canManageBookings && (
+            <Button onClick={() => setDialogOpen(true)} className="h-10">
+              <CalendarPlus className="mr-2 h-4 w-4" /> New booking
+            </Button>
+          )}
         </div>
       </div>
 

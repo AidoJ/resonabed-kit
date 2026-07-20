@@ -16,6 +16,7 @@ type Action =
   | { type: "deactivate"; user_id: string }
   | { type: "reactivate"; user_id: string }
   | { type: "change_role"; user_id: string; role: "practitioner" | "org_admin" }
+  | { type: "delete"; user_id: string }
   | { type: "clear_must_change_password"; user_id: string };
 
 const FAR_FUTURE = "2999-12-31T00:00:00Z";
@@ -192,6 +193,34 @@ Deno.serve(async (req) => {
           .from("user_roles")
           .insert({ user_id: body.user_id, org_id: org, role: body.role });
         if (insErr) return json(400, { error: insErr.message });
+        return json(200, { ok: true });
+      }
+
+      case "delete": {
+        const org = await targetOrgFromUser(body.user_id);
+        if (!(await authorize(org))) return json(403, { error: "Forbidden" });
+        if (body.user_id === callerId) return json(400, { error: "Cannot delete yourself" });
+
+        // Refuse to delete super_admins or org_admins.
+        const { data: tRoles } = await admin
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", body.user_id);
+        if (tRoles?.some((r) => r.role === "super_admin")) {
+          return json(403, { error: "Cannot delete a super admin" });
+        }
+        if (tRoles?.some((r) => r.role === "org_admin")) {
+          return json(403, {
+            error:
+              "Org admins cannot be removed — change their role to practitioner first, or contact Resonabed.",
+          });
+        }
+
+        // Kill live sessions and delete the auth user. Downstream FKs
+        // (profiles, user_roles) cascade on delete of the auth user.
+        await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
+        const { error: delErr } = await admin.auth.admin.deleteUser(body.user_id);
+        if (delErr) return json(400, { error: delErr.message });
         return json(200, { ok: true });
       }
 

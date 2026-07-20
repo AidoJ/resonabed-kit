@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertPractitionerAction } from "@/lib/practitioner-permissions";
 
 const uuid = z.string().uuid();
 
@@ -116,6 +117,7 @@ export const createBooking = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
+    await assertPractitionerAction(context, profile.org_id, "manage_bookings");
     const { data: row, error } = await context.supabase
       .from("bookings")
       .insert({
@@ -145,6 +147,15 @@ export const updateBooking = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
+    // Look up the booking's org to run the practitioner-permission check.
+    const { data: existing, error: exErr } = await context.supabase
+      .from("bookings")
+      .select("org_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (exErr) throw new Error(exErr.message);
+    if (!existing?.org_id) throw new Error("Booking not found");
+    await assertPractitionerAction(context, existing.org_id, "manage_bookings");
     const { error } = await context.supabase
       .from("bookings")
       .update(data.patch)
@@ -171,6 +182,14 @@ export const deleteBooking = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
   .handler(async ({ data, context }) => {
+    const { data: existing, error: exErr } = await context.supabase
+      .from("bookings")
+      .select("org_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (exErr) throw new Error(exErr.message);
+    if (!existing?.org_id) throw new Error("Booking not found");
+    await assertPractitionerAction(context, existing.org_id, "manage_bookings");
     const { error } = await context.supabase.from("bookings").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

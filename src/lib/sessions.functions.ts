@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertPractitionerAction } from "@/lib/practitioner-permissions";
 
 const uuid = z.string().uuid();
 
@@ -12,13 +13,30 @@ export const listMyOrgClients = createServerFn({ method: "POST" })
     z.object({ search: z.string().max(120).optional() }).parse(data),
   )
   .handler(async ({ data, context }) => {
+    // Determine caller's org and whether they may browse the full roster.
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", context.userId)
+      .maybeSingle();
+    const orgId = profile?.org_id as string | null;
+    const hasSearch = !!data.search && data.search.trim().length > 0;
+    if (orgId) {
+      try {
+        await assertPractitionerAction(context, orgId, "view_all_clients");
+      } catch {
+        // Practitioners without view-all still need to look up a client to
+        // start a session — require a search term to scope the list.
+        if (!hasSearch) return [];
+      }
+    }
     let q = context.supabase
       .from("clients")
       .select("id, first_name, last_name, email, phone")
       .order("last_name", { ascending: true })
       .limit(50);
-    if (data.search && data.search.trim().length > 0) {
-      const s = `%${data.search.trim()}%`;
+    if (hasSearch) {
+      const s = `%${data.search!.trim()}%`;
       q = q.or(`first_name.ilike.${s},last_name.ilike.${s},email.ilike.${s}`);
     }
     const { data: rows, error } = await q;
@@ -46,6 +64,7 @@ export const createClientRecord = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
+    await assertPractitionerAction(context, profile.org_id, "manage_clients");
     const { data: row, error } = await context.supabase
       .from("clients")
       .insert({
