@@ -53,22 +53,34 @@ function DashboardPage() {
   const listBookingsFn = useServerFn(listBookings);
   const fetchLicence = useServerFn(getMyOrgLicence);
   const fetchSetting = useServerFn(getAppSetting);
-  const { data: licence } = useQuery({
-    queryKey: ["my-org-licence"],
-    queryFn: () => fetchLicence(),
-  });
-  const { data: renewalPrice } = useQuery({
-    queryKey: ["app-setting", MUSIC_RENEWAL_PRICE_KEY],
-    queryFn: () => fetchSetting({ data: { key: MUSIC_RENEWAL_PRICE_KEY } }),
-  });
 
   const { data: ctx, isLoading: ctxLoading } = useQuery({
     queryKey: ["user-context"],
     queryFn: () => fetchCtx(),
   });
+
+  // Super_admin outside support mode: NEVER fetch org-scoped data. Their RLS
+  // effectively bypasses org scoping (is_super_admin(auth.uid()) OR org_id =
+  // current_org_id()), so listMyOrgSessions / listBookings / getMyOrgLicence
+  // would return every org's rows. Gate on the resolved role.
+  const isBareSuperAdmin =
+    !!ctx && ctx.roles.includes("super_admin") && !ctx.activeSupportSession;
+  const clinicalEnabled = !!ctx && !isBareSuperAdmin;
+
+  const { data: licence } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => fetchLicence(),
+    enabled: clinicalEnabled,
+  });
+  const { data: renewalPrice } = useQuery({
+    queryKey: ["app-setting", MUSIC_RENEWAL_PRICE_KEY],
+    queryFn: () => fetchSetting({ data: { key: MUSIC_RENEWAL_PRICE_KEY } }),
+    enabled: clinicalEnabled,
+  });
   const { data: sessions } = useQuery({
     queryKey: ["dash-sessions"],
     queryFn: () => listSessions(),
+    enabled: clinicalEnabled,
   });
   const bookingsRange = useMemo(() => {
     const from = new Date();
@@ -86,8 +98,8 @@ function DashboardPage() {
           to: bookingsRange.to.toISOString(),
         },
       }),
+    enabled: clinicalEnabled,
   });
-
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -113,10 +125,10 @@ function DashboardPage() {
   }
 
   // Super_admin (platform operator) sees a platform overview, never clinic data.
-  const roles = ctx?.roles ?? [];
-  if (roles.includes("super_admin") && !ctx?.activeSupportSession) {
+  if (isBareSuperAdmin) {
     return <SuperAdminDashboard displayName={ctx?.displayName ?? null} />;
   }
+
 
 
   return (
