@@ -224,6 +224,7 @@ Deno.serve(async (req) => {
         return json(200, { ok: true });
       }
 
+      case "clear_must_change_password": {
         // Caller must be clearing their own flag (after successful password update)
         if (body.user_id !== callerId) return json(403, { error: "Forbidden" });
         // Supabase MERGES app_metadata on updateUserById — deleting the key
