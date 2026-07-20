@@ -16,6 +16,7 @@ type Action =
   | { type: "deactivate"; user_id: string }
   | { type: "reactivate"; user_id: string }
   | { type: "change_role"; user_id: string; role: "practitioner" | "org_admin" }
+  | { type: "delete"; user_id: string }
   | { type: "clear_must_change_password"; user_id: string };
 
 const FAR_FUTURE = "2999-12-31T00:00:00Z";
