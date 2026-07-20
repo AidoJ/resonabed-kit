@@ -38,6 +38,16 @@ export interface UserContext {
    * super_admin has NO access to individual org records via the UI.
    */
   activeSupportSession: SupportSessionSummary | null;
+  /**
+   * Effective UI-level permission flags. Admins / super_admins are always
+   * true. Practitioners reflect their org's toggles. Server-side enforcement
+   * is the real gate — these are for hiding/disabling UI affordances.
+   */
+  permissions: {
+    manageClients: boolean;
+    viewAllClients: boolean;
+    manageBookings: boolean;
+  };
 }
 
 export const getCurrentUserContext = createServerFn({ method: "GET" })
