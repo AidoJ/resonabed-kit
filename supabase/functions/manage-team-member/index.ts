@@ -251,10 +251,8 @@ Deno.serve(async (req) => {
           temporary_password: password,
           email: updated?.user?.email ?? null,
         });
-        // Kick existing sessions so the new password must be used.
-        await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
-        return json(200, { ok: true, temporary_password: password });
       }
+
 
 
       case "clear_must_change_password": {
