@@ -820,7 +820,14 @@ export type Database = {
       music_licence_plan: "none" | "basic" | "pro"
       music_licence_status: "trial" | "active" | "expired"
       org_status: "active" | "suspended"
-      payment_method: "cash" | "eftpos" | "payid" | "other" | "none"
+      payment_method:
+        | "cash"
+        | "eftpos"
+        | "payid"
+        | "other"
+        | "none"
+        | "unpaid"
+        | "comp"
       session_status: "draft" | "completed" | "cancelled"
     }
     CompositeTypes: {
@@ -962,7 +969,15 @@ export const Constants = {
       music_licence_plan: ["none", "basic", "pro"],
       music_licence_status: ["trial", "active", "expired"],
       org_status: ["active", "suspended"],
-      payment_method: ["cash", "eftpos", "payid", "other", "none"],
+      payment_method: [
+        "cash",
+        "eftpos",
+        "payid",
+        "other",
+        "none",
+        "unpaid",
+        "comp",
+      ],
       session_status: ["draft", "completed", "cancelled"],
     },
   },
