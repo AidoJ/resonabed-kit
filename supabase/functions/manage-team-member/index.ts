@@ -196,7 +196,34 @@ Deno.serve(async (req) => {
         return json(200, { ok: true });
       }
 
-      case "clear_must_change_password": {
+      case "delete": {
+        const org = await targetOrgFromUser(body.user_id);
+        if (!(await authorize(org))) return json(403, { error: "Forbidden" });
+        if (body.user_id === callerId) return json(400, { error: "Cannot delete yourself" });
+
+        // Refuse to delete super_admins or org_admins.
+        const { data: tRoles } = await admin
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", body.user_id);
+        if (tRoles?.some((r) => r.role === "super_admin")) {
+          return json(403, { error: "Cannot delete a super admin" });
+        }
+        if (tRoles?.some((r) => r.role === "org_admin")) {
+          return json(403, {
+            error:
+              "Org admins cannot be removed — change their role to practitioner first, or contact Resonabed.",
+          });
+        }
+
+        // Kill live sessions and delete the auth user. Downstream FKs
+        // (profiles, user_roles) cascade on delete of the auth user.
+        await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
+        const { error: delErr } = await admin.auth.admin.deleteUser(body.user_id);
+        if (delErr) return json(400, { error: delErr.message });
+        return json(200, { ok: true });
+      }
+
         // Caller must be clearing their own flag (after successful password update)
         if (body.user_id !== callerId) return json(403, { error: "Forbidden" });
         // Supabase MERGES app_metadata on updateUserById — deleting the key
