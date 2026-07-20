@@ -623,6 +623,64 @@ function SettingsAdmin() {
             </CardContent>
           </Card>
 
+          {/* Practitioner permissions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Practitioner permissions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Control what practitioners in your clinic can do. Org admins and super admins
+                always have full access. Session delivery is always available to practitioners —
+                these toggles never block running a session.
+              </p>
+              <PermissionToggle
+                label="Can create and edit clients"
+                description="When off, practitioners can still choose a client for a session, but can't add or change client records."
+                checked={permManageClients}
+                onChange={setPermManageClients}
+              />
+              <PermissionToggle
+                label="Can view the full client list"
+                description="When off, practitioners must search for a specific client by name or email — they can't browse everyone."
+                checked={permViewAllClients}
+                onChange={setPermViewAllClients}
+              />
+              <PermissionToggle
+                label="Can create and edit bookings"
+                description="When off, practitioners can only run and start sessions from bookings that admins have already created."
+                checked={permManageBookings}
+                onChange={setPermManageBookings}
+              />
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  disabled={!permissionsDirty || savingSection === "permissions"}
+                  onClick={() =>
+                    save(
+                      {
+                        practitioners_can_manage_clients: permManageClients,
+                        practitioners_can_view_all_clients: permViewAllClients,
+                        practitioners_can_manage_bookings: permManageBookings,
+                      },
+                      "Permissions saved",
+                      "permissions",
+                    )
+                  }
+                >
+                  {savingSection === "permissions" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : permissionsDirty ? "Save permissions" : "Saved"}
+                </Button>
+                <SaveStatus
+                  dirty={permissionsDirty}
+                  saving={savingSection === "permissions"}
+                  savedAt={savedAt.permissions}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+
           {/* Go-live gate */}
           {!org.is_configured && (
             <Card className="border-primary/40">
