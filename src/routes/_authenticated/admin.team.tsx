@@ -124,6 +124,22 @@ function TeamAdmin() {
     }
   };
 
+  const [confirmDelete, setConfirmDelete] = useState<
+    | { id: string; name: string }
+    | null
+  >(null);
+  const onDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      await callManageTeam({ type: "delete", user_id: confirmDelete.id });
+      toast.success("Team member removed");
+      setConfirmDelete(null);
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
