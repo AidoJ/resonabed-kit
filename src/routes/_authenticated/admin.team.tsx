@@ -397,6 +397,59 @@ function TeamAdmin() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!resetting} onOpenChange={(v) => !v && setResetting(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset password for {resetting?.name}?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            A new temporary password will be generated and emailed to the user. They will be
+            signed out of all devices and must set a new password on next sign-in.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setResetting(null)} disabled={resetPending}>Cancel</Button>
+            <Button onClick={onReset} disabled={resetPending}>
+              {resetPending ? "Resetting…" : "Reset and email"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!resetResult} onOpenChange={(v) => !v && setResetResult(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Temporary password for {resetResult?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Alert>
+              <AlertDescription>
+                {resetResult?.email
+                  ? "An email with the new password has been sent (if delivery succeeded). Copy it now as a backup — it will not be shown again."
+                  : "Copy this temporary password now — it will not be shown again."}
+              </AlertDescription>
+            </Alert>
+            <div className="flex items-center gap-2">
+              <Input value={resetResult?.password ?? ""} readOnly className="font-mono" />
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => {
+                  if (resetResult) {
+                    navigator.clipboard.writeText(resetResult.password);
+                    toast.success("Copied");
+                  }
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setResetResult(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
