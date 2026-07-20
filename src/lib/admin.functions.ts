@@ -426,6 +426,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "practitioners_can_manage_clients",
       "practitioners_can_view_all_clients",
       "practitioners_can_manage_bookings",
+      "practitioners_can_complete_unpaid",
     ] as const) {
       const v = data[key];
       if (v !== undefined) patch[key] = v;
