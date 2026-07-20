@@ -41,6 +41,7 @@ async function callManageTeam(body: Record<string, unknown>) {
 function TeamAdmin() {
   const fetchTeam = useServerFn(listTeam);
   const fetchCtx = useServerFn(getCurrentUserContext);
+  const sendInvite = useServerFn(sendAdminInviteEmail);
   const qc = useQueryClient();
   const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => fetchCtx() });
   const { data: team, isLoading } = useQuery({
