@@ -196,9 +196,11 @@ function BookingsPage() {
           >
             Unpaid only
           </Button>
-          <Button onClick={() => setDialogOpen(true)} className="h-10">
-            <CalendarPlus className="mr-2 h-4 w-4" /> New booking
-          </Button>
+          {canManageBookings && (
+            <Button onClick={() => setDialogOpen(true)} className="h-10">
+              <CalendarPlus className="mr-2 h-4 w-4" /> New booking
+            </Button>
+          )}
         </div>
       </div>
 
