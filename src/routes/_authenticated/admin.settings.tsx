@@ -1144,3 +1144,25 @@ function formatRelative(ts: number): string {
   if (h < 24) return `${h}h ago`;
   return new Date(ts).toLocaleDateString();
 }
+
+function PermissionToggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-md border p-3">
+      <div className="space-y-1">
+        <Label className="text-sm font-medium">{label}</Label>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
