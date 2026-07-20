@@ -247,6 +247,7 @@ function SettingsAdmin() {
     practitioners_can_manage_clients?: boolean;
     practitioners_can_view_all_clients?: boolean;
     practitioners_can_manage_bookings?: boolean;
+    practitioners_can_complete_unpaid?: boolean;
   };
   const save = async (payload: OrgPatch, successMsg = "Saved", section?: SectionKey) => {
     if (section) setSavingSection(section);
