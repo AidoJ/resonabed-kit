@@ -1177,3 +1177,150 @@ function PermissionToggle({
     </div>
   );
 }
+
+function SupportAccessCard({ orgId }: { orgId: string }) {
+  const fetchAccess = useServerFn(listSupportAccessForOrg);
+  const fetchHistory = useServerFn(listSupportSessionsHistory);
+  const grantFn = useServerFn(grantSupportAccess);
+  const revokeFn = useServerFn(revokeSupportAccess);
+  const qc = useQueryClient();
+
+  const { data: access } = useQuery({
+    queryKey: ["support-access", orgId],
+    queryFn: () => fetchAccess({ data: { org_id: orgId } }),
+    refetchInterval: 60_000,
+  });
+  const { data: history } = useQuery({
+    queryKey: ["support-history", orgId],
+    queryFn: () => fetchHistory({ data: { org_id: orgId } }),
+  });
+
+  const [hours, setHours] = useState<24 | 48 | 72>(48);
+  const [pending, setPending] = useState(false);
+  const active = access?.active ?? null;
+
+  const onGrant = async () => {
+    setPending(true);
+    try {
+      await grantFn({ data: { hours } });
+      toast.success(`Support access granted for ${hours} hours`);
+      await qc.invalidateQueries({ queryKey: ["support-access", orgId] });
+      await qc.invalidateQueries({ queryKey: ["support-history", orgId] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setPending(false);
+    }
+  };
+  const onRevoke = async () => {
+    if (!active) return;
+    setPending(true);
+    try {
+      await revokeFn({ data: { grant_id: active.id } });
+      toast.success("Support access revoked");
+      await qc.invalidateQueries({ queryKey: ["support-access", orgId] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Resonabed support access</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 text-sm">
+        <p className="text-muted-foreground">
+          When Resonabed needs to view your clinic to investigate an issue, they must have your
+          permission. Grant a time-limited window below. You can revoke it any time. Every entry
+          is logged in the history so you can see exactly when and why access occurred.
+        </p>
+
+        {active ? (
+          <div className="rounded-md border border-primary/40 bg-primary/5 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <Badge className="mb-1">Access granted</Badge>
+                <p className="text-sm">
+                  Active until{" "}
+                  <strong>{new Date(active.expires_at).toLocaleString()}</strong>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Granted by {active.granted_by_name ?? active.granted_by} on{" "}
+                  {new Date(active.granted_at).toLocaleString()}
+                </p>
+              </div>
+              <Button variant="destructive" onClick={onRevoke} disabled={pending}>
+                Revoke access
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-md border p-3">
+            <Badge variant="secondary" className="mb-2">No active grant</Badge>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Resonabed cannot access your clinic's data through the app without a grant.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Label>Duration</Label>
+              <div className="flex gap-1">
+                {([24, 48, 72] as const).map((h) => (
+                  <Button
+                    key={h}
+                    size="sm"
+                    variant={hours === h ? "default" : "outline"}
+                    onClick={() => setHours(h)}
+                  >
+                    {h}h
+                  </Button>
+                ))}
+              </div>
+              <Button onClick={onGrant} disabled={pending}>
+                {pending ? "Granting…" : `Grant support access`}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Support access history
+          </p>
+          {!history || history.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              No support access has occurred yet.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {history.slice(0, 20).map((h) => (
+                <div key={h.id} className="flex flex-wrap items-baseline gap-2 border-b pb-2 last:border-0">
+                  {h.emergency ? (
+                    <Badge variant="destructive">Emergency access</Badge>
+                  ) : (
+                    <Badge variant="outline">Granted access</Badge>
+                  )}
+                  <span className="text-xs">
+                    {new Date(h.entered_at).toLocaleString()}
+                    {h.exited_at
+                      ? ` → ${new Date(h.exited_at).toLocaleString()}`
+                      : " · still active"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    by {h.super_admin_name ?? "Resonabed"}
+                  </span>
+                  {h.reason && (
+                    <span className="w-full text-xs text-muted-foreground">
+                      Reason: {h.reason}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
