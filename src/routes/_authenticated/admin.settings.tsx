@@ -13,6 +13,8 @@ import {
   listPolicyAudit,
 } from "@/lib/admin.functions";
 import { listPolicyTemplates } from "@/lib/policy-templates.functions";
+import { getMyOrgLicence } from "@/lib/licence.functions";
+
 import {
   DEFAULT_THEME,
   contrastRatio,
