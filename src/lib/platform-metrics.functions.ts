@@ -143,6 +143,9 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
         sessions_30d: (sessions30 ?? []).length,
         sessions_total: (sessionsAll ?? []).length,
         revenue_total: perOrg.reduce((a, b) => a + b.revenue_total, 0),
+        bookings_total: bookingsTotal ?? 0,
+        bookings_30d: bookings30 ?? 0,
+        new_orgs_30d: newOrgs30 ?? 0,
       },
     };
   });
