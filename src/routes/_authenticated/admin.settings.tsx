@@ -14,6 +14,12 @@ import {
 } from "@/lib/admin.functions";
 import { listPolicyTemplates } from "@/lib/policy-templates.functions";
 import { getMyOrgLicence } from "@/lib/licence.functions";
+import {
+  listSupportAccessForOrg,
+  grantSupportAccess,
+  revokeSupportAccess,
+  listSupportSessionsHistory,
+} from "@/lib/support-access.functions";
 
 import {
   DEFAULT_THEME,
