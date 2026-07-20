@@ -541,6 +541,7 @@ function SettingsAdmin() {
                 onChange={setConsent}
                 helper={POLICY_HELPER}
                 rows={6}
+                unedited={consentUnedited}
               />
               <PolicyField
                 label="Privacy policy"
@@ -548,6 +549,7 @@ function SettingsAdmin() {
                 onChange={setPrivacy}
                 helper={POLICY_HELPER}
                 rows={8}
+                unedited={privacyUnedited}
               />
               <PolicyField
                 label="Health & safety policy"
@@ -555,10 +557,23 @@ function SettingsAdmin() {
                 onChange={setHealth}
                 helper={POLICY_HELPER}
                 rows={8}
+                unedited={healthUnedited}
               />
+              {anyPolicyUnedited && (
+                <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    One or more policies still contain the unedited sample wording.
+                    You must make at least one change to each policy so that the
+                    final text is <strong>yours</strong>. This ensures you have
+                    actively reviewed and accepted legal responsibility for what
+                    the clinic publishes to clients.
+                  </p>
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 <Button
-                  disabled={!policiesDirty || savingSection === "policies"}
+                  disabled={!policiesDirty || anyPolicyUnedited || savingSection === "policies"}
                   onClick={() =>
                     save(
                       {
@@ -581,6 +596,7 @@ function SettingsAdmin() {
                   savedAt={savedAt.policies}
                 />
               </div>
+
             </CardContent>
           </Card>
 
