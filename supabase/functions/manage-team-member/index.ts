@@ -239,11 +239,18 @@ Deno.serve(async (req) => {
         }
 
         const password = generatePassword(20);
-        const { error: updErr } = await admin.auth.admin.updateUserById(body.user_id, {
+        const { data: updated, error: updErr } = await admin.auth.admin.updateUserById(body.user_id, {
           password,
           app_metadata: { must_change_password: true },
         });
         if (updErr) return json(400, { error: updErr.message });
+        // Kick existing sessions so the new password must be used.
+        await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
+        return json(200, {
+          ok: true,
+          temporary_password: password,
+          email: updated?.user?.email ?? null,
+        });
         // Kick existing sessions so the new password must be used.
         await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
         return json(200, { ok: true, temporary_password: password });
