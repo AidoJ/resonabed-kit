@@ -117,6 +117,7 @@ export const createBooking = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
+    await assertPractitionerAction(context, profile.org_id, "manage_bookings");
     const { data: row, error } = await context.supabase
       .from("bookings")
       .insert({
