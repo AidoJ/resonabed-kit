@@ -115,6 +115,10 @@ function BookingsPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const fetchCtx = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => fetchCtx() });
+  const canManageBookings = ctx?.permissions?.manageBookings ?? true;
+
   const setSearch = (patch: Partial<z.infer<typeof searchSchema>>) => {
     navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, ...patch }) });
   };
