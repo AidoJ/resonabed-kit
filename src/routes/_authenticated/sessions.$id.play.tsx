@@ -29,6 +29,7 @@ function PlaySession() {
   });
 
   const [ambient, setAmbient] = useState(false);
+  const [timerRunning, setTimerRunning] = useState(false);
   const audioHandleRef = useRef<AudioPlayerHandle | null>(null);
 
   const { data: session, isLoading } = useQuery({
