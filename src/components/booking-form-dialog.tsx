@@ -156,6 +156,12 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     setNewPhone("");
   }, [open, booking, defaultStartsAt]);
 
+  // Practitioners can only assign themselves — lock the value once we know who they are.
+  useEffect(() => {
+    if (!open || !selfOnly || !ctx) return;
+    if (practitionerId !== ctx.userId) setPractitionerId(ctx.userId);
+  }, [open, selfOnly, ctx, practitionerId]);
+
   // ---------- Compute 30-min slots for chosen practitioner / date / service ----------
 
   const dayBookingsRange = useMemo(() => {
