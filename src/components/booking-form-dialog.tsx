@@ -89,10 +89,6 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   const canAssignAnyone =
     !!ctx && (ctx.roles.includes("super_admin") || ctx.roles.includes("org_admin"));
   const selfOnly = !!ctx && !canAssignAnyone;
-  const visiblePractitioners = useMemo(() => {
-    if (!selfOnly) return practitioners;
-    return practitioners.filter((p) => p.id === ctx!.userId);
-  }, [practitioners, selfOnly, ctx]);
 
   const [clientQuery, setClientQuery] = useState("");
   const { data: clients = [], refetch: refetchClients } = useQuery({
@@ -115,6 +111,10 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     queryFn: () => listAvail({ data: {} }),
     enabled: open,
   });
+  const visiblePractitioners = useMemo(
+    () => (selfOnly && ctx ? practitioners.filter((p) => p.id === ctx.userId) : practitioners),
+    [practitioners, selfOnly, ctx],
+  );
 
   const [clientId, setClientId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
