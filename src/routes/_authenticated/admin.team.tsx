@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { listTeam } from "@/lib/admin.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { sendAdminInviteEmail } from "@/lib/emails.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
