@@ -32,6 +32,7 @@ import {
   createClientRecord,
 } from "@/lib/sessions.functions";
 import { listAvailability } from "@/lib/availability.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 
 interface BookingLite {
   id: string;
