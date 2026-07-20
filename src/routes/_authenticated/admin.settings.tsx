@@ -687,6 +687,11 @@ function SettingsAdmin() {
             </CardContent>
           </Card>
 
+          {/* Resonabed support access */}
+          <SupportAccessCard orgId={org.id} />
+
+
+
 
           {/* Go-live gate */}
           {!org.is_configured && (
