@@ -106,6 +106,21 @@ const bookingInput = z.object({
   notes: z.string().max(2000).optional().nullable(),
 });
 
+async function isAdminForOrg(
+  context: { supabase: import("@supabase/supabase-js").SupabaseClient; userId: string },
+  orgId: string,
+): Promise<boolean> {
+  const { data: roles } = await context.supabase
+    .from("user_roles")
+    .select("role, org_id")
+    .eq("user_id", context.userId);
+  const list = roles ?? [];
+  return (
+    list.some((r) => r.role === "super_admin") ||
+    list.some((r) => r.role === "org_admin" && r.org_id === orgId)
+  );
+}
+
 export const createBooking = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => bookingInput.parse(data))
@@ -118,6 +133,14 @@ export const createBooking = createServerFn({ method: "POST" })
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
     await assertPractitionerAction(context, profile.org_id, "manage_bookings");
+
+    // A practitioner (not super_admin, not org_admin of this org) may only
+    // create bookings assigned to themselves — enforced here regardless of
+    // what the UI submitted.
+    if (!(await isAdminForOrg(context, profile.org_id)) && data.practitioner_id !== context.userId) {
+      throw new Error("Practitioners can only create bookings assigned to themselves.");
+    }
+
     const { data: row, error } = await context.supabase
       .from("bookings")
       .insert({
@@ -156,6 +179,26 @@ export const updateBooking = createServerFn({ method: "POST" })
     if (exErr) throw new Error(exErr.message);
     if (!existing?.org_id) throw new Error("Booking not found");
     await assertPractitionerAction(context, existing.org_id, "manage_bookings");
+
+    // Practitioners can only manage bookings assigned to themselves and cannot
+    // reassign a booking to another practitioner.
+    if (!(await isAdminForOrg(context, existing.org_id))) {
+      const { data: full } = await context.supabase
+        .from("bookings")
+        .select("practitioner_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (full?.practitioner_id && full.practitioner_id !== context.userId) {
+        throw new Error("Practitioners can only edit their own bookings.");
+      }
+      if (
+        data.patch.practitioner_id &&
+        data.patch.practitioner_id !== context.userId
+      ) {
+        throw new Error("Practitioners cannot reassign a booking to another practitioner.");
+      }
+    }
+
     const { error } = await context.supabase
       .from("bookings")
       .update(data.patch)

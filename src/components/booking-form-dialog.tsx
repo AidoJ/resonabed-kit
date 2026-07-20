@@ -32,6 +32,7 @@ import {
   createClientRecord,
 } from "@/lib/sessions.functions";
 import { listAvailability } from "@/lib/availability.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 
 interface BookingLite {
   id: string;
@@ -83,6 +84,11 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   const createFn = useServerFn(createBooking);
   const updateFn = useServerFn(updateBooking);
   const createClientFn = useServerFn(createClientRecord);
+  const ctxFn = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
+  const canAssignAnyone =
+    !!ctx && (ctx.roles.includes("super_admin") || ctx.roles.includes("org_admin"));
+  const selfOnly = !!ctx && !canAssignAnyone;
 
   const [clientQuery, setClientQuery] = useState("");
   const { data: clients = [], refetch: refetchClients } = useQuery({
@@ -105,6 +111,10 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     queryFn: () => listAvail({ data: {} }),
     enabled: open,
   });
+  const visiblePractitioners = useMemo(
+    () => (selfOnly && ctx ? practitioners.filter((p) => p.id === ctx.userId) : practitioners),
+    [practitioners, selfOnly, ctx],
+  );
 
   const [clientId, setClientId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
@@ -145,6 +155,12 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     setNewEmail("");
     setNewPhone("");
   }, [open, booking, defaultStartsAt]);
+
+  // Practitioners can only assign themselves — lock the value once we know who they are.
+  useEffect(() => {
+    if (!open || !selfOnly || !ctx) return;
+    if (practitionerId !== ctx.userId) setPractitionerId(ctx.userId);
+  }, [open, selfOnly, ctx, practitionerId]);
 
   // ---------- Compute 30-min slots for chosen practitioner / date / service ----------
 
@@ -379,16 +395,25 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
 
           <div className="space-y-1">
             <Label>Practitioner</Label>
-            <Select value={practitionerId} onValueChange={setPractitionerId}>
+            <Select
+              value={practitionerId}
+              onValueChange={setPractitionerId}
+              disabled={selfOnly}
+            >
               <SelectTrigger><SelectValue placeholder="Assign a practitioner" /></SelectTrigger>
               <SelectContent>
-                {practitioners.map((p) => (
+                {visiblePractitioners.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.display_name ?? p.id.slice(0, 8)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {selfOnly && (
+              <p className="text-xs text-muted-foreground">
+                Practitioners can only book sessions for themselves.
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
