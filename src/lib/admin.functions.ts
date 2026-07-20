@@ -268,7 +268,11 @@ export const getReports = createServerFn({ method: "POST" })
     const byMonth = new Map<string, number>();
     const revenueByMethod = new Map<string, number>();
     const unpaidCount = rows.filter(
-      (r) => r.status === "completed" && (!r.payment_method || r.payment_method === "none"),
+      (r) =>
+        r.status === "completed" &&
+        (!r.payment_method ||
+          r.payment_method === "none" ||
+          r.payment_method === "unpaid"),
     ).length;
     const freqCounts = new Map<string, { hz: number; label: string; count: number }>();
 
