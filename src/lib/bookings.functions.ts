@@ -179,6 +179,26 @@ export const updateBooking = createServerFn({ method: "POST" })
     if (exErr) throw new Error(exErr.message);
     if (!existing?.org_id) throw new Error("Booking not found");
     await assertPractitionerAction(context, existing.org_id, "manage_bookings");
+
+    // Practitioners can only manage bookings assigned to themselves and cannot
+    // reassign a booking to another practitioner.
+    if (!(await isAdminForOrg(context, existing.org_id))) {
+      const { data: full } = await context.supabase
+        .from("bookings")
+        .select("practitioner_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (full?.practitioner_id && full.practitioner_id !== context.userId) {
+        throw new Error("Practitioners can only edit their own bookings.");
+      }
+      if (
+        data.patch.practitioner_id &&
+        data.patch.practitioner_id !== context.userId
+      ) {
+        throw new Error("Practitioners cannot reassign a booking to another practitioner.");
+      }
+    }
+
     const { error } = await context.supabase
       .from("bookings")
       .update(data.patch)
