@@ -41,6 +41,9 @@ export interface PlatformMetrics {
     sessions_30d: number;
     sessions_total: number;
     revenue_total: number;
+    bookings_total: number;
+    bookings_30d: number;
+    new_orgs_30d: number;
   };
 }
 
@@ -56,10 +59,17 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
     const DAY = 24 * 60 * 60 * 1000;
     const thirtyAgo = new Date(now - 30 * DAY).toISOString();
 
-    const [{ data: orgs }, { data: sessions30 }, { data: sessionsAll }] = await Promise.all([
+    const [
+      { data: orgs },
+      { data: sessions30 },
+      { data: sessionsAll },
+      { count: bookingsTotal },
+      { count: bookings30 },
+      { count: newOrgs30 },
+    ] = await Promise.all([
       context.supabase
         .from("organisations")
-        .select("id, name, status, is_configured, music_licence_status, music_licence_expires_at")
+        .select("id, name, status, is_configured, music_licence_status, music_licence_expires_at, created_at")
         .order("name"),
       context.supabase
         .from("sessions")
@@ -68,6 +78,15 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
       context.supabase
         .from("sessions")
         .select("org_id, payment_amount, status"),
+      context.supabase.from("bookings").select("*", { count: "exact", head: true }),
+      context.supabase
+        .from("bookings")
+        .select("*", { count: "exact", head: true })
+        .gte("starts_at", thirtyAgo),
+      context.supabase
+        .from("organisations")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", thirtyAgo),
     ]);
 
     const sess30 = new Map<string, number>();
@@ -124,6 +143,9 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
         sessions_30d: (sessions30 ?? []).length,
         sessions_total: (sessionsAll ?? []).length,
         revenue_total: perOrg.reduce((a, b) => a + b.revenue_total, 0),
+        bookings_total: bookingsTotal ?? 0,
+        bookings_30d: bookings30 ?? 0,
+        new_orgs_30d: newOrgs30 ?? 0,
       },
     };
   });
