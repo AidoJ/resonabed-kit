@@ -209,6 +209,11 @@ function SettingsAdmin() {
     (privacy || "") !== (org.privacy_policy_text ?? "") ||
     (health || "") !== (org.health_policy_text ?? "")
   );
+  const permissionsDirty = !!org && (
+    permManageClients !== (org.practitioners_can_manage_clients ?? true) ||
+    permViewAllClients !== (org.practitioners_can_view_all_clients ?? true) ||
+    permManageBookings !== (org.practitioners_can_manage_bookings ?? true)
+  );
 
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
   const sidebarContrast = contrastRatio(themeSidebar, SIDEBAR_TEXT_FALLBACK);
@@ -229,6 +234,9 @@ function SettingsAdmin() {
     consent_text?: string | null;
     privacy_policy_text?: string | null;
     health_policy_text?: string | null;
+    practitioners_can_manage_clients?: boolean;
+    practitioners_can_view_all_clients?: boolean;
+    practitioners_can_manage_bookings?: boolean;
   };
   const save = async (payload: OrgPatch, successMsg = "Saved", section?: SectionKey) => {
     if (section) setSavingSection(section);
