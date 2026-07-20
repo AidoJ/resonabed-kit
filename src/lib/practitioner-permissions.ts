@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type PractitionerFlag = "manage_clients" | "view_all_clients" | "manage_bookings";
+export type PractitionerFlag =
+  | "manage_clients"
+  | "view_all_clients"
+  | "manage_bookings"
+  | "complete_unpaid";
 
 /**
  * Server-side enforcement of per-org practitioner permission toggles.
