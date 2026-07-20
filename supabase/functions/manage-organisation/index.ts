@@ -146,6 +146,14 @@ Deno.serve(async (req) => {
           return json(400, { error: "Invalid brand_color" });
         }
 
+        // Pull the current global policy templates so the new org ships with
+        // sample wording pre-populated in its settings.
+        const { data: templates, error: tplErr } = await admin
+          .from("policy_templates")
+          .select("kind, body");
+        if (tplErr) return json(400, { error: `policy templates: ${tplErr.message}` });
+        const tplBy = new Map<string, string>((templates ?? []).map((t) => [t.kind as string, t.body as string]));
+
         // 1. Create the org.
         const { data: org, error: orgErr } = await admin
           .from("organisations")
@@ -154,11 +162,15 @@ Deno.serve(async (req) => {
             brand_color: body.brand_color ?? null,
             logo_path: body.logo_path ?? null,
             status: "active",
+            consent_text: tplBy.get("consent") ?? null,
+            privacy_policy_text: tplBy.get("privacy") ?? null,
+            health_policy_text: tplBy.get("health_safety") ?? null,
           })
           .select("id")
           .single();
         if (orgErr || !org) return json(400, { error: orgErr?.message ?? "org insert failed" });
         const newOrgId = org.id as string;
+
 
         // 2. Seed services from the global catalogue (best-effort atomic).
         try {
