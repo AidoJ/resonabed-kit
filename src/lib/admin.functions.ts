@@ -140,14 +140,39 @@ export const listTeam = createServerFn({ method: "GET" })
     }));
   });
 
-// ---------- Clients (admin view) ----------
+// ---------- Clients (admin + permitted practitioners) ----------
+
+async function assertCanViewClients(context: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+}) {
+  const { orgId } = await resolveEffectiveOrgId(context);
+  if (!orgId) {
+    const { isSuper } = await requireAdmin(context);
+    if (isSuper) return { orgId: null as string | null };
+    throw new Error("No organisation");
+  }
+  const { assertPractitionerAction } = await import("@/lib/practitioner-permissions");
+  await assertPractitionerAction(context, orgId, "view_all_clients");
+  return { orgId };
+}
+
+async function assertCanManageClients(context: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+}) {
+  const { orgId } = await resolveEffectiveOrgId(context);
+  if (!orgId) throw new Error("No organisation");
+  const { assertPractitionerAction } = await import("@/lib/practitioner-permissions");
+  await assertPractitionerAction(context, orgId, "manage_clients");
+  return { orgId };
+}
 
 export const listClientsAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ search: z.string().max(120).optional() }).parse(d))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
-    const { orgId } = await resolveEffectiveOrgId(context);
+    const { orgId } = await assertCanViewClients(context);
     let q = context.supabase
       .from("clients")
       .select("id, first_name, last_name, email, phone, date_of_birth, email_status, created_at")
@@ -177,9 +202,7 @@ export const upsertClient = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
-    const { orgId: _org_id } = await resolveEffectiveOrgId(context);
-    if (!_org_id) throw new Error("No organisation");
+    const { orgId: _org_id } = await assertCanManageClients(context);
     const payload = {
       first_name: data.first_name,
       last_name: data.last_name,
@@ -205,7 +228,7 @@ export const getClientSessionHistory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ client_id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    await assertCanViewClients(context);
     const { data: rows, error } = await context.supabase
       .from("sessions")
       .select(
