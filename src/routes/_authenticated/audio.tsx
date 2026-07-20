@@ -190,16 +190,31 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Audio library</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {isSuperAdmin ? "Audio library" : "Audio library"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Upload audio files and assign them to frequencies. Only active files are used
-            by the session player.
+            {isSuperAdmin
+              ? "Upload audio files and assign them to frequencies. Only active files are used by the session player."
+              : "Upload your own audio and assign each track to the global frequency it best matches. Your uploads stay private to your organisation."}
           </p>
         </div>
         <Button onClick={() => openUpload()} className="h-11">
           <Plus className="mr-2 h-4 w-4" /> Upload audio
         </Button>
       </header>
+
+      {!isSuperAdmin ? (
+        <Alert>
+          <AlertTitle>Standard frequencies (reference)</AlertTitle>
+          <AlertDescription>
+            These are the standard frequencies used by the session algorithm. If you
+            upload your own audio, assign it to the frequency it best matches so it can
+            be recommended correctly. You cannot change these frequencies.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
 
       {playing ? (
         <div className="rounded-lg border bg-card p-3">

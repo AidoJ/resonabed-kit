@@ -13,6 +13,8 @@ import {
   listPolicyAudit,
 } from "@/lib/admin.functions";
 import { listPolicyTemplates } from "@/lib/policy-templates.functions";
+import { getMyOrgLicence } from "@/lib/licence.functions";
+
 import {
   DEFAULT_THEME,
   contrastRatio,
@@ -66,6 +68,12 @@ function SettingsAdmin() {
     queryKey: ["policy-templates"],
     queryFn: () => fetchTemplates(),
   });
+  const fetchLicence = useServerFn(getMyOrgLicence);
+  const { data: licence } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => fetchLicence(),
+  });
+
   const tplBody = useMemo(() => {
     const m: Record<string, string> = {};
     for (const t of templates ?? []) m[t.kind] = t.body;
@@ -688,7 +696,70 @@ function SettingsAdmin() {
               </CardContent>
             </Card>
           )}
+
+          {/* Music licence (read-only) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Music licence</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              {!licence ? (
+                <p className="text-muted-foreground">Licence details unavailable.</p>
+              ) : (() => {
+                const expiresMs = licence.expires_at ? new Date(licence.expires_at).getTime() : 0;
+                const daysLeft = expiresMs
+                  ? Math.max(0, Math.ceil((expiresMs - Date.now()) / 86_400_000))
+                  : 0;
+                const isExpired = licence.status === "expired" || !licence.is_ok;
+                const tone = isExpired
+                  ? "destructive"
+                  : licence.status === "trial"
+                    ? "secondary"
+                    : "default";
+                return (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={tone as "default" | "secondary" | "destructive"}>
+                        {isExpired ? "Expired" : licence.status === "trial" ? "Trial" : "Active"}
+                      </Badge>
+                      {licence.plan && licence.plan !== "none" ? (
+                        <Badge variant="outline" className="uppercase">
+                          {licence.plan}
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                          Expiry
+                        </p>
+                        <p className="font-medium">
+                          {licence.expires_at
+                            ? new Date(licence.expires_at).toLocaleDateString()
+                            : "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                          Days remaining
+                        </p>
+                        <p className="font-medium">{isExpired ? 0 : daysLeft}</p>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground">
+                      To renew or extend your licence, contact Resonabed at{" "}
+                      <a href="mailto:info@resonabed.com" className="underline">
+                        info@resonabed.com
+                      </a>
+                      . Licence changes can only be made by Resonabed.
+                    </p>
+                  </>
+                );
+              })()}
+            </CardContent>
+          </Card>
         </div>
+
 
         {/* RIGHT: live preview */}
         <div className="space-y-4">
