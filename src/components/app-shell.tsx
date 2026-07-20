@@ -117,6 +117,7 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
       items: [
         { to: "/sessions", label: "Sessions", icon: Sparkles },
         { to: "/clients", label: "Clients", icon: Users },
+        { to: "/bookings", label: "My bookings", icon: Calendar },
         { to: "/availability", label: "My availability", icon: Clock },
       ],
     },
