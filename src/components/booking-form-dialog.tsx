@@ -395,10 +395,14 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
 
           <div className="space-y-1">
             <Label>Practitioner</Label>
-            <Select value={practitionerId} onValueChange={setPractitionerId}>
+            <Select
+              value={practitionerId}
+              onValueChange={setPractitionerId}
+              disabled={selfOnly}
+            >
               <SelectTrigger><SelectValue placeholder="Assign a practitioner" /></SelectTrigger>
               <SelectContent>
-                {practitioners.map((p) => (
+                {visiblePractitioners.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.display_name ?? p.id.slice(0, 8)}
                   </SelectItem>
