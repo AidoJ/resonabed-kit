@@ -142,6 +142,15 @@ function SettingsAdmin() {
     })();
   }, [org?.logo_path, signLogo]);
 
+  // A policy field is "unedited" when it exactly matches the shipped sample
+  // template body. Clinics must alter the wording (however slightly) before
+  // saving so they explicitly own the final text.
+  const consentUnedited = !!tplBody.consent && consent.trim() === tplBody.consent.trim();
+  const privacyUnedited = !!tplBody.privacy && privacy.trim() === tplBody.privacy.trim();
+  const healthUnedited =
+    !!tplBody.health_safety && health.trim() === tplBody.health_safety.trim();
+  const anyPolicyUnedited = consentUnedited || privacyUnedited || healthUnedited;
+
   const missing = useMemo(() => {
     const m: string[] = [];
     if (!businessName.trim()) m.push("Business name");
@@ -150,8 +159,21 @@ function SettingsAdmin() {
     if (!consent.trim()) m.push("Consent wording");
     if (!privacy.trim()) m.push("Privacy policy");
     if (!health.trim()) m.push("Health & safety policy");
+    if (consentUnedited) m.push("Consent wording — edit the sample to make it yours");
+    if (privacyUnedited) m.push("Privacy policy — edit the sample to make it yours");
+    if (healthUnedited) m.push("Health & safety policy — edit the sample to make it yours");
     return m;
-  }, [businessName, contactEmail, org?.logo_path, consent, privacy, health]);
+  }, [
+    businessName,
+    contactEmail,
+    org?.logo_path,
+    consent,
+    privacy,
+    health,
+    consentUnedited,
+    privacyUnedited,
+    healthUnedited,
+  ]);
 
   const canGoLive = missing.length === 0 && !org?.is_configured;
 
