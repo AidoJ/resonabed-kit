@@ -140,6 +140,48 @@ function TeamAdmin() {
     }
   };
 
+  const [resetting, setResetting] = useState<
+    | { id: string; name: string }
+    | null
+  >(null);
+  const [resetResult, setResetResult] = useState<{ email: string | null; password: string; name: string } | null>(null);
+  const [resetPending, setResetPending] = useState(false);
+  const onReset = async () => {
+    if (!resetting) return;
+    setResetPending(true);
+    try {
+      const res = await callManageTeam({ type: "reset_password", user_id: resetting.id });
+      const tp = res.temporary_password as string;
+      const email = (res.email as string | null) ?? null;
+      setResetResult({ email, password: tp, name: resetting.name });
+      setResetting(null);
+      if (email) {
+        try {
+          const r = await sendInvite({
+            data: {
+              email,
+              orgName: ctx?.org?.name ?? "your clinic",
+              orgId: ctx?.org?.id ?? null,
+              recipientName: resetting.name,
+              tempPassword: tp,
+              isReset: true,
+            },
+          });
+          if (r?.sent) toast.success("Password reset email sent");
+          else if (r?.reason === "recipient_suppressed")
+            toast.warning("Email not sent — recipient is suppressed. Share the password manually.");
+        } catch (e) {
+          toast.warning(`Email failed: ${(e as Error).message}. Share the password manually.`);
+        }
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setResetPending(false);
+    }
+  };
+
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -224,6 +266,17 @@ function TeamAdmin() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        {!isSuper && !isSelf && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setResetting({ id: m.id, name: m.display_name ?? "this user" })
+                            }
+                          >
+                            Reset password
+                          </Button>
+                        )}
                         {!isSuper && !isSelf && (
                           <Button
                             size="sm"
@@ -341,6 +394,59 @@ function TeamAdmin() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setConfirmDelete(null)}>Cancel</Button>
             <Button variant="destructive" onClick={onDelete}>Remove user</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!resetting} onOpenChange={(v) => !v && setResetting(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset password for {resetting?.name}?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            A new temporary password will be generated and emailed to the user. They will be
+            signed out of all devices and must set a new password on next sign-in.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setResetting(null)} disabled={resetPending}>Cancel</Button>
+            <Button onClick={onReset} disabled={resetPending}>
+              {resetPending ? "Resetting…" : "Reset and email"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!resetResult} onOpenChange={(v) => !v && setResetResult(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Temporary password for {resetResult?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Alert>
+              <AlertDescription>
+                {resetResult?.email
+                  ? "An email with the new password has been sent (if delivery succeeded). Copy it now as a backup — it will not be shown again."
+                  : "Copy this temporary password now — it will not be shown again."}
+              </AlertDescription>
+            </Alert>
+            <div className="flex items-center gap-2">
+              <Input value={resetResult?.password ?? ""} readOnly className="font-mono" />
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => {
+                  if (resetResult) {
+                    navigator.clipboard.writeText(resetResult.password);
+                    toast.success("Copied");
+                  }
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setResetResult(null)}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

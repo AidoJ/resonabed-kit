@@ -17,6 +17,7 @@ type Action =
   | { type: "reactivate"; user_id: string }
   | { type: "change_role"; user_id: string; role: "practitioner" | "org_admin" }
   | { type: "delete"; user_id: string }
+  | { type: "reset_password"; user_id: string }
   | { type: "clear_must_change_password"; user_id: string };
 
 const FAR_FUTURE = "2999-12-31T00:00:00Z";
@@ -223,6 +224,36 @@ Deno.serve(async (req) => {
         if (delErr) return json(400, { error: delErr.message });
         return json(200, { ok: true });
       }
+
+      case "reset_password": {
+        const org = await targetOrgFromUser(body.user_id);
+        if (!(await authorize(org))) return json(403, { error: "Forbidden" });
+
+        // Refuse to reset a super_admin's password from here.
+        const { data: tRoles } = await admin
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", body.user_id);
+        if (tRoles?.some((r) => r.role === "super_admin")) {
+          return json(403, { error: "Cannot reset a super admin from here" });
+        }
+
+        const password = generatePassword(20);
+        const { data: updated, error: updErr } = await admin.auth.admin.updateUserById(body.user_id, {
+          password,
+          app_metadata: { must_change_password: true },
+        });
+        if (updErr) return json(400, { error: updErr.message });
+        // Kick existing sessions so the new password must be used.
+        await admin.auth.admin.signOut(body.user_id, "global").catch(() => {});
+        return json(200, {
+          ok: true,
+          temporary_password: password,
+          email: updated?.user?.email ?? null,
+        });
+      }
+
+
 
       case "clear_must_change_password": {
         // Caller must be clearing their own flag (after successful password update)

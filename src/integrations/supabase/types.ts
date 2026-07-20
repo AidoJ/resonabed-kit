@@ -646,11 +646,57 @@ export type Database = {
           },
         ]
       }
+      support_access_grants: {
+        Row: {
+          created_at: string
+          expires_at: string
+          granted_at: string
+          granted_by: string
+          id: string
+          org_id: string
+          revoked_at: string | null
+          revoked_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          granted_at?: string
+          granted_by: string
+          id?: string
+          org_id: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          granted_at?: string
+          granted_by?: string
+          id?: string
+          org_id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_access_grants_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_sessions: {
         Row: {
           created_at: string
+          emergency: boolean
           entered_at: string
           exited_at: string | null
+          grant_id: string | null
           id: string
           org_id: string
           reason: string | null
@@ -659,8 +705,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          emergency?: boolean
           entered_at?: string
           exited_at?: string | null
+          grant_id?: string | null
           id?: string
           org_id: string
           reason?: string | null
@@ -669,8 +717,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          emergency?: boolean
           entered_at?: string
           exited_at?: string | null
+          grant_id?: string | null
           id?: string
           org_id?: string
           reason?: string | null
@@ -678,6 +728,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "support_sessions_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "support_access_grants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "support_sessions_org_id_fkey"
             columns: ["org_id"]
@@ -737,6 +794,10 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      org_has_active_support_grant: {
+        Args: { _org_id: string }
+        Returns: boolean
+      }
       org_music_licence_ok: { Args: { _org_id: string }; Returns: boolean }
       org_practitioner_permission: {
         Args: { _flag: string; _org_id: string }

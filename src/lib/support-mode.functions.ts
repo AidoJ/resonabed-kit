@@ -23,6 +23,7 @@ export interface ActiveSupportSession {
   org_name: string;
   reason: string | null;
   entered_at: string;
+  emergency: boolean;
 }
 
 export const getActiveSupportSession = createServerFn({ method: "GET" })
@@ -30,7 +31,7 @@ export const getActiveSupportSession = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<ActiveSupportSession | null> => {
     const { data, error } = await context.supabase
       .from("support_sessions")
-      .select("id, org_id, reason, entered_at, organisations:org_id(name)")
+      .select("id, org_id, reason, entered_at, emergency, organisations:org_id(name)")
       .eq("super_admin_id", context.userId)
       .is("exited_at", null)
       .maybeSingle();
@@ -43,6 +44,7 @@ export const getActiveSupportSession = createServerFn({ method: "GET" })
       org_name: org?.name ?? "Organisation",
       reason: (data.reason as string | null) ?? null,
       entered_at: data.entered_at as string,
+      emergency: Boolean(data.emergency),
     };
   });
 
@@ -53,11 +55,30 @@ export const enterSupportMode = createServerFn({ method: "POST" })
       .object({
         org_id: uuid,
         reason: z.string().trim().min(3).max(500),
+        emergency: z.boolean().optional().default(false),
       })
       .parse(d),
   )
   .handler(async ({ data, context }): Promise<ActiveSupportSession> => {
     await requireSuperAdmin(context);
+
+    // Look up an active grant for this org.
+    const { data: grant } = await context.supabase
+      .from("support_access_grants")
+      .select("id, expires_at, revoked_at")
+      .eq("org_id", data.org_id)
+      .is("revoked_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!grant && !data.emergency) {
+      throw new Error(
+        "This organisation has not granted support access. Ask an org admin to grant access from Settings, or use emergency access if they are locked out.",
+      );
+    }
+
     // Close any stale open session first (defensive; unique index enforces one).
     await context.supabase
       .from("support_sessions")
@@ -71,8 +92,10 @@ export const enterSupportMode = createServerFn({ method: "POST" })
         super_admin_id: context.userId,
         org_id: data.org_id,
         reason: data.reason,
+        emergency: data.emergency && !grant,
+        grant_id: grant?.id ?? null,
       })
-      .select("id, org_id, reason, entered_at, organisations:org_id(name)")
+      .select("id, org_id, reason, entered_at, emergency, organisations:org_id(name)")
       .single();
     if (error) throw new Error(error.message);
     const org = row.organisations as { name: string } | null;
@@ -82,6 +105,7 @@ export const enterSupportMode = createServerFn({ method: "POST" })
       org_name: org?.name ?? "Organisation",
       reason: (row.reason as string | null) ?? null,
       entered_at: row.entered_at as string,
+      emergency: Boolean(row.emergency),
     };
   });
 
@@ -108,7 +132,7 @@ export const listSupportSessionsForOrg = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("support_sessions")
-      .select("id, super_admin_id, reason, entered_at, exited_at")
+      .select("id, super_admin_id, reason, entered_at, exited_at, emergency, grant_id")
       .eq("org_id", data.org_id)
       .order("entered_at", { ascending: false })
       .limit(200);
