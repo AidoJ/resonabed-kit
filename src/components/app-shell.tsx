@@ -81,6 +81,16 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
           { to: "/availability", label: "Availability", icon: Clock },
         ],
       });
+      groups.push({
+        label: "Support access (admin)",
+        items: [
+          { to: "/admin/team", label: "Team", icon: Users },
+          { to: "/admin/services", label: "Services", icon: Wrench },
+          { to: "/audio", label: "Audio library", icon: Music },
+          { to: "/admin/reports", label: "Reports", icon: ClipboardList },
+          { to: "/admin/settings", label: "Settings", icon: Settings },
+        ],
+      });
     }
     return groups;
   }
