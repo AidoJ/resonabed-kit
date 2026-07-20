@@ -128,6 +128,9 @@ function SettingsAdmin() {
     setConsent(org.consent_text ?? "");
     setPrivacy(org.privacy_policy_text ?? "");
     setHealth(org.health_policy_text ?? "");
+    setPermManageClients(org.practitioners_can_manage_clients ?? true);
+    setPermViewAllClients(org.practitioners_can_view_all_clients ?? true);
+    setPermManageBookings(org.practitioners_can_manage_bookings ?? true);
   }, [org]);
 
   useEffect(() => {
