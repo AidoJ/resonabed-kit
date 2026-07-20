@@ -11,6 +11,7 @@ import {
   expireMusicLicence,
 } from "@/lib/licence.functions";
 import { enterSupportMode } from "@/lib/support-mode.functions";
+import { checkOrgSupportGrantForSuper } from "@/lib/support-access.functions";
 import {
   getAppSetting,
   setAppSetting,
