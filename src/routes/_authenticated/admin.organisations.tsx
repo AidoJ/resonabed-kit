@@ -106,15 +106,17 @@ function OrganisationsPage() {
   const [managingLicence, setManagingLicence] = useState<OrgRow | null>(null);
   const [supportOrg, setSupportOrg] = useState<OrgRow | null>(null);
   const [supportReason, setSupportReason] = useState("");
+  const [supportEmergency, setSupportEmergency] = useState(false);
   const navigate = useNavigate();
   const enterSupportFn = useServerFn(enterSupportMode);
   const enterSupport = useMutation({
-    mutationFn: (v: { org_id: string; reason: string }) =>
+    mutationFn: (v: { org_id: string; reason: string; emergency: boolean }) =>
       enterSupportFn({ data: v }),
     onSuccess: async () => {
       toast.success("Support mode active");
       setSupportOrg(null);
       setSupportReason("");
+      setSupportEmergency(false);
       await qc.invalidateQueries({ queryKey: ["user-context"] });
       navigate({ to: "/dashboard" });
     },
