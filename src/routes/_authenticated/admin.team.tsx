@@ -73,8 +73,29 @@ function TeamAdmin() {
         role: form.role,
       });
       setTempPassword(res.temporary_password as string);
+      const tp = res.temporary_password as string;
+      const emailTo = form.email;
+      const dn = form.display_name || null;
       setForm({ email: "", display_name: "", role: "practitioner" });
       refresh();
+      // Best-effort welcome email with the temporary password
+      try {
+        const r = await sendInvite({
+          data: {
+            email: emailTo,
+            orgName: ctx.org?.name ?? "your clinic",
+            orgId: ctx.org.id,
+            recipientName: dn,
+            tempPassword: tp,
+            isReset: false,
+          },
+        });
+        if (r?.sent) toast.success("Welcome email sent");
+        else if (r?.reason === "recipient_suppressed")
+          toast.warning("Email not sent — recipient is suppressed. Share the password manually.");
+      } catch (e) {
+        toast.warning(`Welcome email failed: ${(e as Error).message}. Share the password manually.`);
+      }
     } catch (e) {
       toast.error((e as Error).message);
     }
