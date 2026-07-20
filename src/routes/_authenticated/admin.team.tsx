@@ -223,15 +223,28 @@ function TeamAdmin() {
                       {m.is_active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
                     </TableCell>
                     <TableCell className="text-right">
-                      {!isSuper && !isSelf && (
-                        <Button
-                          size="sm"
-                          variant={m.is_active ? "outline" : "default"}
-                          onClick={() => onToggleActive(m.id, m.is_active)}
-                        >
-                          {m.is_active ? "Deactivate" : "Reactivate"}
-                        </Button>
-                      )}
+                      <div className="flex justify-end gap-2">
+                        {!isSuper && !isSelf && (
+                          <Button
+                            size="sm"
+                            variant={m.is_active ? "outline" : "default"}
+                            onClick={() => onToggleActive(m.id, m.is_active)}
+                          >
+                            {m.is_active ? "Deactivate" : "Reactivate"}
+                          </Button>
+                        )}
+                        {!isSuper && !isSelf && !m.roles.includes("org_admin") && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() =>
+                              setConfirmDelete({ id: m.id, name: m.display_name ?? "this user" })
+                            }
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
