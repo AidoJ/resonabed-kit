@@ -269,6 +269,17 @@ function TeamAdmin() {
                         {!isSuper && !isSelf && (
                           <Button
                             size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setResetting({ id: m.id, name: m.display_name ?? "this user" })
+                            }
+                          >
+                            Reset password
+                          </Button>
+                        )}
+                        {!isSuper && !isSelf && (
+                          <Button
+                            size="sm"
                             variant={m.is_active ? "outline" : "default"}
                             onClick={() => onToggleActive(m.id, m.is_active)}
                           >
