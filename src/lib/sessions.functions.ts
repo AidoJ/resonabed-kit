@@ -280,25 +280,91 @@ export const updateSessionFrequency = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Payment outcomes: paid methods require an amount; deferred/no-charge outcomes
+// ("unpaid", "comp") do not. "none" is a legacy alias treated as "unpaid".
+const PAID_METHODS = ["cash", "eftpos", "payid", "other"] as const;
+const DEFERRED_METHODS = ["unpaid", "comp", "none"] as const;
+
 export const completeSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z
       .object({
         id: uuid,
-        payment_method: z.enum(["cash", "eftpos", "payid", "other", "none"]),
+        payment_method: z.enum([
+          "cash",
+          "eftpos",
+          "payid",
+          "other",
+          "unpaid",
+          "comp",
+          "none",
+        ]),
         payment_amount: z.number().min(0).max(100000).nullable(),
         practitioner_notes: z.string().max(4000).optional(),
       })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
+    // Look up the session's org so we can check per-org practitioner rules.
+    const { data: sessionRow, error: sErr } = await context.supabase
+      .from("sessions")
+      .select("id, org_id, status")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (sErr) throw new Error(sErr.message);
+    if (!sessionRow) throw new Error("Session not found");
+
+    const isPaid = (PAID_METHODS as readonly string[]).includes(data.payment_method);
+    const isDeferred = (DEFERRED_METHODS as readonly string[]).includes(
+      data.payment_method,
+    );
+
+    // A paid outcome must include a real (>0) amount so completion always
+    // records a conscious payment decision — no silent zero-amount closes.
+    if (isPaid) {
+      if (data.payment_amount == null || data.payment_amount <= 0) {
+        throw new Error(
+          "Enter the amount collected, or choose an unpaid/comp outcome.",
+        );
+      }
+    }
+
+    // Per-org toggle: when a practitioner (not an org_admin / super_admin)
+    // is completing this session and the org has disabled "complete unpaid",
+    // reject any deferred outcome server-side.
+    if (isDeferred) {
+      const { data: roles, error: rErr } = await context.supabase
+        .from("user_roles")
+        .select("role, org_id")
+        .eq("user_id", context.userId);
+      if (rErr) throw new Error(rErr.message);
+      const list = roles ?? [];
+      const isAdminForOrg =
+        list.some((r) => r.role === "super_admin") ||
+        list.some(
+          (r) => r.role === "org_admin" && r.org_id === sessionRow.org_id,
+        );
+      if (!isAdminForOrg) {
+        const { data: allowed, error: fErr } = await context.supabase.rpc(
+          "org_practitioner_permission",
+          { _org_id: sessionRow.org_id, _flag: "complete_unpaid" },
+        );
+        if (fErr) throw new Error(fErr.message);
+        if (!allowed) {
+          throw new Error(
+            "Your organisation requires practitioners to record a payment before completing a session. Please collect payment or ask an admin to close this session.",
+          );
+        }
+      }
+    }
+
     const { error } = await context.supabase
       .from("sessions")
       .update({
         status: "completed",
         payment_method: data.payment_method,
-        payment_amount: data.payment_amount,
+        payment_amount: isPaid ? data.payment_amount : null,
         practitioner_notes: data.practitioner_notes ?? null,
       })
       .eq("id", data.id);
