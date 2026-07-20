@@ -409,6 +409,11 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
                 ))}
               </SelectContent>
             </Select>
+            {selfOnly && (
+              <p className="text-xs text-muted-foreground">
+                Practitioners can only book sessions for themselves.
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
