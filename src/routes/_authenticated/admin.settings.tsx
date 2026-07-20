@@ -221,7 +221,8 @@ function SettingsAdmin() {
   const permissionsDirty = !!org && (
     permManageClients !== (org.practitioners_can_manage_clients ?? true) ||
     permViewAllClients !== (org.practitioners_can_view_all_clients ?? true) ||
-    permManageBookings !== (org.practitioners_can_manage_bookings ?? true)
+    permManageBookings !== (org.practitioners_can_manage_bookings ?? true) ||
+    permCompleteUnpaid !== (org.practitioners_can_complete_unpaid ?? true)
   );
 
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
