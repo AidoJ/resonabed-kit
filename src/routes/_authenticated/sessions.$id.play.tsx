@@ -51,6 +51,15 @@ function PlaySession() {
     enabled: !!audio?.id,
   });
 
+  // If the timer was started before the audio finished loading, kick off
+  // playback as soon as the signed URL is ready.
+  useEffect(() => {
+    if (timerRunning && signed?.url && audioHandleRef.current) {
+      audioHandleRef.current.play();
+    }
+  }, [timerRunning, signed?.url]);
+
+
   if (isLoading || !session)
     return (
       <div className="play-dark fixed inset-0 z-[60] grid place-items-center bg-background text-foreground">
