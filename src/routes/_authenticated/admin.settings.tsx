@@ -50,6 +50,7 @@ function SettingsAdmin() {
   const signLogo = useServerFn(getSignedLogoUrl);
   const completeSetup = useServerFn(completeOrgSetup);
   const fetchAudit = useServerFn(listPolicyAudit);
+  const fetchTemplates = useServerFn(listPolicyTemplates);
   const qc = useQueryClient();
 
   const { data: org, isLoading } = useQuery({
@@ -61,6 +62,15 @@ function SettingsAdmin() {
     queryFn: () => fetchAudit(),
     enabled: !!org,
   });
+  const { data: templates } = useQuery({
+    queryKey: ["policy-templates"],
+    queryFn: () => fetchTemplates(),
+  });
+  const tplBody = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const t of templates ?? []) m[t.kind] = t.body;
+    return m;
+  }, [templates]);
 
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
