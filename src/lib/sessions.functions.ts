@@ -64,6 +64,7 @@ export const createClientRecord = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
+    await assertPractitionerAction(context, profile.org_id, "manage_clients");
     const { data: row, error } = await context.supabase
       .from("clients")
       .insert({
