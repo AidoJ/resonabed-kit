@@ -93,6 +93,9 @@ function SettingsAdmin() {
   const [health, setHealth] = useState("");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [permManageClients, setPermManageClients] = useState(true);
+  const [permViewAllClients, setPermViewAllClients] = useState(true);
+  const [permManageBookings, setPermManageBookings] = useState(true);
 
   type SectionKey = "identity" | "theme" | "policies";
   const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
