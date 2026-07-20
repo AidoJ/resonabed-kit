@@ -84,6 +84,15 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   const createFn = useServerFn(createBooking);
   const updateFn = useServerFn(updateBooking);
   const createClientFn = useServerFn(createClientRecord);
+  const ctxFn = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
+  const canAssignAnyone =
+    !!ctx && (ctx.roles.includes("super_admin") || ctx.roles.includes("org_admin"));
+  const selfOnly = !!ctx && !canAssignAnyone;
+  const visiblePractitioners = useMemo(() => {
+    if (!selfOnly) return practitioners;
+    return practitioners.filter((p) => p.id === ctx!.userId);
+  }, [practitioners, selfOnly, ctx]);
 
   const [clientQuery, setClientQuery] = useState("");
   const { data: clients = [], refetch: refetchClients } = useQuery({
