@@ -354,6 +354,9 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         consent_text: z.string().max(20000).nullable().optional(),
         privacy_policy_text: z.string().max(40000).nullable().optional(),
         health_policy_text: z.string().max(40000).nullable().optional(),
+        practitioners_can_manage_clients: z.boolean().optional(),
+        practitioners_can_view_all_clients: z.boolean().optional(),
+        practitioners_can_manage_bookings: z.boolean().optional(),
       })
       .parse(d),
   )
