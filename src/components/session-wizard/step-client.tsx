@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Search, UserPlus, Check } from "lucide-react";
 import { listMyOrgClients, createClientRecord } from "@/lib/sessions.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
