@@ -5,28 +5,39 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const inviteSchema = z.object({
   email: z.string().email(),
   orgName: z.string().min(1),
+  orgId: z.string().uuid().optional().nullable(),
   recipientName: z.string().optional().nullable(),
   tempPassword: z.string().min(8),
   isReset: z.boolean().optional().default(false),
 });
 
 /**
- * Sends the admin invite / password-reset email with the temporary password.
- * Super-admin only. Best-effort: caller should not fail the whole flow if
+ * Sends the admin/practitioner invite or password-reset email with the
+ * temporary password. Callable by super_admin, or by an org_admin of the
+ * supplied orgId. Best-effort: caller should not fail the whole flow if
  * email delivery errors out — the temp password is still shown in-app.
  */
 export const sendAdminInviteEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => inviteSchema.parse(input))
   .handler(async ({ data, context }) => {
-    // Verify caller is super_admin.
-    const { data: role } = await context.supabase
+    const { data: superRole } = await context.supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
       .eq("role", "super_admin")
       .maybeSingle();
-    if (!role) throw new Error("Forbidden");
+    if (!superRole) {
+      if (!data.orgId) throw new Error("Forbidden");
+      const { data: adminRole } = await context.supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", context.userId)
+        .eq("org_id", data.orgId)
+        .eq("role", "org_admin")
+        .maybeSingle();
+      if (!adminRole) throw new Error("Forbidden");
+    }
 
     const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
     const loginUrl = "https://resonabed.com";

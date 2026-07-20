@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { listTeam } from "@/lib/admin.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { sendAdminInviteEmail } from "@/lib/emails.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ async function callManageTeam(body: Record<string, unknown>) {
 function TeamAdmin() {
   const fetchTeam = useServerFn(listTeam);
   const fetchCtx = useServerFn(getCurrentUserContext);
+  const sendInvite = useServerFn(sendAdminInviteEmail);
   const qc = useQueryClient();
   const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => fetchCtx() });
   const { data: team, isLoading } = useQuery({
@@ -71,8 +73,29 @@ function TeamAdmin() {
         role: form.role,
       });
       setTempPassword(res.temporary_password as string);
+      const tp = res.temporary_password as string;
+      const emailTo = form.email;
+      const dn = form.display_name || null;
       setForm({ email: "", display_name: "", role: "practitioner" });
       refresh();
+      // Best-effort welcome email with the temporary password
+      try {
+        const r = await sendInvite({
+          data: {
+            email: emailTo,
+            orgName: ctx.org?.name ?? "your clinic",
+            orgId: ctx.org.id,
+            recipientName: dn,
+            tempPassword: tp,
+            isReset: false,
+          },
+        });
+        if (r?.sent) toast.success("Welcome email sent");
+        else if (r?.reason === "recipient_suppressed")
+          toast.warning("Email not sent — recipient is suppressed. Share the password manually.");
+      } catch (e) {
+        toast.warning(`Welcome email failed: ${(e as Error).message}. Share the password manually.`);
+      }
     } catch (e) {
       toast.error((e as Error).message);
     }
