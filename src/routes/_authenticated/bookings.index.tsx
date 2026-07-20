@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { listBookings, listOrgPractitioners, type BookingStatus } from "@/lib/bookings.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { BookingFormDialog } from "@/components/booking-form-dialog";
 
 const searchSchema = z.object({
