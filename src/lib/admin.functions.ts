@@ -384,6 +384,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         practitioners_can_manage_clients: z.boolean().optional(),
         practitioners_can_view_all_clients: z.boolean().optional(),
         practitioners_can_manage_bookings: z.boolean().optional(),
+        practitioners_can_complete_unpaid: z.boolean().optional(),
       })
       .parse(d),
   )
