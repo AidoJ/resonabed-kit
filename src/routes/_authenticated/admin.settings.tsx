@@ -103,6 +103,7 @@ function SettingsAdmin() {
   const [permManageClients, setPermManageClients] = useState(true);
   const [permViewAllClients, setPermViewAllClients] = useState(true);
   const [permManageBookings, setPermManageBookings] = useState(true);
+  const [permCompleteUnpaid, setPermCompleteUnpaid] = useState(true);
 
   type SectionKey = "identity" | "theme" | "policies" | "permissions";
   const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
