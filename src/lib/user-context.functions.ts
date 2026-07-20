@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { computePractitionerPermissions } from "@/lib/practitioner-permissions";
 
 export type AppRole = "super_admin" | "org_admin" | "practitioner";
 
