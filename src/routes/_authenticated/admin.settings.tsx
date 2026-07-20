@@ -97,12 +97,13 @@ function SettingsAdmin() {
   const [permViewAllClients, setPermViewAllClients] = useState(true);
   const [permManageBookings, setPermManageBookings] = useState(true);
 
-  type SectionKey = "identity" | "theme" | "policies";
+  type SectionKey = "identity" | "theme" | "policies" | "permissions";
   const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
   const [savedAt, setSavedAt] = useState<Record<SectionKey, number | null>>({
     identity: null,
     theme: null,
     policies: null,
+    permissions: null,
   });
 
   const [ackName, setAckName] = useState("");
