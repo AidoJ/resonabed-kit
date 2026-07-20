@@ -17,6 +17,7 @@ import {
   LifeBuoy,
   Settings,
   ClipboardList,
+  ScrollText,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -65,6 +66,7 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
           { to: "/admin/global-services", label: "Global services", icon: Wrench },
           { to: "/frequencies", label: "Global frequencies", icon: Waves },
           { to: "/audio", label: "Global audio", icon: Music },
+          { to: "/admin/policy-templates", label: "Policy templates", icon: ScrollText },
           { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
         ],
       },

@@ -12,6 +12,7 @@ import {
   completeOrgSetup,
   listPolicyAudit,
 } from "@/lib/admin.functions";
+import { listPolicyTemplates } from "@/lib/policy-templates.functions";
 import {
   DEFAULT_THEME,
   contrastRatio,
@@ -49,6 +50,7 @@ function SettingsAdmin() {
   const signLogo = useServerFn(getSignedLogoUrl);
   const completeSetup = useServerFn(completeOrgSetup);
   const fetchAudit = useServerFn(listPolicyAudit);
+  const fetchTemplates = useServerFn(listPolicyTemplates);
   const qc = useQueryClient();
 
   const { data: org, isLoading } = useQuery({
@@ -60,6 +62,15 @@ function SettingsAdmin() {
     queryFn: () => fetchAudit(),
     enabled: !!org,
   });
+  const { data: templates } = useQuery({
+    queryKey: ["policy-templates"],
+    queryFn: () => fetchTemplates(),
+  });
+  const tplBody = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const t of templates ?? []) m[t.kind] = t.body;
+    return m;
+  }, [templates]);
 
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -131,6 +142,15 @@ function SettingsAdmin() {
     })();
   }, [org?.logo_path, signLogo]);
 
+  // A policy field is "unedited" when it exactly matches the shipped sample
+  // template body. Clinics must alter the wording (however slightly) before
+  // saving so they explicitly own the final text.
+  const consentUnedited = !!tplBody.consent && consent.trim() === tplBody.consent.trim();
+  const privacyUnedited = !!tplBody.privacy && privacy.trim() === tplBody.privacy.trim();
+  const healthUnedited =
+    !!tplBody.health_safety && health.trim() === tplBody.health_safety.trim();
+  const anyPolicyUnedited = consentUnedited || privacyUnedited || healthUnedited;
+
   const missing = useMemo(() => {
     const m: string[] = [];
     if (!businessName.trim()) m.push("Business name");
@@ -139,8 +159,21 @@ function SettingsAdmin() {
     if (!consent.trim()) m.push("Consent wording");
     if (!privacy.trim()) m.push("Privacy policy");
     if (!health.trim()) m.push("Health & safety policy");
+    if (consentUnedited) m.push("Consent wording — edit the sample to make it yours");
+    if (privacyUnedited) m.push("Privacy policy — edit the sample to make it yours");
+    if (healthUnedited) m.push("Health & safety policy — edit the sample to make it yours");
     return m;
-  }, [businessName, contactEmail, org?.logo_path, consent, privacy, health]);
+  }, [
+    businessName,
+    contactEmail,
+    org?.logo_path,
+    consent,
+    privacy,
+    health,
+    consentUnedited,
+    privacyUnedited,
+    healthUnedited,
+  ]);
 
   const canGoLive = missing.length === 0 && !org?.is_configured;
 
@@ -508,6 +541,7 @@ function SettingsAdmin() {
                 onChange={setConsent}
                 helper={POLICY_HELPER}
                 rows={6}
+                unedited={consentUnedited}
               />
               <PolicyField
                 label="Privacy policy"
@@ -515,6 +549,7 @@ function SettingsAdmin() {
                 onChange={setPrivacy}
                 helper={POLICY_HELPER}
                 rows={8}
+                unedited={privacyUnedited}
               />
               <PolicyField
                 label="Health & safety policy"
@@ -522,10 +557,23 @@ function SettingsAdmin() {
                 onChange={setHealth}
                 helper={POLICY_HELPER}
                 rows={8}
+                unedited={healthUnedited}
               />
+              {anyPolicyUnedited && (
+                <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    One or more policies still contain the unedited sample wording.
+                    You must make at least one change to each policy so that the
+                    final text is <strong>yours</strong>. This ensures you have
+                    actively reviewed and accepted legal responsibility for what
+                    the clinic publishes to clients.
+                  </p>
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 <Button
-                  disabled={!policiesDirty || savingSection === "policies"}
+                  disabled={!policiesDirty || anyPolicyUnedited || savingSection === "policies"}
                   onClick={() =>
                     save(
                       {
@@ -548,6 +596,7 @@ function SettingsAdmin() {
                   savedAt={savedAt.policies}
                 />
               </div>
+
             </CardContent>
           </Card>
 
@@ -868,29 +917,36 @@ function PolicyField({
   onChange,
   helper,
   rows,
+  unedited,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   helper: string;
   rows: number;
+  unedited?: boolean;
 }) {
-  const isSample = value.trim().startsWith("SAMPLE");
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
         <Label>{label}</Label>
-        {isSample && (
-          <Badge variant="outline" className="text-amber-700 border-amber-400">
-            Sample — replace before go-live
+        {unedited && (
+          <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300">
+            Unedited sample — you must change this
           </Badge>
         )}
       </div>
-      <Textarea rows={rows} value={value} onChange={(e) => onChange(e.target.value)} />
+      <Textarea
+        rows={rows}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={unedited ? "border-amber-400 focus-visible:ring-amber-400" : undefined}
+      />
       <p className="text-xs text-muted-foreground">{helper}</p>
     </div>
   );
 }
+
 
 function SaveStatus({
   dirty,

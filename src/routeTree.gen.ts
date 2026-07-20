@@ -33,6 +33,7 @@ import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
+import { Route as AuthenticatedAdminPolicyTemplatesRouteImport } from './routes/_authenticated/admin.policy-templates'
 import { Route as AuthenticatedAdminOrganisationsRouteImport } from './routes/_authenticated/admin.organisations'
 import { Route as AuthenticatedAdminMetricsRouteImport } from './routes/_authenticated/admin.metrics'
 import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
@@ -171,6 +172,12 @@ const AuthenticatedAdminReportsRoute =
     path: '/reports',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminPolicyTemplatesRoute =
+  AuthenticatedAdminPolicyTemplatesRouteImport.update({
+    id: '/policy-templates',
+    path: '/policy-templates',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminOrganisationsRoute =
   AuthenticatedAdminOrganisationsRouteImport.update({
     id: '/organisations',
@@ -242,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
+  '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -274,6 +282,7 @@ export interface FileRoutesByTo {
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
+  '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -310,6 +319,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/_authenticated/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/_authenticated/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
+  '/_authenticated/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/admin/global-services'
     | '/admin/metrics'
     | '/admin/organisations'
+    | '/admin/policy-templates'
     | '/admin/reports'
     | '/admin/services'
     | '/admin/settings'
@@ -378,6 +389,7 @@ export interface FileRouteTypes {
     | '/admin/global-services'
     | '/admin/metrics'
     | '/admin/organisations'
+    | '/admin/policy-templates'
     | '/admin/reports'
     | '/admin/services'
     | '/admin/settings'
@@ -413,6 +425,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/global-services'
     | '/_authenticated/admin/metrics'
     | '/_authenticated/admin/organisations'
+    | '/_authenticated/admin/policy-templates'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/services'
     | '/_authenticated/admin/settings'
@@ -612,6 +625,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/policy-templates': {
+      id: '/_authenticated/admin/policy-templates'
+      path: '/policy-templates'
+      fullPath: '/admin/policy-templates'
+      preLoaderRoute: typeof AuthenticatedAdminPolicyTemplatesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/organisations': {
       id: '/_authenticated/admin/organisations'
       path: '/organisations'
@@ -683,6 +703,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
   AuthenticatedAdminMetricsRoute: typeof AuthenticatedAdminMetricsRoute
   AuthenticatedAdminOrganisationsRoute: typeof AuthenticatedAdminOrganisationsRoute
+  AuthenticatedAdminPolicyTemplatesRoute: typeof AuthenticatedAdminPolicyTemplatesRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminServicesRoute: typeof AuthenticatedAdminServicesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -695,6 +716,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
   AuthenticatedAdminMetricsRoute: AuthenticatedAdminMetricsRoute,
   AuthenticatedAdminOrganisationsRoute: AuthenticatedAdminOrganisationsRoute,
+  AuthenticatedAdminPolicyTemplatesRoute:
+    AuthenticatedAdminPolicyTemplatesRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminServicesRoute: AuthenticatedAdminServicesRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
@@ -769,13 +792,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
