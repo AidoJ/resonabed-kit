@@ -318,6 +318,7 @@ export type Database = {
           music_licence_plan: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status: Database["public"]["Enums"]["music_licence_status"]
           name: string
+          practitioners_can_complete_unpaid: boolean
           practitioners_can_manage_bookings: boolean
           practitioners_can_manage_clients: boolean
           practitioners_can_view_all_clients: boolean
@@ -349,6 +350,7 @@ export type Database = {
           music_licence_plan?: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status?: Database["public"]["Enums"]["music_licence_status"]
           name: string
+          practitioners_can_complete_unpaid?: boolean
           practitioners_can_manage_bookings?: boolean
           practitioners_can_manage_clients?: boolean
           practitioners_can_view_all_clients?: boolean
@@ -380,6 +382,7 @@ export type Database = {
           music_licence_plan?: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status?: Database["public"]["Enums"]["music_licence_status"]
           name?: string
+          practitioners_can_complete_unpaid?: boolean
           practitioners_can_manage_bookings?: boolean
           practitioners_can_manage_clients?: boolean
           practitioners_can_view_all_clients?: boolean
@@ -817,7 +820,14 @@ export type Database = {
       music_licence_plan: "none" | "basic" | "pro"
       music_licence_status: "trial" | "active" | "expired"
       org_status: "active" | "suspended"
-      payment_method: "cash" | "eftpos" | "payid" | "other" | "none"
+      payment_method:
+        | "cash"
+        | "eftpos"
+        | "payid"
+        | "other"
+        | "none"
+        | "unpaid"
+        | "comp"
       session_status: "draft" | "completed" | "cancelled"
     }
     CompositeTypes: {
@@ -959,7 +969,15 @@ export const Constants = {
       music_licence_plan: ["none", "basic", "pro"],
       music_licence_status: ["trial", "active", "expired"],
       org_status: ["active", "suspended"],
-      payment_method: ["cash", "eftpos", "payid", "other", "none"],
+      payment_method: [
+        "cash",
+        "eftpos",
+        "payid",
+        "other",
+        "none",
+        "unpaid",
+        "comp",
+      ],
       session_status: ["draft", "completed", "cancelled"],
     },
   },

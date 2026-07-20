@@ -47,6 +47,7 @@ export interface UserContext {
     manageClients: boolean;
     viewAllClients: boolean;
     manageBookings: boolean;
+    completeUnpaid: boolean;
   };
 }
 

@@ -268,7 +268,11 @@ export const getReports = createServerFn({ method: "POST" })
     const byMonth = new Map<string, number>();
     const revenueByMethod = new Map<string, number>();
     const unpaidCount = rows.filter(
-      (r) => r.status === "completed" && (!r.payment_method || r.payment_method === "none"),
+      (r) =>
+        r.status === "completed" &&
+        (!r.payment_method ||
+          r.payment_method === "none" ||
+          r.payment_method === "unpaid"),
     ).length;
     const freqCounts = new Map<string, { hz: number; label: string; count: number }>();
 
@@ -323,7 +327,7 @@ export const getOrgSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings",
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid",
       )
       .eq("id", _org_id)
       .single();
@@ -380,6 +384,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         practitioners_can_manage_clients: z.boolean().optional(),
         practitioners_can_view_all_clients: z.boolean().optional(),
         practitioners_can_manage_bookings: z.boolean().optional(),
+        practitioners_can_complete_unpaid: z.boolean().optional(),
       })
       .parse(d),
   )
@@ -421,6 +426,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "practitioners_can_manage_clients",
       "practitioners_can_view_all_clients",
       "practitioners_can_manage_bookings",
+      "practitioners_can_complete_unpaid",
     ] as const) {
       const v = data[key];
       if (v !== undefined) patch[key] = v;

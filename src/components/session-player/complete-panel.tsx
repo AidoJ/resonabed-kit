@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,9 +14,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { completeSession, cancelSession } from "@/lib/sessions.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { toast } from "sonner";
 
-type PayMethod = "cash" | "eftpos" | "payid" | "other" | "none";
+type PayMethod = "cash" | "eftpos" | "payid" | "other" | "unpaid" | "comp";
+const PAID_METHODS: PayMethod[] = ["cash", "eftpos", "payid", "other"];
+const DEFERRED_METHODS: PayMethod[] = ["unpaid", "comp"];
 
 interface Props {
   sessionId: string;
@@ -24,7 +28,20 @@ interface Props {
 }
 
 export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props) {
-  const [method, setMethod] = useState<PayMethod>("cash");
+  const ctxFn = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
+
+  // A bare practitioner (no admin roles + not in support mode) is subject to
+  // the org's "complete unpaid" toggle. Admins can always pick deferred outcomes.
+  const roles = ctx?.roles ?? [];
+  const isAdmin =
+    roles.includes("super_admin") ||
+    roles.includes("org_admin") ||
+    !!ctx?.activeSupportSession;
+  const canCompleteUnpaid = isAdmin || ctx?.permissions.completeUnpaid !== false;
+
+  // Force a conscious choice: no default that silently closes the session.
+  const [method, setMethod] = useState<PayMethod | "">("");
   const [amount, setAmount] = useState<string>(defaultAmount.toFixed(2));
   const [notes, setNotes] = useState(defaultNotes ?? "");
   const [busy, setBusy] = useState<"complete" | "cancel" | null>(null);
@@ -32,14 +49,30 @@ export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props)
   const cancelFn = useServerFn(cancelSession);
   const navigate = useNavigate();
 
+  const isPaid = method !== "" && (PAID_METHODS as string[]).includes(method);
+  const isDeferred = method !== "" && (DEFERRED_METHODS as string[]).includes(method);
+
+  const validationError = useMemo(() => {
+    if (method === "") return "Choose a payment outcome to complete the session.";
+    if (isPaid) {
+      const n = Number(amount);
+      if (!Number.isFinite(n) || n <= 0) return "Enter the amount collected.";
+    }
+    return null;
+  }, [method, isPaid, amount]);
+
   const submitComplete = async () => {
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
     setBusy("complete");
     try {
-      const numeric = method === "none" ? null : Number(amount);
+      const numeric = isPaid ? Number(amount) : null;
       await completeFn({
         data: {
           id: sessionId,
-          payment_method: method,
+          payment_method: method as PayMethod,
           payment_amount: numeric,
           practitioner_notes: notes,
         },
@@ -70,19 +103,36 @@ export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props)
   return (
     <div className="space-y-4 rounded-lg border bg-card p-4">
       <h3 className="text-lg font-semibold">Complete session</h3>
+      <p className="text-sm text-muted-foreground">
+        A payment decision is required to complete every session. Record the
+        payment or, if permitted, mark it as unpaid or comp.
+      </p>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-1">
-          <Label>Payment method</Label>
+          <Label>Payment outcome</Label>
           <Select value={method} onValueChange={(v) => setMethod(v as PayMethod)}>
-            <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-12">
+              <SelectValue placeholder="Select outcome…" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="cash">Cash</SelectItem>
               <SelectItem value="eftpos">EFTPOS</SelectItem>
               <SelectItem value="payid">PayID</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-              <SelectItem value="none">No payment</SelectItem>
+              <SelectItem value="other">Other paid method</SelectItem>
+              <SelectItem value="unpaid" disabled={!canCompleteUnpaid}>
+                Unpaid — to be collected
+              </SelectItem>
+              <SelectItem value="comp" disabled={!canCompleteUnpaid}>
+                Comp / no charge
+              </SelectItem>
             </SelectContent>
           </Select>
+          {!canCompleteUnpaid && (
+            <p className="text-xs text-muted-foreground">
+              Your organisation requires a recorded payment to complete a
+              session. Ask an admin to close a session as unpaid or comp.
+            </p>
+          )}
         </div>
         <div className="space-y-1">
           <Label>Amount</Label>
@@ -93,14 +143,24 @@ export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props)
             className="h-12"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            disabled={method === "none"}
+            disabled={!isPaid}
           />
+          {isDeferred && (
+            <p className="text-xs text-muted-foreground">
+              {method === "unpaid"
+                ? "Flagged as unpaid — visible to org admins for follow-up."
+                : "Recorded as no charge (comp)."}
+            </p>
+          )}
         </div>
       </div>
       <div className="space-y-1">
         <Label>Practitioner notes (optional)</Label>
         <Textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
+      {validationError && method !== "" && (
+        <p className="text-xs text-destructive">{validationError}</p>
+      )}
       <div className="flex flex-wrap justify-end gap-3 pt-2">
         <Button
           variant="outline"
@@ -111,7 +171,12 @@ export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props)
         >
           Cancel session
         </Button>
-        <Button size="lg" className="h-12" onClick={submitComplete} disabled={busy !== null}>
+        <Button
+          size="lg"
+          className="h-12"
+          onClick={submitComplete}
+          disabled={busy !== null || validationError !== null}
+        >
           {busy === "complete" ? "Saving…" : "Complete session"}
         </Button>
       </div>

@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type PractitionerFlag = "manage_clients" | "view_all_clients" | "manage_bookings";
+export type PractitionerFlag =
+  | "manage_clients"
+  | "view_all_clients"
+  | "manage_bookings"
+  | "complete_unpaid";
 
 /**
  * Server-side enforcement of per-org practitioner permission toggles.
@@ -45,7 +49,12 @@ export async function assertPractitionerAction(
 export async function computePractitionerPermissions(
   ctx: { supabase: SupabaseClient; userId: string },
   orgId: string | null,
-): Promise<{ manageClients: boolean; viewAllClients: boolean; manageBookings: boolean }> {
+): Promise<{
+  manageClients: boolean;
+  viewAllClients: boolean;
+  manageBookings: boolean;
+  completeUnpaid: boolean;
+}> {
   const { data: roles } = await ctx.supabase
     .from("user_roles")
     .select("role, org_id")
@@ -55,15 +64,25 @@ export async function computePractitionerPermissions(
     list.some((r) => r.role === "super_admin") ||
     (!!orgId && list.some((r) => r.role === "org_admin" && r.org_id === orgId));
   if (isAdmin) {
-    return { manageClients: true, viewAllClients: true, manageBookings: true };
+    return {
+      manageClients: true,
+      viewAllClients: true,
+      manageBookings: true,
+      completeUnpaid: true,
+    };
   }
   if (!orgId) {
-    return { manageClients: false, viewAllClients: false, manageBookings: false };
+    return {
+      manageClients: false,
+      viewAllClients: false,
+      manageBookings: false,
+      completeUnpaid: false,
+    };
   }
   const { data: org } = await ctx.supabase
     .from("organisations")
     .select(
-      "practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings",
+      "practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid",
     )
     .eq("id", orgId)
     .maybeSingle();
@@ -71,5 +90,6 @@ export async function computePractitionerPermissions(
     manageClients: (org?.practitioners_can_manage_clients ?? true) as boolean,
     viewAllClients: (org?.practitioners_can_view_all_clients ?? true) as boolean,
     manageBookings: (org?.practitioners_can_manage_bookings ?? true) as boolean,
+    completeUnpaid: (org?.practitioners_can_complete_unpaid ?? true) as boolean,
   };
 }

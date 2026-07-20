@@ -103,6 +103,7 @@ function SettingsAdmin() {
   const [permManageClients, setPermManageClients] = useState(true);
   const [permViewAllClients, setPermViewAllClients] = useState(true);
   const [permManageBookings, setPermManageBookings] = useState(true);
+  const [permCompleteUnpaid, setPermCompleteUnpaid] = useState(true);
 
   type SectionKey = "identity" | "theme" | "policies" | "permissions";
   const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
@@ -138,6 +139,7 @@ function SettingsAdmin() {
     setPermManageClients(org.practitioners_can_manage_clients ?? true);
     setPermViewAllClients(org.practitioners_can_view_all_clients ?? true);
     setPermManageBookings(org.practitioners_can_manage_bookings ?? true);
+    setPermCompleteUnpaid(org.practitioners_can_complete_unpaid ?? true);
   }, [org]);
 
   useEffect(() => {
@@ -219,7 +221,8 @@ function SettingsAdmin() {
   const permissionsDirty = !!org && (
     permManageClients !== (org.practitioners_can_manage_clients ?? true) ||
     permViewAllClients !== (org.practitioners_can_view_all_clients ?? true) ||
-    permManageBookings !== (org.practitioners_can_manage_bookings ?? true)
+    permManageBookings !== (org.practitioners_can_manage_bookings ?? true) ||
+    permCompleteUnpaid !== (org.practitioners_can_complete_unpaid ?? true)
   );
 
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
@@ -244,6 +247,7 @@ function SettingsAdmin() {
     practitioners_can_manage_clients?: boolean;
     practitioners_can_view_all_clients?: boolean;
     practitioners_can_manage_bookings?: boolean;
+    practitioners_can_complete_unpaid?: boolean;
   };
   const save = async (payload: OrgPatch, successMsg = "Saved", section?: SectionKey) => {
     if (section) setSavingSection(section);
@@ -659,6 +663,12 @@ function SettingsAdmin() {
                 checked={permManageBookings}
                 onChange={setPermManageBookings}
               />
+              <PermissionToggle
+                label="Can complete a session as unpaid or comp"
+                description="When off, practitioners must record an actual payment (method and amount) to complete a session. Only admins can close a session as unpaid or comp."
+                checked={permCompleteUnpaid}
+                onChange={setPermCompleteUnpaid}
+              />
               <div className="flex items-center gap-3 pt-2">
                 <Button
                   disabled={!permissionsDirty || savingSection === "permissions"}
@@ -668,6 +678,7 @@ function SettingsAdmin() {
                         practitioners_can_manage_clients: permManageClients,
                         practitioners_can_view_all_clients: permViewAllClients,
                         practitioners_can_manage_bookings: permManageBookings,
+                        practitioners_can_complete_unpaid: permCompleteUnpaid,
                       },
                       "Permissions saved",
                       "permissions",
