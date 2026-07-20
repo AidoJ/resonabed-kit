@@ -917,29 +917,36 @@ function PolicyField({
   onChange,
   helper,
   rows,
+  unedited,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   helper: string;
   rows: number;
+  unedited?: boolean;
 }) {
-  const isSample = value.trim().startsWith("SAMPLE");
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
         <Label>{label}</Label>
-        {isSample && (
-          <Badge variant="outline" className="text-amber-700 border-amber-400">
-            Sample — replace before go-live
+        {unedited && (
+          <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300">
+            Unedited sample — you must change this
           </Badge>
         )}
       </div>
-      <Textarea rows={rows} value={value} onChange={(e) => onChange(e.target.value)} />
+      <Textarea
+        rows={rows}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={unedited ? "border-amber-400 focus-visible:ring-amber-400" : undefined}
+      />
       <p className="text-xs text-muted-foreground">{helper}</p>
     </div>
   );
 }
+
 
 function SaveStatus({
   dirty,
