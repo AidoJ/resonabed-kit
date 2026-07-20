@@ -182,6 +182,14 @@ export const deleteBooking = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
   .handler(async ({ data, context }) => {
+    const { data: existing, error: exErr } = await context.supabase
+      .from("bookings")
+      .select("org_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (exErr) throw new Error(exErr.message);
+    if (!existing?.org_id) throw new Error("Booking not found");
+    await assertPractitionerAction(context, existing.org_id, "manage_bookings");
     const { error } = await context.supabase.from("bookings").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
