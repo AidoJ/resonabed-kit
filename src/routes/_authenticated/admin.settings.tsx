@@ -663,6 +663,12 @@ function SettingsAdmin() {
                 checked={permManageBookings}
                 onChange={setPermManageBookings}
               />
+              <PermissionToggle
+                label="Can complete a session as unpaid or comp"
+                description="When off, practitioners must record an actual payment (method and amount) to complete a session. Only admins can close a session as unpaid or comp."
+                checked={permCompleteUnpaid}
+                onChange={setPermCompleteUnpaid}
+              />
               <div className="flex items-center gap-3 pt-2">
                 <Button
                   disabled={!permissionsDirty || savingSection === "permissions"}
@@ -672,6 +678,7 @@ function SettingsAdmin() {
                         practitioners_can_manage_clients: permManageClients,
                         practitioners_can_view_all_clients: permViewAllClients,
                         practitioners_can_manage_bookings: permManageBookings,
+                        practitioners_can_complete_unpaid: permCompleteUnpaid,
                       },
                       "Permissions saved",
                       "permissions",
