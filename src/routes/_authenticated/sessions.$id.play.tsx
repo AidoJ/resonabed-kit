@@ -169,11 +169,24 @@ function PlaySession() {
         {/* Timer */}
         <CountdownTimer
           durationSeconds={durationSeconds}
-          onRunningChange={setAmbient}
-          onStart={() => audioHandleRef.current?.play()}
-          onPause={() => audioHandleRef.current?.pause()}
-          onReset={() => audioHandleRef.current?.stop()}
+          onRunningChange={(r) => {
+            setAmbient(r);
+            setTimerRunning(r);
+          }}
+          onStart={() => {
+            setTimerRunning(true);
+            audioHandleRef.current?.play();
+          }}
+          onPause={() => {
+            setTimerRunning(false);
+            audioHandleRef.current?.pause();
+          }}
+          onReset={() => {
+            setTimerRunning(false);
+            audioHandleRef.current?.stop();
+          }}
         />
+
 
         {/* Audio */}
         <div className="w-full max-w-2xl">
