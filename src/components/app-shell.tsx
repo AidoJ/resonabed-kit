@@ -110,7 +110,12 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
     ];
   }
 
-  // Practitioner
+  // Practitioner (only when roles have actually loaded — otherwise return an
+  // empty nav so org_admins don't briefly see the practitioner sidebar while
+  // the user-context query is in flight).
+  if (!roles.includes("practitioner")) {
+    return [];
+  }
   return [
     {
       label: "Clinic",
