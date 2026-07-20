@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -53,16 +53,25 @@ interface Props {
   onSaved: (savedStartsAt?: string) => void;
 }
 
-function toLocalInput(iso: string): string {
-  const d = new Date(iso);
+const SLOT_MINUTES = 30;
+
+function toISODate(d: Date): string {
   const off = d.getTimezoneOffset();
   const local = new Date(d.getTime() - off * 60_000);
-  return local.toISOString().slice(0, 16);
+  return local.toISOString().slice(0, 10);
 }
 
-function fromLocalInput(s: string): string {
-  // Interpret as local time.
-  return new Date(s).toISOString();
+function parseHM(s: string): number {
+  const [h, m] = s.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function fmtSlot(minutesFromMidnight: number): string {
+  const h = Math.floor(minutesFromMidnight / 60);
+  const m = minutesFromMidnight % 60;
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
 export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt, onSaved }: Props) {
@@ -76,7 +85,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   const createClientFn = useServerFn(createClientRecord);
 
   const [clientQuery, setClientQuery] = useState("");
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], refetch: refetchClients } = useQuery({
     queryKey: ["org-clients", clientQuery],
     queryFn: () => listClients({ data: { search: clientQuery } }),
     enabled: open,
@@ -97,33 +106,14 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     enabled: open,
   });
 
-  // Anchor day for fetching neighbouring bookings (for buffer/overlap checks).
-  const anchorDayIso = useMemo(() => {
-    const src = booking?.starts_at ?? defaultStartsAt ?? new Date().toISOString();
-    const d = new Date(src);
-    d.setHours(0, 0, 0, 0);
-    return d.toISOString();
-  }, [booking, defaultStartsAt]);
-  const anchorDayEndIso = useMemo(() => {
-    const d = new Date(anchorDayIso);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString();
-  }, [anchorDayIso]);
-  const { data: dayBookings = [] } = useQuery({
-    queryKey: ["day-bookings", anchorDayIso],
-    queryFn: () =>
-      listBooks({ data: { from: anchorDayIso, to: anchorDayEndIso } }),
-    enabled: open,
-  });
-
-
   const [clientId, setClientId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
   const [practitionerId, setPractitionerId] = useState<string>("");
-  const [startsLocal, setStartsLocal] = useState<string>("");
-  const [endsLocal, setEndsLocal] = useState<string>("");
+  const [dateStr, setDateStr] = useState<string>(""); // yyyy-mm-dd
+  const [slotMin, setSlotMin] = useState<string>(""); // minutes-from-midnight, as string for Select
   const [notes, setNotes] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [addingClient, setAddingClient] = useState(false);
   const [newClientMode, setNewClientMode] = useState(false);
   const [newFirst, setNewFirst] = useState("");
   const [newLast, setNewLast] = useState("");
@@ -133,136 +123,156 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   useEffect(() => {
     if (!open) return;
     if (booking) {
+      const start = new Date(booking.starts_at);
       setClientId(booking.client_id ?? booking.client?.id ?? "");
       setServiceId(booking.service_id ?? booking.service?.id ?? "");
       setPractitionerId(booking.practitioner_id);
-      setStartsLocal(toLocalInput(booking.starts_at));
-      setEndsLocal(toLocalInput(booking.ends_at));
+      setDateStr(toISODate(start));
+      setSlotMin(String(start.getHours() * 60 + start.getMinutes()));
       setNotes(booking.notes ?? "");
     } else {
       setClientId("");
       setServiceId("");
       setPractitionerId("");
-      const start = defaultStartsAt ?? new Date().toISOString();
-      setStartsLocal(toLocalInput(start));
-      setEndsLocal("");
+      const start = defaultStartsAt ? new Date(defaultStartsAt) : new Date();
+      setDateStr(toISODate(start));
+      setSlotMin("");
       setNotes("");
     }
     setNewClientMode(false);
+    setNewFirst("");
+    setNewLast("");
+    setNewEmail("");
+    setNewPhone("");
   }, [open, booking, defaultStartsAt]);
 
-  // When creating a new booking, suggest the next available start = last booking's
-  // ends_at + its service's buffer_minutes (scoped to the selected practitioner if any).
-  const suggestedStartRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!open || booking) return;
-    if (dayBookings.length === 0) return;
-    const relevant = practitionerId
-      ? dayBookings.filter((b) => b.practitioner_id === practitionerId)
-      : dayBookings;
-    if (relevant.length === 0) return;
-    const last = relevant.reduce((a, b) =>
-      new Date(a.ends_at) > new Date(b.ends_at) ? a : b,
-    );
-    const buffer = last.service?.buffer_minutes ?? 0;
-    const suggested = new Date(new Date(last.ends_at).getTime() + buffer * 60_000);
-    const suggestedIso = suggested.toISOString();
-    if (suggestedStartRef.current === suggestedIso) return;
-    suggestedStartRef.current = suggestedIso;
-    setStartsLocal(toLocalInput(suggestedIso));
-    setEndsLocal("");
-  }, [open, booking, dayBookings, practitionerId]);
+  // ---------- Compute 30-min slots for chosen practitioner / date / service ----------
 
-  // Auto-fill ends_at from service duration when service/starts change.
-  useEffect(() => {
-    if (!startsLocal || !serviceId) return;
-    if (booking && endsLocal) return; // don't stomp existing edit
-    const svc = services.find((s) => s.id === serviceId);
-    if (!svc) return;
-    const start = new Date(startsLocal);
-    const end = new Date(start.getTime() + svc.duration_minutes * 60_000);
-    setEndsLocal(toLocalInput(end.toISOString()));
-  }, [startsLocal, serviceId, services, booking, endsLocal]);
+  const dayBookingsRange = useMemo(() => {
+    if (!dateStr) return null;
+    const d = new Date(`${dateStr}T00:00:00`);
+    const start = new Date(d);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return { from: start.toISOString(), to: end.toISOString() };
+  }, [dateStr]);
 
-  const warnings = useMemo(() => {
-    const out: string[] = [];
-    if (!startsLocal || !endsLocal || !practitionerId) return out;
-    const start = new Date(startsLocal);
-    const end = new Date(endsLocal);
-    const day = start.getDay();
-    const startMin = start.getHours() * 60 + start.getMinutes();
-    const endMin = end.getHours() * 60 + end.getMinutes();
-    const slots = availability.filter(
-      (a) =>
-        a.practitioner_id === practitionerId && a.is_active && a.day_of_week === day,
+  const { data: dayBookings = [] } = useQuery({
+    queryKey: ["day-bookings", dayBookingsRange?.from ?? "", dayBookingsRange?.to ?? ""],
+    queryFn: () => listBooks({ data: { from: dayBookingsRange!.from, to: dayBookingsRange!.to } }),
+    enabled: open && !!dayBookingsRange,
+  });
+
+  const svc = useMemo(
+    () => services.find((s) => s.id === serviceId) ?? null,
+    [services, serviceId],
+  );
+
+  const slots = useMemo(() => {
+    if (!practitionerId || !dateStr || !svc) return [];
+    const day = new Date(`${dateStr}T00:00:00`).getDay();
+    const windows = availability.filter(
+      (a) => a.practitioner_id === practitionerId && a.is_active && a.day_of_week === day,
     );
-    if (slots.length === 0) {
-      out.push("This practitioner has no availability set for this weekday.");
-    } else {
-      const inside = slots.some((s) => {
-        const [sh, sm] = s.start_time.split(":").map(Number);
-        const [eh, em] = s.end_time.split(":").map(Number);
-        return startMin >= sh * 60 + sm && endMin <= eh * 60 + em;
+    if (windows.length === 0) return [];
+    const duration = svc.duration_minutes;
+    // Existing bookings for this practitioner (excluding the one being edited).
+    const busy = dayBookings
+      .filter((b) => b.practitioner_id === practitionerId && b.id !== booking?.id)
+      .map((b) => {
+        const s = new Date(b.starts_at);
+        const e = new Date(b.ends_at);
+        const buf = (b.service?.buffer_minutes ?? 0) * 60_000;
+        return {
+          start: s.getHours() * 60 + s.getMinutes(),
+          end: e.getHours() * 60 + e.getMinutes() + Math.round(buf / 60_000),
+        };
       });
-      if (!inside) out.push("Slot falls outside this practitioner's availability.");
-    }
 
-    // Buffer / overlap: practitioner is occupied until each booking's ends_at + its buffer.
-    const others = dayBookings.filter(
-      (b) => b.practitioner_id === practitionerId && b.id !== booking?.id,
-    );
-    for (const b of others) {
-      const bStart = new Date(b.starts_at).getTime();
-      const bBuffer = (b.service?.buffer_minutes ?? 0) * 60_000;
-      const bBusyEnd = new Date(b.ends_at).getTime() + bBuffer;
-      if (start.getTime() < bBusyEnd && end.getTime() > bStart) {
-        const bEndLabel = new Date(b.ends_at).toLocaleTimeString(undefined, {
-          hour: "numeric",
-          minute: "2-digit",
-        });
-        const bufMin = b.service?.buffer_minutes ?? 0;
-        if (start.getTime() < new Date(b.ends_at).getTime()) {
-          out.push(`Overlaps another booking ending at ${bEndLabel}.`);
-        } else if (bufMin > 0) {
-          out.push(
-            `Starts during the ${bufMin}-min changeover after the booking ending at ${bEndLabel}.`,
-          );
-        }
+    const out: number[] = [];
+    for (const w of windows) {
+      const ws = parseHM(w.start_time);
+      const we = parseHM(w.end_time);
+      for (let t = Math.ceil(ws / SLOT_MINUTES) * SLOT_MINUTES; t + duration <= we; t += SLOT_MINUTES) {
+        const slotEnd = t + duration;
+        const conflict = busy.some((b) => t < b.end && slotEnd > b.start);
+        if (!conflict) out.push(t);
       }
     }
-    return out;
-  }, [startsLocal, endsLocal, practitionerId, availability, dayBookings, booking?.id]);
+    return Array.from(new Set(out)).sort((a, b) => a - b);
+  }, [practitionerId, dateStr, availability, svc, dayBookings, booking?.id]);
 
+  // If the currently-selected slot is no longer valid, clear it.
+  useEffect(() => {
+    if (!slotMin) return;
+    if (!slots.includes(Number(slotMin))) {
+      // Keep the slot if we're editing this booking's original time — availability may not include it.
+      if (booking) {
+        const start = new Date(booking.starts_at);
+        const orig = start.getHours() * 60 + start.getMinutes();
+        if (orig === Number(slotMin) && practitionerId === booking.practitioner_id) return;
+      }
+      setSlotMin("");
+    }
+  }, [slots, slotMin, booking, practitionerId]);
+
+  const startsIso = useMemo(() => {
+    if (!dateStr || !slotMin) return "";
+    const [y, mo, d] = dateStr.split("-").map(Number);
+    const min = Number(slotMin);
+    const dt = new Date(y, mo - 1, d, Math.floor(min / 60), min % 60, 0, 0);
+    return dt.toISOString();
+  }, [dateStr, slotMin]);
+
+  const endsIso = useMemo(() => {
+    if (!startsIso || !svc) return "";
+    return new Date(new Date(startsIso).getTime() + svc.duration_minutes * 60_000).toISOString();
+  }, [startsIso, svc]);
+
+  const canAddClient = newFirst.trim().length > 0 && newLast.trim().length > 0;
   const canSave =
-    !!(clientId && serviceId && practitionerId && startsLocal && endsLocal) &&
-    new Date(endsLocal) > new Date(startsLocal);
+    !!(serviceId && practitionerId && dateStr && slotMin && startsIso && endsIso) &&
+    !!clientId &&
+    !newClientMode;
+
+  const handleAddClient = async () => {
+    if (!canAddClient) return;
+    setAddingClient(true);
+    try {
+      const created = await createClientFn({
+        data: {
+          first_name: newFirst.trim(),
+          last_name: newLast.trim(),
+          email: newEmail.trim() || undefined,
+          phone: newPhone.trim() || undefined,
+        },
+      });
+      toast.success("Client added");
+      setNewFirst("");
+      setNewLast("");
+      setNewEmail("");
+      setNewPhone("");
+      setNewClientMode(false);
+      await refetchClients();
+      setClientId(created.id);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not create client");
+    } finally {
+      setAddingClient(false);
+    }
+  };
 
   const submit = async () => {
+    if (!canSave) return;
     setSaving(true);
     try {
-      let effectiveClientId = clientId;
-      if (newClientMode) {
-        if (!newFirst.trim() || !newLast.trim()) {
-          toast.error("First and last name are required for a new client");
-          setSaving(false);
-          return;
-        }
-        const created = await createClientFn({
-          data: {
-            first_name: newFirst.trim(),
-            last_name: newLast.trim(),
-            email: newEmail.trim() || undefined,
-            phone: newPhone.trim() || undefined,
-          },
-        });
-        effectiveClientId = created.id;
-      }
       const payload = {
-        client_id: effectiveClientId,
+        client_id: clientId,
         service_id: serviceId,
         practitioner_id: practitionerId,
-        starts_at: fromLocalInput(startsLocal),
-        ends_at: fromLocalInput(endsLocal),
+        starts_at: startsIso,
+        ends_at: endsIso,
         notes: notes || undefined,
       };
       if (booking) {
@@ -280,6 +290,16 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
       setSaving(false);
     }
   };
+
+  const slotPlaceholder = !practitionerId
+    ? "Pick a practitioner first"
+    : !svc
+      ? "Pick a service first"
+      : !dateStr
+        ? "Pick a date first"
+        : slots.length === 0
+          ? "No available slots that day"
+          : "Choose a time";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -301,11 +321,26 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
               </Button>
             </div>
             {newClientMode ? (
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="First name" value={newFirst} onChange={(e) => setNewFirst(e.target.value)} />
-                <Input placeholder="Last name" value={newLast} onChange={(e) => setNewLast(e.target.value)} />
-                <Input placeholder="Email (optional)" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-                <Input placeholder="Phone (optional)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
+              <div className="space-y-2 rounded-md border p-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="First name" value={newFirst} onChange={(e) => setNewFirst(e.target.value)} />
+                  <Input placeholder="Last name" value={newLast} onChange={(e) => setNewLast(e.target.value)} />
+                  <Input placeholder="Email (optional)" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+                  <Input placeholder="Phone (optional)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddClient}
+                    disabled={!canAddClient || addingClient}
+                  >
+                    {addingClient ? "Adding…" : "Add client"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Add the client, then continue with their booking.
+                </p>
               </div>
             ) : (
               <>
@@ -358,36 +393,53 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label>Starts</Label>
+              <Label>Date</Label>
               <Input
-                type="datetime-local"
-                value={startsLocal}
-                onChange={(e) => setStartsLocal(e.target.value)}
+                type="date"
+                value={dateStr}
+                onChange={(e) => setDateStr(e.target.value)}
               />
             </div>
             <div className="space-y-1">
-              <Label>Ends</Label>
-              <Input
-                type="datetime-local"
-                value={endsLocal}
-                onChange={(e) => setEndsLocal(e.target.value)}
-              />
+              <Label>Time (30-min slots)</Label>
+              <Select
+                value={slotMin}
+                onValueChange={setSlotMin}
+                disabled={slots.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={slotPlaceholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  {slots.map((m) => (
+                    <SelectItem key={m} value={String(m)}>
+                      {fmtSlot(m)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
+
+          {endsIso && (
+            <p className="text-xs text-muted-foreground">
+              Ends at{" "}
+              {new Date(endsIso).toLocaleTimeString(undefined, {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+              {svc?.buffer_minutes ? ` · ${svc.buffer_minutes}-min changeover after` : ""}
+            </p>
+          )}
 
           <div className="space-y-1">
             <Label>Notes</Label>
             <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
 
-          {warnings.length > 0 && (
-            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
-              <p className="font-medium text-amber-700 dark:text-amber-300">Heads up</p>
-              <ul className="mt-1 list-disc pl-5 text-muted-foreground">
-                {warnings.map((w) => (
-                  <li key={w}>{w}</li>
-                ))}
-              </ul>
+          {newClientMode && (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-amber-800 dark:text-amber-200">
+              Add the new client above before you can save this booking.
             </div>
           )}
         </div>

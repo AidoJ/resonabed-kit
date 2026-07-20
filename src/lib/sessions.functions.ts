@@ -66,14 +66,18 @@ export const createClientRecord = createServerFn({ method: "POST" })
 export const listMyOrgServices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    // Exclude global template services (org_id IS NULL) so a clinic's users
+    // only see their own org-scoped services in wizards/bookings.
     const { data, error } = await context.supabase
       .from("services")
-      .select("id, name, duration_minutes, buffer_minutes, price, is_active")
+      .select("id, name, duration_minutes, buffer_minutes, price, is_active, org_id")
       .eq("is_active", true)
+      .not("org_id", "is", null)
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
 
 const FREQ_COLUMNS =
   "id, hz, name, description, benefits, color, goal_tags, body_area_tags";
