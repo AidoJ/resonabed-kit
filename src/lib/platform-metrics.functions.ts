@@ -41,6 +41,9 @@ export interface PlatformMetrics {
     sessions_30d: number;
     sessions_total: number;
     revenue_total: number;
+    bookings_total: number;
+    bookings_30d: number;
+    new_orgs_30d: number;
   };
 }
 
