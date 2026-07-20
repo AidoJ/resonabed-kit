@@ -132,6 +132,11 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       }
     }
 
+    const permissions = await computePractitionerPermissions(
+      { supabase, userId },
+      org?.id ?? null,
+    );
+
     return {
       userId,
       email: (claims.email as string) ?? null,
@@ -141,5 +146,6 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       org,
       roles,
       activeSupportSession,
+      permissions,
     };
   });
