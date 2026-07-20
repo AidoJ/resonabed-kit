@@ -36,6 +36,10 @@ export function StepClient({ value, onChange }: Props) {
   const createFn = useServerFn(createClientRecord);
   const qc = useQueryClient();
 
+  const ctxFn = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
+  const canManageClients = ctx?.permissions?.manageClients ?? true;
+
   const { data: clients, isLoading } = useQuery({
     queryKey: ["clients", search],
     queryFn: () => listFn({ data: { search } }),
