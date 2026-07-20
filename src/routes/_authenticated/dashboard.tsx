@@ -398,6 +398,14 @@ function EmptyRow({ text, cta }: { text: string; cta?: React.ReactNode }) {
 }
 
 function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
+  const fetchMetrics = useServerFn(getPlatformMetrics);
+  const { data: metrics, isLoading } = useQuery({
+    queryKey: ["platform-metrics-dashboard"],
+    queryFn: () => fetchMetrics(),
+  });
+  const money = (n: number) =>
+    new Intl.NumberFormat(undefined, { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(n);
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div className="shadow-soft rounded-2xl bg-card p-8">
@@ -408,18 +416,75 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
           Welcome{displayName ? `, ${displayName.split(" ")[0]}` : ""}
         </h1>
         <p className="mt-2 text-[15px] text-muted-foreground">
-          You are signed in as a platform operator. Individual clinic records are not visible from
-          here — use <strong>Access for support</strong> on the Organisations list to enter a
-          specific clinic's data with a logged audit trail.
+          Aggregate platform metrics only. Individual clinic records are never shown here — use
+          <strong> Access for support</strong> on the Organisations list to enter a specific
+          clinic&rsquo;s data with a logged audit trail.
         </p>
       </div>
+
+      {/* Aggregate metrics — counts and totals only, never individual rows. */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          label="Organisations"
+          value={isLoading ? "—" : String(metrics?.orgs.total ?? 0)}
+          hint={
+            metrics
+              ? `${metrics.orgs.active} active · ${metrics.orgs.suspended} suspended · ${metrics.orgs.unconfigured} unconfigured`
+              : undefined
+          }
+        />
+        <MetricCard
+          label="New orgs (30d)"
+          value={isLoading ? "—" : String(metrics?.totals.new_orgs_30d ?? 0)}
+        />
+        <MetricCard
+          label="Sessions (30d)"
+          value={isLoading ? "—" : String(metrics?.totals.sessions_30d ?? 0)}
+          hint={metrics ? `${metrics.totals.sessions_total} lifetime` : undefined}
+        />
+        <MetricCard
+          label="Bookings (30d)"
+          value={isLoading ? "—" : String(metrics?.totals.bookings_30d ?? 0)}
+          hint={metrics ? `${metrics.totals.bookings_total} lifetime` : undefined}
+        />
+        <MetricCard
+          label="Licences — trial"
+          value={isLoading ? "—" : String(metrics?.licences.trial ?? 0)}
+        />
+        <MetricCard
+          label="Licences — active"
+          value={isLoading ? "—" : String(metrics?.licences.active ?? 0)}
+        />
+        <MetricCard
+          label="Licences — expiring < 30d"
+          value={isLoading ? "—" : String(metrics?.licences.expiring_30d ?? 0)}
+          hint={metrics ? `${metrics.licences.expired} expired` : undefined}
+        />
+        <MetricCard
+          label="Revenue (lifetime)"
+          value={isLoading ? "—" : money(metrics?.totals.revenue_total ?? 0)}
+        />
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <PlatformCard title="Organisations" href="/admin/organisations" description="Create, provision, licence and manage clinics." />
         <PlatformCard title="Global services" href="/admin/global-services" description="Default service catalogue seeded into new clinics." />
         <PlatformCard title="Global frequencies" href="/frequencies" description="Master frequency tuning used by every clinic." />
         <PlatformCard title="Global audio" href="/audio" description="Shipped tracks available to every clinic under licence." />
-        <PlatformCard title="Platform metrics" href="/admin/metrics" description="Aggregate, non-identifiable usage and licence data." />
+        <PlatformCard title="Platform metrics" href="/admin/metrics" description="Full breakdown by organisation." />
       </div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="shadow-soft rounded-2xl bg-card p-5">
+      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-light tabular-nums text-brand-indigo">{value}</p>
+      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
 }
