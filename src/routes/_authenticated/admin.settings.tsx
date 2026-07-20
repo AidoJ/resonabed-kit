@@ -139,6 +139,7 @@ function SettingsAdmin() {
     setPermManageClients(org.practitioners_can_manage_clients ?? true);
     setPermViewAllClients(org.practitioners_can_view_all_clients ?? true);
     setPermManageBookings(org.practitioners_can_manage_bookings ?? true);
+    setPermCompleteUnpaid(org.practitioners_can_complete_unpaid ?? true);
   }, [org]);
 
   useEffect(() => {
