@@ -141,10 +141,10 @@ function TeamAdmin() {
   };
 
   const [resetting, setResetting] = useState<
-    | { id: string; name: string; email: string }
+    | { id: string; name: string }
     | null
   >(null);
-  const [resetResult, setResetResult] = useState<{ email: string; password: string; name: string } | null>(null);
+  const [resetResult, setResetResult] = useState<{ email: string | null; password: string; name: string } | null>(null);
   const [resetPending, setResetPending] = useState(false);
   const onReset = async () => {
     if (!resetting) return;
@@ -152,25 +152,27 @@ function TeamAdmin() {
     try {
       const res = await callManageTeam({ type: "reset_password", user_id: resetting.id });
       const tp = res.temporary_password as string;
-      setResetResult({ email: resetting.email, password: tp, name: resetting.name });
+      const email = (res.email as string | null) ?? null;
+      setResetResult({ email, password: tp, name: resetting.name });
       setResetting(null);
-      // Best-effort reset email
-      try {
-        const r = await sendInvite({
-          data: {
-            email: resetting.email,
-            orgName: ctx?.org?.name ?? "your clinic",
-            orgId: ctx?.org?.id ?? null,
-            recipientName: resetting.name,
-            tempPassword: tp,
-            isReset: true,
-          },
-        });
-        if (r?.sent) toast.success("Password reset email sent");
-        else if (r?.reason === "recipient_suppressed")
-          toast.warning("Email not sent — recipient is suppressed. Share the password manually.");
-      } catch (e) {
-        toast.warning(`Email failed: ${(e as Error).message}. Share the password manually.`);
+      if (email) {
+        try {
+          const r = await sendInvite({
+            data: {
+              email,
+              orgName: ctx?.org?.name ?? "your clinic",
+              orgId: ctx?.org?.id ?? null,
+              recipientName: resetting.name,
+              tempPassword: tp,
+              isReset: true,
+            },
+          });
+          if (r?.sent) toast.success("Password reset email sent");
+          else if (r?.reason === "recipient_suppressed")
+            toast.warning("Email not sent — recipient is suppressed. Share the password manually.");
+        } catch (e) {
+          toast.warning(`Email failed: ${(e as Error).message}. Share the password manually.`);
+        }
       }
     } catch (e) {
       toast.error((e as Error).message);
@@ -178,6 +180,7 @@ function TeamAdmin() {
       setResetPending(false);
     }
   };
+
 
   return (
     <div className="space-y-4">
