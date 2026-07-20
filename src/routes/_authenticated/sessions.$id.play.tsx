@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -29,6 +29,7 @@ function PlaySession() {
   });
 
   const [ambient, setAmbient] = useState(false);
+  const [timerRunning, setTimerRunning] = useState(false);
   const audioHandleRef = useRef<AudioPlayerHandle | null>(null);
 
   const { data: session, isLoading } = useQuery({
@@ -49,6 +50,15 @@ function PlaySession() {
     queryFn: () => signFn({ data: { audio_file_id: audio!.id } }),
     enabled: !!audio?.id,
   });
+
+  // If the timer was started before the audio finished loading, kick off
+  // playback as soon as the signed URL is ready.
+  useEffect(() => {
+    if (timerRunning && signed?.url && audioHandleRef.current) {
+      audioHandleRef.current.play();
+    }
+  }, [timerRunning, signed?.url]);
+
 
   if (isLoading || !session)
     return (
@@ -168,11 +178,24 @@ function PlaySession() {
         {/* Timer */}
         <CountdownTimer
           durationSeconds={durationSeconds}
-          onRunningChange={setAmbient}
-          onStart={() => audioHandleRef.current?.play()}
-          onPause={() => audioHandleRef.current?.pause()}
-          onReset={() => audioHandleRef.current?.stop()}
+          onRunningChange={(r) => {
+            setAmbient(r);
+            setTimerRunning(r);
+          }}
+          onStart={() => {
+            setTimerRunning(true);
+            audioHandleRef.current?.play();
+          }}
+          onPause={() => {
+            setTimerRunning(false);
+            audioHandleRef.current?.pause();
+          }}
+          onReset={() => {
+            setTimerRunning(false);
+            audioHandleRef.current?.stop();
+          }}
         />
+
 
         {/* Audio */}
         <div className="w-full max-w-2xl">
