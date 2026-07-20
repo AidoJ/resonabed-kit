@@ -17,6 +17,7 @@ import {
   LifeBuoy,
   Settings,
   ClipboardList,
+  ScrollText,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
