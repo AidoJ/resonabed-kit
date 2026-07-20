@@ -383,6 +383,30 @@ export type Database = {
         }
         Relationships: []
       }
+      policy_templates: {
+        Row: {
+          body: string
+          kind: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body: string
+          kind: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string
+          kind?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       practitioner_availability: {
         Row: {
           created_at: string
