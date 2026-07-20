@@ -81,44 +81,46 @@ export function StepClient({ value, onChange }: Props) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="lg" variant="outline" className="h-12">
-              <UserPlus className="mr-2 h-4 w-4" /> New client
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add a new client</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>First name</Label>
-                  <Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
-                </div>
-                <div className="space-y-1">
-                  <Label>Last name</Label>
-                  <Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label>Email (optional)</Label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              </div>
-              <div className="space-y-1">
-                <Label>Phone (optional)</Label>
-                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button onClick={handleCreate} disabled={creating}>
-                {creating ? "Saving…" : "Create client"}
+        {canManageClients && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" variant="outline" className="h-12">
+                <UserPlus className="mr-2 h-4 w-4" /> New client
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add a new client</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>First name</Label>
+                    <Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Last name</Label>
+                    <Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label>Email (optional)</Label>
+                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Phone (optional)</Label>
+                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button onClick={handleCreate} disabled={creating}>
+                  {creating ? "Saving…" : "Create client"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="max-h-96 overflow-y-auto rounded-md border">
