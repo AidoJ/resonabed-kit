@@ -101,10 +101,12 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
         items: [
           { to: "/admin/team", label: "Team", icon: Users },
           { to: "/admin/services", label: "Services", icon: Wrench },
+          { to: "/audio", label: "Audio library", icon: Music },
           { to: "/admin/reports", label: "Reports", icon: ClipboardList },
           { to: "/admin/settings", label: "Settings", icon: Settings },
         ],
       },
+
     ];
   }
 
