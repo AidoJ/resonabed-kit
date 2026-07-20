@@ -68,6 +68,12 @@ function SettingsAdmin() {
     queryKey: ["policy-templates"],
     queryFn: () => fetchTemplates(),
   });
+  const fetchLicence = useServerFn(getMyOrgLicence);
+  const { data: licence } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => fetchLicence(),
+  });
+
   const tplBody = useMemo(() => {
     const m: Record<string, string> = {};
     for (const t of templates ?? []) m[t.kind] = t.body;
