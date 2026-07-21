@@ -351,7 +351,7 @@ function LandingPage() {
             <ul className="mt-8 grid gap-3 text-sm text-white/80 sm:grid-cols-2">
               {[
                 { icon: Tablet, t: "Session-only device" },
-                { icon: Music, t: "Curated music library" },
+                { icon: Music, t: "9 Solfeggio frequencies" },
                 { icon: Clock, t: "Screen wake-lock" },
                 { icon: ShieldCheck, t: "Encrypted client records" },
               ].map(({ icon: Icon, t }) => (
