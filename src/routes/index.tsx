@@ -143,11 +143,12 @@ function LandingPage() {
                 </Button>
               </Link>
             </div>
-            <dl className="mt-12 grid grid-cols-3 gap-6 border-t border-white/10 pt-8 text-left">
+            <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
-                { k: "30–60m", v: "Passive sessions" },
-                { k: "Fully clothed", v: "No training needed" },
-                { k: "Year 1", v: "Music licence included" },
+                { k: "Speakers", v: "Tactile transducers" },
+                { k: "Amp", v: "Bluetooth amplifier" },
+                { k: "App", v: "Player + bookings" },
+                { k: "9", v: "Solfeggio frequencies" },
               ].map((x) => (
                 <div key={x.k}>
                   <dt className="text-2xl font-light tracking-tight">{x.k}</dt>
