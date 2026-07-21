@@ -5,10 +5,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { createKitCheckoutSession } from "@/lib/checkout.functions";
+import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
+
 import {
   ArrowRight,
   CheckCircle2,
