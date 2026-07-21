@@ -56,7 +56,7 @@ function LandingPage() {
       {/* NAV */}
       <header className="absolute inset-x-0 top-0 z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
-          <img src={logoOnDark.url} alt="Resonabed" className="h-14 w-auto md:h-16 drop-shadow-[0_2px_12px_rgba(136,75,199,0.35)]" draggable={false} />
+          <img src={logoOnDark.url} alt="Resonabed" className="h-40 w-auto md:h-52 drop-shadow-[0_4px_24px_rgba(136,75,199,0.55)]" draggable={false} />
           <div className="flex items-center gap-3">
             <a
               href="#packages"
