@@ -261,7 +261,7 @@ function LandingPage() {
                 n: "03",
                 title: "Experience the session",
                 body: "The bed delivers gentle vibration through the speakers while the app manages playback, timer and wake lock.",
-              }
+              },
               {
                 n: "04",
                 title: "Close and record",
