@@ -14,6 +14,8 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OrderSuccessRouteImport } from './routes/order.success'
+import { Route as OrderCancelledRouteImport } from './routes/order.cancelled'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedFrequenciesRouteImport } from './routes/_authenticated/frequencies'
@@ -66,6 +68,16 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderSuccessRoute = OrderSuccessRouteImport.update({
+  id: '/order/success',
+  path: '/order/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderCancelledRoute = OrderCancelledRouteImport.update({
+  id: '/order/cancelled',
+  path: '/order/cancelled',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
@@ -245,6 +257,8 @@ export interface FileRoutesByFullPath {
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/order/cancelled': typeof OrderCancelledRoute
+  '/order/success': typeof OrderSuccessRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
@@ -278,6 +292,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/order/cancelled': typeof OrderCancelledRoute
+  '/order/success': typeof OrderSuccessRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
@@ -315,6 +331,8 @@ export interface FileRoutesById {
   '/_authenticated/frequencies': typeof AuthenticatedFrequenciesRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/order/cancelled': typeof OrderCancelledRoute
+  '/order/success': typeof OrderSuccessRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/_authenticated/admin/metrics': typeof AuthenticatedAdminMetricsRoute
@@ -352,6 +370,8 @@ export interface FileRouteTypes {
     | '/frequencies'
     | '/services'
     | '/sessions'
+    | '/order/cancelled'
+    | '/order/success'
     | '/admin/clients'
     | '/admin/global-services'
     | '/admin/metrics'
@@ -385,6 +405,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/frequencies'
     | '/services'
+    | '/order/cancelled'
+    | '/order/success'
     | '/admin/clients'
     | '/admin/global-services'
     | '/admin/metrics'
@@ -421,6 +443,8 @@ export interface FileRouteTypes {
     | '/_authenticated/frequencies'
     | '/_authenticated/services'
     | '/_authenticated/sessions'
+    | '/order/cancelled'
+    | '/order/success'
     | '/_authenticated/admin/clients'
     | '/_authenticated/admin/global-services'
     | '/_authenticated/admin/metrics'
@@ -449,6 +473,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  OrderCancelledRoute: typeof OrderCancelledRoute
+  OrderSuccessRoute: typeof OrderSuccessRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -490,6 +516,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order/success': {
+      id: '/order/success'
+      path: '/order/success'
+      fullPath: '/order/success'
+      preLoaderRoute: typeof OrderSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order/cancelled': {
+      id: '/order/cancelled'
+      path: '/order/cancelled'
+      fullPath: '/order/cancelled'
+      preLoaderRoute: typeof OrderCancelledRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/sessions': {
@@ -784,6 +824,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  OrderCancelledRoute: OrderCancelledRoute,
+  OrderSuccessRoute: OrderSuccessRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
@@ -792,13 +834,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
