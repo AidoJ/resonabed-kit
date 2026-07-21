@@ -305,9 +305,9 @@ function LandingPage() {
               "Two 80W tactile transducers",
               "Bluetooth amplifier with audio jack",
               "Wiring, fittings and setup guide",
-              "Resonabed app for the whole clinic",
-              "250 DL flyers, professionally designed",
-              "First year of music licence included",
+              "Resonabed session player + booking app",
+              "9 therapeutic Solfeggio frequencies",
+              "250 DL marketing flyers, professionally designed",
             ]}
           />
           <PackageCard
