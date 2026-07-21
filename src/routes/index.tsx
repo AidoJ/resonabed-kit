@@ -17,6 +17,12 @@ import {
   Music,
   Tablet,
   ClipboardList,
+  Speaker,
+  Volume2,
+  FileText,
+  Heart,
+  Zap,
+  Package,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
