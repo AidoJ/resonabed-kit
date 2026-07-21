@@ -134,20 +134,20 @@ function LandingPage() {
               bed — a calm, high-margin session your clients will book again and again.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
-              <a href="#packages">
+              <a href="mailto:info@resonabed.com?subject=Resonabed%20kit%20enquiry">
                 <Button className="h-12 rounded-full bg-white px-7 text-[15px] font-medium text-brand-ink hover:bg-white/90">
-                  See packages
+                  Get a kit quote
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
               </a>
-              <Link to={loginHref}>
+              <a href="#packages">
                 <Button
                   variant="outline"
                   className="h-12 rounded-full border-white/25 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
                 >
-                  {loginLabel}
+                  See packages
                 </Button>
-              </Link>
+              </a>
             </div>
             <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
