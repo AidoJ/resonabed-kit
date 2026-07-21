@@ -143,11 +143,12 @@ function LandingPage() {
                 </Button>
               </Link>
             </div>
-            <dl className="mt-12 grid grid-cols-3 gap-6 border-t border-white/10 pt-8 text-left">
+            <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
-                { k: "30–60m", v: "Passive sessions" },
-                { k: "Fully clothed", v: "No training needed" },
-                { k: "Year 1", v: "Music licence included" },
+                { k: "Speakers", v: "Tactile transducers" },
+                { k: "Amp", v: "Bluetooth amplifier" },
+                { k: "App", v: "Player + bookings" },
+                { k: "9", v: "Solfeggio frequencies" },
               ].map((x) => (
                 <div key={x.k}>
                   <dt className="text-2xl font-light tracking-tight">{x.k}</dt>
@@ -188,8 +189,8 @@ function LandingPage() {
             A new revenue stream in the room you already work in.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            No new bed to buy. No treatment to learn. Just fit the kit, open the app, and offer a
-            session your clients will feel from the first minute.
+            The kit arrives ready to install: speakers, amplifier, player app and booking tools. Just
+            fit it to the bed you already own, open the app, and start offering sessions.
           </p>
         </div>
 
@@ -197,8 +198,8 @@ function LandingPage() {
           {[
             {
               icon: Sparkles,
-              title: "Passive, high-margin add-on",
-              body: "Clients lie fully clothed while the bed does the work. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
+              title: "High-margin add-on",
+              body: "The kit turns your existing bed into a revenue stream. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
             },
             {
               icon: Radio,
@@ -258,8 +259,8 @@ function LandingPage() {
               },
               {
                 n: "03",
-                title: "Rest 30–60 min",
-                body: "Client stays fully clothed. Timer, playback and wake lock are handled by the app.",
+                title: "Experience the session",
+                body: "The bed delivers gentle vibration through the speakers while the app manages playback, timer and wake lock.",
               },
               {
                 n: "04",
@@ -289,8 +290,9 @@ function LandingPage() {
             Choose the package that fits your clinic.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Both packages include the complete kit, Resonabed app access, 250 professionally
-            designed DL flyers, and your first year of music licence.
+            Both packages include the complete kit: tactile speakers, amplifier, Resonabed player
+            and booking app, 9 therapeutic Solfeggio frequencies, and 250 professionally designed
+            marketing flyers.
           </p>
         </div>
 
@@ -303,9 +305,9 @@ function LandingPage() {
               "Two 80W tactile transducers",
               "Bluetooth amplifier with audio jack",
               "Wiring, fittings and setup guide",
-              "Resonabed app for the whole clinic",
-              "250 DL flyers, professionally designed",
-              "First year of music licence included",
+              "Resonabed session player + booking app",
+              "9 therapeutic Solfeggio frequencies",
+              "250 DL marketing flyers, professionally designed",
             ]}
           />
           <PackageCard
@@ -349,7 +351,7 @@ function LandingPage() {
             <ul className="mt-8 grid gap-3 text-sm text-white/80 sm:grid-cols-2">
               {[
                 { icon: Tablet, t: "Session-only device" },
-                { icon: Music, t: "Curated music library" },
+                { icon: Music, t: "9 Solfeggio frequencies" },
                 { icon: Clock, t: "Screen wake-lock" },
                 { icon: ShieldCheck, t: "Encrypted client records" },
               ].map(({ icon: Icon, t }) => (
