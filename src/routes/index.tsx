@@ -232,6 +232,94 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* WHAT'S IN THE KIT */}
+      <section className="py-24 md:py-28">
+        <div className="mx-auto max-w-7xl px-6 md:px-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              What's in the kit
+            </p>
+            <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+              Everything you need to turn your bed into a new revenue stream.
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              No sourcing parts, no music licences, no app subscriptions. The Resonabed kit arrives
+              ready to install and ready to sell.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: Speaker,
+                title: "Tactile transducers",
+                body: "Two premium speakers that send low-frequency sound as gentle vibration through your existing bed. Your clients don't just hear the music — they feel it moving through them.",
+                cta: "Your bed becomes the instrument",
+              },
+              {
+                icon: Volume2,
+                title: "Bluetooth amplifier",
+                body: "Compact, wireless amp with clean, professional power. Pair, place, and play. No audio engineering degree and no tangled wiring required.",
+                cta: "Plug-and-play power",
+              },
+              {
+                icon: Tablet,
+                title: "Session player + booking app",
+                body: "One calm app for intake, frequency selection, playback, timer, session records and diary booking. Your practitioners can pick it up in minutes.",
+                cta: "Your session command centre",
+              },
+              {
+                icon: Music,
+                title: "9 Solfeggio frequencies",
+                body: "Nine therapeutic, wellbeing-focused tones matched to feelings your clients will ask for by name. No separate music licence to negotiate.",
+                cta: "A library of therapeutic sound",
+              },
+              {
+                icon: FileText,
+                title: "250 marketing flyers",
+                body: "Professionally designed DL flyers ready to print and display. Start promoting your new session from the day the kit arrives.",
+                cta: "Ready-to-print promotion",
+              },
+              {
+                icon: Package,
+                title: "Fittings & setup guide",
+                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage or therapy bed you already own.",
+                cta: "Everything in the box",
+              },
+            ].map(({ icon: Icon, title, body, cta }) => (
+              <div
+                key={title}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition hover:-translate-y-0.5 hover:shadow-lift"
+              >
+                <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-medium text-brand-indigo">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-violet-strong">
+                  {cta}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-14 flex flex-col items-center justify-center gap-4 text-center sm:flex-row">
+            <a href="mailto:info@resonabed.com?subject=Resonabed%20kit%20enquiry">
+              <Button className="h-12 rounded-full bg-brand-indigo px-7 text-[15px] font-medium text-white hover:bg-brand-indigo/90">
+                Get a kit quote
+                <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Button>
+            </a>
+            <p className="text-sm text-muted-foreground">
+              Or email{" "}
+              <a href="mailto:info@resonabed.com" className="text-brand-indigo hover:underline">
+                info@resonabed.com
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* HOW IT WORKS */}
       <section id="how" className="bg-secondary/40 py-24 md:py-28">
         <div className="mx-auto max-w-7xl px-6 md:px-10">
