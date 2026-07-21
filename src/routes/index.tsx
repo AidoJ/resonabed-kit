@@ -107,7 +107,7 @@ function LandingPage() {
             backgroundSize: "contain",
           }}
         />
-        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-32 md:grid-cols-2 md:gap-8 md:px-10 md:pb-28 md:pt-40 lg:pt-44">
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-16 md:grid-cols-2 md:gap-8 md:px-10 md:pb-28 md:pt-24">
           <div className="flex flex-col justify-center">
             <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-white/80 backdrop-blur">
               <Waves className="h-3.5 w-3.5" />
