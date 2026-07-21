@@ -54,26 +54,30 @@ function LandingPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* NAV */}
-      <header className="absolute inset-x-0 top-0 z-20">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
-          <img src={logoOnDark.url} alt="Resonabed" className="h-40 w-auto md:h-52 drop-shadow-[0_4px_24px_rgba(136,75,199,0.55)]" draggable={false} />
-          <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-30 bg-white shadow-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 md:px-10">
+          <img
+            src={logo.url}
+            alt="Resonabed"
+            className="h-20 w-auto md:h-24"
+            draggable={false}
+          />
+          <div className="flex items-center gap-2 md:gap-6">
             <a
               href="#packages"
-              className="hidden text-sm font-medium text-white/80 hover:text-white md:inline"
+              className="hidden text-sm font-semibold text-brand-indigo hover:text-brand-violet md:inline"
             >
               Packages
             </a>
             <a
               href="#how"
-              className="hidden text-sm font-medium text-white/80 hover:text-white md:inline"
+              className="hidden text-sm font-semibold text-brand-indigo hover:text-brand-violet md:inline"
             >
               How it works
             </a>
             <Link to={loginHref}>
               <Button
-                variant="outline"
-                className="h-10 rounded-full border-white/30 bg-white/10 px-5 text-sm font-medium text-white backdrop-blur hover:bg-white/20 hover:text-white"
+                className="h-10 rounded-full bg-brand-indigo px-5 text-sm font-semibold text-white hover:bg-brand-violet"
               >
                 {loginLabel}
                 <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -82,6 +86,7 @@ function LandingPage() {
           </div>
         </div>
       </header>
+
 
       {/* HERO */}
       <section className="relative overflow-hidden bg-brand-ink text-white">
@@ -102,7 +107,7 @@ function LandingPage() {
             backgroundSize: "contain",
           }}
         />
-        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-32 md:grid-cols-2 md:gap-8 md:px-10 md:pb-28 md:pt-40 lg:pt-44">
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-16 md:grid-cols-2 md:gap-8 md:px-10 md:pb-28 md:pt-24">
           <div className="flex flex-col justify-center">
             <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-white/80 backdrop-blur">
               <Waves className="h-3.5 w-3.5" />
