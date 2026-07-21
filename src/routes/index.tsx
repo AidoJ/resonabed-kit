@@ -498,16 +498,16 @@ function LandingPage() {
           />
           <div className="relative">
             <h2 className="text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-              Ready to upgrade your bed?
+              Ready to add a new revenue stream to your clinic?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-              Contact us to choose your package and get started. Already running a clinic on
-              Resonabed? Sign in to your practitioner dashboard.
+              Get a personalised quote for your clinic. We'll walk you through the kit, the app, and
+              how to start selling sessions in the room you already use.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <a href="mailto:info@resonabed.com">
+              <a href="mailto:info@resonabed.com?subject=Resonabed%20kit%20enquiry">
                 <Button className="h-12 rounded-full px-7 text-[15px] font-medium">
-                  Contact us
+                  Get a kit quote
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
               </a>
