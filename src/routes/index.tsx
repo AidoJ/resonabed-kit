@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { createKitCheckoutSession } from "@/lib/checkout.functions";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
@@ -393,6 +396,8 @@ function LandingPage() {
         <div className="mt-14 grid gap-6 md:grid-cols-2">
           <PackageCard
             name="Pro"
+            packageKey="pro"
+            price="$1,199"
             tagline="The complete upgrade kit."
             description="Everything you need to convert an existing bed. Runs on a tablet, laptop or iPad you already have."
             features={[
@@ -406,6 +411,8 @@ function LandingPage() {
           />
           <PackageCard
             name="Premium"
+            packageKey="premium"
+            price="$1,399"
             highlighted
             tagline="Pro, plus a dedicated device."
             description={
@@ -544,17 +551,38 @@ function LandingPage() {
 
 function PackageCard({
   name,
+  packageKey,
+  price,
   tagline,
   description,
   features,
   highlighted,
 }: {
   name: string;
+  packageKey: "pro" | "premium";
+  price: string;
   tagline: string;
   description: string;
   features: string[];
   highlighted?: boolean;
 }) {
+  const startCheckout = useServerFn(createKitCheckoutSession);
+  const [loading, setLoading] = useState(false);
+
+  const handleOrder = async () => {
+    setLoading(true);
+    try {
+      const { url } = await startCheckout({
+        data: { package: packageKey, origin: window.location.origin },
+      });
+      window.location.href = url;
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't start checkout. Please try again or contact us.");
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className={
@@ -597,6 +625,23 @@ function PackageCard({
         >
           {tagline}
         </p>
+        <div className="mt-6 flex items-baseline gap-2">
+          <span
+            className={
+              "text-4xl font-light tracking-tight md:text-5xl " +
+              (highlighted ? "text-white" : "text-brand-indigo")
+            }
+          >
+            {price}
+          </span>
+          <span
+            className={
+              "text-sm " + (highlighted ? "text-white/60" : "text-muted-foreground")
+            }
+          >
+            USD · one-time
+          </span>
+        </div>
         <p
           className={
             "mt-5 text-sm leading-relaxed " +
@@ -619,19 +664,27 @@ function PackageCard({
           ))}
         </ul>
         <div className="mt-9">
-          <a href="mailto:info@resonabed.com?subject=Resonabed%20package%20enquiry">
-            <Button
-              className={
-                "h-11 w-full rounded-full text-[14px] font-medium " +
-                (highlighted
-                  ? "bg-white text-brand-ink hover:bg-white/90"
-                  : "bg-brand-indigo text-white hover:bg-brand-indigo/90")
-              }
-            >
-              Enquire about {name}
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Button>
-          </a>
+          <Button
+            onClick={handleOrder}
+            disabled={loading}
+            className={
+              "h-11 w-full rounded-full text-[14px] font-medium " +
+              (highlighted
+                ? "bg-white text-brand-ink hover:bg-white/90"
+                : "bg-brand-indigo text-white hover:bg-brand-indigo/90")
+            }
+          >
+            {loading ? "Redirecting to Stripe…" : `Order ${name} — ${price}`}
+            <ArrowRight className="ml-1.5 h-4 w-4" />
+          </Button>
+          <p
+            className={
+              "mt-3 text-center text-[11px] " +
+              (highlighted ? "text-white/55" : "text-muted-foreground")
+            }
+          >
+            Secure checkout by Stripe · shipping calculated at next step
+          </p>
         </div>
       </div>
     </div>
