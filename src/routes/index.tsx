@@ -151,14 +151,14 @@ function LandingPage() {
             </div>
             <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
-                { k: "Speakers", v: "Tactile transducers" },
-                { k: "Amp", v: "Bluetooth amplifier" },
-                { k: "App", v: "Player + bookings" },
-                { k: "9", v: "Solfeggio frequencies" },
+                { k: "Tactile transducers", v: "Your bed becomes the instrument" },
+                { k: "Bluetooth amplifier", v: "Professional power, zero audio stress" },
+                { k: "Player + bookings", v: "One calm app for every session" },
+                { k: "9 Solfeggio frequencies", v: "Therapeutic tones ready to play" },
               ].map((x) => (
                 <div key={x.k}>
-                  <dt className="text-2xl font-light tracking-tight">{x.k}</dt>
-                  <dd className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">{x.v}</dd>
+                  <dt className="text-xl font-medium tracking-tight">{x.k}</dt>
+                  <dd className="mt-1.5 text-xs uppercase tracking-[0.12em] text-white/55">{x.v}</dd>
                 </div>
               ))}
             </dl>
