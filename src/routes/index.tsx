@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
-import logoOnDark from "@/assets/resonabed-logo-onDark.png.asset.json";
+import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import {
