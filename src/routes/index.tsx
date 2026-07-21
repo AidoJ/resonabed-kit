@@ -189,8 +189,8 @@ function LandingPage() {
             A new revenue stream in the room you already work in.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            No new bed to buy. No treatment to learn. Just fit the kit, open the app, and offer a
-            session your clients will feel from the first minute.
+            The kit arrives ready to install: speakers, amplifier, player app and booking tools. Just
+            fit it to the bed you already own, open the app, and start offering sessions.
           </p>
         </div>
 
