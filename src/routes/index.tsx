@@ -290,8 +290,9 @@ function LandingPage() {
             Choose the package that fits your clinic.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Both packages include the complete kit, Resonabed app access, 250 professionally
-            designed DL flyers, and your first year of music licence.
+            Both packages include the complete kit: tactile speakers, amplifier, Resonabed player
+            and booking app, 9 therapeutic Solfeggio frequencies, and 250 professionally designed
+            marketing flyers.
           </p>
         </div>
 
