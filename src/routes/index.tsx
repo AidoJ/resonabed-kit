@@ -5,10 +5,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { createKitCheckoutSession } from "@/lib/checkout.functions";
+import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
+
 import {
   ArrowRight,
   CheckCircle2,
@@ -568,17 +570,19 @@ function PackageCard({
 }) {
   const startCheckout = useServerFn(createKitCheckoutSession);
   const [loading, setLoading] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   const handleOrder = async () => {
     setLoading(true);
     try {
-      const { url } = await startCheckout({
+      const { clientSecret: cs } = await startCheckout({
         data: { package: packageKey, origin: window.location.origin },
       });
-      window.location.href = url;
+      setClientSecret(cs);
     } catch (err) {
       console.error(err);
       toast.error("Couldn't start checkout. Please try again or contact us.");
+    } finally {
       setLoading(false);
     }
   };
@@ -674,7 +678,7 @@ function PackageCard({
                 : "bg-brand-indigo text-white hover:bg-brand-indigo/90")
             }
           >
-            {loading ? "Redirecting to Stripe…" : `Order ${name} — ${price}`}
+            {loading ? "Preparing checkout…" : `Order ${name} — ${price}`}
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
           <p
@@ -683,10 +687,17 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            Secure checkout by Stripe · shipping calculated at next step
+            Secure checkout by Stripe · promo codes supported · shipping calculated at next step
           </p>
         </div>
       </div>
+
+      <EmbeddedCheckoutDialog
+        clientSecret={clientSecret}
+        onClose={() => setClientSecret(null)}
+        title={`Complete your ${name} order`}
+      />
     </div>
   );
 }
+
