@@ -250,6 +250,18 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const nav = buildNav(roles, inSupportMode);
 
+  // While the user context is loading (e.g. right after sign-in), do NOT
+  // render the sidebar/shell — the default brand theme and empty nav would
+  // flash before the org's theme and role-specific navigation resolve,
+  // which looks like the wrong role's dashboard bleeding through.
+  if (isLoading || !data) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-background">
+        <Skeleton className="h-10 w-40" />
+      </div>
+    );
+  }
+
   const renderItem = (item: NavItem) => {
     const Icon = item.icon;
     const isActive =
