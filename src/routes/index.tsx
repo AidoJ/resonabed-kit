@@ -259,9 +259,9 @@ function LandingPage() {
               },
               {
                 n: "03",
-                title: "Rest 30–60 min",
-                body: "Client stays fully clothed. Timer, playback and wake lock are handled by the app.",
-              },
+                title: "Experience the session",
+                body: "The bed delivers gentle vibration through the speakers while the app manages playback, timer and wake lock.",
+              }
               {
                 n: "04",
                 title: "Close and record",
