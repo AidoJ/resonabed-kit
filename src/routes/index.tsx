@@ -198,8 +198,8 @@ function LandingPage() {
           {[
             {
               icon: Sparkles,
-              title: "Passive, high-margin add-on",
-              body: "Clients lie fully clothed while the bed does the work. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
+              title: "High-margin add-on",
+              body: "The kit turns your existing bed into a revenue stream. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
             },
             {
               icon: Radio,
