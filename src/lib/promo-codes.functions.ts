@@ -90,7 +90,7 @@ export const createPromoCode = createServerFn({ method: "POST" })
     });
 
     const promo = await stripe.promotionCodes.create({
-      coupon: coupon.id,
+      promotion: { type: "coupon", coupon: coupon.id },
       code: data.code.toUpperCase(),
       max_redemptions: data.max_redemptions ?? undefined,
     });
