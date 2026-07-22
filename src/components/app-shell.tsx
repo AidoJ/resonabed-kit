@@ -18,6 +18,7 @@ import {
   Settings,
   ClipboardList,
   ScrollText,
+  Tag,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
