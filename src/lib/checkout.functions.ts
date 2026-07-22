@@ -121,6 +121,42 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
     return { clientSecret: session.client_secret };
   });
 
+const FinalizeSchema = z.object({ sessionId: z.string().min(1) });
+
+/**
+ * Called after a successful installments checkout. Reads the subscription
+ * from the session and sets `cancel_at` so billing stops after the last
+ * planned monthly payment. Idempotent — safe to call multiple times.
+ */
+export const finalizeInstallmentsPlan = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => FinalizeSchema.parse(input))
+  .handler(async ({ data }) => {
+    const secret = process.env.STRIPE_SECRET_KEY;
+    if (!secret) throw new Error("Stripe is not configured");
+    const stripe = new Stripe(secret);
+
+    const session = await stripe.checkout.sessions.retrieve(data.sessionId, {
+      expand: ["subscription"],
+    });
+    if (session.mode !== "subscription") return { ok: true, skipped: "not-subscription" };
+    const sub = session.subscription;
+    if (!sub || typeof sub === "string") return { ok: true, skipped: "no-subscription" };
+
+    const monthsRaw = sub.metadata?.cancel_after_months ?? sub.metadata?.months;
+    const months = monthsRaw ? Number(monthsRaw) : NaN;
+    if (!Number.isFinite(months) || months <= 0) return { ok: true, skipped: "no-months" };
+
+    if (sub.cancel_at) return { ok: true, alreadySet: true };
+
+    // Anchor to current_period_start + months (30d approximation to align with monthly cycles)
+    const anchor = sub.current_period_start ?? Math.floor(Date.now() / 1000);
+    const cancelAt = anchor + months * 30 * 24 * 60 * 60 + 24 * 60 * 60;
+    await stripe.subscriptions.update(sub.id, { cancel_at: cancelAt });
+    return { ok: true, cancelAt };
+  });
+
+
+
 export const getStripePublishableKey = createServerFn({ method: "GET" }).handler(async () => {
   const key = process.env.STRIPE_PUBLISHABLE_KEY;
   if (!key) throw new Error("Stripe publishable key is not configured");
