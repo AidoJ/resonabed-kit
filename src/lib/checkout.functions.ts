@@ -67,7 +67,10 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
           {
             price_data: {
               currency: "aud",
-              product_data: { name: `${pkg.name} — Deposit` },
+              product_data: {
+                name: `${pkg.name} — Deposit`,
+                description: `Deposit incl. GST — $363 + $36 GST = $399 AUD. Followed by ${months} monthly payments.`,
+              },
               unit_amount: deposit,
             },
             quantity: 1,
@@ -77,7 +80,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
               currency: "aud",
               product_data: {
                 name: `${pkg.name} — Monthly payment`,
-                description: `${months} monthly payments of $${(monthly / 100).toFixed(0)} following the deposit.`,
+                description: `${months} monthly payments of $${(monthly / 100).toFixed(0)} incl. GST ($91 + $9 GST) following the deposit. Repayment total $${((deposit + monthly * months) / 100).toFixed(0)} AUD.`,
               },
               unit_amount: monthly,
               recurring: { interval: "month" },
