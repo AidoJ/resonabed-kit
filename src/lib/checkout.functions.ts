@@ -6,15 +6,19 @@ const PACKAGES = {
   pro: {
     name: "Resonabed Pro Kit",
     description:
-      "Complete upgrade kit: 2x tactile transducers, Bluetooth amplifier, wiring & fittings, Resonabed session player + booking app, 9 Solfeggio frequencies, 250 DL marketing flyers.",
+      "Complete upgrade kit: 2x tactile transducers, Bluetooth amplifier, wiring & fittings, Resonabed session player + booking app, 9 Solfeggio frequencies, 250 DL marketing flyers. Price incl. GST — $1,090 + $109 GST = $1,199 AUD.",
     amount: 119900,
+    exGst: 109000,
+    gst: 10900,
     installments: { deposit: 39900, monthly: 10000, months: 8 }, // 399 + 8*100 = 1199
   },
   premium: {
     name: "Resonabed Premium Kit",
     description:
-      "Everything in Pro, plus a 9\" Android tablet pre-configured for session-only use.",
+      "Everything in Pro, plus a 9\" Android tablet pre-configured for session-only use. Price incl. GST — $1,272 + $127 GST = $1,399 AUD.",
     amount: 139900,
+    exGst: 127200,
+    gst: 12700,
     installments: { deposit: 39900, monthly: 10000, months: 10 }, // 399 + 10*100 = 1399
   },
 } as const;
