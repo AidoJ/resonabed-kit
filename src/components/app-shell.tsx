@@ -18,6 +18,7 @@ import {
   Settings,
   ClipboardList,
   ScrollText,
+  Tag,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -67,6 +68,7 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
           { to: "/frequencies", label: "Global frequencies", icon: Waves },
           { to: "/audio", label: "Global audio", icon: Music },
           { to: "/admin/policy-templates", label: "Policy templates", icon: ScrollText },
+          { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
           { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
         ],
       },
