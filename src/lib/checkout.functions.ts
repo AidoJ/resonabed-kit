@@ -62,6 +62,14 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
           {
             price_data: {
               currency: "usd",
+              product_data: { name: `${pkg.name} — Deposit` },
+              unit_amount: deposit,
+            },
+            quantity: 1,
+          },
+          {
+            price_data: {
+              currency: "usd",
               product_data: {
                 name: `${pkg.name} — Monthly payment`,
                 description: `${months} monthly payments of $${(monthly / 100).toFixed(0)} following the deposit.`,
@@ -81,6 +89,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             cancel_after_months: String(months),
           },
         },
+
 
         add_invoice_items: [
           {
