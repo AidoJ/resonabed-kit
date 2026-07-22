@@ -41,13 +41,13 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
     const pkg = PACKAGES[data.package as PackageKey];
 
     const baseParams = {
-      ui_mode: "embedded" as const,
-      payment_method_types: ["card"] as const,
+      ui_mode: "embedded",
+      payment_method_types: ["card"],
       shipping_address_collection: { allowed_countries: SHIPPING_COUNTRIES },
       phone_number_collection: { enabled: true },
-      billing_address_collection: "required" as const,
+      billing_address_collection: "required",
       return_url: `${data.origin}/order/success?session_id={CHECKOUT_SESSION_ID}`,
-    };
+    } satisfies Partial<Stripe.Checkout.SessionCreateParams>;
 
     let session: Stripe.Checkout.Session;
 
@@ -55,7 +55,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       const { deposit, monthly, months } = pkg.installments;
       const cancelAt = Math.floor(Date.now() / 1000) + months * 30 * 24 * 60 * 60 + 24 * 60 * 60;
 
-      session = await stripe.checkout.sessions.create({
+      const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
         mode: "subscription",
         line_items: [
@@ -81,30 +81,22 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             months: String(months),
           },
         },
-        // Deposit added to the first invoice as a one-time item.
-        invoice_creation: undefined,
-        // @ts-expect-error - add_invoice_items is supported on subscription sessions
         add_invoice_items: [
           {
             price_data: {
               currency: "usd",
-              product_data: {
-                name: `${pkg.name} — Deposit`,
-              },
+              product_data: { name: `${pkg.name} — Deposit` },
               unit_amount: deposit,
             },
             quantity: 1,
           },
         ],
-        // Promo codes only apply to Pay-in-full.
         allow_promotion_codes: false,
-        metadata: {
-          package: data.package,
-          plan: "installments",
-        },
-      });
+        metadata: { package: data.package, plan: "installments" },
+      };
+      session = await stripe.checkout.sessions.create(params);
     } else {
-      session = await stripe.checkout.sessions.create({
+      const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
         mode: "payment",
         line_items: [
@@ -119,8 +111,10 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
         ],
         allow_promotion_codes: true,
         metadata: { package: data.package, plan: "full" },
-      });
+      };
+      session = await stripe.checkout.sessions.create(params);
     }
+
 
     if (!session.client_secret) throw new Error("Stripe did not return a client secret");
     return { clientSecret: session.client_secret };
