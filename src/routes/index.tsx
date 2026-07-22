@@ -641,7 +641,7 @@ function PackageCard({
               "text-sm " + (highlighted ? "text-white/60" : "text-muted-foreground")
             }
           >
-            USD · one-time
+            AUD · one-time
           </span>
         </div>
         <p
