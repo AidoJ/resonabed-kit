@@ -167,7 +167,21 @@ function OrganisationsPage() {
 
       <GlobalSettingsCard />
 
-
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="hover:border-primary/40 transition-colors">
+          <Link to="/admin/promo-codes" className="block">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Tag className="h-4 w-4" />
+                Promo codes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              Create percentage-off discount codes that apply to both the Pro and Premium kits at checkout.
+            </CardContent>
+          </Link>
+        </Card>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
