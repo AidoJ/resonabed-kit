@@ -52,16 +52,18 @@ export const listPromoCodes = createServerFn({ method: "GET" })
     }
 
     return codes.data.map((pc) => {
-      const coupon = pc.coupon as Stripe.Coupon | undefined;
+      const coupon = pc.promotion.coupon as Stripe.Coupon | string | null;
+      const couponObj = typeof coupon === "object" && coupon ? coupon : null;
+      const couponId = couponObj?.id ?? (typeof coupon === "string" ? coupon : "");
       return {
         id: pc.id,
         code: pc.code,
         active: pc.active,
-        percent_off: coupon?.percent_off ?? 0,
+        percent_off: couponObj?.percent_off ?? 0,
         max_redemptions: pc.max_redemptions ?? null,
         times_redeemed: pc.times_redeemed,
-        coupon_id: coupon?.id ?? pc.coupon as string,
-        coupon_name: coupon?.name ?? couponNameById.get(coupon?.id ?? "") ?? null,
+        coupon_id: couponId,
+        coupon_name: couponObj?.name ?? couponNameById.get(couponId) ?? null,
         created_at: pc.created,
         expires_at: pc.expires_at ?? null,
       };
