@@ -709,8 +709,8 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            Repayment plan total ${totalInstallments} · billed monthly, auto-stops after the final
-            payment · promo codes only apply to pay-in-full · secure checkout by Stripe
+            Repayment plan total ${totalInstallments} incl. GST · billed monthly, auto-stops after
+            the final payment · promo codes only apply to pay-in-full · secure checkout by Stripe
           </p>
         </div>
       </div>
