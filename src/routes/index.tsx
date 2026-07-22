@@ -303,14 +303,8 @@ function LandingPage() {
           </div>
 
           <div className="mt-14 flex flex-col items-center justify-center gap-4 text-center sm:flex-row">
-            <a href="mailto:info@resonabed.com?subject=Resonabed%20kit%20enquiry">
-              <Button className="h-12 rounded-full bg-brand-indigo px-7 text-[15px] font-medium text-white hover:bg-brand-indigo/90">
-                Get a kit quote
-                <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Button>
-            </a>
             <p className="text-sm text-muted-foreground">
-              Or email{" "}
+              Questions? Email{" "}
               <a href="mailto:info@resonabed.com" className="text-brand-indigo hover:underline">
                 info@resonabed.com
               </a>
