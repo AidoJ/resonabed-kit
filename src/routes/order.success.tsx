@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { finalizeInstallmentsPlan } from "@/lib/checkout.functions";
 
 export const Route = createFileRoute("/order/success")({
   head: () => ({
@@ -10,9 +13,23 @@ export const Route = createFileRoute("/order/success")({
     ],
   }),
   component: OrderSuccess,
+  validateSearch: (search: Record<string, unknown>) => ({
+    session_id: typeof search.session_id === "string" ? search.session_id : undefined,
+  }),
 });
 
 function OrderSuccess() {
+  const { session_id } = Route.useSearch();
+  const finalize = useServerFn(finalizeInstallmentsPlan);
+
+  useEffect(() => {
+    if (!session_id) return;
+    finalize({ data: { sessionId: session_id } }).catch((err) => {
+      // Non-fatal: subscription still exists; scheduled cancellation can be set manually.
+      console.error("finalizeInstallmentsPlan failed", err);
+    });
+  }, [session_id, finalize]);
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 py-24 text-center">
