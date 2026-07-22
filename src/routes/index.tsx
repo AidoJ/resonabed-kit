@@ -539,6 +539,11 @@ function LandingPage() {
   );
 }
 
+const INSTALLMENTS = {
+  pro: { deposit: 399, monthly: 100, months: 8 },
+  premium: { deposit: 399, monthly: 100, months: 10 },
+} as const;
+
 function PackageCard({
   name,
   packageKey,
@@ -557,21 +562,26 @@ function PackageCard({
   highlighted?: boolean;
 }) {
   const startCheckout = useServerFn(createKitCheckoutSession);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<null | "full" | "installments">(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
 
-  const handleOrder = async () => {
-    setLoading(true);
+  const plan = INSTALLMENTS[packageKey];
+  const totalInstallments = plan.deposit + plan.monthly * plan.months;
+
+  const handleOrder = async (which: "full" | "installments") => {
+    setLoading(which);
+    setActivePlan(which);
     try {
       const { clientSecret: cs } = await startCheckout({
-        data: { package: packageKey, origin: window.location.origin },
+        data: { package: packageKey, plan: which, origin: window.location.origin },
       });
       setClientSecret(cs);
     } catch (err) {
       console.error(err);
       toast.error("Couldn't start checkout. Please try again or contact us.");
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
@@ -655,10 +665,10 @@ function PackageCard({
             </li>
           ))}
         </ul>
-        <div className="mt-9">
+        <div className="mt-9 space-y-3">
           <Button
-            onClick={handleOrder}
-            disabled={loading}
+            onClick={() => handleOrder("full")}
+            disabled={loading !== null}
             className={
               "h-11 w-full rounded-full text-[14px] font-medium " +
               (highlighted
@@ -666,16 +676,34 @@ function PackageCard({
                 : "bg-brand-indigo text-white hover:bg-brand-indigo/90")
             }
           >
-            {loading ? "Preparing checkout…" : `Order ${name} — ${price}`}
+            {loading === "full" ? "Preparing checkout…" : `Pay in full — ${price}`}
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
+
+          <Button
+            onClick={() => handleOrder("installments")}
+            disabled={loading !== null}
+            variant="outline"
+            className={
+              "h-11 w-full rounded-full text-[13px] font-medium " +
+              (highlighted
+                ? "border-white/30 bg-white/5 text-white hover:bg-white/15"
+                : "border-brand-indigo/25 bg-transparent text-brand-indigo hover:bg-brand-tint")
+            }
+          >
+            {loading === "installments"
+              ? "Preparing checkout…"
+              : `Deposit $${plan.deposit} + ${plan.months} × $${plan.monthly}/mo`}
+          </Button>
+
           <p
             className={
-              "mt-3 text-center text-[11px] " +
+              "text-center text-[11px] leading-relaxed " +
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            Secure checkout by Stripe · promo codes supported · shipping calculated at next step
+            Repayment plan total ${totalInstallments} · billed monthly, auto-stops after the final
+            payment · promo codes only apply to pay-in-full · secure checkout by Stripe
           </p>
         </div>
       </div>
@@ -683,9 +711,14 @@ function PackageCard({
       <EmbeddedCheckoutDialog
         clientSecret={clientSecret}
         onClose={() => setClientSecret(null)}
-        title={`Complete your ${name} order`}
+        title={
+          activePlan === "installments"
+            ? `${name} — Deposit + monthly plan`
+            : `Complete your ${name} order`
+        }
       />
     </div>
   );
 }
+
 
