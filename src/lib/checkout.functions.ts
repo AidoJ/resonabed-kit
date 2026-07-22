@@ -62,7 +62,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
         line_items: [
           {
             price_data: {
-              currency: "usd",
+              currency: "aud",
               product_data: { name: `${pkg.name} — Deposit` },
               unit_amount: deposit,
             },
@@ -70,7 +70,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
           },
           {
             price_data: {
-              currency: "usd",
+              currency: "aud",
               product_data: {
                 name: `${pkg.name} — Monthly payment`,
                 description: `${months} monthly payments of $${(monthly / 100).toFixed(0)} following the deposit.`,
@@ -103,7 +103,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
         line_items: [
           {
             price_data: {
-              currency: "usd",
+              currency: "aud",
               product_data: { name: pkg.name, description: pkg.description },
               unit_amount: pkg.amount,
             },
