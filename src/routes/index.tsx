@@ -641,9 +641,16 @@ function PackageCard({
               "text-sm " + (highlighted ? "text-white/60" : "text-muted-foreground")
             }
           >
-            AUD · one-time
+            AUD · incl. GST
           </span>
         </div>
+        <p
+          className={
+            "mt-1 text-xs " + (highlighted ? "text-white/55" : "text-muted-foreground")
+          }
+        >
+          {packageKey === "pro" ? "$1,090 + $109 GST = $1,199" : "$1,272 + $127 GST = $1,399"}
+        </p>
         <p
           className={
             "mt-5 text-sm leading-relaxed " +
@@ -702,8 +709,8 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            Repayment plan total ${totalInstallments} · billed monthly, auto-stops after the final
-            payment · promo codes only apply to pay-in-full · secure checkout by Stripe
+            Repayment plan total ${totalInstallments} incl. GST · billed monthly, auto-stops after
+            the final payment · promo codes only apply to pay-in-full · secure checkout by Stripe
           </p>
         </div>
       </div>
