@@ -149,7 +149,10 @@ export const finalizeInstallmentsPlan = createServerFn({ method: "POST" })
     if (sub.cancel_at) return { ok: true, alreadySet: true };
 
     // Anchor to current_period_start + months (30d approximation to align with monthly cycles)
-    const anchor = sub.current_period_start ?? Math.floor(Date.now() / 1000);
+    const anchor = (sub as unknown as { current_period_start?: number }).current_period_start
+      ?? sub.start_date
+      ?? Math.floor(Date.now() / 1000);
+
     const cancelAt = anchor + months * 30 * 24 * 60 * 60 + 24 * 60 * 60;
     await stripe.subscriptions.update(sub.id, { cancel_at: cancelAt });
     return { ok: true, cancelAt };
