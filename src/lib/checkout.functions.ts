@@ -91,16 +91,6 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
         },
 
 
-        add_invoice_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: { name: `${pkg.name} — Deposit` },
-              unit_amount: deposit,
-            },
-            quantity: 1,
-          },
-        ],
         allow_promotion_codes: false,
         metadata: { package: data.package, plan: "installments" },
       };
