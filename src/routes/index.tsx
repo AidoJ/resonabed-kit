@@ -139,12 +139,6 @@ function LandingPage() {
               bed — a calm, high-margin session your clients will book again and again.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
-              <a href="mailto:info@resonabed.com?subject=Resonabed%20kit%20enquiry">
-                <Button className="h-12 rounded-full bg-white px-7 text-[15px] font-medium text-brand-ink hover:bg-white/90">
-                  Get a kit quote
-                  <ArrowRight className="ml-1.5 h-4 w-4" />
-                </Button>
-              </a>
               <a href="#packages">
                 <Button
                   variant="outline"
@@ -309,14 +303,8 @@ function LandingPage() {
           </div>
 
           <div className="mt-14 flex flex-col items-center justify-center gap-4 text-center sm:flex-row">
-            <a href="mailto:info@resonabed.com?subject=Resonabed%20kit%20enquiry">
-              <Button className="h-12 rounded-full bg-brand-indigo px-7 text-[15px] font-medium text-white hover:bg-brand-indigo/90">
-                Get a kit quote
-                <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Button>
-            </a>
             <p className="text-sm text-muted-foreground">
-              Or email{" "}
+              Questions? Email{" "}
               <a href="mailto:info@resonabed.com" className="text-brand-indigo hover:underline">
                 info@resonabed.com
               </a>
@@ -510,13 +498,13 @@ function LandingPage() {
               Ready to add a new revenue stream to your clinic?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-              Get a personalised quote for your clinic. We'll walk you through the kit, the app, and
-              how to start selling sessions in the room you already use.
+              Choose the package that fits your clinic, complete checkout, and start offering
+              vibroacoustic sessions in the room you already use.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <a href="mailto:info@resonabed.com?subject=Resonabed%20kit%20enquiry">
+              <a href="#packages">
                 <Button className="h-12 rounded-full px-7 text-[15px] font-medium">
-                  Get a kit quote
+                  Order your kit
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
               </a>
