@@ -53,7 +53,8 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
 
     if (data.plan === "installments") {
       const { deposit, monthly, months } = pkg.installments;
-      const cancelAt = Math.floor(Date.now() / 1000) + months * 30 * 24 * 60 * 60 + 24 * 60 * 60;
+
+
 
       const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
