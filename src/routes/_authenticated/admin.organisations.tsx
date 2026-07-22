@@ -37,7 +37,6 @@ import {
 import { toast } from "sonner";
 import {
   Copy,
-  
   Ban,
   Play,
   Pencil,
@@ -49,6 +48,7 @@ import {
   UserMinus,
   Music,
   LifeBuoy,
+  Tag,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
