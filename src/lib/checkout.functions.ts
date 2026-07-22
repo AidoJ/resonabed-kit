@@ -74,13 +74,14 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
         ],
         subscription_data: {
           description: `${pkg.name} — repayment plan (${months} months)`,
-          cancel_at: cancelAt,
           metadata: {
             package: data.package,
             plan: "installments",
             months: String(months),
+            cancel_after_months: String(months),
           },
         },
+
         add_invoice_items: [
           {
             price_data: {
