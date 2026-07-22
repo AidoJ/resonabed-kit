@@ -498,13 +498,13 @@ function LandingPage() {
               Ready to add a new revenue stream to your clinic?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-              Get a personalised quote for your clinic. We'll walk you through the kit, the app, and
-              how to start selling sessions in the room you already use.
+              Choose the package that fits your clinic, complete checkout, and start offering
+              vibroacoustic sessions in the room you already use.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <a href="mailto:info@resonabed.com?subject=Resonabed%20kit%20enquiry">
+              <a href="#packages">
                 <Button className="h-12 rounded-full px-7 text-[15px] font-medium">
-                  Get a kit quote
+                  Order your kit
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
               </a>
