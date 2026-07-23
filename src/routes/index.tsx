@@ -567,13 +567,13 @@ function PackageCard({
   const [loading, setLoading] = useState<null | "full" | "installments">(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
-  const [promoCode, setPromoCode] = useState("");
+  const [promoOpen, setPromoOpen] = useState(false);
   const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
 
   const plan = INSTALLMENTS[packageKey];
   const totalInstallments = plan.deposit + plan.monthly * plan.months;
 
-  const handleOrder = async (which: "full" | "installments") => {
+  const runCheckout = async (which: "full" | "installments", promoCode: string) => {
     setLoading(which);
     setActivePlan(which);
     try {
@@ -582,7 +582,7 @@ function PackageCard({
           package: packageKey,
           plan: which,
           origin: window.location.origin,
-          promoCode: which === "full" ? promoCode.trim() : "",
+          promoCode: which === "full" ? promoCode : "",
         },
       });
       setCheckoutNote(
@@ -596,6 +596,14 @@ function PackageCard({
       toast.error(err instanceof Error ? err.message : "Couldn't start checkout. Please try again or contact us.");
     } finally {
       setLoading(null);
+    }
+  };
+
+  const handleOrder = (which: "full" | "installments") => {
+    if (which === "full") {
+      setPromoOpen(true);
+    } else {
+      void runCheckout("installments", "");
     }
   };
 
