@@ -50,7 +50,7 @@ export const listPromoCodes = createServerFn({ method: "GET" })
 
 const CreateSchema = z.object({
   code: z.string().min(3).max(40).regex(/^[A-Z0-9_-]+$/i, "Use letters, numbers, dashes and underscores only"),
-  percent_off: z.number().int().min(1).max(100),
+  percent_off: z.number().int().min(1).max(99),
   max_redemptions: z.number().int().min(1).nullable().optional(),
 });
 
