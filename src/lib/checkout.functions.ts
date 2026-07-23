@@ -25,34 +25,54 @@ const PACKAGES = {
 
 type PackageKey = keyof typeof PACKAGES;
 
-const InputSchema = z.object({
-  package: z.enum(["pro", "premium"]),
-  plan: z.enum(["full", "installments"]).default("full"),
-  origin: z.string().url(),
-  promoCode: z.string().trim().min(3).max(40).optional().or(z.literal("")),
-  shippingRegion: z.string().trim().min(1).max(20),
+const ShippingAddressSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  line1: z.string().trim().min(1).max(200),
+  line2: z.string().trim().max(200).optional().or(z.literal("")),
+  city: z.string().trim().min(1).max(120),
+  state: z.string().trim().max(120).optional().or(z.literal("")),
+  postalCode: z.string().trim().min(1).max(20),
+  country: z
+    .string()
+    .trim()
+    .length(2)
+    .transform((s) => s.toUpperCase()),
 });
 
-type StripeCountry = Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry;
+const InputSchema = z
+  .object({
+    package: z.enum(["pro", "premium"]),
+    plan: z.enum(["full", "installments"]).default("full"),
+    origin: z.string().url(),
+    promoCode: z.string().trim().min(3).max(40).optional().or(z.literal("")),
+    pickup: z.boolean().default(false),
+    shippingAddress: ShippingAddressSchema.optional(),
+  })
+  .refine((v) => v.pickup || v.shippingAddress, {
+    message: "Shipping address is required unless pickup is selected",
+    path: ["shippingAddress"],
+  });
 
-async function loadShippingRate(region: string) {
+async function loadShippingRateForCountry(country: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("shipping_rates")
-    .select("region, label, amount_cents, gst_inclusive, allowed_countries, active")
-    .eq("region", region)
-    .maybeSingle();
-  if (error) throw new Error("Could not load shipping rate");
-  if (!data || !data.active) throw new Error("That shipping region is not available");
-  if (!Array.isArray(data.allowed_countries) || data.allowed_countries.length === 0) {
-    throw new Error("Shipping region has no countries configured");
-  }
+    .select("region, label, amount_cents, gst_inclusive, allowed_countries, active, sort_order")
+    .eq("active", true)
+    .gt("amount_cents", 0)
+    .order("sort_order", { ascending: true });
+  if (error) throw new Error("Could not load shipping rates");
+  const iso = country.toUpperCase();
+  const match = (data ?? []).find((r) =>
+    Array.isArray(r.allowed_countries) &&
+    (r.allowed_countries as string[]).map((c) => c.toUpperCase()).includes(iso),
+  );
+  if (!match) throw new Error("We don't ship to that country yet.");
   return {
-    region: data.region,
-    label: data.label,
-    amount: data.amount_cents,
-    gstInclusive: data.gst_inclusive,
-    allowedCountries: data.allowed_countries as StripeCountry[],
+    region: match.region,
+    label: match.label,
+    amount: match.amount_cents,
+    gstInclusive: match.gst_inclusive,
   };
 }
 
@@ -69,43 +89,63 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       throw new Error("Promo codes only apply to pay-in-full orders");
     }
 
-    const shipping = await loadShippingRate(data.shippingRegion);
-    const isPickup = shipping.amount === 0;
-    const shippingGstNote = shipping.gstInclusive
-      ? "Incl. GST"
-      : "Shipped GST-free (export)";
-    const shippingLineName = isPickup
-      ? `Shipping — ${shipping.label}`
-      : `Shipping — ${shipping.label}`;
-    const shippingLineDescription = isPickup
-      ? `${shipping.label}. No delivery charge — buyer arranges collection.`
-      : `Flat-rate shipping to ${shipping.label}. ${shippingGstNote}.`;
+    const isPickup = data.pickup;
+    const addr = data.shippingAddress;
+
+    // Resolve region + amount from country server-side. Never trust client amounts.
+    const shipping = isPickup
+      ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
+      : await loadShippingRateForCountry(addr!.country);
+
+    const shippingGstNote = shipping.gstInclusive ? "incl. GST" : "GST-free export";
+    const shippingLineName = `Shipping — ${shipping.label}`;
+    const shippingLineDescription = `Flat-rate shipping to ${shipping.label} (${shippingGstNote}).`;
 
     const baseParams = {
       ui_mode: "embedded",
       payment_method_types: ["card"],
-      ...(isPickup
-        ? {}
-        : { shipping_address_collection: { allowed_countries: shipping.allowedCountries } }),
       phone_number_collection: { enabled: true },
       billing_address_collection: "required",
       return_url: `${data.origin}/order/success?session_id={CHECKOUT_SESSION_ID}`,
     } satisfies Partial<Stripe.Checkout.SessionCreateParams>;
-
 
     const shippingMetadata: Record<string, string> = {
       shipping_region: shipping.region,
       shipping_amount_cents: String(shipping.amount),
     };
 
+    // Stripe shipping/customer address shape shared by both flows.
+    const stripeAddress = addr
+      ? {
+          line1: addr.line1,
+          line2: addr.line2 || undefined,
+          city: addr.city,
+          state: addr.state || undefined,
+          postal_code: addr.postalCode,
+          country: addr.country,
+        }
+      : undefined;
+
     let session: Stripe.Checkout.Session;
 
     if (data.plan === "installments") {
       const { deposit, monthly, months } = pkg.installments;
 
+      // Attach the entered address to a Customer so it applies to the subscription's invoices.
+      let customerId: string | undefined;
+      if (!isPickup && addr && stripeAddress) {
+        const customer = await stripe.customers.create({
+          name: addr.name,
+          address: stripeAddress,
+          shipping: { name: addr.name, address: stripeAddress },
+        });
+        customerId = customer.id;
+      }
+
       const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
         mode: "subscription",
+        ...(customerId ? { customer: customerId } : {}),
         line_items: [
           {
             price_data: {
@@ -129,7 +169,6 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           }]),
-
           {
             price_data: {
               currency: "aud",
@@ -208,6 +247,13 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
         mode: "payment",
+        ...(isPickup || !addr || !stripeAddress
+          ? {}
+          : {
+              payment_intent_data: {
+                shipping: { name: addr.name, address: stripeAddress },
+              },
+            }),
         line_items: [
           {
             price_data: {
@@ -217,6 +263,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           },
+          // Shipping is a separate, non-discounted line item — promo only touches the kit line.
           ...(isPickup ? [] : [{
             price_data: {
               currency: "aud" as const,
@@ -228,7 +275,6 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           }]),
-
         ],
         allow_promotion_codes: false,
         metadata: { package: data.package, plan: "full", ...shippingMetadata, ...promoMetadata },
