@@ -507,6 +507,42 @@ export type Database = {
           },
         ]
       }
+      promo_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          discount_percent: number
+          id: string
+          max_redemptions: number | null
+          times_redeemed: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          discount_percent: number
+          id?: string
+          max_redemptions?: number | null
+          times_redeemed?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          discount_percent?: number
+          id?: string
+          max_redemptions?: number | null
+          times_redeemed?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           buffer_minutes: number
