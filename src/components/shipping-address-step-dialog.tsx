@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -344,6 +344,9 @@ export function ShippingAddressStepDialog({
             <Truck className="h-5 w-5" />
             Where should we ship your kit?
           </DialogTitle>
+          <DialogDescription>
+            Search for a verified delivery address or choose customer pickup.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
