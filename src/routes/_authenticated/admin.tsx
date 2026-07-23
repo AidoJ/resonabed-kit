@@ -12,6 +12,7 @@ import {
   Waves,
   Music,
   Tag,
+  Truck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ const SUPER_TABS: Tab[] = [
   { to: "/frequencies", label: "Global frequencies", icon: Waves },
   { to: "/audio", label: "Global audio", icon: Music },
   { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
+  { to: "/admin/shipping", label: "Shipping rates", icon: Truck },
   { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
 ];
 

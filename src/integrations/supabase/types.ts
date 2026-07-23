@@ -717,6 +717,45 @@ export type Database = {
           },
         ]
       }
+      shipping_rates: {
+        Row: {
+          active: boolean
+          allowed_countries: string[]
+          amount_cents: number
+          created_at: string
+          gst_inclusive: boolean
+          id: string
+          label: string
+          region: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allowed_countries?: string[]
+          amount_cents: number
+          created_at?: string
+          gst_inclusive?: boolean
+          id?: string
+          label: string
+          region: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allowed_countries?: string[]
+          amount_cents?: number
+          created_at?: string
+          gst_inclusive?: boolean
+          id?: string
+          label?: string
+          region?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       support_access_grants: {
         Row: {
           created_at: string
