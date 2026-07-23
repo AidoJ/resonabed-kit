@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createKitCheckoutSession } from "@/lib/checkout.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
+import { PromoStepDialog } from "@/components/promo-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
