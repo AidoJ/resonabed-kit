@@ -68,7 +68,7 @@ export const updateShippingRate = createServerFn({ method: "POST" })
   .inputValidator((d) => UpdateSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requireSuperAdmin(context);
-    const patch: Record<string, unknown> = {};
+    const patch: { amount_cents?: number; active?: boolean } = {};
     if (data.amount_cents !== undefined) patch.amount_cents = data.amount_cents;
     if (data.active !== undefined) patch.active = data.active;
     if (Object.keys(patch).length === 0) return { ok: true };
