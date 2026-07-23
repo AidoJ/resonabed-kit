@@ -118,9 +118,9 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           },
-          {
+          ...(isPickup ? [] : [{
             price_data: {
-              currency: "aud",
+              currency: "aud" as const,
               product_data: {
                 name: shippingLineName,
                 description: `${shippingLineDescription} Billed once with the deposit on the first invoice.`,
@@ -128,7 +128,8 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
               unit_amount: shipping.amount,
             },
             quantity: 1,
-          },
+          }]),
+
           {
             price_data: {
               currency: "aud",
