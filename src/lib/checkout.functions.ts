@@ -89,43 +89,63 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       throw new Error("Promo codes only apply to pay-in-full orders");
     }
 
-    const shipping = await loadShippingRate(data.shippingRegion);
-    const isPickup = shipping.amount === 0;
-    const shippingGstNote = shipping.gstInclusive
-      ? "Incl. GST"
-      : "Shipped GST-free (export)";
-    const shippingLineName = isPickup
-      ? `Shipping — ${shipping.label}`
-      : `Shipping — ${shipping.label}`;
-    const shippingLineDescription = isPickup
-      ? `${shipping.label}. No delivery charge — buyer arranges collection.`
-      : `Flat-rate shipping to ${shipping.label}. ${shippingGstNote}.`;
+    const isPickup = data.pickup;
+    const addr = data.shippingAddress;
+
+    // Resolve region + amount from country server-side. Never trust client amounts.
+    const shipping = isPickup
+      ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
+      : await loadShippingRateForCountry(addr!.country);
+
+    const shippingGstNote = shipping.gstInclusive ? "incl. GST" : "GST-free export";
+    const shippingLineName = `Shipping — ${shipping.label}`;
+    const shippingLineDescription = `Flat-rate shipping to ${shipping.label} (${shippingGstNote}).`;
 
     const baseParams = {
       ui_mode: "embedded",
       payment_method_types: ["card"],
-      ...(isPickup
-        ? {}
-        : { shipping_address_collection: { allowed_countries: shipping.allowedCountries } }),
       phone_number_collection: { enabled: true },
       billing_address_collection: "required",
       return_url: `${data.origin}/order/success?session_id={CHECKOUT_SESSION_ID}`,
     } satisfies Partial<Stripe.Checkout.SessionCreateParams>;
-
 
     const shippingMetadata: Record<string, string> = {
       shipping_region: shipping.region,
       shipping_amount_cents: String(shipping.amount),
     };
 
+    // Stripe shipping/customer address shape shared by both flows.
+    const stripeAddress = addr
+      ? {
+          line1: addr.line1,
+          line2: addr.line2 || undefined,
+          city: addr.city,
+          state: addr.state || undefined,
+          postal_code: addr.postalCode,
+          country: addr.country,
+        }
+      : undefined;
+
     let session: Stripe.Checkout.Session;
 
     if (data.plan === "installments") {
       const { deposit, monthly, months } = pkg.installments;
 
+      // Attach the entered address to a Customer so it applies to the subscription's invoices.
+      let customerId: string | undefined;
+      if (!isPickup && addr && stripeAddress) {
+        const customer = await stripe.customers.create({
+          name: addr.name,
+          address: stripeAddress,
+          shipping: { name: addr.name, address: stripeAddress },
+        });
+        customerId = customer.id;
+      }
+
       const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
         mode: "subscription",
+        ...(customerId ? { customer: customerId } : {}),
         line_items: [
           {
             price_data: {
@@ -149,7 +169,6 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           }]),
-
           {
             price_data: {
               currency: "aud",
@@ -228,6 +247,13 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
         mode: "payment",
+        ...(isPickup || !addr || !stripeAddress
+          ? {}
+          : {
+              payment_intent_data: {
+                shipping: { name: addr.name, address: stripeAddress },
+              },
+            }),
         line_items: [
           {
             price_data: {
@@ -237,6 +263,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           },
+          // Shipping is a separate, non-discounted line item — promo only touches the kit line.
           ...(isPickup ? [] : [{
             price_data: {
               currency: "aud" as const,
@@ -248,7 +275,6 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           }]),
-
         ],
         allow_promotion_codes: false,
         metadata: { package: data.package, plan: "full", ...shippingMetadata, ...promoMetadata },
