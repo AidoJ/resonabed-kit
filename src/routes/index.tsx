@@ -750,6 +750,16 @@ function PackageCard({
             : `Complete your ${name} order`
         }
       />
+      <PromoStepDialog
+        open={promoOpen}
+        packageKey={promoOpen ? packageKey : null}
+        packagePrice={price}
+        onCancel={() => setPromoOpen(false)}
+        onContinue={(code) => {
+          setPromoOpen(false);
+          void runCheckout("full", code);
+        }}
+      />
     </div>
   );
 }
