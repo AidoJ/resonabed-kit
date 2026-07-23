@@ -227,7 +227,7 @@ export function ShippingAddressStepDialog({
   }, [mapsConfig?.apiKey, open, pickup]);
 
   useEffect(() => {
-    if (!open || pickup || !placesReady || addressQuery.trim().length < 4) {
+    if (!open || pickup || !placesReady || countryOptions.length === 0 || addressQuery.trim().length < 4) {
       setSuggestions([]);
       setIsSearching(false);
       return;
