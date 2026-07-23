@@ -695,18 +695,6 @@ function PackageCard({
           ))}
         </ul>
         <div className="mt-9 space-y-3">
-          <Input
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-            placeholder="Promo code for pay-in-full"
-            maxLength={40}
-            className={
-              "h-11 rounded-full text-center uppercase " +
-              (highlighted
-                ? "border-white/25 bg-white/10 text-white placeholder:text-white/45 focus-visible:ring-white/40"
-                : "border-brand-indigo/20 bg-background")
-            }
-          />
           <Button
             onClick={() => handleOrder("full")}
             disabled={loading !== null}
