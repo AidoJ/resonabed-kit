@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { createKitCheckoutSession } from "@/lib/checkout.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import { PromoStepDialog } from "@/components/promo-step-dialog";
+import { ShippingStepDialog } from "@/components/shipping-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
@@ -567,29 +568,40 @@ function PackageCard({
   const [loading, setLoading] = useState<null | "full" | "installments">(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
+  const [shippingOpen, setShippingOpen] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<"full" | "installments" | null>(null);
+  const [shippingRegion, setShippingRegion] = useState<string | null>(null);
   const [promoOpen, setPromoOpen] = useState(false);
   const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
 
   const plan = INSTALLMENTS[packageKey];
   const totalInstallments = plan.deposit + plan.monthly * plan.months;
 
-  const runCheckout = async (which: "full" | "installments", promoCode: string) => {
+  const runCheckout = async (
+    which: "full" | "installments",
+    promoCode: string,
+    region: string,
+  ) => {
     setLoading(which);
     setActivePlan(which);
     try {
-      const { clientSecret: cs, appliedPromo } = await startCheckout({
+      const { clientSecret: cs, appliedPromo, shipping } = await startCheckout({
         data: {
           package: packageKey,
           plan: which,
           origin: window.location.origin,
           promoCode: which === "full" ? promoCode : "",
+          shippingRegion: region,
         },
       });
-      setCheckoutNote(
-        appliedPromo
-          ? `${appliedPromo.code} applied — ${appliedPromo.percentOff}% off, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
-          : null,
-      );
+      const shippingBlurb = shipping
+        ? `Shipping to ${shipping.label}: $${(shipping.amount / 100).toFixed(2)} AUD${shipping.gstInclusive ? " (incl. GST)" : " (GST-free export)"}.`
+        : null;
+      const promoBlurb = appliedPromo
+        ? `${appliedPromo.code} applied — ${appliedPromo.percentOff}% off, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
+        : null;
+      const combined = [promoBlurb, shippingBlurb].filter(Boolean).join(" ");
+      setCheckoutNote(combined || null);
       setClientSecret(cs);
     } catch (err) {
       console.error(err);
@@ -600,10 +612,18 @@ function PackageCard({
   };
 
   const handleOrder = (which: "full" | "installments") => {
-    if (which === "full") {
+    setPendingPlan(which);
+    setShippingRegion(null);
+    setShippingOpen(true);
+  };
+
+  const handleShippingContinue = (region: string) => {
+    setShippingRegion(region);
+    setShippingOpen(false);
+    if (pendingPlan === "full") {
       setPromoOpen(true);
-    } else {
-      void runCheckout("installments", "");
+    } else if (pendingPlan === "installments") {
+      void runCheckout("installments", "", region);
     }
   };
 
@@ -731,8 +751,9 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            Repayment plan total ${totalInstallments} incl. GST · billed monthly, auto-stops after
-            the final payment · promo codes only apply to pay-in-full · secure checkout by Stripe
+            + shipping, calculated by destination · repayment plan total ${totalInstallments} incl.
+            GST · billed monthly, auto-stops after the final payment · promo codes only apply to
+            pay-in-full · secure checkout by Stripe
           </p>
         </div>
       </div>
@@ -750,6 +771,14 @@ function PackageCard({
             : `Complete your ${name} order`
         }
       />
+      <ShippingStepDialog
+        open={shippingOpen}
+        onCancel={() => {
+          setShippingOpen(false);
+          setPendingPlan(null);
+        }}
+        onContinue={handleShippingContinue}
+      />
       <PromoStepDialog
         open={promoOpen}
         packageKey={promoOpen ? packageKey : null}
@@ -757,7 +786,7 @@ function PackageCard({
         onCancel={() => setPromoOpen(false)}
         onContinue={(code) => {
           setPromoOpen(false);
-          void runCheckout("full", code);
+          if (shippingRegion) void runCheckout("full", code, shippingRegion);
         }}
       />
     </div>
