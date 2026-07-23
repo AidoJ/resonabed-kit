@@ -19,7 +19,7 @@ const PACKAGES = {
     amount: 139900,
     exGst: 127200,
     gst: 12700,
-    installments: { deposit: 39900, monthly: 10000, months: 10 }, // 399 + 10*100 = 1399
+    installments: { deposit: 59900, monthly: 10000, months: 8 }, // 599 + 8*100 = 1399
   },
 } as const;
 
