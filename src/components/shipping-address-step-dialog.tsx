@@ -147,13 +147,6 @@ export function ShippingAddressStepDialog({
     enabled: open,
     staleTime: 60_000,
   });
-  const { data: mapsConfig } = useQuery({
-    queryKey: ["google-maps-browser-config"],
-    queryFn: () => fetchMapsConfig(),
-    enabled: open && !pickup,
-    staleTime: 10 * 60_000,
-  });
-
   const [pickup, setPickup] = useState(false);
   const [addressQuery, setAddressQuery] = useState("");
   const [addressVerified, setAddressVerified] = useState(false);
@@ -174,6 +167,13 @@ export function ShippingAddressStepDialog({
   });
   const [error, setError] = useState<string | null>(null);
 
+  const { data: mapsConfig } = useQuery({
+    queryKey: ["google-maps-browser-config"],
+    queryFn: () => fetchMapsConfig(),
+    enabled: open && !pickup,
+    staleTime: 10 * 60_000,
+  });
+
   useEffect(() => {
     if (open) {
       setPickup(false);
@@ -185,6 +185,27 @@ export function ShippingAddressStepDialog({
       setError(null);
     }
   }, [open]);
+
+  // Shippable rows only (excludes pickup / $0). Pickup is handled by the toggle.
+  const shippableRates = useMemo<ShippingRateRow[]>(
+    () => (rates ?? []).filter((r) => r.amount_cents > 0),
+    [rates],
+  );
+
+  const countryOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const opts: { code: string; name: string }[] = [];
+    for (const r of shippableRates) {
+      for (const c of r.allowed_countries) {
+        const iso = c.toUpperCase();
+        if (seen.has(iso)) continue;
+        seen.add(iso);
+        opts.push({ code: iso, name: countryName(iso) });
+      }
+    }
+    opts.sort((a, b) => a.name.localeCompare(b.name));
+    return opts;
+  }, [shippableRates]);
 
   useEffect(() => {
     if (!open || pickup || !mapsConfig?.apiKey) return;
@@ -239,27 +260,6 @@ export function ShippingAddressStepDialog({
 
     return () => window.clearTimeout(timer);
   }, [addressQuery, countryOptions, open, pickup, placesReady]);
-
-  // Shippable rows only (excludes pickup / $0). Pickup is handled by the toggle.
-  const shippableRates = useMemo<ShippingRateRow[]>(
-    () => (rates ?? []).filter((r) => r.amount_cents > 0),
-    [rates],
-  );
-
-  const countryOptions = useMemo(() => {
-    const seen = new Set<string>();
-    const opts: { code: string; name: string }[] = [];
-    for (const r of shippableRates) {
-      for (const c of r.allowed_countries) {
-        const iso = c.toUpperCase();
-        if (seen.has(iso)) continue;
-        seen.add(iso);
-        opts.push({ code: iso, name: countryName(iso) });
-      }
-    }
-    opts.sort((a, b) => a.name.localeCompare(b.name));
-    return opts;
-  }, [shippableRates]);
 
   // Match country → rate by lowest sort_order tiebreaker (rates already sorted).
   const matchedRate = useMemo<ShippingRateRow | null>(() => {
