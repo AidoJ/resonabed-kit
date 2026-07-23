@@ -19,7 +19,7 @@ const PACKAGES = {
     amount: 139900,
     exGst: 127200,
     gst: 12700,
-    installments: { deposit: 39900, monthly: 10000, months: 10 }, // 399 + 10*100 = 1399
+    installments: { deposit: 59900, monthly: 10000, months: 8 }, // 599 + 8*100 = 1399
   },
 } as const;
 
@@ -152,7 +152,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
               currency: "aud",
               product_data: {
                 name: `${pkg.name} — Deposit`,
-                description: `Deposit incl. GST — $363 + $36 GST = $399 AUD. Followed by ${months} monthly payments.`,
+                description: `Deposit incl. GST — $${Math.round((deposit / 100) / 1.1)} + $${Math.round((deposit / 100) - (deposit / 100) / 1.1)} GST = $${(deposit / 100).toFixed(0)} AUD. Followed by ${months} monthly payments.`,
               },
               unit_amount: deposit,
             },

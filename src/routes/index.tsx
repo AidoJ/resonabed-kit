@@ -544,7 +544,7 @@ function LandingPage() {
 
 const INSTALLMENTS = {
   pro: { deposit: 399, monthly: 100, months: 8 },
-  premium: { deposit: 399, monthly: 100, months: 10 },
+  premium: { deposit: 599, monthly: 100, months: 8 },
 } as const;
 
 function PackageCard({
