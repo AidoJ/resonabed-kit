@@ -71,10 +71,15 @@ export function ShippingStepDialog({
                     <div>
                       <div className="text-sm font-medium text-brand-indigo">{r.label}</div>
                       <div className="text-xs text-muted-foreground">
-                        {r.gst_inclusive ? "Incl. GST" : "Shipped GST-free (export)"}
+                        {r.amount_cents === 0
+                          ? "No delivery — buyer arranges collection"
+                          : r.gst_inclusive ? "Incl. GST" : "Shipped GST-free (export)"}
                       </div>
                     </div>
-                    <div className="text-sm font-medium text-foreground">{fmt(r.amount_cents)}</div>
+                    <div className="text-sm font-medium text-foreground">
+                      {r.amount_cents === 0 ? "Free" : fmt(r.amount_cents)}
+                    </div>
+
                   </button>
                 );
               })}

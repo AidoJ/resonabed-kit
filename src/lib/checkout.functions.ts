@@ -70,20 +70,28 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
     }
 
     const shipping = await loadShippingRate(data.shippingRegion);
+    const isPickup = shipping.amount === 0;
     const shippingGstNote = shipping.gstInclusive
       ? "Incl. GST"
       : "Shipped GST-free (export)";
-    const shippingLineName = `Shipping — ${shipping.label}`;
-    const shippingLineDescription = `Flat-rate shipping to ${shipping.label}. ${shippingGstNote}.`;
+    const shippingLineName = isPickup
+      ? `Shipping — ${shipping.label}`
+      : `Shipping — ${shipping.label}`;
+    const shippingLineDescription = isPickup
+      ? `${shipping.label}. No delivery charge — buyer arranges collection.`
+      : `Flat-rate shipping to ${shipping.label}. ${shippingGstNote}.`;
 
     const baseParams = {
       ui_mode: "embedded",
       payment_method_types: ["card"],
-      shipping_address_collection: { allowed_countries: shipping.allowedCountries },
+      ...(isPickup
+        ? {}
+        : { shipping_address_collection: { allowed_countries: shipping.allowedCountries } }),
       phone_number_collection: { enabled: true },
       billing_address_collection: "required",
       return_url: `${data.origin}/order/success?session_id={CHECKOUT_SESSION_ID}`,
     } satisfies Partial<Stripe.Checkout.SessionCreateParams>;
+
 
     const shippingMetadata: Record<string, string> = {
       shipping_region: shipping.region,
@@ -110,9 +118,9 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           },
-          {
+          ...(isPickup ? [] : [{
             price_data: {
-              currency: "aud",
+              currency: "aud" as const,
               product_data: {
                 name: shippingLineName,
                 description: `${shippingLineDescription} Billed once with the deposit on the first invoice.`,
@@ -120,7 +128,8 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
               unit_amount: shipping.amount,
             },
             quantity: 1,
-          },
+          }]),
+
           {
             price_data: {
               currency: "aud",
@@ -208,9 +217,9 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           },
-          {
+          ...(isPickup ? [] : [{
             price_data: {
-              currency: "aud",
+              currency: "aud" as const,
               product_data: {
                 name: shippingLineName,
                 description: shippingLineDescription,
@@ -218,7 +227,8 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
               unit_amount: shipping.amount,
             },
             quantity: 1,
-          },
+          }]),
+
         ],
         allow_promotion_codes: false,
         metadata: { package: data.package, plan: "full", ...shippingMetadata, ...promoMetadata },
