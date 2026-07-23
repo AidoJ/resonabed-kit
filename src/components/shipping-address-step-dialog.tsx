@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,15 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { getShippingRates, type ShippingRateRow } from "@/lib/shipping.functions";
-import { Truck, PackageCheck } from "lucide-react";
+import { getGoogleMapsBrowserConfig } from "@/lib/google-maps.functions";
+import { CheckCircle2, Loader2, MapPin, PackageCheck, Search, Truck } from "lucide-react";
 
 export type EnteredShippingAddress = {
   name: string;
@@ -56,6 +50,84 @@ const COUNTRY_NAMES: Record<string, string> = {
 
 const countryName = (iso: string) => COUNTRY_NAMES[iso] ?? iso;
 
+type GoogleAddressComponent = {
+  longText?: string;
+  shortText?: string;
+  long_name?: string;
+  short_name?: string;
+  types?: string[];
+};
+
+type GooglePlaceSuggestion = {
+  placePrediction?: {
+    text?: { text?: string };
+    toPlace: () => {
+      formattedAddress?: string;
+      addressComponents?: GoogleAddressComponent[];
+      fetchFields: (request: { fields: string[] }) => Promise<void>;
+    };
+  };
+};
+
+declare global {
+  interface Window {
+    google?: any;
+    __resonabedGoogleMapsReady?: () => void;
+  }
+}
+
+let googleMapsLoader: Promise<void> | null = null;
+
+function loadGoogleMaps(apiKey: string) {
+  if (typeof window === "undefined") return Promise.reject(new Error("Google Maps requires a browser"));
+  if (window.google?.maps?.importLibrary) return Promise.resolve();
+  if (googleMapsLoader) return googleMapsLoader;
+
+  googleMapsLoader = new Promise<void>((resolve, reject) => {
+    window.__resonabedGoogleMapsReady = () => resolve();
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&loading=async&callback=__resonabedGoogleMapsReady`;
+    script.async = true;
+    script.onerror = () => reject(new Error("Google Maps could not be loaded"));
+    document.head.appendChild(script);
+  });
+
+  return googleMapsLoader;
+}
+
+const componentText = (component: GoogleAddressComponent, short = false) =>
+  (short ? component.shortText || component.short_name : component.longText || component.long_name) || "";
+
+const findComponent = (components: GoogleAddressComponent[], type: string) =>
+  components.find((component) => component.types?.includes(type));
+
+function parseGoogleAddress(components: GoogleAddressComponent[], fallbackLine1: string): EnteredShippingAddress {
+  const streetNumber = componentText(findComponent(components, "street_number") ?? {});
+  const route = componentText(findComponent(components, "route") ?? {});
+  const premise = componentText(findComponent(components, "premise") ?? {});
+  const subpremise = componentText(findComponent(components, "subpremise") ?? {});
+  const city =
+    componentText(findComponent(components, "locality") ?? {}) ||
+    componentText(findComponent(components, "postal_town") ?? {}) ||
+    componentText(findComponent(components, "sublocality_level_1") ?? {}) ||
+    componentText(findComponent(components, "administrative_area_level_2") ?? {});
+  const state = componentText(findComponent(components, "administrative_area_level_1") ?? {}, true);
+  const postalCode = componentText(findComponent(components, "postal_code") ?? {}, true);
+  const postalSuffix = componentText(findComponent(components, "postal_code_suffix") ?? {}, true);
+  const country = componentText(findComponent(components, "country") ?? {}, true).toUpperCase();
+  const line1 = [streetNumber, route].filter(Boolean).join(" ") || premise || fallbackLine1.split(",")[0] || "";
+
+  return {
+    name: "",
+    line1,
+    line2: subpremise,
+    city,
+    state,
+    postalCode: postalSuffix ? `${postalCode}-${postalSuffix}` : postalCode,
+    country,
+  };
+}
+
 export function ShippingAddressStepDialog({
   open,
   packagePriceCents,
@@ -68,14 +140,29 @@ export function ShippingAddressStepDialog({
   onContinue: (payload: ShippingContinuePayload) => void;
 }) {
   const fetchRates = useServerFn(getShippingRates);
+  const fetchMapsConfig = useServerFn(getGoogleMapsBrowserConfig);
   const { data: rates, isLoading } = useQuery({
     queryKey: ["shipping-rates"],
     queryFn: () => fetchRates(),
     enabled: open,
     staleTime: 60_000,
   });
+  const { data: mapsConfig } = useQuery({
+    queryKey: ["google-maps-browser-config"],
+    queryFn: () => fetchMapsConfig(),
+    enabled: open && !pickup,
+    staleTime: 10 * 60_000,
+  });
 
   const [pickup, setPickup] = useState(false);
+  const [addressQuery, setAddressQuery] = useState("");
+  const [addressVerified, setAddressVerified] = useState(false);
+  const [placesReady, setPlacesReady] = useState(false);
+  const [placesError, setPlacesError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<GooglePlaceSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const sessionTokenRef = useRef<any>(null);
+  const searchRequestRef = useRef(0);
   const [form, setForm] = useState<EnteredShippingAddress>({
     name: "",
     line1: "",
@@ -90,10 +177,68 @@ export function ShippingAddressStepDialog({
   useEffect(() => {
     if (open) {
       setPickup(false);
+      setAddressQuery("");
+      setAddressVerified(false);
+      setSuggestions([]);
+      setPlacesError(null);
       setForm({ name: "", line1: "", line2: "", city: "", state: "", postalCode: "", country: "" });
       setError(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || pickup || !mapsConfig?.apiKey) return;
+    let cancelled = false;
+    setPlacesError(null);
+    loadGoogleMaps(mapsConfig.apiKey)
+      .then(async () => {
+        await window.google.maps.importLibrary("places");
+        if (cancelled) return;
+        sessionTokenRef.current = new window.google.maps.places.AutocompleteSessionToken();
+        setPlacesReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setPlacesError("Address search is unavailable. Please try again shortly.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mapsConfig?.apiKey, open, pickup]);
+
+  useEffect(() => {
+    if (!open || pickup || !placesReady || addressQuery.trim().length < 4) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const requestId = searchRequestRef.current + 1;
+    searchRequestRef.current = requestId;
+    setIsSearching(true);
+
+    const timer = window.setTimeout(async () => {
+      try {
+        const places = await window.google.maps.importLibrary("places");
+        const { suggestions: nextSuggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input: addressQuery,
+          includedRegionCodes: countryOptions.map((country) => country.code.toLowerCase()),
+          sessionToken: sessionTokenRef.current,
+        });
+        if (searchRequestRef.current === requestId) {
+          setSuggestions((nextSuggestions ?? []).filter((suggestion: GooglePlaceSuggestion) => suggestion.placePrediction));
+          setIsSearching(false);
+        }
+      } catch {
+        if (searchRequestRef.current === requestId) {
+          setSuggestions([]);
+          setIsSearching(false);
+          setPlacesError("Address search is unavailable. Please try again shortly.");
+        }
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [addressQuery, countryOptions, open, pickup, placesReady]);
 
   // Shippable rows only (excludes pickup / $0). Pickup is handled by the toggle.
   const shippableRates = useMemo<ShippingRateRow[]>(
@@ -135,6 +280,7 @@ export function ShippingAddressStepDialog({
       onContinue({ pickup: true });
       return;
     }
+    if (!addressVerified) return setError("Choose an address from the Google address suggestions.");
     if (!form.country) return setError("Select a destination country.");
     if (!matchedRate) return setError("We don't ship to that country yet.");
     if (!form.name.trim()) return setError("Enter the recipient's full name.");
@@ -154,6 +300,40 @@ export function ShippingAddressStepDialog({
         country: form.country,
       },
     });
+  };
+
+  const handleSuggestionSelect = async (suggestion: GooglePlaceSuggestion) => {
+    const prediction = suggestion.placePrediction;
+    if (!prediction) return;
+    try {
+      const place = prediction.toPlace();
+      await place.fetchFields({ fields: ["formattedAddress", "addressComponents"] });
+      const formattedAddress = place.formattedAddress || prediction.text?.text || "";
+      const parsed = parseGoogleAddress(place.addressComponents ?? [], formattedAddress);
+      const nextForm = {
+        ...parsed,
+        name: form.name,
+        line2: parsed.line2 || form.line2,
+      };
+      setForm(nextForm);
+      setAddressQuery(formattedAddress);
+      setSuggestions([]);
+      setAddressVerified(Boolean(nextForm.line1 && nextForm.city && nextForm.postalCode && nextForm.country));
+      sessionTokenRef.current = new window.google.maps.places.AutocompleteSessionToken();
+
+      const shipsToCountry = shippableRates.some((rate) =>
+        rate.allowed_countries.map((country) => country.toUpperCase()).includes(nextForm.country),
+      );
+      if (!shipsToCountry) {
+        setError("We don't ship to that country yet.");
+      } else if (!nextForm.line1 || !nextForm.city || !nextForm.postalCode || !nextForm.country) {
+        setError("Choose a more precise address that includes street, city, postcode, and country.");
+      } else {
+        setError(null);
+      }
+    } catch {
+      setError("That address could not be read. Please choose another suggestion.");
+    }
   };
 
   return (
@@ -199,29 +379,88 @@ export function ShippingAddressStepDialog({
                         onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="ship-line1">Address line 1</Label>
-                      <Input
-                        id="ship-line1"
-                        value={form.line1}
-                        onChange={(e) => setForm((f) => ({ ...f, line1: e.target.value }))}
-                      />
+                    <div className="relative">
+                      <Label htmlFor="ship-address-search">Delivery address</Label>
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          id="ship-address-search"
+                          value={addressQuery}
+                          disabled={!mapsConfig?.configured || Boolean(placesError)}
+                          onChange={(e) => {
+                            setAddressQuery(e.target.value);
+                            setAddressVerified(false);
+                            setForm((f) => ({ ...f, line1: "", city: "", state: "", postalCode: "", country: "" }));
+                          }}
+                          placeholder={placesReady ? "Start typing a street address…" : "Loading address search…"}
+                          className="pl-9"
+                          autoComplete="off"
+                        />
+                        {isSearching ? (
+                          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                        ) : addressVerified ? (
+                          <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600" />
+                        ) : null}
+                      </div>
+                      {!mapsConfig?.configured ? (
+                        <p className="mt-1 text-xs text-destructive">Address search is not configured.</p>
+                      ) : placesError ? (
+                        <p className="mt-1 text-xs text-destructive">{placesError}</p>
+                      ) : null}
+                      {suggestions.length > 0 ? (
+                        <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-brand-indigo/15 bg-white py-1 shadow-lg">
+                          {suggestions.map((suggestion, index) => {
+                            const text = suggestion.placePrediction?.text?.text ?? "Address suggestion";
+                            return (
+                              <button
+                                key={`${text}-${index}`}
+                                type="button"
+                                onClick={() => void handleSuggestionSelect(suggestion)}
+                                className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm text-brand-indigo hover:bg-brand-tint"
+                              >
+                                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-violet" />
+                                <span>{text}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : null}
                     </div>
+
+                    {addressVerified ? (
+                      <div className="rounded-2xl border border-brand-indigo/15 bg-brand-tint/50 p-3 text-sm text-brand-indigo">
+                        <div className="font-medium">Verified address</div>
+                        <div className="mt-1 text-muted-foreground">
+                          {form.line1}
+                          {form.line2 ? `, ${form.line2}` : ""}, {form.city}
+                          {form.state ? `, ${form.state}` : ""} {form.postalCode}, {countryName(form.country)}
+                        </div>
+                      </div>
+                    ) : null}
+
                     <div>
-                      <Label htmlFor="ship-line2">Address line 2 (optional)</Label>
+                      <Label htmlFor="ship-line2">Unit / suite (optional)</Label>
                       <Input
                         id="ship-line2"
                         value={form.line2}
                         onChange={(e) => setForm((f) => ({ ...f, line2: e.target.value }))}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="hidden">
+                      <Label htmlFor="ship-line1">Address line 1</Label>
+                      <Input
+                        id="ship-line1"
+                        value={form.line1}
+                        readOnly
+                      />
+                    </div>
+                    <div className="hidden grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor="ship-city">City / Suburb</Label>
                         <Input
                           id="ship-city"
                           value={form.city}
-                          onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                          readOnly
                         />
                       </div>
                       <div>
@@ -229,36 +468,22 @@ export function ShippingAddressStepDialog({
                         <Input
                           id="ship-state"
                           value={form.state}
-                          onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
+                          readOnly
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="hidden grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor="ship-postal">Postal / ZIP</Label>
                         <Input
                           id="ship-postal"
                           value={form.postalCode}
-                          onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))}
+                          readOnly
                         />
                       </div>
                       <div>
                         <Label htmlFor="ship-country">Country</Label>
-                        <Select
-                          value={form.country}
-                          onValueChange={(v) => setForm((f) => ({ ...f, country: v }))}
-                        >
-                          <SelectTrigger id="ship-country">
-                            <SelectValue placeholder="Select…" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {countryOptions.map((c) => (
-                              <SelectItem key={c.code} value={c.code}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Input id="ship-country" value={form.country} readOnly />
                       </div>
                     </div>
                   </div>
@@ -312,7 +537,7 @@ export function ShippingAddressStepDialog({
             <Button
               onClick={handleContinue}
               className="h-11 flex-1 rounded-full bg-brand-indigo text-white hover:bg-brand-indigo/90"
-              disabled={!pickup && (!form.country || !matchedRate)}
+              disabled={!pickup && (!addressVerified || !form.country || !matchedRate)}
             >
               Continue
             </Button>
