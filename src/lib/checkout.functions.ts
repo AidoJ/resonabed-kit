@@ -217,9 +217,9 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           },
-          {
+          ...(isPickup ? [] : [{
             price_data: {
-              currency: "aud",
+              currency: "aud" as const,
               product_data: {
                 name: shippingLineName,
                 description: shippingLineDescription,
@@ -227,7 +227,8 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
               unit_amount: shipping.amount,
             },
             quantity: 1,
-          },
+          }]),
+
         ],
         allow_promotion_codes: false,
         metadata: { package: data.package, plan: "full", ...shippingMetadata, ...promoMetadata },
