@@ -107,7 +107,7 @@ function PromoCodesPage() {
     /^[A-Z0-9_-]+$/i.test(code.trim()) &&
     !Number.isNaN(Number(percentOff)) &&
     Number(percentOff) >= 1 &&
-    Number(percentOff) <= 100 &&
+    Number(percentOff) <= 99 &&
     (maxRedemptions === "" ||
       (!Number.isNaN(Number(maxRedemptions)) && Number(maxRedemptions) >= 1));
 
