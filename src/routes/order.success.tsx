@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { finalizeInstallmentsPlan } from "@/lib/checkout.functions";
+import { finalizeCheckoutSession } from "@/lib/checkout.functions";
 
 export const Route = createFileRoute("/order/success")({
   head: () => ({
@@ -20,13 +20,13 @@ export const Route = createFileRoute("/order/success")({
 
 function OrderSuccess() {
   const { session_id } = Route.useSearch();
-  const finalize = useServerFn(finalizeInstallmentsPlan);
+  const finalize = useServerFn(finalizeCheckoutSession);
 
   useEffect(() => {
     if (!session_id) return;
     finalize({ data: { sessionId: session_id } }).catch((err) => {
-      // Non-fatal: subscription still exists; scheduled cancellation can be set manually.
-      console.error("finalizeInstallmentsPlan failed", err);
+      // Non-fatal: payment is already complete; admin records can be reconciled manually.
+      console.error("finalizeCheckoutSession failed", err);
     });
   }, [session_id, finalize]);
 

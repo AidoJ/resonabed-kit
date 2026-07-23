@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { createKitCheckoutSession } from "@/lib/checkout.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
@@ -565,6 +566,8 @@ function PackageCard({
   const [loading, setLoading] = useState<null | "full" | "installments">(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
+  const [promoCode, setPromoCode] = useState("");
+  const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
 
   const plan = INSTALLMENTS[packageKey];
   const totalInstallments = plan.deposit + plan.monthly * plan.months;
@@ -573,13 +576,23 @@ function PackageCard({
     setLoading(which);
     setActivePlan(which);
     try {
-      const { clientSecret: cs } = await startCheckout({
-        data: { package: packageKey, plan: which, origin: window.location.origin },
+      const { clientSecret: cs, appliedPromo } = await startCheckout({
+        data: {
+          package: packageKey,
+          plan: which,
+          origin: window.location.origin,
+          promoCode: which === "full" ? promoCode.trim() : "",
+        },
       });
+      setCheckoutNote(
+        appliedPromo
+          ? `${appliedPromo.code} applied — ${appliedPromo.percentOff}% off, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
+          : null,
+      );
       setClientSecret(cs);
     } catch (err) {
       console.error(err);
-      toast.error("Couldn't start checkout. Please try again or contact us.");
+      toast.error(err instanceof Error ? err.message : "Couldn't start checkout. Please try again or contact us.");
     } finally {
       setLoading(null);
     }
@@ -673,6 +686,18 @@ function PackageCard({
           ))}
         </ul>
         <div className="mt-9 space-y-3">
+          <Input
+            value={promoCode}
+            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+            placeholder="Promo code for pay-in-full"
+            maxLength={40}
+            className={
+              "h-11 rounded-full text-center uppercase " +
+              (highlighted
+                ? "border-white/25 bg-white/10 text-white placeholder:text-white/45 focus-visible:ring-white/40"
+                : "border-brand-indigo/20 bg-background")
+            }
+          />
           <Button
             onClick={() => handleOrder("full")}
             disabled={loading !== null}
@@ -717,7 +742,11 @@ function PackageCard({
 
       <EmbeddedCheckoutDialog
         clientSecret={clientSecret}
-        onClose={() => setClientSecret(null)}
+        onClose={() => {
+          setClientSecret(null);
+          setCheckoutNote(null);
+        }}
+        subtitle={checkoutNote}
         title={
           activePlan === "installments"
             ? `${name} — Deposit + monthly plan`

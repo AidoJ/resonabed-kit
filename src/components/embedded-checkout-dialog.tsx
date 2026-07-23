@@ -13,10 +13,12 @@ let stripePromiseCache: Promise<Stripe | null> | null = null;
 export function EmbeddedCheckoutDialog({
   clientSecret,
   onClose,
+  subtitle,
   title,
 }: {
   clientSecret: string | null;
   onClose: () => void;
+  subtitle?: string | null;
   title: string;
 }) {
   const getKey = useServerFn(getStripePublishableKey);
@@ -37,6 +39,7 @@ export function EmbeddedCheckoutDialog({
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto bg-white p-0">
         <DialogHeader className="border-b border-border/60 px-6 py-4">
           <DialogTitle className="text-brand-indigo">{title}</DialogTitle>
+          {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
         </DialogHeader>
         <div className="px-2 py-4 sm:px-4">
           {clientSecret && stripePromise ? (

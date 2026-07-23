@@ -29,6 +29,7 @@ const InputSchema = z.object({
   package: z.enum(["pro", "premium"]),
   plan: z.enum(["full", "installments"]).default("full"),
   origin: z.string().url(),
+  promoCode: z.string().trim().min(3).max(40).optional().or(z.literal("")),
 });
 
 const SHIPPING_COUNTRIES: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] = [
@@ -43,6 +44,11 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
     if (!secret) throw new Error("Stripe is not configured");
     const stripe = new Stripe(secret);
     const pkg = PACKAGES[data.package as PackageKey];
+    const normalizedPromoCode = data.promoCode?.trim().toUpperCase() || null;
+
+    if (data.plan === "installments" && normalizedPromoCode) {
+      throw new Error("Promo codes only apply to pay-in-full orders");
+    }
 
     const baseParams = {
       ui_mode: "embedded",
@@ -104,6 +110,53 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       };
       session = await stripe.checkout.sessions.create(params);
     } else {
+      let payableAmount = pkg.amount;
+      let promoMetadata: Record<string, string> = {};
+      let appliedPromo: null | {
+        id: string;
+        code: string;
+        percentOff: number;
+        amountDiscounted: number;
+        payableAmount: number;
+      } = null;
+
+      if (normalizedPromoCode) {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data: promo, error } = await supabaseAdmin
+          .from("promo_codes")
+          .select("id, code, active, discount_percent, max_redemptions, times_redeemed")
+          .eq("code", normalizedPromoCode)
+          .maybeSingle();
+
+        if (error) throw new Error("We couldn't validate that promo code. Please try again.");
+        if (!promo || !promo.active) throw new Error("That promo code is not active");
+        if (promo.max_redemptions !== null && promo.times_redeemed >= promo.max_redemptions) {
+          throw new Error("That promo code has reached its redemption limit");
+        }
+
+        const amountDiscounted = Math.floor((pkg.amount * promo.discount_percent) / 100);
+        payableAmount = pkg.amount - amountDiscounted;
+        if (payableAmount < 50) throw new Error("This promo code discount is too high for checkout");
+
+        promoMetadata = {
+          promo_code_id: promo.id,
+          promo_code: promo.code,
+          promo_discount_percent: String(promo.discount_percent),
+          amount_discounted_cents: String(amountDiscounted),
+        };
+        appliedPromo = {
+          id: promo.id,
+          code: promo.code,
+          percentOff: promo.discount_percent,
+          amountDiscounted,
+          payableAmount,
+        };
+      }
+
+      const discountDescription = appliedPromo
+        ? `${pkg.description} Promo ${appliedPromo.code}: ${appliedPromo.percentOff}% off — saves $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
+        : pkg.description;
+
       const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
         mode: "payment",
@@ -111,21 +164,23 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
           {
             price_data: {
               currency: "aud",
-              product_data: { name: pkg.name, description: pkg.description },
-              unit_amount: pkg.amount,
+              product_data: { name: pkg.name, description: discountDescription },
+              unit_amount: payableAmount,
             },
             quantity: 1,
           },
         ],
-        allow_promotion_codes: true,
-        metadata: { package: data.package, plan: "full" },
+        allow_promotion_codes: false,
+        metadata: { package: data.package, plan: "full", ...promoMetadata },
       };
       session = await stripe.checkout.sessions.create(params);
+      if (!session.client_secret) throw new Error("Stripe did not return a client secret");
+      return { clientSecret: session.client_secret, appliedPromo };
     }
 
 
     if (!session.client_secret) throw new Error("Stripe did not return a client secret");
-    return { clientSecret: session.client_secret };
+    return { clientSecret: session.client_secret, appliedPromo: null };
   });
 
 const FinalizeSchema = z.object({ sessionId: z.string().min(1) });
@@ -135,7 +190,7 @@ const FinalizeSchema = z.object({ sessionId: z.string().min(1) });
  * from the session and sets `cancel_at` so billing stops after the last
  * planned monthly payment. Idempotent — safe to call multiple times.
  */
-export const finalizeInstallmentsPlan = createServerFn({ method: "POST" })
+export const finalizeCheckoutSession = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => FinalizeSchema.parse(input))
   .handler(async ({ data }) => {
     const secret = process.env.STRIPE_SECRET_KEY;
@@ -145,7 +200,41 @@ export const finalizeInstallmentsPlan = createServerFn({ method: "POST" })
     const session = await stripe.checkout.sessions.retrieve(data.sessionId, {
       expand: ["subscription"],
     });
-    if (session.mode !== "subscription") return { ok: true, skipped: "not-subscription" };
+    if (session.mode !== "subscription") {
+      const promoCodeId = session.metadata?.promo_code_id;
+      if (session.payment_status !== "paid" || !promoCodeId) {
+        return { ok: true, skipped: "not-discounted-payment" };
+      }
+
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error: redemptionError } = await supabaseAdmin
+        .from("promo_code_redemptions")
+        .insert({
+          promo_code_id: promoCodeId,
+          stripe_session_id: session.id,
+          amount_discounted_cents: Number(session.metadata?.amount_discounted_cents ?? 0),
+        });
+
+      if (redemptionError && redemptionError.code !== "23505") {
+        throw new Error(redemptionError.message);
+      }
+
+      if (!redemptionError) {
+        const { data: promo } = await supabaseAdmin
+          .from("promo_codes")
+          .select("times_redeemed")
+          .eq("id", promoCodeId)
+          .single();
+        if (promo) {
+          await supabaseAdmin
+            .from("promo_codes")
+            .update({ times_redeemed: promo.times_redeemed + 1 })
+            .eq("id", promoCodeId);
+        }
+      }
+
+      return { ok: true, promoRecorded: !redemptionError };
+    }
     const sub = session.subscription;
     if (!sub || typeof sub === "string") return { ok: true, skipped: "no-subscription" };
 
@@ -164,6 +253,8 @@ export const finalizeInstallmentsPlan = createServerFn({ method: "POST" })
     await stripe.subscriptions.update(sub.id, { cancel_at: cancelAt });
     return { ok: true, cancelAt };
   });
+
+export const finalizeInstallmentsPlan = finalizeCheckoutSession;
 
 
 
