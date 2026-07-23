@@ -137,9 +137,10 @@ function LandingPage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              Turn a bed you already own into a new source of income. The Resonabed kit converts
-              your existing massage, chiropractic or osteopathic bed into a vibroacoustic therapy
-              bed — a calm, high-margin session your clients will book again and again.
+              Turn a bed you already own into a new source of income. The Resonabed kit can
+              potentially convert your existing massage, chiropractic, osteopathic or any
+              therapeutic treatment bed into a vibroacoustic therapy bed — a calm, high-margin
+              session your clients will book again and again.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <a href="#packages">
