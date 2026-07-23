@@ -263,3 +263,36 @@ export const getStripePublishableKey = createServerFn({ method: "GET" }).handler
   if (!key) throw new Error("Stripe publishable key is not configured");
   return { publishableKey: key };
 });
+
+const ValidatePromoSchema = z.object({
+  package: z.enum(["pro", "premium"]),
+  promoCode: z.string().trim().min(1).max(40),
+});
+
+export const validatePromoCode = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => ValidatePromoSchema.parse(input))
+  .handler(async ({ data }) => {
+    const pkg = PACKAGES[data.package as PackageKey];
+    const code = data.promoCode.trim().toUpperCase();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: promo, error } = await supabaseAdmin
+      .from("promo_codes")
+      .select("id, code, active, discount_percent, max_redemptions, times_redeemed")
+      .eq("code", code)
+      .maybeSingle();
+    if (error) throw new Error("We couldn't validate that promo code. Please try again.");
+    if (!promo || !promo.active) throw new Error("That promo code is not active");
+    if (promo.max_redemptions !== null && promo.times_redeemed >= promo.max_redemptions) {
+      throw new Error("That promo code has reached its redemption limit");
+    }
+    const amountDiscounted = Math.floor((pkg.amount * promo.discount_percent) / 100);
+    const payableAmount = pkg.amount - amountDiscounted;
+    if (payableAmount < 50) throw new Error("This promo code discount is too high for checkout");
+    return {
+      code: promo.code,
+      percentOff: promo.discount_percent,
+      originalAmount: pkg.amount,
+      amountDiscounted,
+      payableAmount,
+    };
+  });
