@@ -30,12 +30,31 @@ const InputSchema = z.object({
   plan: z.enum(["full", "installments"]).default("full"),
   origin: z.string().url(),
   promoCode: z.string().trim().min(3).max(40).optional().or(z.literal("")),
+  shippingRegion: z.string().trim().min(1).max(20),
 });
 
-const SHIPPING_COUNTRIES: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] = [
-  "US","CA","GB","IE","AU","NZ","DE","FR","NL","BE",
-  "ES","IT","PT","SE","NO","DK","FI","CH","AT","PL",
-];
+type StripeCountry = Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry;
+
+async function loadShippingRate(region: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("shipping_rates")
+    .select("region, label, amount_cents, gst_inclusive, allowed_countries, active")
+    .eq("region", region)
+    .maybeSingle();
+  if (error) throw new Error("Could not load shipping rate");
+  if (!data || !data.active) throw new Error("That shipping region is not available");
+  if (!Array.isArray(data.allowed_countries) || data.allowed_countries.length === 0) {
+    throw new Error("Shipping region has no countries configured");
+  }
+  return {
+    region: data.region,
+    label: data.label,
+    amount: data.amount_cents,
+    gstInclusive: data.gst_inclusive,
+    allowedCountries: data.allowed_countries as StripeCountry[],
+  };
+}
 
 export const createKitCheckoutSession = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
@@ -50,21 +69,31 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       throw new Error("Promo codes only apply to pay-in-full orders");
     }
 
+    const shipping = await loadShippingRate(data.shippingRegion);
+    const shippingGstNote = shipping.gstInclusive
+      ? "Incl. GST"
+      : "Shipped GST-free (export)";
+    const shippingLineName = `Shipping — ${shipping.label}`;
+    const shippingLineDescription = `Flat-rate shipping to ${shipping.label}. ${shippingGstNote}.`;
+
     const baseParams = {
       ui_mode: "embedded",
       payment_method_types: ["card"],
-      shipping_address_collection: { allowed_countries: SHIPPING_COUNTRIES },
+      shipping_address_collection: { allowed_countries: shipping.allowedCountries },
       phone_number_collection: { enabled: true },
       billing_address_collection: "required",
       return_url: `${data.origin}/order/success?session_id={CHECKOUT_SESSION_ID}`,
     } satisfies Partial<Stripe.Checkout.SessionCreateParams>;
 
+    const shippingMetadata: Record<string, string> = {
+      shipping_region: shipping.region,
+      shipping_amount_cents: String(shipping.amount),
+    };
+
     let session: Stripe.Checkout.Session;
 
     if (data.plan === "installments") {
       const { deposit, monthly, months } = pkg.installments;
-
-
 
       const params: Stripe.Checkout.SessionCreateParams = {
         ...baseParams,
@@ -78,6 +107,17 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
                 description: `Deposit incl. GST — $363 + $36 GST = $399 AUD. Followed by ${months} monthly payments.`,
               },
               unit_amount: deposit,
+            },
+            quantity: 1,
+          },
+          {
+            price_data: {
+              currency: "aud",
+              product_data: {
+                name: shippingLineName,
+                description: `${shippingLineDescription} Billed once with the deposit on the first invoice.`,
+              },
+              unit_amount: shipping.amount,
             },
             quantity: 1,
           },
@@ -101,12 +141,11 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             plan: "installments",
             months: String(months),
             cancel_after_months: String(months),
+            ...shippingMetadata,
           },
         },
-
-
         allow_promotion_codes: false,
-        metadata: { package: data.package, plan: "installments" },
+        metadata: { package: data.package, plan: "installments", ...shippingMetadata },
       };
       session = await stripe.checkout.sessions.create(params);
     } else {
@@ -169,18 +208,36 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           },
+          {
+            price_data: {
+              currency: "aud",
+              product_data: {
+                name: shippingLineName,
+                description: shippingLineDescription,
+              },
+              unit_amount: shipping.amount,
+            },
+            quantity: 1,
+          },
         ],
         allow_promotion_codes: false,
-        metadata: { package: data.package, plan: "full", ...promoMetadata },
+        metadata: { package: data.package, plan: "full", ...shippingMetadata, ...promoMetadata },
       };
       session = await stripe.checkout.sessions.create(params);
       if (!session.client_secret) throw new Error("Stripe did not return a client secret");
-      return { clientSecret: session.client_secret, appliedPromo };
+      return {
+        clientSecret: session.client_secret,
+        appliedPromo,
+        shipping: { region: shipping.region, label: shipping.label, amount: shipping.amount, gstInclusive: shipping.gstInclusive },
+      };
     }
 
-
     if (!session.client_secret) throw new Error("Stripe did not return a client secret");
-    return { clientSecret: session.client_secret, appliedPromo: null };
+    return {
+      clientSecret: session.client_secret,
+      appliedPromo: null,
+      shipping: { region: shipping.region, label: shipping.label, amount: shipping.amount, gstInclusive: shipping.gstInclusive },
+    };
   });
 
 const FinalizeSchema = z.object({ sessionId: z.string().min(1) });
