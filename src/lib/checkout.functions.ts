@@ -25,34 +25,54 @@ const PACKAGES = {
 
 type PackageKey = keyof typeof PACKAGES;
 
-const InputSchema = z.object({
-  package: z.enum(["pro", "premium"]),
-  plan: z.enum(["full", "installments"]).default("full"),
-  origin: z.string().url(),
-  promoCode: z.string().trim().min(3).max(40).optional().or(z.literal("")),
-  shippingRegion: z.string().trim().min(1).max(20),
+const ShippingAddressSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  line1: z.string().trim().min(1).max(200),
+  line2: z.string().trim().max(200).optional().or(z.literal("")),
+  city: z.string().trim().min(1).max(120),
+  state: z.string().trim().max(120).optional().or(z.literal("")),
+  postalCode: z.string().trim().min(1).max(20),
+  country: z
+    .string()
+    .trim()
+    .length(2)
+    .transform((s) => s.toUpperCase()),
 });
 
-type StripeCountry = Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry;
+const InputSchema = z
+  .object({
+    package: z.enum(["pro", "premium"]),
+    plan: z.enum(["full", "installments"]).default("full"),
+    origin: z.string().url(),
+    promoCode: z.string().trim().min(3).max(40).optional().or(z.literal("")),
+    pickup: z.boolean().default(false),
+    shippingAddress: ShippingAddressSchema.optional(),
+  })
+  .refine((v) => v.pickup || v.shippingAddress, {
+    message: "Shipping address is required unless pickup is selected",
+    path: ["shippingAddress"],
+  });
 
-async function loadShippingRate(region: string) {
+async function loadShippingRateForCountry(country: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("shipping_rates")
-    .select("region, label, amount_cents, gst_inclusive, allowed_countries, active")
-    .eq("region", region)
-    .maybeSingle();
-  if (error) throw new Error("Could not load shipping rate");
-  if (!data || !data.active) throw new Error("That shipping region is not available");
-  if (!Array.isArray(data.allowed_countries) || data.allowed_countries.length === 0) {
-    throw new Error("Shipping region has no countries configured");
-  }
+    .select("region, label, amount_cents, gst_inclusive, allowed_countries, active, sort_order")
+    .eq("active", true)
+    .gt("amount_cents", 0)
+    .order("sort_order", { ascending: true });
+  if (error) throw new Error("Could not load shipping rates");
+  const iso = country.toUpperCase();
+  const match = (data ?? []).find((r) =>
+    Array.isArray(r.allowed_countries) &&
+    (r.allowed_countries as string[]).map((c) => c.toUpperCase()).includes(iso),
+  );
+  if (!match) throw new Error("We don't ship to that country yet.");
   return {
-    region: data.region,
-    label: data.label,
-    amount: data.amount_cents,
-    gstInclusive: data.gst_inclusive,
-    allowedCountries: data.allowed_countries as StripeCountry[],
+    region: match.region,
+    label: match.label,
+    amount: match.amount_cents,
+    gstInclusive: match.gst_inclusive,
   };
 }
 
