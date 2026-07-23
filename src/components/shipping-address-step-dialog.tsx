@@ -240,11 +240,16 @@ export function ShippingAddressStepDialog({
     const timer = window.setTimeout(async () => {
       try {
         const places = await window.google.maps.importLibrary("places");
-        const { suggestions: nextSuggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+        const regionCodes = countryOptions.map((country) => country.code.toLowerCase());
+        const request: Record<string, unknown> = {
           input: addressQuery,
-          includedRegionCodes: countryOptions.map((country) => country.code.toLowerCase()),
           sessionToken: sessionTokenRef.current,
-        });
+        };
+        // Places API (New) allows at most 15 included_region_codes.
+        if (regionCodes.length > 0 && regionCodes.length <= 15) {
+          request.includedRegionCodes = regionCodes;
+        }
+        const { suggestions: nextSuggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
         if (searchRequestRef.current === requestId) {
           setSuggestions((nextSuggestions ?? []).filter((suggestion: GooglePlaceSuggestion) => suggestion.placePrediction));
           setIsSearching(false);
