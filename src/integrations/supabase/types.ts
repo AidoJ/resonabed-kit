@@ -507,6 +507,38 @@ export type Database = {
           },
         ]
       }
+      promo_code_redemptions: {
+        Row: {
+          amount_discounted_cents: number
+          created_at: string
+          id: string
+          promo_code_id: string
+          stripe_session_id: string
+        }
+        Insert: {
+          amount_discounted_cents?: number
+          created_at?: string
+          id?: string
+          promo_code_id: string
+          stripe_session_id: string
+        }
+        Update: {
+          amount_discounted_cents?: number
+          created_at?: string
+          id?: string
+          promo_code_id?: string
+          stripe_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promo_codes: {
         Row: {
           active: boolean
