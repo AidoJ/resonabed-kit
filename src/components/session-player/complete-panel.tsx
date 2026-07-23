@@ -114,7 +114,7 @@ export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props)
             <SelectTrigger className="h-12">
               <SelectValue placeholder="Select outcome…" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[80]">
               <SelectItem value="cash">Cash</SelectItem>
               <SelectItem value="eftpos">EFTPOS</SelectItem>
               <SelectItem value="payid">PayID</SelectItem>
