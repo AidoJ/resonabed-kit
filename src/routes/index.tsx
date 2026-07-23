@@ -41,13 +41,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Turn a bed you already own into a new revenue stream. Resonabed converts your existing massage or therapy bed into a vibroacoustic therapy bed — kit, app, and music licence included.",
+          "Turn a bed you already own into a new revenue stream. The Resonabed kit can potentially convert your existing massage, chiropractic, osteopathic or any therapeutic treatment bed into a vibroacoustic therapy bed — kit, app, and music licence included.",
       },
       { property: "og:title", content: "Resonabed — Sound you can feel. Rest that goes deeper." },
       {
         property: "og:description",
         content:
-          "A passive, high-margin add-on for massage, chiropractic and osteopathic clinics. Fit the kit. Open the app. Add a revenue stream to the room you already work in.",
+          "A passive, high-margin add-on for massage, chiropractic, osteopathic and any therapeutic treatment clinics. Fit the kit. Open the app. Add a revenue stream to the room you already work in.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -213,7 +213,7 @@ function LandingPage() {
             {
               icon: Radio,
               title: "Upgrades the bed you own",
-              body: "Two 80W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic or osteopathic bed already in your room.",
+              body: "Two 80W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic, osteopathic or any therapeutic treatment bed already in your room.",
             },
             {
               icon: ClipboardList,
@@ -286,7 +286,7 @@ function LandingPage() {
               {
                 icon: Package,
                 title: "Fittings & setup guide",
-                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage or therapy bed you already own.",
+                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or any therapeutic treatment bed you already own.",
                 cta: "Everything in the box",
               },
             ].map(({ icon: Icon, title, body, cta }) => (
@@ -422,8 +422,8 @@ function LandingPage() {
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          You supply your own massage or therapy bed. The kit is designed to upgrade the bed you
-          already use.
+          You supply your own massage, chiropractic, osteopathic or any therapeutic treatment bed.
+          The kit is designed to upgrade the bed you already use.
         </p>
       </section>
 
