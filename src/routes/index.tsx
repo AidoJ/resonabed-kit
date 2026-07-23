@@ -4,9 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { createKitCheckoutSession } from "@/lib/checkout.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
+import { PromoStepDialog } from "@/components/promo-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
@@ -566,13 +567,13 @@ function PackageCard({
   const [loading, setLoading] = useState<null | "full" | "installments">(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
-  const [promoCode, setPromoCode] = useState("");
+  const [promoOpen, setPromoOpen] = useState(false);
   const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
 
   const plan = INSTALLMENTS[packageKey];
   const totalInstallments = plan.deposit + plan.monthly * plan.months;
 
-  const handleOrder = async (which: "full" | "installments") => {
+  const runCheckout = async (which: "full" | "installments", promoCode: string) => {
     setLoading(which);
     setActivePlan(which);
     try {
@@ -581,7 +582,7 @@ function PackageCard({
           package: packageKey,
           plan: which,
           origin: window.location.origin,
-          promoCode: which === "full" ? promoCode.trim() : "",
+          promoCode: which === "full" ? promoCode : "",
         },
       });
       setCheckoutNote(
@@ -595,6 +596,14 @@ function PackageCard({
       toast.error(err instanceof Error ? err.message : "Couldn't start checkout. Please try again or contact us.");
     } finally {
       setLoading(null);
+    }
+  };
+
+  const handleOrder = (which: "full" | "installments") => {
+    if (which === "full") {
+      setPromoOpen(true);
+    } else {
+      void runCheckout("installments", "");
     }
   };
 
@@ -686,18 +695,6 @@ function PackageCard({
           ))}
         </ul>
         <div className="mt-9 space-y-3">
-          <Input
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-            placeholder="Promo code for pay-in-full"
-            maxLength={40}
-            className={
-              "h-11 rounded-full text-center uppercase " +
-              (highlighted
-                ? "border-white/25 bg-white/10 text-white placeholder:text-white/45 focus-visible:ring-white/40"
-                : "border-brand-indigo/20 bg-background")
-            }
-          />
           <Button
             onClick={() => handleOrder("full")}
             disabled={loading !== null}
@@ -752,6 +749,16 @@ function PackageCard({
             ? `${name} — Deposit + monthly plan`
             : `Complete your ${name} order`
         }
+      />
+      <PromoStepDialog
+        open={promoOpen}
+        packageKey={promoOpen ? packageKey : null}
+        packagePrice={price}
+        onCancel={() => setPromoOpen(false)}
+        onContinue={(code) => {
+          setPromoOpen(false);
+          void runCheckout("full", code);
+        }}
       />
     </div>
   );
