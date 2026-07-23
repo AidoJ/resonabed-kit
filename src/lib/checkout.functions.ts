@@ -152,7 +152,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
               currency: "aud",
               product_data: {
                 name: `${pkg.name} — Deposit`,
-                description: `Deposit incl. GST — $363 + $36 GST = $399 AUD. Followed by ${months} monthly payments.`,
+                description: `Deposit incl. GST — $${Math.round((deposit / 100) / 1.1)} + $${Math.round((deposit / 100) - (deposit / 100) / 1.1)} GST = $${(deposit / 100).toFixed(0)} AUD. Followed by ${months} monthly payments.`,
               },
               unit_amount: deposit,
             },
