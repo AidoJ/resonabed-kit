@@ -49,7 +49,7 @@ function SessionSummary() {
         <Badge variant="secondary" className="capitalize">{s.status}</Badge>
       </header>
 
-      <dl className="grid grid-cols-2 gap-4 rounded-lg border bg-card p-6 text-sm">
+      <dl className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-6 text-sm sm:grid-cols-2">
         <Field label="Service" value={service?.name ?? "—"} />
         <Field label="Duration" value={service ? `${service.duration_minutes} min` : "—"} />
         <Field
