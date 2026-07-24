@@ -95,7 +95,7 @@ function PlaySession() {
 
   return (
     <div
-      className="play-dark fixed inset-0 z-[60] overflow-y-auto bg-background text-foreground"
+      className="play-dark fixed inset-0 z-[60] overflow-x-hidden overflow-y-auto bg-background text-foreground"
       style={
         {
           background:
