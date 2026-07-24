@@ -1102,7 +1102,7 @@ function LicenceDialog({
             <RadioGroup
               value={preset}
               onValueChange={(v) => setPreset(v as "1" | "12" | "custom")}
-              className="grid grid-cols-3 gap-2"
+              className="grid grid-cols-1 gap-2 sm:grid-cols-3"
             >
               <label className="flex items-center gap-2 rounded-md border p-2 cursor-pointer">
                 <RadioGroupItem value="12" id="lic-12" />

@@ -95,7 +95,7 @@ function PlaySession() {
 
   return (
     <div
-      className="play-dark fixed inset-0 z-[60] overflow-y-auto bg-background text-foreground"
+      className="play-dark fixed inset-0 z-[60] overflow-x-hidden overflow-y-auto bg-background text-foreground"
       style={
         {
           background:
@@ -112,7 +112,7 @@ function PlaySession() {
           <span
             key={i}
             className={cn(
-              "absolute left-1/2 top-1/2 block h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full border",
+              "absolute left-1/2 top-1/2 block h-[80vw] w-[80vw] max-h-[560px] max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full border sm:h-[560px] sm:w-[560px]",
               ambient ? "animate-pulse-ring" : "opacity-20",
             )}
             style={{
