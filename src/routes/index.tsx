@@ -279,7 +279,7 @@ function LandingPage() {
               },
               {
                 icon: FileText,
-                title: "250 marketing flyers",
+                title: "100 marketing flyers",
                 body: "Professionally designed DL flyers ready to print and display. Start promoting your new session from the day the kit arrives.",
                 cta: "Ready-to-print promotion",
                 linkTo: "/flyer" as const,
