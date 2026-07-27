@@ -13,6 +13,7 @@ export interface AudioPlayerHandle {
   play: () => void;
   pause: () => void;
   stop: () => void;
+  fadeOut: (seconds?: number) => void;
 }
 
 function fmt(sec: number): string {
@@ -67,7 +68,42 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   const doPause = () => {
     audioRef.current?.pause();
   };
+  const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearFade = () => {
+    if (fadeTimerRef.current != null) {
+      clearInterval(fadeTimerRef.current);
+      fadeTimerRef.current = null;
+    }
+  };
+
+  const doFadeOut = (seconds = 15) => {
+    const el = audioRef.current;
+    if (!el || el.paused) return;
+    clearFade();
+    const startVol = el.volume;
+    const stepMs = 100;
+    const steps = Math.max(1, Math.round((seconds * 1000) / stepMs));
+    let i = 0;
+    fadeTimerRef.current = setInterval(() => {
+      i += 1;
+      const next = startVol * (1 - i / steps);
+      if (!audioRef.current) return clearFade();
+      audioRef.current.volume = Math.max(0, next);
+      if (i >= steps) {
+        clearFade();
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.volume = startVol;
+        setTime(0);
+      }
+    }, stepMs);
+  };
+
+  useEffect(() => clearFade, []);
+
   const doStop = () => {
+    clearFade();
     const el = audioRef.current;
     if (!el) return;
     el.pause();
@@ -75,7 +111,11 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     setTime(0);
   };
 
-  useImperativeHandle(ref, () => ({ play: doPlay, pause: doPause, stop: doStop }), []);
+  useImperativeHandle(
+    ref,
+    () => ({ play: doPlay, pause: doPause, stop: doStop, fadeOut: doFadeOut }),
+    [],
+  );
 
   const toggle = () => (playing ? doPause() : doPlay());
 

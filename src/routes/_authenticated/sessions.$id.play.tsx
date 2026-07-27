@@ -178,6 +178,9 @@ function PlaySession() {
         {/* Timer */}
         <CountdownTimer
           durationSeconds={durationSeconds}
+          onFadeStart={(secs) => {
+            audioHandleRef.current?.fadeOut(secs);
+          }}
           onRunningChange={(r) => {
             setAmbient(r);
             setTimerRunning(r);

@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 interface Props {
   durationSeconds: number;
   onComplete?: () => void;
+  /** Fires once when the remaining time drops below fadeLeadSeconds. */
+  onFadeStart?: (seconds: number) => void;
+  fadeLeadSeconds?: number;
   onRunningChange?: (running: boolean) => void;
   onStart?: () => void;
   onPause?: () => void;
@@ -18,19 +21,30 @@ function fmt(sec: number): string {
   return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
 }
 
-export function CountdownTimer({ durationSeconds, onComplete, onRunningChange, onStart, onPause, onReset }: Props) {
+export function CountdownTimer({
+  durationSeconds,
+  onComplete,
+  onFadeStart,
+  fadeLeadSeconds = 15,
+  onRunningChange,
+  onStart,
+  onPause,
+  onReset,
+}: Props) {
   const [remaining, setRemaining] = useState(durationSeconds);
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState(false);
   const endTsRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const completedRef = useRef(false);
+  const fadeStartedRef = useRef(false);
   const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
 
   useEffect(() => {
     setRemaining(durationSeconds);
     setCompleted(false);
     completedRef.current = false;
+    fadeStartedRef.current = false;
   }, [durationSeconds]);
 
   useEffect(() => {
@@ -72,6 +86,10 @@ export function CountdownTimer({ durationSeconds, onComplete, onRunningChange, o
       const end = endTsRef.current ?? now;
       const rem = Math.max(0, (end - now) / 1000);
       setRemaining(rem);
+      if (rem > 0 && rem <= fadeLeadSeconds && !fadeStartedRef.current) {
+        fadeStartedRef.current = true;
+        onFadeStart?.(rem);
+      }
       if (rem <= 0) {
         setRunning(false);
         if (!completedRef.current) {
@@ -88,7 +106,7 @@ export function CountdownTimer({ durationSeconds, onComplete, onRunningChange, o
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
-  }, [running, onComplete]);
+  }, [running, onComplete, onFadeStart, fadeLeadSeconds]);
 
   const start = () => {
     if (remaining <= 0) return;
@@ -105,6 +123,7 @@ export function CountdownTimer({ durationSeconds, onComplete, onRunningChange, o
     setRemaining(durationSeconds);
     setCompleted(false);
     completedRef.current = false;
+    fadeStartedRef.current = false;
     onReset?.();
   };
 
