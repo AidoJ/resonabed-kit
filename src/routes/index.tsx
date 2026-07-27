@@ -41,7 +41,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Turn a bed you already own into a new revenue stream. The Resonabed kit can potentially convert your existing massage, chiropractic, osteopathic or any therapeutic treatment bed into a vibroacoustic therapy bed — kit, app, and music licence included.",
+          "Turn a therapy table* you already own into a new revenue stream. The Resonabed kit can potentially convert your existing massage, chiropractic, osteopathic or any therapeutic treatment table into a vibroacoustic therapy table — kit, app, and music licence included.",
       },
       { property: "og:title", content: "Resonabed — Sound you can feel. Rest that goes deeper." },
       {
@@ -137,9 +137,9 @@ function LandingPage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              Turn a bed you already own into a new source of income. The Resonabed kit can
+              Turn a therapy table* you already own into a new source of income. The Resonabed kit can
               potentially convert your existing massage, chiropractic, osteopathic or any
-              therapeutic treatment bed into a vibroacoustic therapy bed — a calm, high-margin
+              therapeutic treatment bed into a vibroacoustic therapy table — a calm, high-margin
               session your clients will book again and again.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -199,7 +199,7 @@ function LandingPage() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             The kit arrives ready to install: speakers, amplifier, player app and booking tools. Just
-            fit it to the bed you already own, open the app, and start offering sessions.
+            fit it to the table you already own, open the app, and start offering sessions.
           </p>
         </div>
 
@@ -208,12 +208,12 @@ function LandingPage() {
             {
               icon: Sparkles,
               title: "High-margin add-on",
-              body: "The kit turns your existing bed into a revenue stream. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
+              body: "The kit turns your existing table into a revenue stream. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
             },
             {
               icon: Radio,
-              title: "Upgrades the bed you own",
-              body: "Two 80W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic, osteopathic or any therapeutic treatment bed already in your room.",
+              title: "Upgrades the table you own",
+              body: "Two 80W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic, osteopathic or any therapeutic treatment table already in your room.",
             },
             {
               icon: ClipboardList,
@@ -243,11 +243,11 @@ function LandingPage() {
               What's in the kit
             </p>
             <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-              Everything you need to turn your bed into a new revenue stream.
+              Everything you need to turn your therapy table* into a new revenue stream.
             </h2>
             <p className="mt-4 text-muted-foreground">
               No sourcing parts, no music licences, no app subscriptions. The Resonabed kit arrives
-              ready to install and ready to sell.
+              ready to install and and within 60 minutes you are ready to sell.
             </p>
           </div>
 
@@ -256,8 +256,8 @@ function LandingPage() {
               {
                 icon: Speaker,
                 title: "Tactile transducers",
-                body: "Two premium speakers that send low-frequency sound as gentle vibration through your existing bed. Your clients don't just hear the music — they feel it moving through them.",
-                cta: "Your bed becomes the instrument",
+                body: "Two premium speakers that send low-frequency sound as gentle vibration through your existing table. Your clients don't just hear the music — they feel it moving through them.",
+                cta: "Your table becomes the instrument",
               },
               {
                 icon: Volume2,
@@ -286,7 +286,7 @@ function LandingPage() {
               {
                 icon: Package,
                 title: "Fittings & setup guide",
-                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or any therapeutic treatment bed you already own.",
+                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or any therapeutic treatment table you already own.",
                 cta: "Everything in the box",
               },
             ].map(({ icon: Icon, title, body, cta }) => (
@@ -331,7 +331,7 @@ function LandingPage() {
             </div>
             <p className="text-muted-foreground md:text-right">
               Vibroacoustic therapy delivers low-frequency sound as gentle vibration through the
-              bed. Your client doesn't just hear the music — they feel it, softly, moving through
+              table. Your client doesn't just hear the music — they feel it, softly, moving through
               them as they rest.
             </p>
           </div>
@@ -351,7 +351,7 @@ function LandingPage() {
               {
                 n: "03",
                 title: "Experience the session",
-                body: "The bed delivers gentle vibration through the speakers while the app manages playback, timer and wake lock.",
+                body: "The table delivers gentle vibration through the speakers while the app manages playback, timer and wake lock.",
               },
               {
                 n: "04",
@@ -422,8 +422,8 @@ function LandingPage() {
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          You supply your own massage, chiropractic, osteopathic or any therapeutic treatment bed.
-          The kit is designed to upgrade the bed you already use.
+          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment table.
+          The kit is designed to upgrade the table you already use.
         </p>
       </section>
 
@@ -439,7 +439,7 @@ function LandingPage() {
             </h2>
             <p className="mt-5 max-w-xl text-white/70">
               A phone can ring mid-session. A laptop can chime with an email or reminder — and
-              those sounds carry straight through the bed to your client. We recommend running
+              those sounds carry straight through the table to your client. We recommend running
               Resonabed on a device kept just for sessions. The Premium package includes one ready
               to go, so nothing breaks the stillness.
             </p>
@@ -478,7 +478,7 @@ function LandingPage() {
                 style={{ filter: "brightness(0) invert(1)" }}
               />
               <p className="mt-8 text-center text-lg font-light leading-relaxed text-white/85">
-                "The bed does the work while you prepare, reset, or simply give your client time
+                "The table does the work while you prepare, reset, or simply give your client time
                 to unwind."
               </p>
             </div>
