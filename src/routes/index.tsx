@@ -337,7 +337,7 @@ function LandingPage() {
                 What a session feels like
               </p>
               <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-                A calm space to unwind — with almost none of your hands-on time.
+                A calm space to unwind, with almost none of your hands-on time.
               </h2>
             </div>
             <p className="text-muted-foreground md:text-right">
