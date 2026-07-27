@@ -198,6 +198,7 @@ const createDraftInput = z.object({
   contraindications: z.array(z.string()).max(20),
   practitioner_notes: z.string().max(4000).optional(),
   consent_given: z.literal(true),
+  client_signature: z.string().max(2_000_000).optional(),
   recommended_frequency_id: uuid.nullable(),
 });
 
@@ -229,6 +230,8 @@ export const createDraftSession = createServerFn({ method: "POST" })
         contraindications: data.contraindications,
         practitioner_notes: data.practitioner_notes ?? null,
         consent_given: data.consent_given,
+        client_signature: data.client_signature ?? null,
+        signed_at: data.client_signature ? new Date().toISOString() : null,
         recommended_frequency_id: data.recommended_frequency_id,
         status: "draft",
       })

@@ -576,6 +576,7 @@ function SettingsAdmin() {
                 helper={POLICY_HELPER}
                 rows={6}
                 unedited={consentUnedited}
+                template={tplBody.consent}
               />
               <PolicyField
                 label="Privacy policy"
@@ -584,6 +585,7 @@ function SettingsAdmin() {
                 helper={POLICY_HELPER}
                 rows={8}
                 unedited={privacyUnedited}
+                template={tplBody.privacy}
               />
               <PolicyField
                 label="Health & safety policy"
@@ -592,6 +594,7 @@ function SettingsAdmin() {
                 helper={POLICY_HELPER}
                 rows={8}
                 unedited={healthUnedited}
+                template={tplBody.health_safety}
               />
               {anyPolicyUnedited && (
                 <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
@@ -1085,6 +1088,7 @@ function PolicyField({
   helper,
   rows,
   unedited,
+  template,
 }: {
   label: string;
   value: string;
@@ -1092,6 +1096,7 @@ function PolicyField({
   helper: string;
   rows: number;
   unedited?: boolean;
+  template?: string;
 }) {
   return (
     <div className="space-y-1.5">
@@ -1109,7 +1114,28 @@ function PolicyField({
         onChange={(e) => onChange(e.target.value)}
         className={unedited ? "border-amber-400 focus-visible:ring-amber-400" : undefined}
       />
-      <p className="text-xs text-muted-foreground">{helper}</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">{helper}</p>
+        {template ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (
+                value.trim() &&
+                !window.confirm(
+                  "Replace the current wording with the latest Resonabed sample template? Your existing text will be lost.",
+                )
+              )
+                return;
+              onChange(template);
+            }}
+          >
+            {value.trim() ? "Replace with sample template" : "Insert sample template"}
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -623,6 +623,7 @@ export type Database = {
         Row: {
           body_areas: string[]
           client_id: string
+          client_signature: string | null
           consent_given: boolean
           contraindications: string[]
           created_at: string
@@ -637,6 +638,7 @@ export type Database = {
           primary_goals: string[]
           recommended_frequency_id: string | null
           service_id: string | null
+          signed_at: string | null
           sleep_quality: number | null
           status: Database["public"]["Enums"]["session_status"]
           stress_level: number | null
@@ -645,6 +647,7 @@ export type Database = {
         Insert: {
           body_areas?: string[]
           client_id: string
+          client_signature?: string | null
           consent_given?: boolean
           contraindications?: string[]
           created_at?: string
@@ -659,6 +662,7 @@ export type Database = {
           primary_goals?: string[]
           recommended_frequency_id?: string | null
           service_id?: string | null
+          signed_at?: string | null
           sleep_quality?: number | null
           status?: Database["public"]["Enums"]["session_status"]
           stress_level?: number | null
@@ -667,6 +671,7 @@ export type Database = {
         Update: {
           body_areas?: string[]
           client_id?: string
+          client_signature?: string | null
           consent_given?: boolean
           contraindications?: string[]
           created_at?: string
@@ -681,6 +686,7 @@ export type Database = {
           primary_goals?: string[]
           recommended_frequency_id?: string | null
           service_id?: string | null
+          signed_at?: string | null
           sleep_quality?: number | null
           status?: Database["public"]["Enums"]["session_status"]
           stress_level?: number | null

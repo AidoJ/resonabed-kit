@@ -43,3 +43,40 @@ export const updatePolicyTemplate = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export interface OrgPolicies {
+  org_name: string;
+  consent_text: string | null;
+  privacy_policy_text: string | null;
+  health_policy_text: string | null;
+  consent_version: number | null;
+}
+
+/** Policies of the signed-in user's own organisation — shown to clients at intake. */
+export const getMyOrgPolicies = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<OrgPolicies | null> => {
+    const { data: profile, error: pErr } = await context.supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", context.userId)
+      .maybeSingle();
+    if (pErr) throw new Error(pErr.message);
+    if (!profile?.org_id) return null;
+
+    const { data, error } = await context.supabase
+      .from("organisations")
+      .select("name, consent_text, privacy_policy_text, health_policy_text, consent_version")
+      .eq("id", profile.org_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    return {
+      org_name: data.name,
+      consent_text: data.consent_text,
+      privacy_policy_text: data.privacy_policy_text,
+      health_policy_text: data.health_policy_text,
+      consent_version: data.consent_version,
+    };
+  });
+

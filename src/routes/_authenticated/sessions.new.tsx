@@ -85,6 +85,7 @@ function NewSession() {
     noneApply: false,
     notes: "",
     consentGiven: false,
+    signature: null,
   });
   const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -120,7 +121,7 @@ function NewSession() {
     if (step === 0) return !!client;
     if (step === 1) return !!service;
     if (step === 2) return true;
-    if (step === 3) return safety.consentGiven && (safety.noneApply || safety.contraindications.length >= 0);
+    if (step === 3) return safety.consentGiven && !!safety.signature;
     if (step === 4) return !!activeFreqId;
     return false;
   })();
@@ -139,6 +140,7 @@ function NewSession() {
         contraindications: safety.contraindications,
         practitioner_notes: safety.notes || undefined,
         consent_given: true as const,
+        client_signature: safety.signature ?? undefined,
         recommended_frequency_id: activeFreqId,
       };
       let sessionId: string;
