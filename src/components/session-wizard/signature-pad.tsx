@@ -100,8 +100,10 @@ export function SignaturePad({ value, onChange, helperText }: Props) {
       </div>
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          The client signs to confirm they have read and accepted the policies.
+          {helperText ??
+            "The client signs to confirm they have read and accepted the policies."}
         </p>
+
         <Button type="button" variant="ghost" size="sm" onClick={clear} disabled={!hasInk}>
           <Eraser className="mr-2 h-4 w-4" /> Clear
         </Button>
