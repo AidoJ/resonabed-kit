@@ -478,7 +478,7 @@ function LandingPage() {
                 style={{ filter: "brightness(0) invert(1)" }}
               />
               <p className="mt-8 text-center text-lg font-light leading-relaxed text-white/85">
-                "The bed does the work while you prepare, reset, or simply give your client time
+                "The table does the work while you prepare, reset, or simply give your client time
                 to unwind."
               </p>
             </div>
