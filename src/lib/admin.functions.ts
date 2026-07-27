@@ -520,6 +520,8 @@ export const completeOrgSetup = createServerFn({ method: "POST" })
         configured_at: now,
         configured_acknowledgement_by: data.acknowledger_name.trim(),
         configured_acknowledgement_at: now,
+        configured_acknowledgement_signature: data.signature,
+
       })
       .eq("id", _org_id);
     if (error) throw new Error(error.message);
