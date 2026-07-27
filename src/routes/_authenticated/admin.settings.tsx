@@ -116,6 +116,8 @@ function SettingsAdmin() {
 
   const [ackName, setAckName] = useState("");
   const [ackChecked, setAckChecked] = useState(false);
+  const [ackSignature, setAckSignature] = useState<string | null>(null);
+
   const [acking, setAcking] = useState(false);
 
   useEffect(() => {
