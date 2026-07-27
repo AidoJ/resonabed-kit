@@ -140,6 +140,7 @@ function NewSession() {
         contraindications: safety.contraindications,
         practitioner_notes: safety.notes || undefined,
         consent_given: true as const,
+        client_signature: safety.signature ?? undefined,
         recommended_frequency_id: activeFreqId,
       };
       let sessionId: string;
