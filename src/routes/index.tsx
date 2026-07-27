@@ -331,7 +331,7 @@ function LandingPage() {
             </div>
             <p className="text-muted-foreground md:text-right">
               Vibroacoustic therapy delivers low-frequency sound as gentle vibration through the
-              bed. Your client doesn't just hear the music — they feel it, softly, moving through
+              table. Your client doesn't just hear the music — they feel it, softly, moving through
               them as they rest.
             </p>
           </div>
