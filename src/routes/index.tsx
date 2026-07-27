@@ -286,7 +286,7 @@ function LandingPage() {
               {
                 icon: Package,
                 title: "Fittings & setup guide",
-                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or any therapeutic treatment bed you already own.",
+                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or any therapeutic treatment table you already own.",
                 cta: "Everything in the box",
               },
             ].map(({ icon: Icon, title, body, cta }) => (
