@@ -407,13 +407,13 @@ function LandingPage() {
             packageKey="pro"
             price="$1,199"
             tagline="The complete upgrade kit."
-            description="Everything you need to convert an existing bed. Runs on a tablet, laptop or iPad you already have."
+            description="Everything you need to convert an existing table. Runs on a tablet, laptop or iPad you already have."
             features={[
               "Two 80W tactile transducers",
               "Bluetooth amplifier with audio jack",
               "Wiring, fittings and setup guide",
               "Resonabed session player + booking app",
-              "9 therapeutic Solfeggio frequencies",
+              "Custom created therapeutic Solfeggio frequencies",
               "250 DL marketing flyers, professionally designed",
             ]}
           />
@@ -436,8 +436,8 @@ function LandingPage() {
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment table.
-          The kit is designed to upgrade the table you already use.
+          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment bed.
+          The kit is designed to upgrade the table you already use and must have a solid timber base to attach the equipment.
         </p>
       </section>
 
