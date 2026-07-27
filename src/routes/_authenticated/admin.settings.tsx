@@ -771,12 +771,29 @@ function SettingsAdmin() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Label>Signature</Label>
+                    <span className="text-xs text-muted-foreground">
+                      Date: {new Date().toLocaleDateString()}
+                    </span>
+                  </div>
+                  <SignaturePad value={ackSignature} onChange={setAckSignature} />
+                </div>
+
                 <Button
-                  disabled={!canGoLive || !ackChecked || ackName.trim().length < 2 || acking}
+                  disabled={
+                    !canGoLive ||
+                    !ackChecked ||
+                    ackName.trim().length < 2 ||
+                    !ackSignature ||
+                    acking
+                  }
                   onClick={onAcknowledge}
                 >
                   {acking ? "Recording…" : "Acknowledge & go live"}
                 </Button>
+
               </CardContent>
             </Card>
           )}
