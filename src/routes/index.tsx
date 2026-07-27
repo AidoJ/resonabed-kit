@@ -218,7 +218,7 @@ function LandingPage() {
             {
               icon: ClipboardList,
               title: "Guided by the Resonabed app",
-              body: "Client intake, tuned frequency selection, timer, playback and session records — one calm tool your practitioners can pick up in minutes.",
+              body: "Client intake, tuned frequency selection, timer, playback and session records, one calm tool your practitioners can pick up in minutes.",
             },
           ].map(({ icon: Icon, title, body }) => (
             <div
