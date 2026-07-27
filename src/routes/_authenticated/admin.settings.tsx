@@ -315,11 +315,16 @@ function SettingsAdmin() {
   };
 
   const onAcknowledge = async () => {
+    if (!ackSignature) {
+      toast.error("Please sign in the signature panel before going live.");
+      return;
+    }
     setAcking(true);
     try {
       await completeSetup({
-        data: { acknowledger_name: ackName, acknowledged: true },
+        data: { acknowledger_name: ackName, acknowledged: true, signature: ackSignature },
       });
+
       toast.success("Setup complete — your clinic is live.");
       qc.invalidateQueries({ queryKey: ["org-settings"] });
       qc.invalidateQueries({ queryKey: ["user-context"] });
