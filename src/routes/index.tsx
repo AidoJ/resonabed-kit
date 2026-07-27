@@ -422,8 +422,8 @@ function LandingPage() {
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          You supply your own massage, chiropractic, osteopathic or any therapeutic treatment bed.
-          The kit is designed to upgrade the bed you already use.
+          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment table.
+          The kit is designed to upgrade the table you already use.
         </p>
       </section>
 
