@@ -85,6 +85,7 @@ function NewSession() {
     noneApply: false,
     notes: "",
     consentGiven: false,
+    signature: null,
   });
   const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
