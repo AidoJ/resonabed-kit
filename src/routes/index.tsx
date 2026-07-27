@@ -256,7 +256,7 @@ function LandingPage() {
               {
                 icon: Speaker,
                 title: "Tactile transducers",
-                body: "Two premium speakers that send low-frequency sound as gentle vibration through your existing table. Your clients don't just hear the music — they feel it moving through them.",
+                body: "Two premium speakers that send low-frequency sound as gentle vibration through your existing table. Your clients don't just hear the music, they feel it moving through them.",
                 cta: "Your table becomes the instrument",
               },
               {
