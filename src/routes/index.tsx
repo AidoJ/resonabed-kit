@@ -199,7 +199,7 @@ function LandingPage() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             The kit arrives ready to install: speakers, amplifier, player app and booking tools. Just
-            fit it to the bed you already own, open the app, and start offering sessions.
+            fit it to the table you already own, open the app, and start offering sessions.
           </p>
         </div>
 
