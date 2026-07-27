@@ -382,8 +382,11 @@ function LandingPage() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             Both packages include the complete kit: tactile speakers, amplifier, Resonabed player
-            and booking app, 9 therapeutic Solfeggio frequencies, and 250 professionally designed
-            marketing flyers.
+            and booking app, 9 therapeutic Solfeggio frequencies, and 250 professionally designed{" "}
+            <Link to="/flyer" className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong">
+              marketing flyers
+            </Link>
+            .
           </p>
         </div>
 
