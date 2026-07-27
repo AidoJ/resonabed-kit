@@ -303,6 +303,7 @@ export type Database = {
           business_name: string | null
           configured_acknowledgement_at: string | null
           configured_acknowledgement_by: string | null
+          configured_acknowledgement_signature: string | null
           configured_at: string | null
           consent_text: string | null
           consent_version: number
@@ -335,6 +336,7 @@ export type Database = {
           business_name?: string | null
           configured_acknowledgement_at?: string | null
           configured_acknowledgement_by?: string | null
+          configured_acknowledgement_signature?: string | null
           configured_at?: string | null
           consent_text?: string | null
           consent_version?: number
@@ -367,6 +369,7 @@ export type Database = {
           business_name?: string | null
           configured_acknowledgement_at?: string | null
           configured_acknowledgement_by?: string | null
+          configured_acknowledgement_signature?: string | null
           configured_at?: string | null
           consent_text?: string | null
           consent_version?: number
