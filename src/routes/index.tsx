@@ -424,7 +424,7 @@ function LandingPage() {
             highlighted
             tagline="Pro, plus a dedicated device."
             description={
-              'Everything in Pro, plus a 9" Android tablet set up and ready to run the app — so nothing breaks the stillness of a session.'
+              'Everything in Pro, plus a 9" Android tablet set up and ready to run the app, so nothing breaks the stillness of a session.'
             }
             features={[
               "Everything included in Pro",
