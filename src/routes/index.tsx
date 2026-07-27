@@ -429,7 +429,7 @@ function LandingPage() {
             features={[
               "Everything included in Pro",
               '9" Android tablet, pre-configured',
-              "Kept for sessions only — no notifications, no chimes",
+              "Kept for sessions only, no notifications, no chimes",
               "Ready to run out of the box",
             ]}
           />
