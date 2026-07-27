@@ -243,11 +243,11 @@ function LandingPage() {
               What's in the kit
             </p>
             <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-              Everything you need to turn your bed into a new revenue stream.
+              Everything you need to turn your therapy table* into a new revenue stream.
             </h2>
             <p className="mt-4 text-muted-foreground">
               No sourcing parts, no music licences, no app subscriptions. The Resonabed kit arrives
-              ready to install and ready to sell.
+              ready to install and and within 60 minutes you are ready to sell.
             </p>
           </div>
 
