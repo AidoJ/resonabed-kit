@@ -474,8 +474,14 @@ export const completeOrgSetup = createServerFn({ method: "POST" })
       .object({
         acknowledger_name: z.string().min(2).max(200),
         acknowledged: z.literal(true),
+        signature: z
+          .string()
+          .min(100)
+          .max(2_000_000)
+          .regex(/^data:image\/png;base64,/, "Signature must be a PNG image"),
       })
       .parse(d),
+
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
