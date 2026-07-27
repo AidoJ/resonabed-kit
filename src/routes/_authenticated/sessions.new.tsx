@@ -121,7 +121,7 @@ function NewSession() {
     if (step === 0) return !!client;
     if (step === 1) return !!service;
     if (step === 2) return true;
-    if (step === 3) return safety.consentGiven && (safety.noneApply || safety.contraindications.length >= 0);
+    if (step === 3) return safety.consentGiven && !!safety.signature;
     if (step === 4) return !!activeFreqId;
     return false;
   })();
