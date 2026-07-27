@@ -41,7 +41,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Turn a therapy table* you already own into a new revenue stream. The Resonabed kit can potentially convert your existing massage, chiropractic, osteopathic or any therapeutic treatment table into a vibroacoustic therapy table — kit, app, and music licence included.",
+          "Turn a therapy table* you already own into a new revenue stream. The Resonabed kit can potentially convert your existing massage, chiropractic, osteopathic or any therapeutic treatment table into a vibroacoustic therapy table, kit, app, and music licence included.",
       },
       { property: "og:title", content: "Resonabed — Sound you can feel. Rest that goes deeper." },
       {
@@ -137,10 +137,10 @@ function LandingPage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              Turn a therapy table* you already own into a new source of income. The Resonabed kit can
-              potentially convert your existing massage, chiropractic, osteopathic or any
-              therapeutic treatment bed into a vibroacoustic therapy table — a calm, high-margin
-              session your clients will book again and again.
+            Turn a therapy table* you already own into a new source of income. The Resonabed kit can
+            potentially convert your existing massage, chiropractic, osteopathic or any
+            therapeutic treatment bed into a vibroacoustic therapy table, a calm, high-margin
+            session your clients will book again and again.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <a href="#packages">
@@ -218,7 +218,7 @@ function LandingPage() {
             {
               icon: ClipboardList,
               title: "Guided by the Resonabed app",
-              body: "Client intake, tuned frequency selection, timer, playback and session records — one calm tool your practitioners can pick up in minutes.",
+              body: "Client intake, tuned frequency selection, timer, playback and session records, one calm tool your practitioners can pick up in minutes.",
             },
           ].map(({ icon: Icon, title, body }) => (
             <div
@@ -256,7 +256,7 @@ function LandingPage() {
               {
                 icon: Speaker,
                 title: "Tactile transducers",
-                body: "Two premium speakers that send low-frequency sound as gentle vibration through your existing table. Your clients don't just hear the music — they feel it moving through them.",
+                body: "Two premium speakers that send low-frequency sound as gentle vibration through your existing table. Your clients don't just hear the music, they feel it moving through them.",
                 cta: "Your table becomes the instrument",
               },
               {
@@ -337,12 +337,12 @@ function LandingPage() {
                 What a session feels like
               </p>
               <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-                A calm space to unwind — with almost none of your hands-on time.
+                A calm space to unwind, with almost none of your hands-on time.
               </h2>
             </div>
             <p className="text-muted-foreground md:text-right">
               Vibroacoustic therapy delivers low-frequency sound as gentle vibration through the
-              table. Your client doesn't just hear the music — they feel it, softly, moving through
+              table. Your client doesn't just hear the music, they feel it, softly, moving through
               them as they rest.
             </p>
           </div>
@@ -424,12 +424,12 @@ function LandingPage() {
             highlighted
             tagline="Pro, plus a dedicated device."
             description={
-              'Everything in Pro, plus a 9" Android tablet set up and ready to run the app — so nothing breaks the stillness of a session.'
+              'Everything in Pro, plus a 9" Android tablet set up and ready to run the app, so nothing breaks the stillness of a session.'
             }
             features={[
               "Everything included in Pro",
               '9" Android tablet, pre-configured',
-              "Kept for sessions only — no notifications, no chimes",
+              "Kept for sessions only, no notifications, no chimes",
               "Ready to run out of the box",
             ]}
           />
@@ -452,7 +452,7 @@ function LandingPage() {
               A vibroacoustic session is about uninterrupted calm.
             </h2>
             <p className="mt-5 max-w-xl text-white/70">
-              A phone can ring mid-session. A laptop can chime with an email or reminder — and
+              A phone can ring mid-session. A laptop can chime with an email or reminder, and
               those sounds carry straight through the table to your client. We recommend running
               Resonabed on a device kept just for sessions. The Premium package includes one ready
               to go, so nothing breaks the stillness.
