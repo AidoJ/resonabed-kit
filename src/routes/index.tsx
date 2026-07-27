@@ -414,7 +414,7 @@ function LandingPage() {
               "Wiring, fittings and setup guide",
               "Resonabed session player + booking app",
               "Custom created therapeutic Solfeggio frequencies",
-              "250 DL marketing flyers, professionally designed",
+              "100 DL marketing flyers, professionally designed",
             ]}
           />
           <PackageCard
