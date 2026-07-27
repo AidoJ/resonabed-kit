@@ -5,10 +5,12 @@ import { Eraser } from "lucide-react";
 interface Props {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
+  helperText?: string;
 }
 
 /** Touch/mouse signature capture. Emits a PNG data URL. */
-export function SignaturePad({ value, onChange }: Props) {
+export function SignaturePad({ value, onChange, helperText }: Props) {
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawing = useRef(false);
   const [hasInk, setHasInk] = useState(!!value);
