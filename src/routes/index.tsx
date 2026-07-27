@@ -730,7 +730,21 @@ function PackageCard({
                   (highlighted ? "text-white" : "text-brand-violet-strong")
                 }
               />
-              <span className={highlighted ? "text-white/90" : "text-foreground/90"}>{f}</span>
+              <span className={highlighted ? "text-white/90" : "text-foreground/90"}>
+                {f.toLowerCase().includes("marketing flyers") ? (
+                  <Link
+                    to="/flyer"
+                    className={
+                      "underline underline-offset-4 " +
+                      (highlighted ? "hover:text-white" : "hover:text-brand-indigo")
+                    }
+                  >
+                    {f}
+                  </Link>
+                ) : (
+                  f
+                )}
+              </span>
             </li>
           ))}
         </ul>
