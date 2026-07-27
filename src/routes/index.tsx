@@ -208,12 +208,12 @@ function LandingPage() {
             {
               icon: Sparkles,
               title: "High-margin add-on",
-              body: "The kit turns your existing bed into a revenue stream. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
+              body: "The kit turns your existing table into a revenue stream. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
             },
             {
               icon: Radio,
-              title: "Upgrades the bed you own",
-              body: "Two 80W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic, osteopathic or any therapeutic treatment bed already in your room.",
+              title: "Upgrades the table you own",
+              body: "Two 80W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic, osteopathic or any therapeutic treatment table already in your room.",
             },
             {
               icon: ClipboardList,
