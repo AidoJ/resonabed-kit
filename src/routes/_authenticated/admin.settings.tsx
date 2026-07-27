@@ -363,8 +363,18 @@ function SettingsAdmin() {
               {new Date(org.configured_acknowledgement_at!).toLocaleString()}. This record is
               immutable.
             </p>
+            {org.configured_acknowledgement_signature ? (
+              <div className="mt-2 inline-block rounded-md border border-emerald-300 bg-white p-2">
+                <img
+                  src={org.configured_acknowledgement_signature}
+                  alt={`Signature of ${org.configured_acknowledgement_by ?? "the acknowledger"}`}
+                  className="h-16 w-auto max-w-full"
+                />
+              </div>
+            ) : null}
           </div>
         </div>
+
       ) : (
         <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
