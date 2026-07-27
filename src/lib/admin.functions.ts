@@ -327,7 +327,7 @@ export const getOrgSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid",
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid",
       )
       .eq("id", _org_id)
       .single();
@@ -474,8 +474,14 @@ export const completeOrgSetup = createServerFn({ method: "POST" })
       .object({
         acknowledger_name: z.string().min(2).max(200),
         acknowledged: z.literal(true),
+        signature: z
+          .string()
+          .min(100)
+          .max(2_000_000)
+          .regex(/^data:image\/png;base64,/, "Signature must be a PNG image"),
       })
       .parse(d),
+
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
@@ -514,6 +520,8 @@ export const completeOrgSetup = createServerFn({ method: "POST" })
         configured_at: now,
         configured_acknowledgement_by: data.acknowledger_name.trim(),
         configured_acknowledgement_at: now,
+        configured_acknowledgement_signature: data.signature,
+
       })
       .eq("id", _org_id);
     if (error) throw new Error(error.message);

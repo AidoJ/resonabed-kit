@@ -37,6 +37,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { SignaturePad } from "@/components/session-wizard/signature-pad";
+
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({ meta: [{ title: "Settings — Admin — ResonaBed" }] }),
@@ -116,6 +118,8 @@ function SettingsAdmin() {
 
   const [ackName, setAckName] = useState("");
   const [ackChecked, setAckChecked] = useState(false);
+  const [ackSignature, setAckSignature] = useState<string | null>(null);
+
   const [acking, setAcking] = useState(false);
 
   useEffect(() => {
@@ -313,11 +317,16 @@ function SettingsAdmin() {
   };
 
   const onAcknowledge = async () => {
+    if (!ackSignature) {
+      toast.error("Please sign in the signature panel before going live.");
+      return;
+    }
     setAcking(true);
     try {
       await completeSetup({
-        data: { acknowledger_name: ackName, acknowledged: true },
+        data: { acknowledger_name: ackName, acknowledged: true, signature: ackSignature },
       });
+
       toast.success("Setup complete — your clinic is live.");
       qc.invalidateQueries({ queryKey: ["org-settings"] });
       qc.invalidateQueries({ queryKey: ["user-context"] });
@@ -354,8 +363,18 @@ function SettingsAdmin() {
               {new Date(org.configured_acknowledgement_at!).toLocaleString()}. This record is
               immutable.
             </p>
+            {org.configured_acknowledgement_signature ? (
+              <div className="mt-2 inline-block rounded-md border border-emerald-300 bg-white p-2">
+                <img
+                  src={org.configured_acknowledgement_signature}
+                  alt={`Signature of ${org.configured_acknowledgement_by ?? "the acknowledger"}`}
+                  className="h-16 w-auto max-w-full"
+                />
+              </div>
+            ) : null}
           </div>
         </div>
+
       ) : (
         <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
@@ -764,12 +783,29 @@ function SettingsAdmin() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Label>Signature</Label>
+                    <span className="text-xs text-muted-foreground">
+                      Date: {new Date().toLocaleDateString()}
+                    </span>
+                  </div>
+                  <SignaturePad value={ackSignature} onChange={setAckSignature} />
+                </div>
+
                 <Button
-                  disabled={!canGoLive || !ackChecked || ackName.trim().length < 2 || acking}
+                  disabled={
+                    !canGoLive ||
+                    !ackChecked ||
+                    ackName.trim().length < 2 ||
+                    !ackSignature ||
+                    acking
+                  }
                   onClick={onAcknowledge}
                 >
                   {acking ? "Recording…" : "Acknowledge & go live"}
                 </Button>
+
               </CardContent>
             </Card>
           )}

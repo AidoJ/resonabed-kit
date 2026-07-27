@@ -5,10 +5,12 @@ import { Eraser } from "lucide-react";
 interface Props {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
+  helperText?: string;
 }
 
 /** Touch/mouse signature capture. Emits a PNG data URL. */
-export function SignaturePad({ value, onChange }: Props) {
+export function SignaturePad({ value, onChange, helperText }: Props) {
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawing = useRef(false);
   const [hasInk, setHasInk] = useState(!!value);
@@ -98,8 +100,10 @@ export function SignaturePad({ value, onChange }: Props) {
       </div>
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          The client signs to confirm they have read and accepted the policies.
+          {helperText ??
+            "The client signs to confirm they have read and accepted the policies."}
         </p>
+
         <Button type="button" variant="ghost" size="sm" onClick={clear} disabled={!hasInk}>
           <Eraser className="mr-2 h-4 w-4" /> Clear
         </Button>
