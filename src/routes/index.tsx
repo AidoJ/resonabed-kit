@@ -282,6 +282,8 @@ function LandingPage() {
                 title: "250 marketing flyers",
                 body: "Professionally designed DL flyers ready to print and display. Start promoting your new session from the day the kit arrives.",
                 cta: "Ready-to-print promotion",
+                linkTo: "/flyer" as const,
+                linkLabel: "View the flyer",
               },
               {
                 icon: Package,
@@ -289,7 +291,7 @@ function LandingPage() {
                 body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or any therapeutic treatment table you already own.",
                 cta: "Everything in the box",
               },
-            ].map(({ icon: Icon, title, body, cta }) => (
+            ].map(({ icon: Icon, title, body, cta, linkTo, linkLabel }) => (
               <div
                 key={title}
                 className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition hover:-translate-y-0.5 hover:shadow-lift"
@@ -299,6 +301,15 @@ function LandingPage() {
                 </div>
                 <h3 className="text-lg font-medium text-brand-indigo">{title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                {linkTo ? (
+                  <Link
+                    to={linkTo}
+                    className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
+                  >
+                    {linkLabel}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                ) : null}
                 <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-violet-strong">
                   {cta}
                 </p>
