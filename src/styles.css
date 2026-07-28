@@ -149,8 +149,8 @@
   --card-foreground: #f7f4fb;
   --popover: #1a0f4a;
   --popover-foreground: #f7f4fb;
-  --primary: #a97ee0;
-  --primary-foreground: #100a2e;
+  --primary: var(--org-primary, #a97ee0);
+  --primary-foreground: var(--org-primary-foreground, #100a2e);
   --secondary: color-mix(in oklab, #884bc7 22%, transparent);
   --secondary-foreground: #f7f4fb;
   --muted: color-mix(in oklab, #ede4f6 10%, transparent);
