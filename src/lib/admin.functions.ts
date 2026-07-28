@@ -132,7 +132,7 @@ export const listTeam = createServerFn({ method: "GET" })
     const { orgId } = await resolveEffectiveOrgId(context);
     let profilesQ = context.supabase
       .from("profiles")
-      .select("id, display_name, is_active, org_id, email_status")
+      .select("id, display_name, is_active, org_id, email_status, bio, avatar_path")
       .order("display_name");
     if (orgId) profilesQ = profilesQ.eq("org_id", orgId);
     const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] =
@@ -148,15 +148,63 @@ export const listTeam = createServerFn({ method: "GET" })
       arr.push(r.role as string);
       rolesByUser.set(r.user_id as string, arr);
     }
-    return (profiles ?? []).map((p) => ({
-      id: p.id,
-      display_name: p.display_name,
-      is_active: p.is_active,
-      org_id: p.org_id,
-      email_status: (p as { email_status?: string }).email_status ?? "valid",
-      roles: rolesByUser.get(p.id) ?? [],
-    }));
+
+    // Signed URLs for headshots (private bucket).
+    const rows = profiles ?? [];
+    const avatarPaths = rows
+      .map((p) => (p as { avatar_path?: string | null }).avatar_path)
+      .filter((p): p is string => !!p);
+    const avatarUrlByPath = new Map<string, string>();
+    if (avatarPaths.length > 0) {
+      const { data: signed } = await context.supabase.storage
+        .from("team-avatars")
+        .createSignedUrls(avatarPaths, 3600);
+      for (const s of signed ?? []) {
+        if (s.path && s.signedUrl) avatarUrlByPath.set(s.path, s.signedUrl);
+      }
+    }
+
+    return rows.map((p) => {
+      const avatarPath = (p as { avatar_path?: string | null }).avatar_path ?? null;
+      return {
+        id: p.id,
+        display_name: p.display_name,
+        is_active: p.is_active,
+        org_id: p.org_id,
+        email_status: (p as { email_status?: string }).email_status ?? "valid",
+        bio: (p as { bio?: string | null }).bio ?? null,
+        avatar_path: avatarPath,
+        avatar_url: avatarPath ? (avatarUrlByPath.get(avatarPath) ?? null) : null,
+        roles: rolesByUser.get(p.id) ?? [],
+      };
+    });
   });
+
+export const updateTeamMemberProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        user_id: uuid,
+        bio: z.string().max(2000).nullable().optional(),
+        avatar_path: z.string().max(400).nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const patch: Record<string, string | null> = {};
+    if (data.bio !== undefined) patch.bio = data.bio?.trim() ? data.bio.trim() : null;
+    if (data.avatar_path !== undefined) patch.avatar_path = data.avatar_path;
+    if (Object.keys(patch).length === 0) return { ok: true };
+    const { error } = await context.supabase
+      .from("profiles")
+      .update(patch)
+      .eq("id", data.user_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 
 // ---------- Clients (admin + permitted practitioners) ----------
 
