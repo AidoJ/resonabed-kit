@@ -64,7 +64,7 @@ export function WizardShell({
                     current
                       ? "text-primary"
                       : done
-                        ? "text-primary"
+                        ? "text-primary/70"
                         : "text-muted-foreground",
                   )}
                 >
