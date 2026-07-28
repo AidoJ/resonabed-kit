@@ -24,11 +24,13 @@ export interface GlobalService {
   buffer_minutes: number;
   is_active: boolean;
   created_at: string;
+  rrp: number | null;
 }
 
 /**
  * Global service catalogue — the template copied into new orgs at creation.
- * Price is intentionally omitted (org sets its own price on the copied row).
+ * `rrp` is a Recommended Retail Price: a display-only guide for clinics.
+ * A clinic's own `price` is never bound to it.
  */
 export const listGlobalServices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -37,7 +39,7 @@ export const listGlobalServices = createServerFn({ method: "GET" })
     // but only super_admin sees this admin surface via UI gating.
     const { data, error } = await context.supabase
       .from("services")
-      .select("id, name, duration_minutes, buffer_minutes, is_active, created_at")
+      .select("id, name, duration_minutes, buffer_minutes, is_active, created_at, rrp")
       .is("org_id", null)
       .order("name");
     if (error) throw new Error(error.message);
@@ -53,6 +55,7 @@ export const upsertGlobalService = createServerFn({ method: "POST" })
         name: z.string().min(1).max(160),
         duration_minutes: z.number().int().min(1).max(600),
         buffer_minutes: z.number().int().min(0).max(240),
+        rrp: z.number().min(0).max(100000).nullable(),
         is_active: z.boolean(),
       })
       .parse(d),
@@ -66,6 +69,7 @@ export const upsertGlobalService = createServerFn({ method: "POST" })
           name: data.name,
           duration_minutes: data.duration_minutes,
           buffer_minutes: data.buffer_minutes,
+          rrp: data.rrp,
           is_active: data.is_active,
         })
         .eq("id", data.id)
@@ -80,6 +84,7 @@ export const upsertGlobalService = createServerFn({ method: "POST" })
         name: data.name,
         duration_minutes: data.duration_minutes,
         buffer_minutes: data.buffer_minutes,
+        rrp: data.rrp,
         price: 0,
         is_active: data.is_active,
       })

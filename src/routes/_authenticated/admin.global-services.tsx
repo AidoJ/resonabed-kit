@@ -55,6 +55,10 @@ function GlobalServicesAdmin() {
           name: payload.name ?? "",
           duration_minutes: Number(payload.duration_minutes ?? 30),
           buffer_minutes: Number(payload.buffer_minutes ?? 15),
+          rrp:
+            payload.rrp === null || payload.rrp === undefined || Number.isNaN(Number(payload.rrp))
+              ? null
+              : Number(payload.rrp),
           is_active: payload.is_active ?? true,
         },
       }),
@@ -97,6 +101,7 @@ function GlobalServicesAdmin() {
             <TableHead>Name</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Changeover</TableHead>
+            <TableHead>RRP</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-24" />
           </TableRow>
@@ -104,11 +109,11 @@ function GlobalServicesAdmin() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={5}>Loading…</TableCell>
+              <TableCell colSpan={6}>Loading…</TableCell>
             </TableRow>
           ) : (data ?? []).length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-muted-foreground">
+              <TableCell colSpan={6} className="text-muted-foreground">
                 No global services yet.
               </TableCell>
             </TableRow>
@@ -118,6 +123,13 @@ function GlobalServicesAdmin() {
                 <TableCell>{s.name}</TableCell>
                 <TableCell>{s.duration_minutes} min</TableCell>
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
+                <TableCell>
+                  {s.rrp === null || s.rrp === undefined ? (
+                    <span className="text-muted-foreground">No RRP set</span>
+                  ) : (
+                    `$${Number(s.rrp).toFixed(2)}`
+                  )}
+                </TableCell>
                 <TableCell>
                   {s.is_active ? (
                     <Badge>Active</Badge>
@@ -185,9 +197,26 @@ function GlobalServicesAdmin() {
                   />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Price is not set globally — each clinic decides its own price on the copied row.
-              </p>
+              <div>
+                <Label>Recommended retail price (RRP)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="Leave blank for no recommendation"
+                  value={editing.rrp ?? ""}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      rrp: e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  A guide only. New clinics start with this as their price and can change it
+                  freely; existing clinic prices are never touched.
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={editing.is_active ?? true}

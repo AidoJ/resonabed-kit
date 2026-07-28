@@ -588,6 +588,8 @@ export type Database = {
           name: string
           org_id: string | null
           price: number
+          rrp: number | null
+          source_global_id: string | null
           updated_at: string
         }
         Insert: {
@@ -599,6 +601,8 @@ export type Database = {
           name: string
           org_id?: string | null
           price?: number
+          rrp?: number | null
+          source_global_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -610,6 +614,8 @@ export type Database = {
           name?: string
           org_id?: string | null
           price?: number
+          rrp?: number | null
+          source_global_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -618,6 +624,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_source_global_id_fkey"
+            columns: ["source_global_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]

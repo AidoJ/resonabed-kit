@@ -91,14 +91,23 @@ async function seedServicesFromGlobalCatalogue(
   newOrgId: string,
 ): Promise<{ copied: number }> {
   // Copy the master catalogue (org_id IS NULL) into the new org as its OWN
-  // editable rows. Price starts at 0 — each clinic sets its own price.
+  // editable rows. Price is prefilled from the global RRP purely as a starting
+  // suggestion — the clinic owns and can freely change it afterwards.
   const { data: rows, error } = await admin
     .from("services")
-    .select("name, duration_minutes, buffer_minutes, is_active")
+    .select("id, name, duration_minutes, buffer_minutes, is_active, rrp")
     .is("org_id", null);
   if (error) throw new Error(`global services list: ${error.message}`);
   if (!rows || rows.length === 0) return { copied: 0 };
-  const payload = rows.map((r) => ({ ...r, org_id: newOrgId, price: 0 }));
+  const payload = rows.map((r) => ({
+    name: r.name,
+    duration_minutes: r.duration_minutes,
+    buffer_minutes: r.buffer_minutes,
+    is_active: r.is_active,
+    org_id: newOrgId,
+    source_global_id: r.id,
+    price: r.rrp ?? 0,
+  }));
   const { error: insErr } = await admin.from("services").insert(payload);
   if (insErr) throw new Error(`services insert: ${insErr.message}`);
   return { copied: rows.length };

@@ -29,6 +29,8 @@ type Service = {
   buffer_minutes: number;
   price: number;
   is_active: boolean;
+  /** Live recommended retail price from the global catalogue. Display only. */
+  rrp?: number | null;
 };
 
 function ServicesAdmin() {
@@ -97,7 +99,14 @@ function ServicesAdmin() {
                 <TableCell>{s.name}</TableCell>
                 <TableCell>{s.duration_minutes} min</TableCell>
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
-                <TableCell>{Number(s.price).toFixed(2)}</TableCell>
+                <TableCell>
+                  {Number(s.price).toFixed(2)}
+                  <div className="text-xs text-muted-foreground">
+                    {s.rrp === null || s.rrp === undefined
+                      ? "No RRP set"
+                      : `Recommended: $${Number(s.rrp).toFixed(2)}`}
+                  </div>
+                </TableCell>
                 <TableCell>
                   {s.is_active ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
                 </TableCell>
@@ -155,6 +164,26 @@ function ServicesAdmin() {
                     value={editing.price ?? 0}
                     onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })}
                   />
+                  <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                    {editing.rrp === null || editing.rrp === undefined ? (
+                      <span>No RRP set</span>
+                    ) : (
+                      <>
+                        <span>Recommended: ${Number(editing.rrp).toFixed(2)}</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-6 px-2 text-xs"
+                          onClick={() =>
+                            setEditing({ ...editing, price: Number(editing.rrp) })
+                          }
+                        >
+                          Use this
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
               <div>
