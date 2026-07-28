@@ -255,6 +255,143 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_invoices: {
+        Row: {
+          billing_address: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          discount_cents: number
+          due_date: string | null
+          gst_cents: number
+          id: string
+          invoice_number: string
+          list_cents: number
+          notes: string | null
+          package_key: string
+          package_label: string
+          payment_terms: string
+          plan: string
+          shipping_address: string | null
+          shipping_cents: number
+          shipping_gst_inclusive: boolean
+          shipping_region: string | null
+          status: string
+          stripe_session_id: string | null
+          total_cents: number
+          updated_at: string
+        }
+        Insert: {
+          billing_address?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          discount_cents?: number
+          due_date?: string | null
+          gst_cents?: number
+          id?: string
+          invoice_number: string
+          list_cents?: number
+          notes?: string | null
+          package_key: string
+          package_label: string
+          payment_terms?: string
+          plan?: string
+          shipping_address?: string | null
+          shipping_cents?: number
+          shipping_gst_inclusive?: boolean
+          shipping_region?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          total_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          billing_address?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          discount_cents?: number
+          due_date?: string | null
+          gst_cents?: number
+          id?: string
+          invoice_number?: string
+          list_cents?: number
+          notes?: string | null
+          package_key?: string
+          package_label?: string
+          payment_terms?: string
+          plan?: string
+          shipping_address?: string | null
+          shipping_cents?: number
+          shipping_gst_inclusive?: boolean
+          shipping_region?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          total_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      kit_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          created_by: string | null
+          gst_cents: number
+          id: string
+          invoice_id: string
+          method: string
+          notes: string | null
+          paid_at: string
+          receipt_number: string
+          reference: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          created_by?: string | null
+          gst_cents?: number
+          id?: string
+          invoice_id: string
+          method?: string
+          notes?: string | null
+          paid_at?: string
+          receipt_number: string
+          reference?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          created_by?: string | null
+          gst_cents?: number
+          id?: string
+          invoice_id?: string
+          method?: string
+          notes?: string | null
+          paid_at?: string
+          receipt_number?: string
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "kit_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_policy_audit: {
         Row: {
           created_at: string
@@ -926,6 +1063,8 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      next_kit_invoice_number: { Args: never; Returns: string }
+      next_kit_receipt_number: { Args: never; Returns: string }
       org_has_active_support_grant: {
         Args: { _org_id: string }
         Returns: boolean
