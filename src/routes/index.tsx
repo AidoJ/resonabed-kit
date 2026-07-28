@@ -659,6 +659,31 @@ function PackageCard({
     }
   };
 
+  const handleEftRequest = async (contact: EftContactDetails) => {
+    if (!shippingChoice) return;
+    setEftSubmitting(true);
+    try {
+      const result = await requestInvoice({
+        data: {
+          package: packageKey,
+          promoCode: promoChoice,
+          customerEmail: contact.email,
+          customerPhone: contact.phone,
+          pickup: shippingChoice.pickup,
+          shippingAddress: shippingChoice.pickup ? undefined : shippingChoice.address,
+          customerName: shippingChoice.pickup ? undefined : shippingChoice.address.name,
+        },
+      });
+      setPayMethodOpen(false);
+      setEftResult(result);
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Couldn't raise your invoice. Please contact us.");
+    } finally {
+      setEftSubmitting(false);
+    }
+  };
+
   return (
     <div
       className={
