@@ -586,6 +586,7 @@ function PackageCard({
   highlighted?: boolean;
 }) {
   const startCheckout = useServerFn(createKitCheckoutSession);
+  const requestInvoice = useServerFn(requestKitEftInvoice);
   const [loading, setLoading] = useState<null | "full" | "installments">(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
@@ -593,7 +594,12 @@ function PackageCard({
   const [pendingPlan, setPendingPlan] = useState<"full" | "installments" | null>(null);
   const [shippingChoice, setShippingChoice] = useState<ShippingContinuePayload | null>(null);
   const [promoOpen, setPromoOpen] = useState(false);
+  const [payMethodOpen, setPayMethodOpen] = useState(false);
+  const [promoChoice, setPromoChoice] = useState("");
+  const [eftSubmitting, setEftSubmitting] = useState(false);
+  const [eftResult, setEftResult] = useState<EftInvoiceResult | null>(null);
   const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
+
 
   const plan = INSTALLMENTS[packageKey];
   const totalInstallments = plan.deposit + plan.monthly * plan.months;
