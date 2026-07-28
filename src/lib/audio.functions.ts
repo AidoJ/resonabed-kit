@@ -122,6 +122,7 @@ export const deleteAudioFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ id: uuid }).parse(data))
   .handler(async ({ data, context }) => {
+    const { loadMutableAudioRow } = await import("./audio.server");
     const row = await loadMutableAudioRow(context, data.id);
 
     if (row.file_url) {
