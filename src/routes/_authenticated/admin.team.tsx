@@ -341,10 +341,28 @@ function TeamAdmin() {
                       ) : (
                         <Select
                           value={primaryRole === "none" ? "practitioner" : primaryRole}
-                          onValueChange={(v) =>
-                            onChangeRole(m.id, v as "practitioner" | "org_admin")
-                          }
+                          onValueChange={(v) => {
+                            const to = v as "practitioner" | "org_admin";
+                            if (to === primaryRole) return;
+                            if (isSelf && to === "practitioner") {
+                              toast.error("You cannot remove your own admin access.");
+                              return;
+                            }
+                            if (primaryRole === "org_admin" && orgAdminCount <= 1) {
+                              toast.error(
+                                "This is the only org admin. Promote another member first.",
+                              );
+                              return;
+                            }
+                            setPendingRole({
+                              id: m.id,
+                              name: m.display_name ?? "this user",
+                              from: primaryRole,
+                              to,
+                            });
+                          }}
                         >
+
                           <SelectTrigger className="w-40">
                             <SelectValue />
                           </SelectTrigger>
