@@ -19,6 +19,10 @@ import {
   ClipboardList,
   ScrollText,
   Tag,
+  Truck,
+  Receipt,
+  FileText,
+  Banknote,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -68,8 +72,17 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
           { to: "/frequencies", label: "Global frequencies", icon: Waves },
           { to: "/audio", label: "Global audio", icon: Music },
           { to: "/admin/policy-templates", label: "Policy templates", icon: ScrollText },
-          { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
           { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
+        ],
+      },
+      {
+        label: "Kit sales",
+        items: [
+          { to: "/admin/sales", label: "Purchases", icon: Receipt },
+          { to: "/admin/invoices", label: "Invoices", icon: FileText },
+          { to: "/admin/payments", label: "Payments", icon: Banknote },
+          { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
+          { to: "/admin/shipping", label: "Shipping rates", icon: Truck },
         ],
       },
     ];
