@@ -159,7 +159,7 @@
   --accent-foreground: #f7f4fb;
   --border: color-mix(in oklab, #ede4f6 14%, transparent);
   --input: color-mix(in oklab, #ede4f6 14%, transparent);
-  --ring: #a97ee0;
+  --ring: var(--org-primary, #a97ee0);
   color-scheme: dark;
 }
 
