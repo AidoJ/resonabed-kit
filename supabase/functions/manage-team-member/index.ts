@@ -183,6 +183,24 @@ Deno.serve(async (req) => {
           return json(403, { error: "Cannot modify a super admin" });
         }
 
+        const isTargetAdmin = !!tRoles?.some((r) => r.role === "org_admin");
+        if (isTargetAdmin && body.role === "practitioner") {
+          if (body.user_id === callerId && !isSuper) {
+            return json(400, { error: "You cannot remove your own admin access." });
+          }
+          const { count } = await admin
+            .from("user_roles")
+            .select("user_id", { count: "exact", head: true })
+            .eq("org_id", org)
+            .eq("role", "org_admin");
+          if ((count ?? 0) <= 1) {
+            return json(400, {
+              error: "This is the only org admin. Promote another member first.",
+            });
+          }
+        }
+
+
         // Remove existing org-scoped roles (practitioner/org_admin), keep others.
         await admin
           .from("user_roles")
