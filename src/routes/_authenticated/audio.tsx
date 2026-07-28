@@ -3,11 +3,13 @@ import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Loader2, Play, Pause, Plus, Trash2, Upload } from "lucide-react";
+import { Loader2, Lock, Play, Pause, Plus, Trash2, Upload } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listFrequencies } from "@/lib/sessions.functions";
+import { getMyOrgLicence } from "@/lib/licence.functions";
 import {
   createAudioFileRow,
   deleteAudioFile,
