@@ -605,6 +605,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_path: string | null
+          bio: string | null
           created_at: string
           display_name: string | null
           email_status: Database["public"]["Enums"]["email_status"]
@@ -616,6 +618,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_path?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           email_status?: Database["public"]["Enums"]["email_status"]
@@ -627,6 +631,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_path?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           email_status?: Database["public"]["Enums"]["email_status"]
