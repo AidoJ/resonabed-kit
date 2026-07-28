@@ -36,6 +36,7 @@ import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminShippingRouteImport } from './routes/_authenticated/admin.shipping'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
+import { Route as AuthenticatedAdminSalesRouteImport } from './routes/_authenticated/admin.sales'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminPromoCodesRouteImport } from './routes/_authenticated/admin.promo-codes'
 import { Route as AuthenticatedAdminPolicyTemplatesRouteImport } from './routes/_authenticated/admin.policy-templates'
@@ -192,6 +193,11 @@ const AuthenticatedAdminServicesRoute =
     path: '/services',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminSalesRoute = AuthenticatedAdminSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminReportsRoute =
   AuthenticatedAdminReportsRouteImport.update({
     id: '/reports',
@@ -287,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/sales': typeof AuthenticatedAdminSalesRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/shipping': typeof AuthenticatedAdminShippingRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByTo {
   '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/sales': typeof AuthenticatedAdminSalesRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/shipping': typeof AuthenticatedAdminShippingRoute
@@ -367,6 +375,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/_authenticated/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/_authenticated/admin/sales': typeof AuthenticatedAdminSalesRoute
   '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/shipping': typeof AuthenticatedAdminShippingRoute
@@ -409,6 +418,7 @@ export interface FileRouteTypes {
     | '/admin/policy-templates'
     | '/admin/promo-codes'
     | '/admin/reports'
+    | '/admin/sales'
     | '/admin/services'
     | '/admin/settings'
     | '/admin/shipping'
@@ -447,6 +457,7 @@ export interface FileRouteTypes {
     | '/admin/policy-templates'
     | '/admin/promo-codes'
     | '/admin/reports'
+    | '/admin/sales'
     | '/admin/services'
     | '/admin/settings'
     | '/admin/shipping'
@@ -488,6 +499,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/policy-templates'
     | '/_authenticated/admin/promo-codes'
     | '/_authenticated/admin/reports'
+    | '/_authenticated/admin/sales'
     | '/_authenticated/admin/services'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/shipping'
@@ -711,6 +723,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminServicesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/sales': {
+      id: '/_authenticated/admin/sales'
+      path: '/sales'
+      fullPath: '/admin/sales'
+      preLoaderRoute: typeof AuthenticatedAdminSalesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/reports': {
       id: '/_authenticated/admin/reports'
       path: '/reports'
@@ -806,6 +825,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPolicyTemplatesRoute: typeof AuthenticatedAdminPolicyTemplatesRoute
   AuthenticatedAdminPromoCodesRoute: typeof AuthenticatedAdminPromoCodesRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
+  AuthenticatedAdminSalesRoute: typeof AuthenticatedAdminSalesRoute
   AuthenticatedAdminServicesRoute: typeof AuthenticatedAdminServicesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminShippingRoute: typeof AuthenticatedAdminShippingRoute
@@ -822,6 +842,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminPolicyTemplatesRoute,
   AuthenticatedAdminPromoCodesRoute: AuthenticatedAdminPromoCodesRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
+  AuthenticatedAdminSalesRoute: AuthenticatedAdminSalesRoute,
   AuthenticatedAdminServicesRoute: AuthenticatedAdminServicesRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminShippingRoute: AuthenticatedAdminShippingRoute,
