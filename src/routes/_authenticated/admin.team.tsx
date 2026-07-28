@@ -290,7 +290,11 @@ function TeamAdmin() {
               .filter((m) =>
                 ctx?.roles.includes("super_admin") ? true : m.org_id === ctx?.org?.id,
               )
-              .map((m) => {
+              .map((m, _i, visible) => {
+                const orgAdminCount = visible.filter(
+                  (t) => t.roles.includes("org_admin") && !t.roles.includes("super_admin"),
+                ).length;
+
                 const isSelf = m.id === ctx?.userId;
                 const isSuper = m.roles.includes("super_admin");
                 const primaryRole = isSuper
