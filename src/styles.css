@@ -149,17 +149,17 @@
   --card-foreground: #f7f4fb;
   --popover: #1a0f4a;
   --popover-foreground: #f7f4fb;
-  --primary: #a97ee0;
-  --primary-foreground: #100a2e;
-  --secondary: color-mix(in oklab, #884bc7 22%, transparent);
+  --primary: var(--org-primary, #a97ee0);
+  --primary-foreground: var(--org-primary-foreground, #100a2e);
+  --secondary: color-mix(in oklab, var(--org-primary, #884bc7) 22%, transparent);
   --secondary-foreground: #f7f4fb;
   --muted: color-mix(in oklab, #ede4f6 10%, transparent);
   --muted-foreground: color-mix(in oklab, #ede4f6 65%, transparent);
-  --accent: color-mix(in oklab, #884bc7 30%, transparent);
+  --accent: color-mix(in oklab, var(--org-primary, #884bc7) 30%, transparent);
   --accent-foreground: #f7f4fb;
   --border: color-mix(in oklab, #ede4f6 14%, transparent);
   --input: color-mix(in oklab, #ede4f6 14%, transparent);
-  --ring: #a97ee0;
+  --ring: var(--org-primary, #a97ee0);
   color-scheme: dark;
 }
 

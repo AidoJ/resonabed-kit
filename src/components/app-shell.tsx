@@ -206,6 +206,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     const clearVars = [
       "--primary",
       "--primary-foreground",
+      "--org-primary",
+      "--org-primary-foreground",
       "--ring",
       "--sidebar-ring",
       "--sidebar",
@@ -222,6 +224,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (primary) {
       root.style.setProperty("--primary", primary);
       root.style.setProperty("--primary-foreground", fgFor(primary));
+      root.style.setProperty("--org-primary", primary);
+      root.style.setProperty("--org-primary-foreground", fgFor(primary));
       root.style.setProperty("--ring", primary);
       root.style.setProperty("--sidebar-ring", primary);
       root.style.setProperty("--sidebar-primary", primary);
