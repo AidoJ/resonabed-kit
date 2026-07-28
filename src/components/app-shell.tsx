@@ -19,6 +19,10 @@ import {
   ClipboardList,
   ScrollText,
   Tag,
+  Truck,
+  Receipt,
+  FileText,
+  Banknote,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
