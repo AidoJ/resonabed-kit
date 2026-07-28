@@ -14,6 +14,8 @@ import {
   Tag,
   Truck,
   Receipt,
+  FileText,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
