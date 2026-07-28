@@ -37,13 +37,31 @@ export const listServices = createServerFn({ method: "GET" })
     const { orgId } = await resolveEffectiveOrgId(context);
     let q = context.supabase
       .from("services")
-      .select("id, name, duration_minutes, buffer_minutes, price, is_active, created_at")
+      .select(
+        "id, name, duration_minutes, buffer_minutes, price, is_active, created_at, source_global_id",
+      )
       .not("org_id", "is", null)
       .order("name");
     if (orgId) q = q.eq("org_id", orgId);
     const { data, error } = await q;
     if (error) throw new Error(error.message);
-    return data ?? [];
+    const rows = data ?? [];
+
+    // Live RRP guide from the global catalogue (never snapshotted, never binding).
+    const globalIds = [...new Set(rows.map((r) => r.source_global_id).filter(Boolean))] as string[];
+    const rrpById = new Map<string, number | null>();
+    if (globalIds.length > 0) {
+      const { data: globals } = await context.supabase
+        .from("services")
+        .select("id, rrp")
+        .in("id", globalIds)
+        .is("org_id", null);
+      for (const g of globals ?? []) rrpById.set(g.id, g.rrp as number | null);
+    }
+    return rows.map((r) => ({
+      ...r,
+      rrp: r.source_global_id ? (rrpById.get(r.source_global_id) ?? null) : null,
+    }));
   });
 
 export const upsertService = createServerFn({ method: "POST" })
