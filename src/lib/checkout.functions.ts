@@ -409,3 +409,45 @@ export const validatePromoCode = createServerFn({ method: "POST" })
       payableAmount,
     };
   });
+
+const EftOrderSchema = z.object({
+  package: z.enum(["pro", "premium"]),
+  promoCode: z.string().trim().max(40).optional().or(z.literal("")),
+  customerEmail: z.string().trim().email().max(160),
+  customerPhone: z.string().trim().max(40).optional().or(z.literal("")),
+  pickup: z.boolean().default(false),
+  shippingAddress: ShippingAddressSchema.optional(),
+  customerName: z.string().trim().min(1).max(120).optional(),
+});
+
+/**
+ * Pay-in-full alternative to card checkout: raises a numbered tax invoice and
+ * returns the EFT bank details so the customer can pay by bank transfer.
+ */
+export const requestKitEftInvoice = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => EftOrderSchema.parse(input))
+  .handler(async ({ data }) => {
+    const addr = data.shippingAddress;
+    if (!data.pickup && !addr) throw new Error("Shipping address is required unless pickup is selected");
+
+    const shipping = data.pickup
+      ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
+      : await loadShippingRateForCountry(addr!.country);
+
+    const shippingAddressText = addr
+      ? [addr.line1, addr.line2, `${addr.city} ${addr.state ?? ""} ${addr.postalCode}`.trim(), addr.country]
+          .filter(Boolean)
+          .join("\n")
+      : "Pickup — customer collects";
+
+    const { createEftKitInvoice } = await import("@/lib/eft-order.server");
+    return await createEftKitInvoice({
+      packageKey: data.package,
+      customerName: (data.customerName || addr?.name || data.customerEmail).slice(0, 120),
+      customerEmail: data.customerEmail,
+      customerPhone: data.customerPhone || null,
+      shippingAddress: shippingAddressText,
+      promoCode: data.promoCode || null,
+      shipping,
+    });
+  });

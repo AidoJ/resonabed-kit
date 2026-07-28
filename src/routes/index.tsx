@@ -5,9 +5,15 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
-import { createKitCheckoutSession } from "@/lib/checkout.functions";
+import { createKitCheckoutSession, requestKitEftInvoice } from "@/lib/checkout.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import { PromoStepDialog } from "@/components/promo-step-dialog";
+import {
+  PaymentMethodStepDialog,
+  EftInvoiceDialog,
+  type EftInvoiceResult,
+  type EftContactDetails,
+} from "@/components/payment-method-step-dialog";
 import { ShippingAddressStepDialog, type ShippingContinuePayload, type EnteredShippingAddress } from "@/components/shipping-address-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
@@ -580,6 +586,7 @@ function PackageCard({
   highlighted?: boolean;
 }) {
   const startCheckout = useServerFn(createKitCheckoutSession);
+  const requestInvoice = useServerFn(requestKitEftInvoice);
   const [loading, setLoading] = useState<null | "full" | "installments">(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
@@ -587,7 +594,12 @@ function PackageCard({
   const [pendingPlan, setPendingPlan] = useState<"full" | "installments" | null>(null);
   const [shippingChoice, setShippingChoice] = useState<ShippingContinuePayload | null>(null);
   const [promoOpen, setPromoOpen] = useState(false);
+  const [payMethodOpen, setPayMethodOpen] = useState(false);
+  const [promoChoice, setPromoChoice] = useState("");
+  const [eftSubmitting, setEftSubmitting] = useState(false);
+  const [eftResult, setEftResult] = useState<EftInvoiceResult | null>(null);
   const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
+
 
   const plan = INSTALLMENTS[packageKey];
   const totalInstallments = plan.deposit + plan.monthly * plan.months;
@@ -644,6 +656,31 @@ function PackageCard({
       setPromoOpen(true);
     } else if (pendingPlan === "installments") {
       void runCheckout("installments", "", payload);
+    }
+  };
+
+  const handleEftRequest = async (contact: EftContactDetails) => {
+    if (!shippingChoice) return;
+    setEftSubmitting(true);
+    try {
+      const result = await requestInvoice({
+        data: {
+          package: packageKey,
+          promoCode: promoChoice,
+          customerEmail: contact.email,
+          customerPhone: contact.phone,
+          pickup: shippingChoice.pickup,
+          shippingAddress: shippingChoice.pickup ? undefined : shippingChoice.address,
+          customerName: shippingChoice.pickup ? undefined : shippingChoice.address.name,
+        },
+      });
+      setPayMethodOpen(false);
+      setEftResult(result);
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Couldn't raise your invoice. Please contact us.");
+    } finally {
+      setEftSubmitting(false);
     }
   };
 
@@ -821,9 +858,22 @@ function PackageCard({
         onCancel={() => setPromoOpen(false)}
         onContinue={(code) => {
           setPromoOpen(false);
-          if (shippingChoice) void runCheckout("full", code, shippingChoice);
+          setPromoChoice(code);
+          setPayMethodOpen(true);
         }}
       />
+      <PaymentMethodStepDialog
+        open={payMethodOpen}
+        price={price}
+        submitting={eftSubmitting}
+        onCancel={() => setPayMethodOpen(false)}
+        onCard={() => {
+          setPayMethodOpen(false);
+          if (shippingChoice) void runCheckout("full", promoChoice, shippingChoice);
+        }}
+        onEft={(contact) => void handleEftRequest(contact)}
+      />
+      <EftInvoiceDialog result={eftResult} onClose={() => setEftResult(null)} />
     </div>
   );
 }
