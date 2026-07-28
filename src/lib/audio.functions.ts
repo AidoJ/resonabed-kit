@@ -73,6 +73,63 @@ export const createAudioFileRow = createServerFn({ method: "POST" })
     return { id: row.id, org_id: row.org_id as string | null };
   });
 
+/** True when the caller holds the super_admin role. */
+async function callerIsSuperAdmin(context: { supabase: any; userId: string }) {
+  const { data, error } = await context.supabase.rpc("is_super_admin", {
+    _user_id: context.userId,
+  });
+  if (error) throw new Error(error.message);
+  return !!data;
+}
+
+/**
+ * Loads an audio row and rejects mutation of a global track by anyone who is
+ * not a super admin. RLS already blocks this; the explicit check gives the UI a
+ * readable error instead of a silent no-op.
+ */
+async function loadMutableAudioRow(
+  context: { supabase: any; userId: string },
+  id: string,
+) {
+  const { data: row, error } = await context.supabase
+    .from("audio_files")
+    .select("id, org_id, frequency_id, file_url, is_active")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!row) throw new Error("Audio file not found");
+  if (row.org_id === null && !(await callerIsSuperAdmin(context))) {
+    throw new Error("Global tracks are managed by ResonaBed and cannot be changed here");
+  }
+  return row as {
+    id: string;
+    org_id: string | null;
+    frequency_id: string | null;
+    file_url: string | null;
+    is_active: boolean;
+  };
+}
+
+/**
+ * Only one of an organisation's own tracks may be active per frequency, so the
+ * session player has a single unambiguous winner. Activating one deactivates
+ * its siblings (radio-button behaviour). Global tracks are untouched.
+ */
+async function deactivateOrgSiblings(
+  context: { supabase: any },
+  args: { id: string; org_id: string | null; frequency_id: string | null },
+) {
+  if (!args.org_id || !args.frequency_id) return;
+  const { error } = await context.supabase
+    .from("audio_files")
+    .update({ is_active: false })
+    .eq("org_id", args.org_id)
+    .eq("frequency_id", args.frequency_id)
+    .eq("is_active", true)
+    .neq("id", args.id);
+  if (error) throw new Error(error.message);
+}
+
 export const finalizeAudioFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
@@ -85,6 +142,7 @@ export const finalizeAudioFile = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
+    const row = await loadMutableAudioRow(context, data.id);
     const { error } = await context.supabase
       .from("audio_files")
       .update({
@@ -93,6 +151,8 @@ export const finalizeAudioFile = createServerFn({ method: "POST" })
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
+    // A freshly uploaded org track becomes the one that plays for its frequency.
+    if (row.is_active) await deactivateOrgSiblings(context, row);
     return { ok: true };
   });
 
@@ -102,11 +162,13 @@ export const setAudioFileActive = createServerFn({ method: "POST" })
     z.object({ id: uuid, is_active: z.boolean() }).parse(data),
   )
   .handler(async ({ data, context }) => {
+    const row = await loadMutableAudioRow(context, data.id);
     const { error } = await context.supabase
       .from("audio_files")
       .update({ is_active: data.is_active })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
+    if (data.is_active) await deactivateOrgSiblings(context, row);
     return { ok: true };
   });
 
@@ -114,14 +176,9 @@ export const deleteAudioFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ id: uuid }).parse(data))
   .handler(async ({ data, context }) => {
-    const { data: row, error: fetchErr } = await context.supabase
-      .from("audio_files")
-      .select("file_url")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (fetchErr) throw new Error(fetchErr.message);
+    const row = await loadMutableAudioRow(context, data.id);
 
-    if (row?.file_url) {
+    if (row.file_url) {
       const { error: rmErr } = await context.supabase.storage
         .from("audio-files")
         .remove([row.file_url]);
@@ -138,6 +195,7 @@ export const deleteAudioFile = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const getSignedAudioUrlById = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
