@@ -62,7 +62,7 @@ export function WizardShell({
                   className={cn(
                     "text-center text-[11px] font-medium uppercase tracking-[0.1em]",
                     current
-                      ? "text-brand-indigo"
+                      ? "text-primary"
                       : done
                         ? "text-primary"
                         : "text-muted-foreground",
@@ -78,7 +78,7 @@ export function WizardShell({
 
       <div className="shadow-soft flex-1 rounded-2xl bg-card p-8 sm:p-10">
         <div className="mb-6">
-          <h1 className="text-[26px] font-light tracking-tight text-brand-indigo">{title}</h1>
+          <h1 className="text-[26px] font-light tracking-tight text-primary">{title}</h1>
           {subtitle ? (
             <p className="mt-1 text-[15px] text-muted-foreground">{subtitle}</p>
           ) : null}
