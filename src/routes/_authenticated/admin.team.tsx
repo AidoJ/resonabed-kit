@@ -569,8 +569,32 @@ function TeamAdmin() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    
+
+      <Dialog open={!!pendingRole} onOpenChange={(v) => !v && !roleSaving && setPendingRole(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Change role for {pendingRole?.name}?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {pendingRole?.to === "org_admin"
+              ? "They will gain full admin access to this organisation: settings, policies, team, clients and reports."
+              : "They will lose admin access and keep practitioner access only, limited by your practitioner permissions."}
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPendingRole(null)} disabled={roleSaving}>
+              Cancel
+            </Button>
+            <Button onClick={onChangeRole} disabled={roleSaving}>
+              {roleSaving ? "Updating…" : "Change role"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
+
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit profile — {editing?.name}</DialogTitle>
