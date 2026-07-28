@@ -107,6 +107,7 @@ export const setAudioFileActive = createServerFn({ method: "POST" })
     z.object({ id: uuid, is_active: z.boolean() }).parse(data),
   )
   .handler(async ({ data, context }) => {
+    const { loadMutableAudioRow, deactivateOrgSiblings } = await import("./audio.server");
     const row = await loadMutableAudioRow(context, data.id);
     const { error } = await context.supabase
       .from("audio_files")
