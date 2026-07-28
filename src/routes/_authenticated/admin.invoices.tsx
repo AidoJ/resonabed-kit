@@ -140,7 +140,7 @@ function InvoicesAdmin() {
           <div><Label>BSB</Label><Input value={p.bsb} onChange={(e) => setP({ bsb: e.target.value })} /></div>
           <div><Label>Account number</Label><Input value={p.accountNumber} onChange={(e) => setP({ accountNumber: e.target.value })} /></div>
           <div className="sm:col-span-2 lg:col-span-4">
-            <Button size="sm" onClick={() => profileMut.mutate(p)} disabled={profileMut.isPending}>
+            <Button size="sm" onClick={() => profileMut.mutate({ data: p } as any)} disabled={profileMut.isPending}>
               {profileMut.isPending ? "Saving…" : "Save billing details"}
             </Button>
           </div>

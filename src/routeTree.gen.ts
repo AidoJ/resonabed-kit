@@ -42,6 +42,7 @@ import { Route as AuthenticatedAdminPromoCodesRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminPolicyTemplatesRouteImport } from './routes/_authenticated/admin.policy-templates'
 import { Route as AuthenticatedAdminOrganisationsRouteImport } from './routes/_authenticated/admin.organisations'
 import { Route as AuthenticatedAdminMetricsRouteImport } from './routes/_authenticated/admin.metrics'
+import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated/admin.clients'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
@@ -228,6 +229,12 @@ const AuthenticatedAdminMetricsRoute =
     path: '/metrics',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminInvoicesRoute =
+  AuthenticatedAdminInvoicesRouteImport.update({
+    id: '/invoices',
+    path: '/invoices',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminGlobalServicesRoute =
   AuthenticatedAdminGlobalServicesRouteImport.update({
     id: '/global-services',
@@ -288,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/order/success': typeof OrderSuccessRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
+  '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
@@ -327,6 +335,7 @@ export interface FileRoutesByTo {
   '/order/success': typeof OrderSuccessRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
+  '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
@@ -370,6 +379,7 @@ export interface FileRoutesById {
   '/order/success': typeof OrderSuccessRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
+  '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/_authenticated/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/_authenticated/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
@@ -413,6 +423,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/admin/clients'
     | '/admin/global-services'
+    | '/admin/invoices'
     | '/admin/metrics'
     | '/admin/organisations'
     | '/admin/policy-templates'
@@ -452,6 +463,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/admin/clients'
     | '/admin/global-services'
+    | '/admin/invoices'
     | '/admin/metrics'
     | '/admin/organisations'
     | '/admin/policy-templates'
@@ -494,6 +506,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/_authenticated/admin/clients'
     | '/_authenticated/admin/global-services'
+    | '/_authenticated/admin/invoices'
     | '/_authenticated/admin/metrics'
     | '/_authenticated/admin/organisations'
     | '/_authenticated/admin/policy-templates'
@@ -765,6 +778,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMetricsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/invoices': {
+      id: '/_authenticated/admin/invoices'
+      path: '/invoices'
+      fullPath: '/admin/invoices'
+      preLoaderRoute: typeof AuthenticatedAdminInvoicesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/global-services': {
       id: '/_authenticated/admin/global-services'
       path: '/global-services'
@@ -820,6 +840,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRoute
   AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
+  AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
   AuthenticatedAdminMetricsRoute: typeof AuthenticatedAdminMetricsRoute
   AuthenticatedAdminOrganisationsRoute: typeof AuthenticatedAdminOrganisationsRoute
   AuthenticatedAdminPolicyTemplatesRoute: typeof AuthenticatedAdminPolicyTemplatesRoute
@@ -836,6 +857,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRoute,
   AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
+  AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
   AuthenticatedAdminMetricsRoute: AuthenticatedAdminMetricsRoute,
   AuthenticatedAdminOrganisationsRoute: AuthenticatedAdminOrganisationsRoute,
   AuthenticatedAdminPolicyTemplatesRoute:
