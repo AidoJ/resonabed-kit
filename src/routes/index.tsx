@@ -858,9 +858,22 @@ function PackageCard({
         onCancel={() => setPromoOpen(false)}
         onContinue={(code) => {
           setPromoOpen(false);
-          if (shippingChoice) void runCheckout("full", code, shippingChoice);
+          setPromoChoice(code);
+          setPayMethodOpen(true);
         }}
       />
+      <PaymentMethodStepDialog
+        open={payMethodOpen}
+        price={price}
+        submitting={eftSubmitting}
+        onCancel={() => setPayMethodOpen(false)}
+        onCard={() => {
+          setPayMethodOpen(false);
+          if (shippingChoice) void runCheckout("full", promoChoice, shippingChoice);
+        }}
+        onEft={(contact) => void handleEftRequest(contact)}
+      />
+      <EftInvoiceDialog result={eftResult} onClose={() => setEftResult(null)} />
     </div>
   );
 }
