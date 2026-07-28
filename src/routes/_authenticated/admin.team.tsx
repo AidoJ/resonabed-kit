@@ -117,15 +117,31 @@ function TeamAdmin() {
     }
   };
 
-  const onChangeRole = async (userId: string, role: "practitioner" | "org_admin") => {
+  const [pendingRole, setPendingRole] = useState<
+    | { id: string; name: string; from: string; to: "practitioner" | "org_admin" }
+    | null
+  >(null);
+  const [roleSaving, setRoleSaving] = useState(false);
+
+  const onChangeRole = async () => {
+    if (!pendingRole) return;
+    setRoleSaving(true);
     try {
-      await callManageTeam({ type: "change_role", user_id: userId, role });
+      await callManageTeam({
+        type: "change_role",
+        user_id: pendingRole.id,
+        role: pendingRole.to,
+      });
       toast.success("Role updated");
+      setPendingRole(null);
       refresh();
     } catch (e) {
       toast.error((e as Error).message);
+    } finally {
+      setRoleSaving(false);
     }
   };
+
 
   const [confirmDelete, setConfirmDelete] = useState<
     | { id: string; name: string }
@@ -274,7 +290,11 @@ function TeamAdmin() {
               .filter((m) =>
                 ctx?.roles.includes("super_admin") ? true : m.org_id === ctx?.org?.id,
               )
-              .map((m) => {
+              .map((m, _i, visible) => {
+                const orgAdminCount = visible.filter(
+                  (t) => t.roles.includes("org_admin") && !t.roles.includes("super_admin"),
+                ).length;
+
                 const isSelf = m.id === ctx?.userId;
                 const isSuper = m.roles.includes("super_admin");
                 const primaryRole = isSuper
@@ -325,10 +345,28 @@ function TeamAdmin() {
                       ) : (
                         <Select
                           value={primaryRole === "none" ? "practitioner" : primaryRole}
-                          onValueChange={(v) =>
-                            onChangeRole(m.id, v as "practitioner" | "org_admin")
-                          }
+                          onValueChange={(v) => {
+                            const to = v as "practitioner" | "org_admin";
+                            if (to === primaryRole) return;
+                            if (isSelf && to === "practitioner") {
+                              toast.error("You cannot remove your own admin access.");
+                              return;
+                            }
+                            if (primaryRole === "org_admin" && orgAdminCount <= 1) {
+                              toast.error(
+                                "This is the only org admin. Promote another member first.",
+                              );
+                              return;
+                            }
+                            setPendingRole({
+                              id: m.id,
+                              name: m.display_name ?? "this user",
+                              from: primaryRole,
+                              to,
+                            });
+                          }}
                         >
+
                           <SelectTrigger className="w-40">
                             <SelectValue />
                           </SelectTrigger>
@@ -531,8 +569,32 @@ function TeamAdmin() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    
+
+      <Dialog open={!!pendingRole} onOpenChange={(v) => !v && !roleSaving && setPendingRole(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Change role for {pendingRole?.name}?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {pendingRole?.to === "org_admin"
+              ? "They will gain full admin access to this organisation: settings, policies, team, clients and reports."
+              : "They will lose admin access and keep practitioner access only, limited by your practitioner permissions."}
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPendingRole(null)} disabled={roleSaving}>
+              Cancel
+            </Button>
+            <Button onClick={onChangeRole} disabled={roleSaving}>
+              {roleSaving ? "Updating…" : "Change role"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
+
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit profile — {editing?.name}</DialogTitle>
