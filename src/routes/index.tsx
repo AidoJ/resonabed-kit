@@ -5,9 +5,15 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
-import { createKitCheckoutSession } from "@/lib/checkout.functions";
+import { createKitCheckoutSession, requestKitEftInvoice } from "@/lib/checkout.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import { PromoStepDialog } from "@/components/promo-step-dialog";
+import {
+  PaymentMethodStepDialog,
+  EftInvoiceDialog,
+  type EftInvoiceResult,
+  type EftContactDetails,
+} from "@/components/payment-method-step-dialog";
 import { ShippingAddressStepDialog, type ShippingContinuePayload, type EnteredShippingAddress } from "@/components/shipping-address-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
