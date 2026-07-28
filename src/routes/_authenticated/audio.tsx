@@ -137,6 +137,16 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
     queryFn: () => listFn(),
   });
 
+  const licenceFn = useServerFn(getMyOrgLicence);
+  const { data: licence } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => licenceFn(),
+  });
+  // Super admins have no org licence record; global tracks are always available.
+  const licenceOk = licence ? licence.is_ok : true;
+
+
+
   const byFreq = useMemo(() => {
     const m = new Map<string, AudioRow[]>();
     for (const f of files ?? []) {
