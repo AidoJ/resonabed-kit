@@ -193,7 +193,7 @@ export const updateTeamMemberProfile = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
-    const patch: Record<string, string | null> = {};
+    const patch: { bio?: string | null; avatar_path?: string | null } = {};
     if (data.bio !== undefined) patch.bio = data.bio?.trim() ? data.bio.trim() : null;
     if (data.avatar_path !== undefined) patch.avatar_path = data.avatar_path;
     if (Object.keys(patch).length === 0) return { ok: true };
