@@ -31,7 +31,9 @@ const SUPER_TABS: Tab[] = [
   { to: "/audio", label: "Global audio", icon: Music },
   { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
   { to: "/admin/shipping", label: "Shipping rates", icon: Truck },
-  { to: "/admin/sales", label: "Kit sales", icon: Receipt },
+  { to: "/admin/sales", label: "Kit purchases", icon: Receipt },
+  { to: "/admin/invoices", label: "Invoices", icon: FileText },
+  { to: "/admin/payments", label: "Payments", icon: Banknote },
   { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
 ];
 
