@@ -99,7 +99,7 @@ function PlaySession() {
       style={
         {
           background:
-            "radial-gradient(ellipse at 50% -10%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 55%), radial-gradient(ellipse at 50% 110%, color-mix(in oklab, var(--brand-indigo) 30%, transparent), transparent 60%), var(--background)",
+            "radial-gradient(ellipse at 50% -10%, color-mix(in oklab, var(--primary) 24%, transparent), transparent 55%), radial-gradient(ellipse at 50% 110%, color-mix(in oklab, var(--primary) 30%, transparent), transparent 60%), var(--background)",
         } as React.CSSProperties
       }
     >

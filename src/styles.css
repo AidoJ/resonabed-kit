@@ -143,11 +143,14 @@
 
 /* Player-only serene dark surface. Scope to a class rather than global dark. */
 .play-dark {
-  --background: #100a2e;
+  /* Deep, low-luminance version of the org colour. */
+  --play-deep: color-mix(in oklab, var(--org-primary, #884bc7) 26%, #07040f);
+  --play-mid: color-mix(in oklab, var(--org-primary, #884bc7) 45%, #07040f);
+  --background: var(--play-deep);
   --foreground: #f7f4fb;
-  --card: color-mix(in oklab, #26106c 65%, transparent);
+  --card: color-mix(in oklab, var(--play-mid) 70%, transparent);
   --card-foreground: #f7f4fb;
-  --popover: #1a0f4a;
+  --popover: var(--play-mid);
   --popover-foreground: #f7f4fb;
   --primary: var(--org-primary, #a97ee0);
   --primary-foreground: var(--org-primary-foreground, #100a2e);
