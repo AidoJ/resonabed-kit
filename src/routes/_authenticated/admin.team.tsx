@@ -117,15 +117,31 @@ function TeamAdmin() {
     }
   };
 
-  const onChangeRole = async (userId: string, role: "practitioner" | "org_admin") => {
+  const [pendingRole, setPendingRole] = useState<
+    | { id: string; name: string; from: string; to: "practitioner" | "org_admin" }
+    | null
+  >(null);
+  const [roleSaving, setRoleSaving] = useState(false);
+
+  const onChangeRole = async () => {
+    if (!pendingRole) return;
+    setRoleSaving(true);
     try {
-      await callManageTeam({ type: "change_role", user_id: userId, role });
+      await callManageTeam({
+        type: "change_role",
+        user_id: pendingRole.id,
+        role: pendingRole.to,
+      });
       toast.success("Role updated");
+      setPendingRole(null);
       refresh();
     } catch (e) {
       toast.error((e as Error).message);
+    } finally {
+      setRoleSaving(false);
     }
   };
+
 
   const [confirmDelete, setConfirmDelete] = useState<
     | { id: string; name: string }
