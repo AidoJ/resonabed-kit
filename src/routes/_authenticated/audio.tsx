@@ -3,11 +3,13 @@ import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Loader2, Play, Pause, Plus, Trash2, Upload } from "lucide-react";
+import { Loader2, Lock, Play, Pause, Plus, Trash2, Upload } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listFrequencies } from "@/lib/sessions.functions";
+import { getMyOrgLicence } from "@/lib/licence.functions";
 import {
   createAudioFileRow,
   deleteAudioFile,
@@ -135,6 +137,16 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
     queryFn: () => listFn(),
   });
 
+  const licenceFn = useServerFn(getMyOrgLicence);
+  const { data: licence } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => licenceFn(),
+  });
+  // Super admins have no org licence record; global tracks are always available.
+  const licenceOk = licence ? licence.is_ok : true;
+
+
+
   const byFreq = useMemo(() => {
     const m = new Map<string, AudioRow[]>();
     for (const f of files ?? []) {
@@ -233,15 +245,35 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
       ) : (
         <div className="space-y-3">
           {(frequencies ?? []).map((f) => {
-            const rows = byFreq.get(f.id) ?? [];
-            const activeCount = rows.filter((r) => r.is_active && r.file_url).length;
-            const inactiveCount = rows.length - activeCount;
-            const status =
-              activeCount > 0
-                ? { label: `${activeCount} active`, variant: "default" as const }
-                : inactiveCount > 0
-                  ? { label: "Inactive only", variant: "secondary" as const }
-                  : { label: "No audio", variant: "outline" as const };
+            const rows = [...(byFreq.get(f.id) ?? [])].sort((a, b) => {
+              // Org's own tracks first, then global reference tracks.
+              const aOwn = a.org_id !== null ? 0 : 1;
+              const bOwn = b.org_id !== null ? 0 : 1;
+              if (aOwn !== bOwn) return aOwn - bOwn;
+              return b.created_at.localeCompare(a.created_at);
+            });
+
+            const playable = rows.filter((r) => !!r.file_url && r.is_active);
+            const ownWinner = playable.find((r) => r.org_id !== null) ?? null;
+            const globalWinner = playable.find((r) => r.org_id === null) ?? null;
+            const winner = ownWinner ?? (licenceOk ? globalWinner : null);
+
+            const status = winner
+              ? {
+                  label: ownWinner ? "Your track plays" : "Global track plays",
+                  variant: "default" as const,
+                }
+              : rows.length > 0
+                ? { label: "Nothing plays", variant: "secondary" as const }
+                : { label: "No audio", variant: "outline" as const };
+
+            const helper = ownWinner
+              ? "Your uploaded track plays in sessions. Turn it off or delete it to fall back to the ResonaBed global track."
+              : globalWinner && licenceOk
+                ? "The ResonaBed global track plays in sessions. Upload your own to override it for this frequency."
+                : globalWinner && !licenceOk
+                  ? "Your music licence has lapsed, so the global track is locked. Upload your own audio to keep this frequency available."
+                  : "No audio available for this frequency yet.";
 
             return (
               <div key={f.id} className="rounded-lg border">
@@ -254,11 +286,7 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                     <p className="font-medium">
                       <span className="tabular-nums">{f.hz} Hz</span> · {f.name}
                     </p>
-                    {f.description ? (
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        {f.description}
-                      </p>
-                    ) : null}
+                    <p className="text-xs text-muted-foreground">{helper}</p>
                   </div>
                   <Badge variant={status.variant}>{status.label}</Badge>
                   <Button
@@ -273,70 +301,111 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
 
                 {rows.length > 0 ? (
                   <ul className="divide-y border-t">
-                    {rows.map((r) => (
-                      <li
-                        key={r.id}
-                        className="flex flex-wrap items-center gap-3 px-4 py-3"
-                      >
-                        <div className="flex-1 min-w-[160px]">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-medium">{r.title}</p>
-                            {r.org_id === null ? (
-                              <Badge variant="secondary" className="text-[10px]">
-                                Global
-                              </Badge>
-                            ) : null}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {fmtDuration(r.duration_seconds)} ·{" "}
-                            {new Date(r.created_at).toLocaleDateString()}
-                            {r.file_url ? "" : " · upload incomplete"}
-                          </p>
-                        </div>
+                    {rows.map((r) => {
+                      const isGlobalRow = r.org_id === null;
+                      const readOnly = isGlobalRow && !isSuperAdmin;
+                      const isWinner = winner?.id === r.id;
+                      const shadowed =
+                        isGlobalRow && !!ownWinner && r.is_active && !!r.file_url;
 
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled={!r.file_url || previewMut.isPending}
-                          onClick={() => {
-                            if (playing?.id === r.id) {
-                              setPlaying(null);
-                            } else {
-                              previewMut.mutate(r.id);
-                            }
-                          }}
-                          className="h-9"
-                        >
-                          {playing?.id === r.id ? (
-                            <Pause className="h-4 w-4" />
-                          ) : (
-                            <Play className="h-4 w-4" />
+                      return (
+                        <li
+                          key={r.id}
+                          className={cn(
+                            "flex flex-wrap items-center gap-3 px-4 py-3",
+                            shadowed || (!isWinner && isGlobalRow) ? "opacity-70" : "",
                           )}
-                        </Button>
-
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={r.is_active}
-                            onCheckedChange={(v) =>
-                              setActiveMut.mutate({ id: r.id, is_active: v })
-                            }
-                          />
-                          <span className="text-xs text-muted-foreground">
-                            {r.is_active ? "Active" : "Inactive"}
-                          </span>
-                        </div>
-
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            if (confirm(`Delete "${r.title}"?`)) deleteMut.mutate(r.id);
-                          }}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </li>
-                    ))}
+                          <div className="flex-1 min-w-[160px]">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-medium">{r.title}</p>
+                              {isGlobalRow ? (
+                                <Badge variant="secondary" className="text-[10px]">
+                                  Global
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-[10px]">
+                                  Your upload
+                                </Badge>
+                              )}
+                              {isWinner ? (
+                                <Badge className="text-[10px]">Playing in sessions</Badge>
+                              ) : null}
+                              {shadowed ? (
+                                <span className="text-[11px] text-muted-foreground">
+                                  Overridden by your upload
+                                </span>
+                              ) : null}
+                              {isGlobalRow && !licenceOk ? (
+                                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                  <Lock className="h-3 w-3" /> Licence expired
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {fmtDuration(r.duration_seconds)} ·{" "}
+                              {new Date(r.created_at).toLocaleDateString()}
+                              {r.file_url ? "" : " · upload incomplete"}
+                            </p>
+                          </div>
+
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={!r.file_url || previewMut.isPending}
+                            onClick={() => {
+                              if (playing?.id === r.id) {
+                                setPlaying(null);
+                              } else {
+                                previewMut.mutate(r.id);
+                              }
+                            }}
+                            className="h-9"
+                            aria-label={playing?.id === r.id ? "Stop preview" : "Preview"}
+                          >
+                            {playing?.id === r.id ? (
+                              <Pause className="h-4 w-4" />
+                            ) : (
+                              <Play className="h-4 w-4" />
+                            )}
+                          </Button>
+
+                          {readOnly ? (
+                            <span className="text-xs text-muted-foreground">
+                              Managed by ResonaBed
+                            </span>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={r.is_active}
+                                  disabled={!r.file_url || setActiveMut.isPending}
+                                  onCheckedChange={(v) =>
+                                    setActiveMut.mutate({ id: r.id, is_active: v })
+                                  }
+                                  aria-label="Use this track"
+                                />
+                                <span className="text-xs text-muted-foreground">
+                                  {r.is_active ? "Active" : "Inactive"}
+                                </span>
+                              </div>
+
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                aria-label="Delete track"
+                                onClick={() => {
+                                  if (confirm(`Delete "${r.title}"?`))
+                                    deleteMut.mutate(r.id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : null}
               </div>
@@ -347,6 +416,7 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           ) : null}
         </div>
       )}
+
 
       <UploadDialog
         open={uploadOpen}
