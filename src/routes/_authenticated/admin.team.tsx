@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { listTeam } from "@/lib/admin.functions";
+import { listTeam, updateTeamMemberProfile } from "@/lib/admin.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { sendAdminInviteEmail } from "@/lib/emails.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -21,7 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { UserPlus, Copy, MailWarning } from "lucide-react";
+import { UserPlus, Copy, MailWarning, User } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
@@ -42,6 +44,7 @@ function TeamAdmin() {
   const fetchTeam = useServerFn(listTeam);
   const fetchCtx = useServerFn(getCurrentUserContext);
   const sendInvite = useServerFn(sendAdminInviteEmail);
+  const saveProfile = useServerFn(updateTeamMemberProfile);
   const qc = useQueryClient();
   const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => fetchCtx() });
   const { data: team, isLoading } = useQuery({
@@ -182,6 +185,69 @@ function TeamAdmin() {
   };
 
 
+  const [editing, setEditing] = useState<
+    | { id: string; name: string; bio: string; avatarUrl: string | null }
+    | null
+  >(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  const openEdit = (m: { id: string; display_name: string | null; bio: string | null; avatar_url: string | null }) => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setEditing({
+      id: m.id,
+      name: m.display_name ?? "this user",
+      bio: m.bio ?? "",
+      avatarUrl: m.avatar_url,
+    });
+  };
+
+  const onPickAvatar = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const onSaveProfile = async () => {
+    if (!editing) return;
+    setSavingProfile(true);
+    try {
+      let avatar_path: string | undefined;
+      if (avatarFile) {
+        const orgId = ctx?.org?.id;
+        if (!orgId) throw new Error("No organisation");
+        const ext = avatarFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        const path = `${orgId}/${editing.id}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("team-avatars")
+          .upload(path, avatarFile, { upsert: true, contentType: avatarFile.type });
+        if (upErr) throw new Error(upErr.message);
+        avatar_path = path;
+      }
+      await saveProfile({
+        data: { user_id: editing.id, bio: editing.bio, ...(avatar_path ? { avatar_path } : {}) },
+      });
+      toast.success("Profile updated");
+      setEditing(null);
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -193,6 +259,7 @@ function TeamAdmin() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-16">Photo</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
@@ -201,7 +268,7 @@ function TeamAdmin() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow><TableCell colSpan={4}>Loading…</TableCell></TableRow>
+            <TableRow><TableCell colSpan={5}>Loading…</TableCell></TableRow>
           ) : (
             (team ?? [])
               .filter((m) =>
@@ -219,6 +286,14 @@ function TeamAdmin() {
                       : "none";
                 return (
                   <TableRow key={m.id}>
+                    <TableCell>
+                      <Avatar className="h-10 w-10">
+                        {m.avatar_url ? <AvatarImage src={m.avatar_url} alt={m.display_name ?? "Team member"} /> : null}
+                        <AvatarFallback>
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span>{m.display_name ?? "(no name)"}</span>
@@ -240,6 +315,9 @@ function TeamAdmin() {
                           </Tooltip>
                         )}
                       </div>
+                      {m.bio ? (
+                        <p className="mt-1 max-w-sm truncate text-xs text-muted-foreground">{m.bio}</p>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       {isSuper ? (
@@ -266,6 +344,9 @@ function TeamAdmin() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openEdit(m)}>
+                          Edit profile
+                        </Button>
                         {!isSuper && !isSelf && (
                           <Button
                             size="sm"
@@ -447,6 +528,57 @@ function TeamAdmin() {
           </div>
           <DialogFooter>
             <Button onClick={() => setResetResult(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    
+      <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit profile — {editing?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-20 w-20">
+                {(avatarPreview ?? editing?.avatarUrl) ? (
+                  <AvatarImage src={(avatarPreview ?? editing?.avatarUrl) as string} alt="Headshot preview" />
+                ) : null}
+                <AvatarFallback>
+                  <User className="h-6 w-6" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-1">
+                <Label htmlFor="headshot">Headshot</Label>
+                <Input
+                  id="headshot"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) onPickAvatar(f);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">JPG or PNG, up to 5MB.</p>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                rows={5}
+                maxLength={2000}
+                placeholder="Short introduction shown alongside this practitioner."
+                value={editing?.bio ?? ""}
+                onChange={(e) => setEditing((cur) => (cur ? { ...cur, bio: e.target.value } : cur))}
+              />
+              <p className="text-xs text-muted-foreground">{(editing?.bio ?? "").length}/2000</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditing(null)} disabled={savingProfile}>Cancel</Button>
+            <Button onClick={onSaveProfile} disabled={savingProfile}>
+              {savingProfile ? "Saving…" : "Save profile"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
