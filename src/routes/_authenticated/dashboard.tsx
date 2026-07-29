@@ -14,6 +14,7 @@ import { getPlatformMetrics } from "@/lib/platform-metrics.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import {
   addDaysToDate,
   dayStartUtc,
@@ -337,6 +338,7 @@ interface SessionRowProps {
 }
 
 function SessionRow({ s, showDate }: SessionRowProps) {
+  const tz = useOrgTimezone();
   const client = s.client as { first_name: string; last_name: string } | null;
   const service = s.service as { name: string } | null;
   const freq = s.frequency as { hz: number; color: string | null } | null;
