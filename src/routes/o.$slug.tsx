@@ -70,7 +70,7 @@ function PublicOrgPage() {
     services: PublicService[];
     logoUrl: string | null;
   };
-  const { org, services } = data;
+  const { org, services, logoUrl } = data;
   const accent = org.brand_color || undefined;
 
   return (
