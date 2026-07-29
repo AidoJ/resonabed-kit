@@ -194,8 +194,14 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     if (windows.length === 0) return [];
     const duration = svc.duration_minutes;
     // Existing bookings for this practitioner (excluding the one being edited).
+    // Unconfirmed public requests never block a slot — they're only requests.
     const busy = dayBookings
-      .filter((b) => b.practitioner_id === practitionerId && b.id !== booking?.id)
+      .filter(
+        (b) =>
+          b.practitioner_id === practitionerId &&
+          b.id !== booking?.id &&
+          !((b as { source?: string }).source === "public" && b.status === "pending"),
+      )
       .map((b) => {
         const s = new Date(b.starts_at);
         const e = new Date(b.ends_at);
