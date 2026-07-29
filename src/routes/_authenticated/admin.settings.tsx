@@ -38,6 +38,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SignaturePad } from "@/components/session-wizard/signature-pad";
+import { PublicPageCard } from "@/components/settings/public-page-card";
 
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -720,8 +721,12 @@ function SettingsAdmin() {
             </CardContent>
           </Card>
 
+          {/* Public page */}
+          <PublicPageCard org={org as never} />
+
           {/* Resonabed support access */}
           <SupportAccessCard orgId={org.id} />
+
 
 
 

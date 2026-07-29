@@ -393,7 +393,7 @@ export const getOrgSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid",
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid, slug, published, public_blurb, public_contact_email, public_contact_phone, public_booking_enabled, timezone",
       )
       .eq("id", _org_id)
       .single();
@@ -451,6 +451,21 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         practitioners_can_view_all_clients: z.boolean().optional(),
         practitioners_can_manage_bookings: z.boolean().optional(),
         practitioners_can_complete_unpaid: z.boolean().optional(),
+        slug: z
+          .string()
+          .trim()
+          .toLowerCase()
+          .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use lowercase letters, numbers and hyphens only")
+          .min(3)
+          .max(48)
+          .nullable()
+          .optional(),
+        published: z.boolean().optional(),
+        public_blurb: z.string().max(4000).nullable().optional(),
+        public_contact_email: z.string().email().max(200).nullable().optional(),
+        public_contact_phone: z.string().max(60).nullable().optional(),
+        public_booking_enabled: z.boolean().optional(),
+        timezone: z.string().min(1).max(64).optional(),
       })
       .parse(d),
   )
@@ -493,6 +508,13 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "practitioners_can_view_all_clients",
       "practitioners_can_manage_bookings",
       "practitioners_can_complete_unpaid",
+      "slug",
+      "published",
+      "public_blurb",
+      "public_contact_email",
+      "public_contact_phone",
+      "public_booking_enabled",
+      "timezone",
     ] as const) {
       const v = data[key];
       if (v !== undefined) patch[key] = v;
@@ -524,7 +546,12 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         .from("organisations")
         .update(patch as never)
         .eq("id", _org_id);
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (error.code === "23505" || /organisations_slug_key/.test(error.message)) {
+          throw new Error("That public URL name is already taken. Try another.");
+        }
+        throw new Error(error.message);
+      }
     }
     if (auditRows.length > 0) {
       const { error: aErr } = await context.supabase.from("org_policy_audit").insert(auditRows);
