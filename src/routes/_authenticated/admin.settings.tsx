@@ -720,8 +720,12 @@ function SettingsAdmin() {
             </CardContent>
           </Card>
 
+          {/* Public page */}
+          <PublicPageCard org={org as never} />
+
           {/* Resonabed support access */}
           <SupportAccessCard orgId={org.id} />
+
 
 
 
