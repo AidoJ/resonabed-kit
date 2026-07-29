@@ -7,6 +7,8 @@ import {
   type PublicOrg,
   type PublicService,
 } from "@/lib/public-org.functions";
+import { PublicBookingForm } from "@/components/public-booking-form";
+import { DEFAULT_TIMEZONE } from "@/lib/timezone";
 
 async function loadPublicPage(slug: string) {
   const res = await getPublicOrgPage({ data: { slug } });
@@ -124,6 +126,20 @@ function PublicOrgPage() {
             </div>
           </section>
         ) : null}
+
+        {org.public_booking_enabled && services.length > 0 ? (
+          <section id="request">
+            <h2 className="mb-3 text-lg font-semibold">Request a booking</h2>
+            <PublicBookingForm
+              slug={org.slug}
+              services={services}
+              timezone={org.timezone || DEFAULT_TIMEZONE}
+              clinicName={org.name}
+            />
+          </section>
+        ) : null}
+
+
 
         <section>
           <h2 className="mb-3 text-lg font-semibold">Get in touch</h2>

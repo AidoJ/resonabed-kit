@@ -33,7 +33,7 @@ export const listBookings = createServerFn({ method: "POST" })
     let q = context.supabase
       .from("bookings")
       .select(
-        `id, starts_at, ends_at, status, notes, practitioner_id, session_id,
+        `id, starts_at, ends_at, status, notes, practitioner_id, session_id, source, public_note,
          client:client_id(id, first_name, last_name),
          service:service_id(id, name, duration_minutes, buffer_minutes, price),
          session:session_id(id, status, payment_method, payment_amount)`,
@@ -46,7 +46,9 @@ export const listBookings = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     // Fetch practitioners separately (bookings.practitioner_id FKs auth.users,
     // not profiles, so we can't auto-join to profiles.display_name).
-    const practIds = Array.from(new Set((rows ?? []).map((r) => r.practitioner_id)));
+    const practIds = Array.from(
+      new Set((rows ?? []).map((r) => r.practitioner_id).filter((id): id is string => !!id)),
+    );
     const practById: Record<string, { id: string; display_name: string | null }> = {};
     if (practIds.length > 0) {
       const { data: profs, error: pErr } = await context.supabase
@@ -58,7 +60,7 @@ export const listBookings = createServerFn({ method: "POST" })
     }
     let filtered = (rows ?? []).map((r) => ({
       ...r,
-      practitioner: practById[r.practitioner_id] ?? null,
+      practitioner: r.practitioner_id ? (practById[r.practitioner_id] ?? null) : null,
     }));
     if (data.unpaid_only) {
       filtered = filtered.filter((b) => {
@@ -77,7 +79,7 @@ export const getBooking = createServerFn({ method: "POST" })
     const { data: row, error } = await context.supabase
       .from("bookings")
       .select(
-        `id, org_id, starts_at, ends_at, status, notes, practitioner_id, session_id, client_id, service_id,
+        `id, org_id, starts_at, ends_at, status, notes, practitioner_id, session_id, client_id, service_id, source, public_note,
          client:client_id(id, first_name, last_name, email, phone),
          service:service_id(id, name, duration_minutes, buffer_minutes, price),
          session:session_id(id, status, payment_method, payment_amount, created_at)`,
@@ -86,11 +88,15 @@ export const getBooking = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Booking not found");
-    const { data: prof } = await context.supabase
-      .from("profiles")
-      .select("id, display_name")
-      .eq("id", row.practitioner_id)
-      .maybeSingle();
+    const prof = row.practitioner_id
+      ? (
+          await context.supabase
+            .from("profiles")
+            .select("id, display_name")
+            .eq("id", row.practitioner_id)
+            .maybeSingle()
+        ).data
+      : null;
     return { ...row, practitioner: prof ?? null };
   });
 
@@ -297,7 +303,7 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
       .from("sessions")
       .insert({
         org_id: booking.org_id,
-        practitioner_id: booking.practitioner_id,
+        practitioner_id: booking.practitioner_id ?? context.userId,
         client_id: booking.client_id,
         service_id: booking.service_id,
         pain_level: data.pain_level,
@@ -325,4 +331,53 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
     if (linkErr) throw new Error(linkErr.message);
 
     return { session_id: session.id };
+  });
+
+// ---------- Public booking requests ----------
+
+/**
+ * Confirm or decline a booking that arrived through the public page.
+ * Confirming requires assigning a practitioner; declining cancels it.
+ */
+export const respondToPublicRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: uuid,
+        action: z.enum(["confirm", "decline"]),
+        practitioner_id: uuid.optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: booking, error } = await context.supabase
+      .from("bookings")
+      .select("id, status, source, practitioner_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!booking) throw new Error("Booking not found");
+    if (booking.source !== "public" || booking.status !== "pending") {
+      throw new Error("This booking is not a pending public request");
+    }
+
+    if (data.action === "decline") {
+      const { error: dErr } = await context.supabase
+        .from("bookings")
+        .update({ status: "cancelled" })
+        .eq("id", data.id);
+      if (dErr) throw new Error(dErr.message);
+      return { ok: true as const };
+    }
+
+    if (!data.practitioner_id) {
+      throw new Error("Assign a practitioner before confirming");
+    }
+    const { error: cErr } = await context.supabase
+      .from("bookings")
+      .update({ status: "confirmed", practitioner_id: data.practitioner_id })
+      .eq("id", data.id);
+    if (cErr) throw new Error(cErr.message);
+    return { ok: true as const };
   });
