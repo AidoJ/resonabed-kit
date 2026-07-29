@@ -16,6 +16,17 @@ import {
 import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { listBookings, listOrgPractitioners, type BookingStatus } from "@/lib/bookings.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { useOrgTimezone } from "@/hooks/use-org-timezone";
+import {
+  addDaysToDate,
+  dayStartUtc,
+  formatDateLabel,
+  formatInTz,
+  isoDateInTz,
+  startOfWeekDate,
+  todayInTz,
+  tzAbbrev,
+} from "@/lib/timezone";
 import { BookingFormDialog } from "@/components/booking-form-dialog";
 import {
   PublicRequestDialog,
@@ -44,30 +55,6 @@ const STATUS_STYLES: Record<BookingStatus, string> = {
   no_show: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
 };
 
-function startOfDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-function addDays(d: Date, n: number): Date {
-  const x = new Date(d);
-  x.setDate(x.getDate() + n);
-  return x;
-}
-function startOfWeek(d: Date): Date {
-  const x = startOfDay(d);
-  x.setDate(x.getDate() - x.getDay());
-  return x;
-}
-function fmtDate(d: Date): string {
-  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-}
-function fmtTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-}
-function toISODate(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
 
 function BookingsPage() {
   const search = Route.useSearch();
@@ -76,18 +63,25 @@ function BookingsPage() {
   const listFn = useServerFn(listBookings);
   const listPracs = useServerFn(listOrgPractitioners);
 
-  const view = search.view;
-  const anchorDate = useMemo(() => {
-    return search.date ? new Date(`${search.date}T00:00:00`) : startOfDay(new Date());
-  }, [search.date]);
+  // All dates below are plain "YYYY-MM-DD" calendar days in the ORG timezone.
+  // Instants are converted to/from UTC only at the boundary (dayStartUtc /
+  // formatInTz), so a value already stored as UTC is never shifted twice.
+  const tz = useOrgTimezone();
+  const fmtTime = (iso: string) => formatInTz(iso, tz);
 
-  const { from, to } = useMemo(() => {
+  const view = search.view;
+  const anchor = search.date || todayInTz(tz);
+
+  const { fromDate, toDate } = useMemo(() => {
     if (view === "week") {
-      const start = startOfWeek(anchorDate);
-      return { from: start, to: addDays(start, 7) };
+      const start = startOfWeekDate(anchor);
+      return { fromDate: start, toDate: addDaysToDate(start, 7) };
     }
-    return { from: startOfDay(anchorDate), to: addDays(anchorDate, 1) };
-  }, [view, anchorDate]);
+    return { fromDate: anchor, toDate: addDaysToDate(anchor, 1) };
+  }, [view, anchor]);
+
+  const from = useMemo(() => dayStartUtc(fromDate, tz), [fromDate, tz]);
+  const to = useMemo(() => dayStartUtc(toDate, tz), [toDate, tz]);
 
   const unpaidOnly = search.filter === "unpaid";
   const practitionerId = search.practitioner || undefined;
@@ -131,23 +125,22 @@ function BookingsPage() {
   const grouped = useMemo(() => {
     const map = new Map<string, typeof bookings>();
     for (const b of bookings) {
-      const key = toISODate(new Date(b.starts_at));
+      const key = isoDateInTz(b.starts_at, tz);
       const arr = map.get(key) ?? [];
       arr.push(b);
       map.set(key, arr);
     }
     return map;
-  }, [bookings]);
+  }, [bookings, tz]);
 
   const days = useMemo(() => {
     const n = view === "week" ? 7 : 1;
-    return Array.from({ length: n }, (_, i) => addDays(from, i));
-  }, [view, from]);
+    return Array.from({ length: n }, (_, i) => addDaysToDate(fromDate, i));
+  }, [view, fromDate]);
 
   const shift = (delta: number) => {
     const step = view === "week" ? 7 : 1;
-    const next = addDays(anchorDate, delta * step);
-    setSearch({ date: toISODate(next) });
+    setSearch({ date: addDaysToDate(anchor, delta * step) });
   };
 
   return (
@@ -157,8 +150,9 @@ function BookingsPage() {
           <h1 className="text-2xl font-semibold">Bookings</h1>
           <p className="text-sm text-muted-foreground">
             {view === "week" ? "Week of " : ""}
-            {fmtDate(from)}
-            {view === "week" ? ` — ${fmtDate(addDays(from, 6))}` : ""}
+            {formatDateLabel(fromDate)}
+            {view === "week" ? ` — ${formatDateLabel(addDaysToDate(fromDate, 6))}` : ""}
+            <span className="ml-2 text-xs">· times in {tzAbbrev(tz)} ({tz})</span>
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -166,7 +160,7 @@ function BookingsPage() {
             <Button variant="ghost" size="icon" onClick={() => shift(-1)} className="h-10 w-10">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setSearch({ date: toISODate(startOfDay(new Date())) })}>
+            <Button variant="ghost" size="sm" onClick={() => setSearch({ date: todayInTz(tz) })}>
               Today
             </Button>
             <Button variant="ghost" size="icon" onClick={() => shift(1)} className="h-10 w-10">
@@ -218,12 +212,12 @@ function BookingsPage() {
       ) : (
         <div className="space-y-6">
           {days.map((day) => {
-            const key = toISODate(day);
+            const key = day;
             const rows = grouped.get(key) ?? [];
             if (view === "day" || rows.length > 0) {
               return (
                 <div key={key}>
-                  <h2 className="mb-2 text-sm font-medium text-muted-foreground">{fmtDate(day)}</h2>
+                  <h2 className="mb-2 text-sm font-medium text-muted-foreground">{formatDateLabel(day)}</h2>
                   {rows.length === 0 ? (
                     <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
                       Nothing scheduled.
@@ -340,7 +334,7 @@ function BookingsPage() {
         defaultStartsAt={from.toISOString()}
         onSaved={(savedStartsAt) => {
           if (savedStartsAt) {
-            setSearch({ date: toISODate(new Date(savedStartsAt)) });
+            setSearch({ date: isoDateInTz(savedStartsAt, tz) });
           }
           refetch();
           queryClient.invalidateQueries({ queryKey: ["bookings"] });
