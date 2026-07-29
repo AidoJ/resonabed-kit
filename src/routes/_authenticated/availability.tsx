@@ -22,6 +22,8 @@ import {
 } from "@/lib/availability.functions";
 import { listOrgPractitioners } from "@/lib/bookings.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { useOrgTimezone } from "@/hooks/use-org-timezone";
+import { tzAbbrev } from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/availability")({
   head: () => ({ meta: [{ title: "Availability — ResonaBed" }] }),
@@ -36,6 +38,9 @@ function AvailabilityPage() {
   const upsertFn = useServerFn(upsertAvailability);
   const deleteFn = useServerFn(deleteAvailability);
   const ctxFn = useServerFn(getCurrentUserContext);
+  // Availability is stored as wall-clock time; it is always read as the
+  // organisation's local time, never the device's.
+  const tz = useOrgTimezone();
 
   const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
   const { data: practitioners = [] } = useQuery({
@@ -127,7 +132,8 @@ function AvailabilityPage() {
       <div>
         <h1 className="text-2xl font-semibold">Weekly availability</h1>
         <p className="text-sm text-muted-foreground">
-          Recurring hours. Bookings outside these hours are flagged but still allowed.
+          Recurring hours in your clinic's timezone, {tzAbbrev(tz)} ({tz}). Bookings outside
+          these hours are flagged but still allowed.
         </p>
       </div>
 
@@ -170,6 +176,7 @@ function AvailabilityPage() {
                   <div key={r.id} className="flex items-center gap-3 rounded-md bg-muted/30 p-2">
                     <span className="flex-1 tabular-nums">
                       {r.start_time.slice(0, 5)} – {r.end_time.slice(0, 5)}
+                      <span className="ml-2 text-xs text-muted-foreground">{tzAbbrev(tz)}</span>
                     </span>
                     <div className="flex items-center gap-2">
                       <Switch checked={r.is_active} onCheckedChange={() => toggleActive(r.id, r.is_active, r)} />
