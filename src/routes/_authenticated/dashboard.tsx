@@ -181,7 +181,7 @@ function DashboardPage() {
             ) : (
               <>
                 <strong>Music licence expiring soon.</strong> Renew before{" "}
-                {new Date(licence.expires_at).toLocaleDateString()}
+                {formatInTz(licence.expires_at, tz, { day: "numeric", month: "short", year: "numeric" })}
                 {renewalPrice ? <> ({renewalPrice})</> : null} to keep uninterrupted access to the
                 global track library.
               </>
@@ -361,7 +361,7 @@ function SessionRow({ s, showDate }: SessionRowProps) {
             {service?.name ?? "—"}
             {freq ? ` · ${freq.hz} Hz` : ""}
             {showDate && s.created_at
-              ? ` · ${new Date(s.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+              ? ` · ${formatInTz(s.created_at, tz, { month: "short", day: "numeric" })}`
               : ""}
           </p>
         </div>

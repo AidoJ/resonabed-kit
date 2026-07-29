@@ -20,6 +20,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { respondToPublicRequest } from "@/lib/bookings.functions";
 import { toast } from "sonner";
+import { useOrgTimezone } from "@/hooks/use-org-timezone";
+import { formatInTz, tzAbbrev } from "@/lib/timezone";
 
 export type PublicRequestSummary = {
   id: string;
@@ -74,13 +76,13 @@ export function PublicRequestDialog({
     }
   };
 
-  const when = new Date(booking.starts_at).toLocaleString(undefined, {
+  const when = `${formatInTz(booking.starts_at, tz, {
     weekday: "short",
     day: "numeric",
     month: "short",
     hour: "numeric",
     minute: "2-digit",
-  });
+  })} (${tzAbbrev(tz)})`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
