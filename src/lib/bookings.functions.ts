@@ -46,7 +46,9 @@ export const listBookings = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     // Fetch practitioners separately (bookings.practitioner_id FKs auth.users,
     // not profiles, so we can't auto-join to profiles.display_name).
-    const practIds = Array.from(new Set((rows ?? []).map((r) => r.practitioner_id)));
+    const practIds = Array.from(
+      new Set((rows ?? []).map((r) => r.practitioner_id).filter((id): id is string => !!id)),
+    );
     const practById: Record<string, { id: string; display_name: string | null }> = {};
     if (practIds.length > 0) {
       const { data: profs, error: pErr } = await context.supabase
@@ -58,7 +60,7 @@ export const listBookings = createServerFn({ method: "POST" })
     }
     let filtered = (rows ?? []).map((r) => ({
       ...r,
-      practitioner: practById[r.practitioner_id] ?? null,
+      practitioner: r.practitioner_id ? (practById[r.practitioner_id] ?? null) : null,
     }));
     if (data.unpaid_only) {
       filtered = filtered.filter((b) => {
@@ -86,11 +88,15 @@ export const getBooking = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Booking not found");
-    const { data: prof } = await context.supabase
-      .from("profiles")
-      .select("id, display_name")
-      .eq("id", row.practitioner_id)
-      .maybeSingle();
+    const prof = row.practitioner_id
+      ? (
+          await context.supabase
+            .from("profiles")
+            .select("id, display_name")
+            .eq("id", row.practitioner_id)
+            .maybeSingle()
+        ).data
+      : null;
     return { ...row, practitioner: prof ?? null };
   });
 
@@ -297,7 +303,7 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
       .from("sessions")
       .insert({
         org_id: booking.org_id,
-        practitioner_id: booking.practitioner_id,
+        practitioner_id: booking.practitioner_id ?? context.userId,
         client_id: booking.client_id,
         service_id: booking.service_id,
         pain_level: data.pain_level,
