@@ -17,6 +17,10 @@ import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { listBookings, listOrgPractitioners, type BookingStatus } from "@/lib/bookings.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { BookingFormDialog } from "@/components/booking-form-dialog";
+import {
+  PublicRequestDialog,
+  type PublicRequestSummary,
+} from "@/components/public-request-dialog";
 
 const searchSchema = z.object({
   view: fallback(z.enum(["day", "week"]), "day").default("day"),
@@ -114,6 +118,7 @@ function BookingsPage() {
   });
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [requestBooking, setRequestBooking] = useState<PublicRequestSummary | null>(null);
 
   const fetchCtx = useServerFn(getCurrentUserContext);
   const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => fetchCtx() });
@@ -227,6 +232,9 @@ function BookingsPage() {
                     <ul className="divide-y rounded-lg border bg-card">
                       {rows.map((b) => {
                         const status = b.status as BookingStatus;
+                        const isPublicRequest =
+                          (b as unknown as { source?: string }).source === "public" &&
+                          status === "pending";
                         const session = (b as unknown as {
                           session?: { status?: string; payment_method?: string };
                         }).session;
@@ -262,9 +270,30 @@ function BookingsPage() {
                                     Unpaid
                                   </Badge>
                                 )}
+                                {isPublicRequest && (
+                                  <Badge className="bg-violet-500/15 text-violet-700 dark:text-violet-300">
+                                    Public request
+                                  </Badge>
+                                )}
                                 <Badge className={STATUS_STYLES[status]}>{status.replace("_", " ")}</Badge>
                               </div>
                             </Link>
+                            {isPublicRequest && canManageBookings && (
+                              <div className="flex items-center justify-between gap-3 border-t bg-violet-500/5 px-4 py-2 text-xs">
+                                <span className="text-muted-foreground">
+                                  Requested online · not scheduled until confirmed
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    setRequestBooking(b as unknown as PublicRequestSummary)
+                                  }
+                                >
+                                  Review
+                                </Button>
+                              </div>
+                            )}
                             {bufferMin > 0 && (
                               <div
                                 aria-label={`${bufferMin} minute changeover, not bookable`}
@@ -292,6 +321,18 @@ function BookingsPage() {
           })}
         </div>
       )}
+
+      <PublicRequestDialog
+        open={requestBooking !== null}
+        onOpenChange={(v) => !v && setRequestBooking(null)}
+        booking={requestBooking}
+        practitioners={practitioners}
+        onDone={() => {
+          setRequestBooking(null);
+          void queryClient.invalidateQueries({ queryKey: ["bookings"] });
+          void refetch();
+        }}
+      />
 
       <BookingFormDialog
         open={dialogOpen}
