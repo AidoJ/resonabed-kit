@@ -40,6 +40,8 @@ interface BookingLite {
   ends_at: string;
   notes: string | null;
   practitioner_id: string | null;
+  status?: string;
+  source?: string;
   client_id?: string;
   service_id?: string;
   client?: { id: string; first_name: string; last_name: string } | null;
@@ -200,7 +202,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
         (b) =>
           b.practitioner_id === practitionerId &&
           b.id !== booking?.id &&
-          !((b as { source?: string }).source === "public" && b.status === "pending"),
+          !(b.source === "public" && b.status === "pending"),
       )
       .map((b) => {
         const s = new Date(b.starts_at);
