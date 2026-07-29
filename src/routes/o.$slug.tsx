@@ -1,37 +1,17 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { Mail, Phone, Clock, Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-type PublicOrg = {
-  name: string;
-  logo_url: string | null;
-  brand_color: string | null;
-  slug: string;
-  public_blurb: string | null;
-  public_contact_email: string | null;
-  public_contact_phone: string | null;
-  public_booking_enabled: boolean;
-  timezone: string | null;
-};
-
-type PublicService = {
-  id: string;
-  name: string;
-  duration_minutes: number;
-  price: number;
-};
+import {
+  getPublicOrgPage,
+  type PublicOrg,
+  type PublicService,
+} from "@/lib/public-org.functions";
 
 async function loadPublicPage(slug: string) {
-  const [orgRes, svcRes] = await Promise.all([
-    supabase.rpc("get_public_org", { p_slug: slug }),
-    supabase.rpc("get_public_services", { p_slug: slug }),
-  ]);
-  if (orgRes.error) throw new Error(orgRes.error.message);
-  const org = (orgRes.data as PublicOrg[] | null)?.[0];
-  if (!org) throw notFound();
-  return { org, services: (svcRes.data as PublicService[] | null) ?? [] };
+  const res = await getPublicOrgPage({ data: { slug } });
+  if (!res.org) throw notFound();
+  return res as { org: PublicOrg; services: PublicService[]; logoUrl: string | null };
 }
 
 export const Route = createFileRoute("/o/$slug")({
