@@ -74,3 +74,90 @@ export function slotLabel(slot: string): string {
   const hh = h % 12 === 0 ? 12 : h % 12;
   return `${hh}:${String(m).padStart(2, "0")}${suffix}`;
 }
+
+/** "YYYY-MM-DD" for an instant, as seen in `tz`. */
+export function isoDateInTz(iso: string | Date, tz: string): string {
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+/** Today's calendar date in `tz` (never the device's date). */
+export function todayInTz(tz: string): string {
+  return isoDateInTz(new Date(), tz);
+}
+
+/** Minutes from midnight of an instant, as seen in `tz`. */
+export function minutesOfDayInTz(iso: string | Date, tz: string): number {
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz,
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(d);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
+  return (get("hour") % 24) * 60 + get("minute");
+}
+
+/** Day-of-week (0=Sun) of an instant, as seen in `tz`. */
+export function dayOfWeekInTz(iso: string | Date, tz: string): number {
+  const [y, m, d] = isoDateInTz(iso, tz).split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+/** Day-of-week (0=Sun) of a plain "YYYY-MM-DD" calendar date. No tz involved. */
+export function dayOfWeekOfDate(dateStr: string): number {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+/** Shift a "YYYY-MM-DD" calendar date by n days. Pure calendar arithmetic. */
+export function addDaysToDate(dateStr: string, n: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  t.setUTCDate(t.getUTCDate() + n);
+  return t.toISOString().slice(0, 10);
+}
+
+/** Sunday that starts the week containing `dateStr`. */
+export function startOfWeekDate(dateStr: string): string {
+  return addDaysToDate(dateStr, -dayOfWeekOfDate(dateStr));
+}
+
+/** UTC instant of midnight at the start of `dateStr` in `tz`. */
+export function dayStartUtc(dateStr: string, tz: string): Date {
+  return zonedWallTimeToUtc(dateStr, "00:00", tz);
+}
+
+/** Format a plain calendar date for display. Never touches instants/tz. */
+export function formatDateLabel(
+  dateStr: string,
+  opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" },
+): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-AU", { timeZone: "UTC", ...opts }).format(
+    new Date(Date.UTC(y, m - 1, d)),
+  );
+}
+
+/** "9:30am"-style label for minutes-from-midnight. Wall clock, no tz shift. */
+export function minutesLabel(minutesFromMidnight: number): string {
+  const h = Math.floor(minutesFromMidnight / 60) % 24;
+  const m = minutesFromMidnight % 60;
+  return slotLabel(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+}
+
+/** Short human timezone label, e.g. "AEST". */
+export function tzAbbrev(tz: string): string {
+  const part = new Intl.DateTimeFormat("en-AU", { timeZone: tz, timeZoneName: "short" })
+    .formatToParts(new Date())
+    .find((p) => p.type === "timeZoneName");
+  return part?.value ?? tz;
+}

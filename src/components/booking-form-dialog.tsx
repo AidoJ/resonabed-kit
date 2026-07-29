@@ -33,6 +33,19 @@ import {
 } from "@/lib/sessions.functions";
 import { listAvailability } from "@/lib/availability.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { useOrgTimezone } from "@/hooks/use-org-timezone";
+import {
+  addDaysToDate,
+  dayOfWeekOfDate,
+  dayStartUtc,
+  formatInTz,
+  isoDateInTz,
+  minutesLabel,
+  minutesOfDayInTz,
+  todayInTz,
+  tzAbbrev,
+  zonedWallTimeToUtc,
+} from "@/lib/timezone";
 
 interface BookingLite {
   id: string;
@@ -58,24 +71,11 @@ interface Props {
 
 const SLOT_MINUTES = 30;
 
-function toISODate(d: Date): string {
-  const off = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - off * 60_000);
-  return local.toISOString().slice(0, 10);
-}
-
 function parseHM(s: string): number {
   const [h, m] = s.split(":").map(Number);
   return h * 60 + m;
 }
 
-function fmtSlot(minutesFromMidnight: number): string {
-  const h = Math.floor(minutesFromMidnight / 60);
-  const m = minutesFromMidnight % 60;
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-}
 
 export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt, onSaved }: Props) {
   const listClients = useServerFn(listMyOrgClients);
@@ -87,6 +87,8 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   const updateFn = useServerFn(updateBooking);
   const createClientFn = useServerFn(createClientRecord);
   const ctxFn = useServerFn(getCurrentUserContext);
+  // Every wall-clock value in this dialog is interpreted in the ORG timezone.
+  const tz = useOrgTimezone();
   const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
   const canAssignAnyone =
     !!ctx && (ctx.roles.includes("super_admin") || ctx.roles.includes("org_admin"));
@@ -139,15 +141,14 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
       setClientId(booking.client_id ?? booking.client?.id ?? "");
       setServiceId(booking.service_id ?? booking.service?.id ?? "");
       setPractitionerId(booking.practitioner_id ?? "");
-      setDateStr(toISODate(start));
-      setSlotMin(String(start.getHours() * 60 + start.getMinutes()));
+      setDateStr(isoDateInTz(start, tz));
+      setSlotMin(String(minutesOfDayInTz(start, tz)));
       setNotes(booking.notes ?? "");
     } else {
       setClientId("");
       setServiceId("");
       setPractitionerId("");
-      const start = defaultStartsAt ? new Date(defaultStartsAt) : new Date();
-      setDateStr(toISODate(start));
+      setDateStr(defaultStartsAt ? isoDateInTz(defaultStartsAt, tz) : todayInTz(tz));
       setSlotMin("");
       setNotes("");
     }
@@ -156,7 +157,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     setNewLast("");
     setNewEmail("");
     setNewPhone("");
-  }, [open, booking, defaultStartsAt]);
+  }, [open, booking, defaultStartsAt, tz]);
 
   // Practitioners can only assign themselves — lock the value once we know who they are.
   useEffect(() => {
@@ -168,13 +169,11 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
 
   const dayBookingsRange = useMemo(() => {
     if (!dateStr) return null;
-    const d = new Date(`${dateStr}T00:00:00`);
-    const start = new Date(d);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    return { from: start.toISOString(), to: end.toISOString() };
-  }, [dateStr]);
+    return {
+      from: dayStartUtc(dateStr, tz).toISOString(),
+      to: dayStartUtc(addDaysToDate(dateStr, 1), tz).toISOString(),
+    };
+  }, [dateStr, tz]);
 
   const { data: dayBookings = [] } = useQuery({
     queryKey: ["day-bookings", dayBookingsRange?.from ?? "", dayBookingsRange?.to ?? ""],
@@ -189,7 +188,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
 
   const slots = useMemo(() => {
     if (!practitionerId || !dateStr || !svc) return [];
-    const day = new Date(`${dateStr}T00:00:00`).getDay();
+    const day = dayOfWeekOfDate(dateStr);
     const windows = availability.filter(
       (a) => a.practitioner_id === practitionerId && a.is_active && a.day_of_week === day,
     );
@@ -205,12 +204,10 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
           !(b.source === "public" && b.status === "pending"),
       )
       .map((b) => {
-        const s = new Date(b.starts_at);
-        const e = new Date(b.ends_at);
-        const buf = (b.service?.buffer_minutes ?? 0) * 60_000;
+        const buf = b.service?.buffer_minutes ?? 0;
         return {
-          start: s.getHours() * 60 + s.getMinutes(),
-          end: e.getHours() * 60 + e.getMinutes() + Math.round(buf / 60_000),
+          start: minutesOfDayInTz(b.starts_at, tz),
+          end: minutesOfDayInTz(b.ends_at, tz) + buf,
         };
       });
 
@@ -225,7 +222,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
       }
     }
     return Array.from(new Set(out)).sort((a, b) => a - b);
-  }, [practitionerId, dateStr, availability, svc, dayBookings, booking?.id]);
+  }, [practitionerId, dateStr, availability, svc, dayBookings, booking?.id, tz]);
 
   // If the currently-selected slot is no longer valid, clear it.
   useEffect(() => {
@@ -233,21 +230,21 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     if (!slots.includes(Number(slotMin))) {
       // Keep the slot if we're editing this booking's original time — availability may not include it.
       if (booking) {
-        const start = new Date(booking.starts_at);
-        const orig = start.getHours() * 60 + start.getMinutes();
+        const orig = minutesOfDayInTz(booking.starts_at, tz);
         if (orig === Number(slotMin) && practitionerId === booking.practitioner_id) return;
       }
       setSlotMin("");
     }
-  }, [slots, slotMin, booking, practitionerId]);
+  }, [slots, slotMin, booking, practitionerId, tz]);
 
   const startsIso = useMemo(() => {
     if (!dateStr || !slotMin) return "";
-    const [y, mo, d] = dateStr.split("-").map(Number);
     const min = Number(slotMin);
-    const dt = new Date(y, mo - 1, d, Math.floor(min / 60), min % 60, 0, 0);
-    return dt.toISOString();
-  }, [dateStr, slotMin]);
+    const hhmm = `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+    // Interpret the entered wall-clock time in the ORG timezone, exactly like
+    // the public booking path does. Stored value is true UTC.
+    return zonedWallTimeToUtc(dateStr, hhmm, tz).toISOString();
+  }, [dateStr, slotMin, tz]);
 
   const endsIso = useMemo(() => {
     if (!startsIso || !svc) return "";
@@ -446,7 +443,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
                 <SelectContent>
                   {slots.map((m) => (
                     <SelectItem key={m} value={String(m)}>
-                      {fmtSlot(m)}
+                      {minutesLabel(m)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -457,10 +454,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
           {endsIso && (
             <p className="text-xs text-muted-foreground">
               Ends at{" "}
-              {new Date(endsIso).toLocaleTimeString(undefined, {
-                hour: "numeric",
-                minute: "2-digit",
-              })}
+              {formatInTz(endsIso, tz)} ({tzAbbrev(tz)})
               {svc?.buffer_minutes ? ` · ${svc.buffer_minutes}-min changeover after` : ""}
             </p>
           )}

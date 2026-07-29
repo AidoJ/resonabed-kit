@@ -14,6 +14,15 @@ import { getPlatformMetrics } from "@/lib/platform-metrics.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useOrgTimezone } from "@/hooks/use-org-timezone";
+import {
+  addDaysToDate,
+  dayStartUtc,
+  DEFAULT_TIMEZONE,
+  formatInTz,
+  isoDateInTz,
+  todayInTz,
+} from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Resonabed" }] }),
@@ -33,18 +42,13 @@ function statusStyles(status: string) {
   }
 }
 
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+function fmtTime(iso: string, tz: string) {
+  return formatInTz(iso, tz);
 }
 
-function isToday(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  return (
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate()
-  );
+/** "Today" means today in the ORG timezone, not on the operator's device. */
+function isToday(iso: string, tz: string) {
+  return isoDateInTz(iso, tz) === todayInTz(tz);
 }
 
 function DashboardPage() {
@@ -82,13 +86,11 @@ function DashboardPage() {
     queryFn: () => listSessions(),
     enabled: clinicalEnabled,
   });
+  const tz = ctx?.org?.timezone || DEFAULT_TIMEZONE;
   const bookingsRange = useMemo(() => {
-    const from = new Date();
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(from);
-    to.setDate(to.getDate() + 7);
-    return { from, to };
-  }, []);
+    const today = todayInTz(tz);
+    return { from: dayStartUtc(today, tz), to: dayStartUtc(addDaysToDate(today, 7), tz) };
+  }, [tz]);
   const { data: bookings } = useQuery({
     queryKey: ["dash-bookings", bookingsRange.from.toISOString(), bookingsRange.to.toISOString()],
     queryFn: () =>
@@ -101,13 +103,12 @@ function DashboardPage() {
     enabled: clinicalEnabled,
   });
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(todayStart);
-  todayEnd.setDate(todayEnd.getDate() + 1);
+  const todayIso = todayInTz(tz);
+  const todayStart = dayStartUtc(todayIso, tz);
+  const twoDaysOut = dayStartUtc(addDaysToDate(todayIso, 2), tz);
 
   const todaysSessions = (sessions ?? []).filter((s) =>
-    s.created_at ? isToday(s.created_at) : false,
+    s.created_at ? isToday(s.created_at, tz) : false,
   );
   const recentSessions = (sessions ?? []).slice(0, 6);
   const unpaid = (sessions ?? []).filter(
@@ -116,7 +117,7 @@ function DashboardPage() {
   const upcomingBookings = (bookings ?? [])
     .filter((b) => {
       const t = new Date(b.starts_at).getTime();
-      return t >= todayStart.getTime() && t < todayEnd.getTime() + 24 * 60 * 60 * 1000;
+      return t >= todayStart.getTime() && t < twoDaysOut.getTime();
     })
     .slice(0, 4);
 
@@ -181,7 +182,7 @@ function DashboardPage() {
             ) : (
               <>
                 <strong>Music licence expiring soon.</strong> Renew before{" "}
-                {new Date(licence.expires_at).toLocaleDateString()}
+                {formatInTz(licence.expires_at, tz, { day: "numeric", month: "short", year: "numeric" })}
                 {renewalPrice ? <> ({renewalPrice})</> : null} to keep uninterrupted access to the
                 global track library.
               </>
@@ -308,7 +309,7 @@ function DashboardPage() {
                           {c ? `${c.first_name} ${c.last_name}` : "—"}
                         </p>
                         <p className="text-xs text-muted-foreground tabular-nums">
-                          {fmtTime(b.starts_at)}
+                          {fmtTime(b.starts_at, tz)}
                         </p>
                       </div>
                     </Link>
@@ -337,6 +338,7 @@ interface SessionRowProps {
 }
 
 function SessionRow({ s, showDate }: SessionRowProps) {
+  const tz = useOrgTimezone();
   const client = s.client as { first_name: string; last_name: string } | null;
   const service = s.service as { name: string } | null;
   const freq = s.frequency as { hz: number; color: string | null } | null;
@@ -361,7 +363,7 @@ function SessionRow({ s, showDate }: SessionRowProps) {
             {service?.name ?? "—"}
             {freq ? ` · ${freq.hz} Hz` : ""}
             {showDate && s.created_at
-              ? ` · ${new Date(s.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+              ? ` · ${formatInTz(s.created_at, tz, { month: "short", day: "numeric" })}`
               : ""}
           </p>
         </div>

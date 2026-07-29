@@ -13,6 +13,8 @@ import {
   type BookingStatus,
 } from "@/lib/bookings.functions";
 import { BookingFormDialog } from "@/components/booking-form-dialog";
+import { useOrgTimezone } from "@/hooks/use-org-timezone";
+import { formatInTz, tzAbbrev } from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
   head: () => ({ meta: [{ title: "Booking — ResonaBed" }] }),
@@ -30,6 +32,7 @@ const STATUS_OPTIONS: BookingStatus[] = [
 
 function BookingDetail() {
   const { id } = Route.useParams();
+  const tz = useOrgTimezone();
   const navigate = useNavigate();
   const getFn = useServerFn(getBooking);
   const setStatusFn = useServerFn(updateBookingStatus);
@@ -107,8 +110,15 @@ function BookingDetail() {
               {booking.service?.name} · {booking.service?.duration_minutes} min
             </p>
             <p className="mt-1 text-sm">
-              {new Date(booking.starts_at).toLocaleString()} –{" "}
-              {new Date(booking.ends_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+              {formatInTz(booking.starts_at, tz, {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}{" "}
+              – {formatInTz(booking.ends_at, tz)} ({tzAbbrev(tz)})
             </p>
             <p className="text-sm text-muted-foreground">
               Practitioner: {(booking as unknown as { practitioner?: { display_name?: string } }).practitioner?.display_name ?? "—"}
