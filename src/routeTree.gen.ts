@@ -17,6 +17,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OrderSuccessRouteImport } from './routes/order.success'
 import { Route as OrderCancelledRouteImport } from './routes/order.cancelled'
+import { Route as OSlugRouteImport } from './routes/o.$slug'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedFrequenciesRouteImport } from './routes/_authenticated/frequencies'
@@ -89,6 +90,11 @@ const OrderSuccessRoute = OrderSuccessRouteImport.update({
 const OrderCancelledRoute = OrderCancelledRouteImport.update({
   id: '/order/cancelled',
   path: '/order/cancelled',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OSlugRoute = OSlugRouteImport.update({
+  id: '/o/$slug',
+  path: '/o/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/o/$slug': typeof OSlugRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/o/$slug': typeof OSlugRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
@@ -384,6 +392,7 @@ export interface FileRoutesById {
   '/_authenticated/frequencies': typeof AuthenticatedFrequenciesRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/o/$slug': typeof OSlugRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
@@ -429,6 +438,7 @@ export interface FileRouteTypes {
     | '/frequencies'
     | '/services'
     | '/sessions'
+    | '/o/$slug'
     | '/order/cancelled'
     | '/order/success'
     | '/admin/clients'
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/frequencies'
     | '/services'
+    | '/o/$slug'
     | '/order/cancelled'
     | '/order/success'
     | '/admin/clients'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/_authenticated/frequencies'
     | '/_authenticated/services'
     | '/_authenticated/sessions'
+    | '/o/$slug'
     | '/order/cancelled'
     | '/order/success'
     | '/_authenticated/admin/clients'
@@ -550,6 +562,7 @@ export interface RootRouteChildren {
   FlyerRoute: typeof FlyerRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  OSlugRoute: typeof OSlugRoute
   OrderCancelledRoute: typeof OrderCancelledRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
@@ -614,6 +627,13 @@ declare module '@tanstack/react-router' {
       path: '/order/cancelled'
       fullPath: '/order/cancelled'
       preLoaderRoute: typeof OrderCancelledRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/o/$slug': {
+      id: '/o/$slug'
+      path: '/o/$slug'
+      fullPath: '/o/$slug'
+      preLoaderRoute: typeof OSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/sessions': {
@@ -954,6 +974,7 @@ const rootRouteChildren: RootRouteChildren = {
   FlyerRoute: FlyerRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  OSlugRoute: OSlugRoute,
   OrderCancelledRoute: OrderCancelledRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
