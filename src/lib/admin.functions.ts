@@ -546,7 +546,12 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         .from("organisations")
         .update(patch as never)
         .eq("id", _org_id);
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (error.code === "23505" || /organisations_slug_key/.test(error.message)) {
+          throw new Error("That public URL name is already taken. Try another.");
+        }
+        throw new Error(error.message);
+      }
     }
     if (auditRows.length > 0) {
       const { error: aErr } = await context.supabase.from("org_policy_audit").insert(auditRows);
