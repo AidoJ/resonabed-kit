@@ -332,3 +332,52 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
 
     return { session_id: session.id };
   });
+
+// ---------- Public booking requests ----------
+
+/**
+ * Confirm or decline a booking that arrived through the public page.
+ * Confirming requires assigning a practitioner; declining cancels it.
+ */
+export const respondToPublicRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: uuid,
+        action: z.enum(["confirm", "decline"]),
+        practitioner_id: uuid.optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: booking, error } = await context.supabase
+      .from("bookings")
+      .select("id, status, source, practitioner_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!booking) throw new Error("Booking not found");
+    if (booking.source !== "public" || booking.status !== "pending") {
+      throw new Error("This booking is not a pending public request");
+    }
+
+    if (data.action === "decline") {
+      const { error: dErr } = await context.supabase
+        .from("bookings")
+        .update({ status: "cancelled" })
+        .eq("id", data.id);
+      if (dErr) throw new Error(dErr.message);
+      return { ok: true as const };
+    }
+
+    if (!data.practitioner_id) {
+      throw new Error("Assign a practitioner before confirming");
+    }
+    const { error: cErr } = await context.supabase
+      .from("bookings")
+      .update({ status: "confirmed", practitioner_id: data.practitioner_id })
+      .eq("id", data.id);
+    if (cErr) throw new Error(cErr.message);
+    return { ok: true as const };
+  });
