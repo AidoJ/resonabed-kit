@@ -32,6 +32,7 @@ const STATUS_OPTIONS: BookingStatus[] = [
 
 function BookingDetail() {
   const { id } = Route.useParams();
+  const tz = useOrgTimezone();
   const navigate = useNavigate();
   const getFn = useServerFn(getBooking);
   const setStatusFn = useServerFn(updateBookingStatus);
