@@ -85,7 +85,8 @@ function money(v: number) {
 }
 
 function PublicOrgPage() {
-  const { org, services } = Route.useLoaderData();
+  const data = Route.useLoaderData() as { org: PublicOrg; services: PublicService[] };
+  const { org, services } = data;
   const accent = org.brand_color || undefined;
 
   return (
