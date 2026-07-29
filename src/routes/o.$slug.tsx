@@ -80,9 +80,9 @@ function PublicOrgPage() {
         style={accent ? { background: `linear-gradient(to bottom, ${accent}1a, transparent)` } : undefined}
       >
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 px-6 py-14 text-center">
-          {org.logo_url ? (
+          {logoUrl ? (
             <img
-              src={org.logo_url}
+              src={logoUrl}
               alt={`${org.name} logo`}
               className="h-20 w-auto object-contain"
               loading="lazy"
