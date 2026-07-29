@@ -7,6 +7,8 @@ import {
   type PublicOrg,
   type PublicService,
 } from "@/lib/public-org.functions";
+import { PublicBookingForm } from "@/components/public-booking-form";
+import { DEFAULT_TIMEZONE } from "@/lib/timezone";
 
 async function loadPublicPage(slug: string) {
   const res = await getPublicOrgPage({ data: { slug } });
