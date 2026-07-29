@@ -33,7 +33,7 @@ export const listBookings = createServerFn({ method: "POST" })
     let q = context.supabase
       .from("bookings")
       .select(
-        `id, starts_at, ends_at, status, notes, practitioner_id, session_id,
+        `id, starts_at, ends_at, status, notes, practitioner_id, session_id, source, public_note,
          client:client_id(id, first_name, last_name),
          service:service_id(id, name, duration_minutes, buffer_minutes, price),
          session:session_id(id, status, payment_method, payment_amount)`,
@@ -79,7 +79,7 @@ export const getBooking = createServerFn({ method: "POST" })
     const { data: row, error } = await context.supabase
       .from("bookings")
       .select(
-        `id, org_id, starts_at, ends_at, status, notes, practitioner_id, session_id, client_id, service_id,
+        `id, org_id, starts_at, ends_at, status, notes, practitioner_id, session_id, client_id, service_id, source, public_note,
          client:client_id(id, first_name, last_name, email, phone),
          service:service_id(id, name, duration_minutes, buffer_minutes, price),
          session:session_id(id, status, payment_method, payment_amount, created_at)`,

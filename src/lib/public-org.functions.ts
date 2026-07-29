@@ -53,7 +53,7 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       if (orgRow?.logo_path) {
         const signed = await supabaseAdmin.storage
           .from("org-logos")
-          .createSignedUrl(orgRow.logo_path, 60 * 60);
+          .createSignedUrl(orgRow.logo_path, 60 * 60 * 24 * 7);
         logoUrl = signed.data?.signedUrl ?? null;
       }
     }
