@@ -39,7 +39,7 @@ interface BookingLite {
   starts_at: string;
   ends_at: string;
   notes: string | null;
-  practitioner_id: string;
+  practitioner_id: string | null;
   client_id?: string;
   service_id?: string;
   client?: { id: string; first_name: string; last_name: string } | null;
@@ -136,7 +136,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
       const start = new Date(booking.starts_at);
       setClientId(booking.client_id ?? booking.client?.id ?? "");
       setServiceId(booking.service_id ?? booking.service?.id ?? "");
-      setPractitionerId(booking.practitioner_id);
+      setPractitionerId(booking.practitioner_id ?? "");
       setDateStr(toISODate(start));
       setSlotMin(String(start.getHours() * 60 + start.getMinutes()));
       setNotes(booking.notes ?? "");
