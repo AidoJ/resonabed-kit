@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { computePractitionerPermissions } from "@/lib/practitioner-permissions";
+import { DEFAULT_TIMEZONE } from "@/lib/timezone";
 
 export type AppRole = "super_admin" | "org_admin" | "practitioner";
 
@@ -29,6 +30,8 @@ export interface UserContext {
     themeSidebar: string | null;
     themeAccent: string | null;
     isConfigured: boolean;
+    /** IANA timezone. Single source of truth for booking/availability times. */
+    timezone: string;
   } | null;
   roles: AppRole[];
   /**
@@ -60,7 +63,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       supabase
         .from("profiles")
         .select(
-          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, theme_primary, theme_sidebar, theme_accent, is_configured)",
+          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, theme_primary, theme_sidebar, theme_accent, is_configured, timezone)",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -82,6 +85,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           theme_sidebar: string | null;
           theme_accent: string | null;
           is_configured: boolean;
+          timezone: string | null;
         }
       | null
       | undefined;
@@ -106,6 +110,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           themeSidebar: orgRow.theme_sidebar,
           themeAccent: orgRow.theme_accent,
           isConfigured: Boolean(orgRow.is_configured),
+          timezone: orgRow.timezone || DEFAULT_TIMEZONE,
         }
       : null;
 
