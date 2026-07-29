@@ -508,6 +508,13 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "practitioners_can_view_all_clients",
       "practitioners_can_manage_bookings",
       "practitioners_can_complete_unpaid",
+      "slug",
+      "published",
+      "public_blurb",
+      "public_contact_email",
+      "public_contact_phone",
+      "public_booking_enabled",
+      "timezone",
     ] as const) {
       const v = data[key];
       if (v !== undefined) patch[key] = v;
