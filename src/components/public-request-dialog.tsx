@@ -46,6 +46,7 @@ export function PublicRequestDialog({
   onDone: () => void;
 }) {
   const respond = useServerFn(respondToPublicRequest);
+  const tz = useOrgTimezone();
   const [practitionerId, setPractitionerId] = useState("");
   const [busy, setBusy] = useState(false);
 
