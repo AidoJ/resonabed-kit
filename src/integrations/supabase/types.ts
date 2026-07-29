@@ -461,10 +461,17 @@ export type Database = {
           practitioners_can_manage_clients: boolean
           practitioners_can_view_all_clients: boolean
           privacy_policy_text: string | null
+          public_blurb: string | null
+          public_booking_enabled: boolean
+          public_contact_email: string | null
+          public_contact_phone: string | null
+          published: boolean
+          slug: string | null
           status: Database["public"]["Enums"]["org_status"]
           theme_accent: string | null
           theme_primary: string | null
           theme_sidebar: string | null
+          timezone: string
           updated_at: string
         }
         Insert: {
@@ -494,10 +501,17 @@ export type Database = {
           practitioners_can_manage_clients?: boolean
           practitioners_can_view_all_clients?: boolean
           privacy_policy_text?: string | null
+          public_blurb?: string | null
+          public_booking_enabled?: boolean
+          public_contact_email?: string | null
+          public_contact_phone?: string | null
+          published?: boolean
+          slug?: string | null
           status?: Database["public"]["Enums"]["org_status"]
           theme_accent?: string | null
           theme_primary?: string | null
           theme_sidebar?: string | null
+          timezone?: string
           updated_at?: string
         }
         Update: {
@@ -527,10 +541,17 @@ export type Database = {
           practitioners_can_manage_clients?: boolean
           practitioners_can_view_all_clients?: boolean
           privacy_policy_text?: string | null
+          public_blurb?: string | null
+          public_booking_enabled?: boolean
+          public_contact_email?: string | null
+          public_contact_phone?: string | null
+          published?: boolean
+          slug?: string | null
           status?: Database["public"]["Enums"]["org_status"]
           theme_accent?: string | null
           theme_primary?: string | null
           theme_sidebar?: string | null
+          timezone?: string
           updated_at?: string
         }
         Relationships: []
@@ -1057,6 +1078,20 @@ export type Database = {
     }
     Functions: {
       current_org_id: { Args: never; Returns: string }
+      get_public_org: {
+        Args: { p_slug: string }
+        Returns: {
+          brand_color: string
+          logo_url: string
+          name: string
+          public_blurb: string
+          public_booking_enabled: boolean
+          public_contact_email: string
+          public_contact_phone: string
+          slug: string
+          timezone: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
