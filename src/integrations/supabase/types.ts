@@ -94,9 +94,11 @@ export type Database = {
           id: string
           notes: string | null
           org_id: string
-          practitioner_id: string
+          practitioner_id: string | null
+          public_note: string | null
           service_id: string
           session_id: string | null
+          source: string
           starts_at: string
           status: Database["public"]["Enums"]["booking_status"]
           updated_at: string
@@ -108,9 +110,11 @@ export type Database = {
           id?: string
           notes?: string | null
           org_id: string
-          practitioner_id: string
+          practitioner_id?: string | null
+          public_note?: string | null
           service_id: string
           session_id?: string | null
+          source?: string
           starts_at: string
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
@@ -122,9 +126,11 @@ export type Database = {
           id?: string
           notes?: string | null
           org_id?: string
-          practitioner_id?: string
+          practitioner_id?: string | null
+          public_note?: string | null
           service_id?: string
           session_id?: string | null
+          source?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
@@ -741,6 +747,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      public_booking_attempts: {
+        Row: {
+          accepted: boolean
+          created_at: string
+          email_hash: string
+          id: string
+          ip_hash: string
+          org_id: string
+        }
+        Insert: {
+          accepted?: boolean
+          created_at?: string
+          email_hash: string
+          id?: string
+          ip_hash: string
+          org_id: string
+        }
+        Update: {
+          accepted?: boolean
+          created_at?: string
+          email_hash?: string
+          id?: string
+          ip_hash?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_booking_attempts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
