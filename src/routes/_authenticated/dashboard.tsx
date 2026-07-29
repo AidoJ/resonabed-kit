@@ -33,18 +33,13 @@ function statusStyles(status: string) {
   }
 }
 
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+function fmtTime(iso: string, tz: string) {
+  return formatInTz(iso, tz);
 }
 
-function isToday(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  return (
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate()
-  );
+/** "Today" means today in the ORG timezone, not on the operator's device. */
+function isToday(iso: string, tz: string) {
+  return isoDateInTz(iso, tz) === todayInTz(tz);
 }
 
 function DashboardPage() {
@@ -82,13 +77,11 @@ function DashboardPage() {
     queryFn: () => listSessions(),
     enabled: clinicalEnabled,
   });
+  const tz = ctx?.org?.timezone || DEFAULT_TIMEZONE;
   const bookingsRange = useMemo(() => {
-    const from = new Date();
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(from);
-    to.setDate(to.getDate() + 7);
-    return { from, to };
-  }, []);
+    const today = todayInTz(tz);
+    return { from: dayStartUtc(today, tz), to: dayStartUtc(addDaysToDate(today, 7), tz) };
+  }, [tz]);
   const { data: bookings } = useQuery({
     queryKey: ["dash-bookings", bookingsRange.from.toISOString(), bookingsRange.to.toISOString()],
     queryFn: () =>
