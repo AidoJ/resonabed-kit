@@ -125,6 +125,20 @@ function PublicOrgPage() {
           </section>
         ) : null}
 
+        {org.public_booking_enabled && services.length > 0 ? (
+          <section id="request">
+            <h2 className="mb-3 text-lg font-semibold">Request a booking</h2>
+            <PublicBookingForm
+              slug={org.slug}
+              services={services}
+              timezone={org.timezone || DEFAULT_TIMEZONE}
+              clinicName={org.name}
+            />
+          </section>
+        ) : null}
+
+
+
         <section>
           <h2 className="mb-3 text-lg font-semibold">Get in touch</h2>
           <Card>
