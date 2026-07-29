@@ -1092,6 +1092,15 @@ export type Database = {
           timezone: string
         }[]
       }
+      get_public_services: {
+        Args: { p_slug: string }
+        Returns: {
+          duration_minutes: number
+          id: string
+          name: string
+          price: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
