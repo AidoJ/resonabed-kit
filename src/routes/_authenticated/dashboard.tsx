@@ -94,13 +94,12 @@ function DashboardPage() {
     enabled: clinicalEnabled,
   });
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(todayStart);
-  todayEnd.setDate(todayEnd.getDate() + 1);
+  const todayIso = todayInTz(tz);
+  const todayStart = dayStartUtc(todayIso, tz);
+  const twoDaysOut = dayStartUtc(addDaysToDate(todayIso, 2), tz);
 
   const todaysSessions = (sessions ?? []).filter((s) =>
-    s.created_at ? isToday(s.created_at) : false,
+    s.created_at ? isToday(s.created_at, tz) : false,
   );
   const recentSessions = (sessions ?? []).slice(0, 6);
   const unpaid = (sessions ?? []).filter(
@@ -109,7 +108,7 @@ function DashboardPage() {
   const upcomingBookings = (bookings ?? [])
     .filter((b) => {
       const t = new Date(b.starts_at).getTime();
-      return t >= todayStart.getTime() && t < todayEnd.getTime() + 24 * 60 * 60 * 1000;
+      return t >= todayStart.getTime() && t < twoDaysOut.getTime();
     })
     .slice(0, 4);
 
@@ -301,7 +300,7 @@ function DashboardPage() {
                           {c ? `${c.first_name} ${c.last_name}` : "—"}
                         </p>
                         <p className="text-xs text-muted-foreground tabular-nums">
-                          {fmtTime(b.starts_at)}
+                          {fmtTime(b.starts_at, tz)}
                         </p>
                       </div>
                     </Link>
