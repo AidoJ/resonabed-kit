@@ -13,5 +13,6 @@ export interface TemplateEntry {
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'admin-invite': adminInviteTemplate,
+  'public-booking-request': publicBookingRequestTemplate,
 }
 
