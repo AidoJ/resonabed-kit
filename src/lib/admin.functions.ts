@@ -451,6 +451,21 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         practitioners_can_view_all_clients: z.boolean().optional(),
         practitioners_can_manage_bookings: z.boolean().optional(),
         practitioners_can_complete_unpaid: z.boolean().optional(),
+        slug: z
+          .string()
+          .trim()
+          .toLowerCase()
+          .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use lowercase letters, numbers and hyphens only")
+          .min(3)
+          .max(48)
+          .nullable()
+          .optional(),
+        published: z.boolean().optional(),
+        public_blurb: z.string().max(4000).nullable().optional(),
+        public_contact_email: z.string().email().max(200).nullable().optional(),
+        public_contact_phone: z.string().max(60).nullable().optional(),
+        public_booking_enabled: z.boolean().optional(),
+        timezone: z.string().min(1).max(64).optional(),
       })
       .parse(d),
   )
