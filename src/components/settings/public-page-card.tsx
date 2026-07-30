@@ -72,6 +72,13 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   const [tz, setTz] = useState("Australia/Brisbane");
   const [published, setPublished] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(false);
+  const [clinicType, setClinicType] = useState<"retail" | "home" | "">("");
+  const [showAddress, setShowAddress] = useState(true);
+  const [line1, setLine1] = useState("");
+  const [line2, setLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [postcode, setPostcode] = useState("");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -84,6 +91,13 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     setTz(org.timezone ?? "Australia/Brisbane");
     setPublished(!!org.published);
     setBookingEnabled(!!org.public_booking_enabled);
+    setClinicType(org.clinic_type_confirmed ? org.clinic_type : "");
+    setShowAddress(org.retail_show_address !== false);
+    setLine1(org.address_line1 ?? "");
+    setLine2(org.address_line2 ?? "");
+    setCity(org.address_city ?? "");
+    setState(org.address_state ?? "");
+    setPostcode(org.address_postcode ?? "");
   }, [org]);
 
   const dirty =
@@ -94,7 +108,14 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     suburb !== (org.public_suburb ?? "") ||
     tz !== (org.timezone ?? "Australia/Brisbane") ||
     published !== !!org.published ||
-    bookingEnabled !== !!org.public_booking_enabled;
+    bookingEnabled !== !!org.public_booking_enabled ||
+    clinicType !== (org.clinic_type_confirmed ? org.clinic_type : "") ||
+    showAddress !== (org.retail_show_address !== false) ||
+    line1 !== (org.address_line1 ?? "") ||
+    line2 !== (org.address_line2 ?? "") ||
+    city !== (org.address_city ?? "") ||
+    state !== (org.address_state ?? "") ||
+    postcode !== (org.address_postcode ?? "");
 
   const slugValid = slug === "" || /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug);
   const slugLongEnough = slug === "" || slug.length >= 3;
@@ -108,6 +129,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   if (published) {
     if (!slug) blockers.push("a public URL name");
     if (!org.is_configured) blockers.push("completed clinic setup (signed acknowledgement)");
+    if (!clinicType) blockers.push("a clinic type (retail/commercial or home-based)");
+    if (!line1.trim()) blockers.push("your clinic address (kept private for home-based clinics)");
   }
 
   const onSave = async () => {
@@ -131,8 +154,16 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           timezone: tz,
           published,
           public_booking_enabled: published ? bookingEnabled : false,
+          ...(clinicType ? { clinic_type: clinicType } : {}),
+          retail_show_address: clinicType === "home" ? false : showAddress,
+          address_line1: line1 || null,
+          address_line2: line2 || null,
+          address_city: city || null,
+          address_state: state || null,
+          address_postcode: postcode || null,
         } as never,
       });
+
       toast.success("Public page settings saved");
       qc.invalidateQueries({ queryKey: ["org-settings"] });
     } catch (e) {
