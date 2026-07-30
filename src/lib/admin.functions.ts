@@ -464,6 +464,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         public_blurb: z.string().max(4000).nullable().optional(),
         public_contact_email: z.string().email().max(200).nullable().optional(),
         public_contact_phone: z.string().max(60).nullable().optional(),
+        public_suburb: z.string().max(120).nullable().optional(),
         public_booking_enabled: z.boolean().optional(),
         timezone: z.string().min(1).max(64).optional(),
       })
