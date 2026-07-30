@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { Mail, Phone, MapPin, Clock, Waves, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Waves, ArrowRight, ShieldCheck, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getPublicOrgPage,
