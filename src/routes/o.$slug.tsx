@@ -555,12 +555,22 @@ function PublicOrgPage() {
             you have a health concern, are pregnant, or have an implanted medical device such as a
             pacemaker, please speak with your doctor before booking.
           </p>
-          <p
-            className="mt-8 text-xs uppercase tracking-[0.18em]"
-            style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 45%, transparent)" }}
-          >
-            Powered by Resonabed
-          </p>
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <Link
+              to="/auth"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-current/25 px-5 text-sm font-medium opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
+            >
+              <LogIn className="h-4 w-4" />
+              Therapist login
+            </Link>
+            <p
+              className="text-xs uppercase tracking-[0.18em]"
+              style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 45%, transparent)" }}
+            >
+              Powered by Resonabed
+            </p>
+          </div>
+
         </div>
       </footer>
 
