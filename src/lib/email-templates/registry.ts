@@ -1,6 +1,8 @@
 import type { ComponentType } from 'react'
 import { template as adminInviteTemplate } from './admin-invite'
 import { template as publicBookingRequestTemplate } from './public-booking-request'
+import { template as bookingConfirmedTemplate } from './booking-confirmed'
+
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -14,5 +16,7 @@ export interface TemplateEntry {
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'admin-invite': adminInviteTemplate,
   'public-booking-request': publicBookingRequestTemplate,
+  'booking-confirmed': bookingConfirmedTemplate,
 }
+
 

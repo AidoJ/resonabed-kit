@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, Check, Copy, Globe, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, Copy, Globe, Home, Loader2, ShieldCheck } from "lucide-react";
 import { updateOrgSettings } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,17 @@ export type PublicPageOrg = {
   public_booking_enabled: boolean;
   timezone: string | null;
   is_configured: boolean;
+  clinic_type: "retail" | "home";
+  clinic_type_confirmed: boolean;
+  retail_show_address: boolean;
+  address_line1: string | null;
+  address_line2: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_postcode: string | null;
+  address_country: string | null;
 };
+
 
 function slugify(v: string) {
   return v
@@ -62,6 +72,13 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   const [tz, setTz] = useState("Australia/Brisbane");
   const [published, setPublished] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(false);
+  const [clinicType, setClinicType] = useState<"retail" | "home" | "">("");
+  const [showAddress, setShowAddress] = useState(true);
+  const [line1, setLine1] = useState("");
+  const [line2, setLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [postcode, setPostcode] = useState("");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -74,6 +91,13 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     setTz(org.timezone ?? "Australia/Brisbane");
     setPublished(!!org.published);
     setBookingEnabled(!!org.public_booking_enabled);
+    setClinicType(org.clinic_type_confirmed ? org.clinic_type : "");
+    setShowAddress(org.retail_show_address !== false);
+    setLine1(org.address_line1 ?? "");
+    setLine2(org.address_line2 ?? "");
+    setCity(org.address_city ?? "");
+    setState(org.address_state ?? "");
+    setPostcode(org.address_postcode ?? "");
   }, [org]);
 
   const dirty =
@@ -84,7 +108,14 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     suburb !== (org.public_suburb ?? "") ||
     tz !== (org.timezone ?? "Australia/Brisbane") ||
     published !== !!org.published ||
-    bookingEnabled !== !!org.public_booking_enabled;
+    bookingEnabled !== !!org.public_booking_enabled ||
+    clinicType !== (org.clinic_type_confirmed ? org.clinic_type : "") ||
+    showAddress !== (org.retail_show_address !== false) ||
+    line1 !== (org.address_line1 ?? "") ||
+    line2 !== (org.address_line2 ?? "") ||
+    city !== (org.address_city ?? "") ||
+    state !== (org.address_state ?? "") ||
+    postcode !== (org.address_postcode ?? "");
 
   const slugValid = slug === "" || /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug);
   const slugLongEnough = slug === "" || slug.length >= 3;
@@ -98,6 +129,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   if (published) {
     if (!slug) blockers.push("a public URL name");
     if (!org.is_configured) blockers.push("completed clinic setup (signed acknowledgement)");
+    if (!clinicType) blockers.push("a clinic type (retail/commercial or home-based)");
+    if (!line1.trim()) blockers.push("your clinic address (kept private for home-based clinics)");
   }
 
   const onSave = async () => {
@@ -121,8 +154,16 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           timezone: tz,
           published,
           public_booking_enabled: published ? bookingEnabled : false,
+          ...(clinicType ? { clinic_type: clinicType } : {}),
+          retail_show_address: clinicType === "home" ? false : showAddress,
+          address_line1: line1 || null,
+          address_line2: line2 || null,
+          address_city: city || null,
+          address_state: state || null,
+          address_postcode: postcode || null,
         } as never,
       });
+
       toast.success("Public page settings saved");
       qc.invalidateQueries({ queryKey: ["org-settings"] });
     } catch (e) {
@@ -257,9 +298,103 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             onChange={(e) => setSuburb(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Shown on your public page so visitors know where you are. Leave blank to hide it.
+            The general area only — shown publicly for every clinic. Never your street address.
           </p>
         </div>
+
+        {/* ------------------------------------------------ clinic type + address */}
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-2" htmlFor="pub-clinic-type">
+              <Home className="h-4 w-4 text-primary" />
+              What kind of clinic is this?
+            </Label>
+            <Select
+              value={clinicType}
+              onValueChange={(v) => setClinicType(v as "retail" | "home")}
+            >
+              <SelectTrigger id="pub-clinic-type">
+                <SelectValue placeholder="Choose retail/commercial or home-based" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="retail">Retail / commercial address</SelectItem>
+                <SelectItem value="home">Home-based business</SelectItem>
+              </SelectContent>
+            </Select>
+            {clinicType === "home" ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Your address stays private. It&rsquo;s never shown on your public page — clients
+                receive it in their confirmation email once you confirm their booking.
+              </p>
+            ) : clinicType === "retail" ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Your street address may be shown on your public page. Clients also receive it in
+                their confirmation email once you confirm a booking.
+              </p>
+            ) : (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                This choice decides whether your street address can ever appear publicly, so
+                please choose it yourself — there&rsquo;s no default.
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="addr1">Street address</Label>
+              <Input
+                id="addr1"
+                value={line1}
+                placeholder="12 Quiet Street"
+                onChange={(e) => setLine1(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="addr2">Unit / suite (optional)</Label>
+              <Input id="addr2" value={line2} onChange={(e) => setLine2(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="addr-city">Suburb / city</Label>
+              <Input id="addr-city" value={city} onChange={(e) => setCity(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="addr-state">State</Label>
+                <Input id="addr-state" value={state} onChange={(e) => setState(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="addr-pc">Postcode</Label>
+                <Input
+                  id="addr-pc"
+                  value={postcode}
+                  onChange={(e) => setPostcode(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {clinicType === "home" ? (
+            <div className="flex items-start gap-3 rounded-md bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>
+                Home-based clinics can&rsquo;t publish a street address. If you ever want your
+                address shown publicly, change your clinic type to retail / commercial above.
+              </span>
+            </div>
+          ) : clinicType === "retail" ? (
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Show address on public page</p>
+                <p className="text-xs text-muted-foreground">
+                  Turn off if you&rsquo;d rather visitors contacted you first.
+                </p>
+              </div>
+              <Switch checked={showAddress} onCheckedChange={setShowAddress} />
+            </div>
+          ) : null}
+        </div>
+
+
 
         <div className="space-y-3 rounded-lg border p-3">
           <div className="flex items-start justify-between gap-4">

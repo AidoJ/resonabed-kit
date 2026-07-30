@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { Mail, Phone, MapPin, Clock, Waves, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Waves, ArrowRight, ShieldCheck, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getPublicOrgPage,
@@ -482,12 +482,27 @@ function PublicOrgPage() {
             <Eyebrow>Contact</Eyebrow>
             <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">{org.name}</h2>
             <dl className="mt-6 grid gap-3 text-sm">
-              {org.public_suburb ? (
+              {org.clinic_type === "retail" && org.public_address ? (
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                  <span>{org.public_address}</span>
+                </div>
+              ) : org.public_suburb ? (
                 <div className="flex items-center gap-3">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span>{org.public_suburb}</span>
                 </div>
               ) : null}
+              {org.clinic_type === "home" ? (
+                <p className="flex items-start gap-3 text-muted-foreground">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    This is a home-based studio. Your therapist&rsquo;s address stays private and
+                    is shared with you only once your booking is confirmed.
+                  </span>
+                </p>
+              ) : null}
+
               {org.public_contact_phone ? (
                 <a
                   className="flex items-center gap-3 hover:underline"
@@ -540,12 +555,22 @@ function PublicOrgPage() {
             you have a health concern, are pregnant, or have an implanted medical device such as a
             pacemaker, please speak with your doctor before booking.
           </p>
-          <p
-            className="mt-8 text-xs uppercase tracking-[0.18em]"
-            style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 45%, transparent)" }}
-          >
-            Powered by Resonabed
-          </p>
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <Link
+              to="/auth"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-current/25 px-5 text-sm font-medium opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
+            >
+              <LogIn className="h-4 w-4" />
+              Therapist login
+            </Link>
+            <p
+              className="text-xs uppercase tracking-[0.18em]"
+              style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 45%, transparent)" }}
+            >
+              Powered by Resonabed
+            </p>
+          </div>
+
         </div>
       </footer>
 

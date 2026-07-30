@@ -442,8 +442,16 @@ export type Database = {
       organisations: {
         Row: {
           abn: string | null
+          address_city: string | null
+          address_country: string | null
+          address_line1: string | null
+          address_line2: string | null
+          address_postcode: string | null
+          address_state: string | null
           brand_color: string | null
           business_name: string | null
+          clinic_type: string
+          clinic_type_confirmed: boolean
           configured_acknowledgement_at: string | null
           configured_acknowledgement_by: string | null
           configured_acknowledgement_signature: string | null
@@ -473,6 +481,7 @@ export type Database = {
           public_contact_phone: string | null
           public_suburb: string | null
           published: boolean
+          retail_show_address: boolean
           slug: string | null
           status: Database["public"]["Enums"]["org_status"]
           theme_accent: string | null
@@ -483,8 +492,16 @@ export type Database = {
         }
         Insert: {
           abn?: string | null
+          address_city?: string | null
+          address_country?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          address_postcode?: string | null
+          address_state?: string | null
           brand_color?: string | null
           business_name?: string | null
+          clinic_type?: string
+          clinic_type_confirmed?: boolean
           configured_acknowledgement_at?: string | null
           configured_acknowledgement_by?: string | null
           configured_acknowledgement_signature?: string | null
@@ -514,6 +531,7 @@ export type Database = {
           public_contact_phone?: string | null
           public_suburb?: string | null
           published?: boolean
+          retail_show_address?: boolean
           slug?: string | null
           status?: Database["public"]["Enums"]["org_status"]
           theme_accent?: string | null
@@ -524,8 +542,16 @@ export type Database = {
         }
         Update: {
           abn?: string | null
+          address_city?: string | null
+          address_country?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          address_postcode?: string | null
+          address_state?: string | null
           brand_color?: string | null
           business_name?: string | null
+          clinic_type?: string
+          clinic_type_confirmed?: boolean
           configured_acknowledgement_at?: string | null
           configured_acknowledgement_by?: string | null
           configured_acknowledgement_signature?: string | null
@@ -555,6 +581,7 @@ export type Database = {
           public_contact_phone?: string | null
           public_suburb?: string | null
           published?: boolean
+          retail_show_address?: boolean
           slug?: string | null
           status?: Database["public"]["Enums"]["org_status"]
           theme_accent?: string | null
@@ -1126,8 +1153,10 @@ export type Database = {
         Args: { p_slug: string }
         Returns: {
           brand_color: string
+          clinic_type: string
           logo_url: string
           name: string
+          public_address: string
           public_blurb: string
           public_booking_enabled: boolean
           public_contact_email: string

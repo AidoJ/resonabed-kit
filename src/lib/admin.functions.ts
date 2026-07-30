@@ -393,8 +393,9 @@ export const getOrgSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid, slug, published, public_blurb, public_contact_email, public_contact_phone, public_suburb, public_booking_enabled, timezone",
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid, slug, published, public_blurb, public_contact_email, public_contact_phone, public_suburb, public_booking_enabled, timezone, clinic_type, clinic_type_confirmed, retail_show_address, address_line1, address_line2, address_city, address_state, address_postcode, address_country",
       )
+
       .eq("id", _org_id)
       .single();
     if (error) throw new Error(error.message);
@@ -467,6 +468,16 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         public_suburb: z.string().max(120).nullable().optional(),
         public_booking_enabled: z.boolean().optional(),
         timezone: z.string().min(1).max(64).optional(),
+        clinic_type: z.enum(["retail", "home"]).optional(),
+        clinic_type_confirmed: z.boolean().optional(),
+        retail_show_address: z.boolean().optional(),
+        address_line1: z.string().max(200).nullable().optional(),
+        address_line2: z.string().max(200).nullable().optional(),
+        address_city: z.string().max(120).nullable().optional(),
+        address_state: z.string().max(60).nullable().optional(),
+        address_postcode: z.string().max(20).nullable().optional(),
+        address_country: z.string().max(80).nullable().optional(),
+
       })
       .parse(d),
   )
@@ -517,10 +528,34 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "public_suburb",
       "public_booking_enabled",
       "timezone",
+      "clinic_type",
+      "clinic_type_confirmed",
+      "retail_show_address",
+      "address_line1",
+      "address_line2",
+      "address_city",
+      "address_state",
+      "address_postcode",
+      "address_country",
     ] as const) {
       const v = data[key];
       if (v !== undefined) patch[key] = v;
     }
+
+    // Address privacy is derived from clinic_type, never from a free toggle.
+    // A home-based clinic can never publish its street address; the only way
+    // to make an address public is to deliberately change clinic_type.
+    if (patch.clinic_type !== undefined || patch.retail_show_address !== undefined) {
+      const { data: current } = await context.supabase
+        .from("organisations")
+        .select("clinic_type")
+        .eq("id", _org_id)
+        .maybeSingle();
+      const effectiveType = (patch.clinic_type as string) ?? current?.clinic_type ?? "home";
+      if (effectiveType === "home") patch.retail_show_address = false;
+      if (patch.clinic_type !== undefined) patch.clinic_type_confirmed = true;
+    }
+
 
     for (const field of POLICY_FIELDS) {
       const v = data[field];
