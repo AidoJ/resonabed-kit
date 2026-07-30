@@ -468,6 +468,16 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         public_suburb: z.string().max(120).nullable().optional(),
         public_booking_enabled: z.boolean().optional(),
         timezone: z.string().min(1).max(64).optional(),
+        clinic_type: z.enum(["retail", "home"]).optional(),
+        clinic_type_confirmed: z.boolean().optional(),
+        retail_show_address: z.boolean().optional(),
+        address_line1: z.string().max(200).nullable().optional(),
+        address_line2: z.string().max(200).nullable().optional(),
+        address_city: z.string().max(120).nullable().optional(),
+        address_state: z.string().max(60).nullable().optional(),
+        address_postcode: z.string().max(20).nullable().optional(),
+        address_country: z.string().max(80).nullable().optional(),
+
       })
       .parse(d),
   )
