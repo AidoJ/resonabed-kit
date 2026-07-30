@@ -39,7 +39,17 @@ export type PublicPageOrg = {
   public_booking_enabled: boolean;
   timezone: string | null;
   is_configured: boolean;
+  clinic_type: "retail" | "home";
+  clinic_type_confirmed: boolean;
+  retail_show_address: boolean;
+  address_line1: string | null;
+  address_line2: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_postcode: string | null;
+  address_country: string | null;
 };
+
 
 function slugify(v: string) {
   return v
