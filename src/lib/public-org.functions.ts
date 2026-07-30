@@ -14,6 +14,13 @@ export type PublicOrg = {
   timezone: string | null;
   theme_sidebar: string | null;
   theme_primary: string | null;
+  /** 'retail' | 'home' — drives whether a street address may be shown at all. */
+  clinic_type: "retail" | "home";
+  /**
+   * Formatted street address. The database function only ever returns this for
+   * retail clinics that opt to show it; it is always null for home-based orgs.
+   */
+  public_address: string | null;
 };
 
 export type PublicService = {
