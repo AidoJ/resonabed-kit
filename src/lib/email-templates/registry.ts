@@ -1,6 +1,8 @@
 import type { ComponentType } from 'react'
 import { template as adminInviteTemplate } from './admin-invite'
 import { template as publicBookingRequestTemplate } from './public-booking-request'
+import { template as bookingConfirmedTemplate } from './booking-confirmed'
+
 
 export interface TemplateEntry {
   component: ComponentType<any>
