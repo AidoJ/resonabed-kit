@@ -9,8 +9,11 @@ export type PublicOrg = {
   public_blurb: string | null;
   public_contact_email: string | null;
   public_contact_phone: string | null;
+  public_suburb: string | null;
   public_booking_enabled: boolean;
   timezone: string | null;
+  theme_sidebar: string | null;
+  theme_primary: string | null;
 };
 
 export type PublicService = {
