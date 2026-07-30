@@ -393,8 +393,9 @@ export const getOrgSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid, slug, published, public_blurb, public_contact_email, public_contact_phone, public_suburb, public_booking_enabled, timezone",
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid, slug, published, public_blurb, public_contact_email, public_contact_phone, public_suburb, public_booking_enabled, timezone, clinic_type, clinic_type_confirmed, retail_show_address, address_line1, address_line2, address_city, address_state, address_postcode, address_country",
       )
+
       .eq("id", _org_id)
       .single();
     if (error) throw new Error(error.message);
