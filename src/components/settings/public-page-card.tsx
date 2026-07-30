@@ -298,9 +298,103 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             onChange={(e) => setSuburb(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Shown on your public page so visitors know where you are. Leave blank to hide it.
+            The general area only — shown publicly for every clinic. Never your street address.
           </p>
         </div>
+
+        {/* ------------------------------------------------ clinic type + address */}
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-2" htmlFor="pub-clinic-type">
+              <Home className="h-4 w-4 text-primary" />
+              What kind of clinic is this?
+            </Label>
+            <Select
+              value={clinicType}
+              onValueChange={(v) => setClinicType(v as "retail" | "home")}
+            >
+              <SelectTrigger id="pub-clinic-type">
+                <SelectValue placeholder="Choose retail/commercial or home-based" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="retail">Retail / commercial address</SelectItem>
+                <SelectItem value="home">Home-based business</SelectItem>
+              </SelectContent>
+            </Select>
+            {clinicType === "home" ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Your address stays private. It&rsquo;s never shown on your public page — clients
+                receive it in their confirmation email once you confirm their booking.
+              </p>
+            ) : clinicType === "retail" ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Your street address may be shown on your public page. Clients also receive it in
+                their confirmation email once you confirm a booking.
+              </p>
+            ) : (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                This choice decides whether your street address can ever appear publicly, so
+                please choose it yourself — there&rsquo;s no default.
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="addr1">Street address</Label>
+              <Input
+                id="addr1"
+                value={line1}
+                placeholder="12 Quiet Street"
+                onChange={(e) => setLine1(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="addr2">Unit / suite (optional)</Label>
+              <Input id="addr2" value={line2} onChange={(e) => setLine2(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="addr-city">Suburb / city</Label>
+              <Input id="addr-city" value={city} onChange={(e) => setCity(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="addr-state">State</Label>
+                <Input id="addr-state" value={state} onChange={(e) => setState(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="addr-pc">Postcode</Label>
+                <Input
+                  id="addr-pc"
+                  value={postcode}
+                  onChange={(e) => setPostcode(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {clinicType === "home" ? (
+            <div className="flex items-start gap-3 rounded-md bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>
+                Home-based clinics can&rsquo;t publish a street address. If you ever want your
+                address shown publicly, change your clinic type to retail / commercial above.
+              </span>
+            </div>
+          ) : clinicType === "retail" ? (
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Show address on public page</p>
+                <p className="text-xs text-muted-foreground">
+                  Turn off if you&rsquo;d rather visitors contacted you first.
+                </p>
+              </div>
+              <Switch checked={showAddress} onCheckedChange={setShowAddress} />
+            </div>
+          ) : null}
+        </div>
+
+
 
         <div className="space-y-3 rounded-lg border p-3">
           <div className="flex items-start justify-between gap-4">
