@@ -528,10 +528,34 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "public_suburb",
       "public_booking_enabled",
       "timezone",
+      "clinic_type",
+      "clinic_type_confirmed",
+      "retail_show_address",
+      "address_line1",
+      "address_line2",
+      "address_city",
+      "address_state",
+      "address_postcode",
+      "address_country",
     ] as const) {
       const v = data[key];
       if (v !== undefined) patch[key] = v;
     }
+
+    // Address privacy is derived from clinic_type, never from a free toggle.
+    // A home-based clinic can never publish its street address; the only way
+    // to make an address public is to deliberately change clinic_type.
+    if (patch.clinic_type !== undefined || patch.retail_show_address !== undefined) {
+      const { data: current } = await context.supabase
+        .from("organisations")
+        .select("clinic_type")
+        .eq("id", _org_id)
+        .maybeSingle();
+      const effectiveType = (patch.clinic_type as string) ?? current?.clinic_type ?? "home";
+      if (effectiveType === "home") patch.retail_show_address = false;
+      if (patch.clinic_type !== undefined) patch.clinic_type_confirmed = true;
+    }
+
 
     for (const field of POLICY_FIELDS) {
       const v = data[field];
