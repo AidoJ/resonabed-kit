@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, Check, Copy, Globe, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, Copy, Globe, Home, Loader2, ShieldCheck } from "lucide-react";
 import { updateOrgSettings } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
