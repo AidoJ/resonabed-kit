@@ -471,6 +471,7 @@ export type Database = {
           public_booking_enabled: boolean
           public_contact_email: string | null
           public_contact_phone: string | null
+          public_suburb: string | null
           published: boolean
           slug: string | null
           status: Database["public"]["Enums"]["org_status"]
@@ -511,6 +512,7 @@ export type Database = {
           public_booking_enabled?: boolean
           public_contact_email?: string | null
           public_contact_phone?: string | null
+          public_suburb?: string | null
           published?: boolean
           slug?: string | null
           status?: Database["public"]["Enums"]["org_status"]
@@ -551,6 +553,7 @@ export type Database = {
           public_booking_enabled?: boolean
           public_contact_email?: string | null
           public_contact_phone?: string | null
+          public_suburb?: string | null
           published?: boolean
           slug?: string | null
           status?: Database["public"]["Enums"]["org_status"]
@@ -1129,7 +1132,10 @@ export type Database = {
           public_booking_enabled: boolean
           public_contact_email: string
           public_contact_phone: string
+          public_suburb: string
           slug: string
+          theme_primary: string
+          theme_sidebar: string
           timezone: string
         }[]
       }

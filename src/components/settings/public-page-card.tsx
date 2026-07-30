@@ -35,6 +35,7 @@ export type PublicPageOrg = {
   public_blurb: string | null;
   public_contact_email: string | null;
   public_contact_phone: string | null;
+  public_suburb: string | null;
   public_booking_enabled: boolean;
   timezone: string | null;
   is_configured: boolean;
@@ -57,6 +58,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   const [blurb, setBlurb] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [suburb, setSuburb] = useState("");
   const [tz, setTz] = useState("Australia/Brisbane");
   const [published, setPublished] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(false);
@@ -68,6 +70,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     setBlurb(org.public_blurb ?? "");
     setEmail(org.public_contact_email ?? "");
     setPhone(org.public_contact_phone ?? "");
+    setSuburb(org.public_suburb ?? "");
     setTz(org.timezone ?? "Australia/Brisbane");
     setPublished(!!org.published);
     setBookingEnabled(!!org.public_booking_enabled);
@@ -78,6 +81,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     blurb !== (org.public_blurb ?? "") ||
     email !== (org.public_contact_email ?? "") ||
     phone !== (org.public_contact_phone ?? "") ||
+    suburb !== (org.public_suburb ?? "") ||
     tz !== (org.timezone ?? "Australia/Brisbane") ||
     published !== !!org.published ||
     bookingEnabled !== !!org.public_booking_enabled;
@@ -113,6 +117,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           public_blurb: blurb || null,
           public_contact_email: email || null,
           public_contact_phone: phone || null,
+          public_suburb: suburb || null,
           timezone: tz,
           published,
           public_booking_enabled: published ? bookingEnabled : false,
@@ -241,6 +246,19 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
               onChange={(e) => setPhone(e.target.value)}
             />
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="pub-suburb">Suburb / location</Label>
+          <Input
+            id="pub-suburb"
+            value={suburb}
+            placeholder="Noosaville, QLD"
+            onChange={(e) => setSuburb(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Shown on your public page so visitors know where you are. Leave blank to hide it.
+          </p>
         </div>
 
         <div className="space-y-3 rounded-lg border p-3">
