@@ -482,12 +482,27 @@ function PublicOrgPage() {
             <Eyebrow>Contact</Eyebrow>
             <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">{org.name}</h2>
             <dl className="mt-6 grid gap-3 text-sm">
-              {org.public_suburb ? (
+              {org.clinic_type === "retail" && org.public_address ? (
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                  <span>{org.public_address}</span>
+                </div>
+              ) : org.public_suburb ? (
                 <div className="flex items-center gap-3">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span>{org.public_suburb}</span>
                 </div>
               ) : null}
+              {org.clinic_type === "home" ? (
+                <p className="flex items-start gap-3 text-muted-foreground">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    This is a home-based studio. Your therapist&rsquo;s address stays private and
+                    is shared with you only once your booking is confirmed.
+                  </span>
+                </p>
+              ) : null}
+
               {org.public_contact_phone ? (
                 <a
                   className="flex items-center gap-3 hover:underline"
