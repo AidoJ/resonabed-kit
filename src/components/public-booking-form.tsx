@@ -80,9 +80,10 @@ export function PublicBookingForm({
       setError("Please complete all required fields.");
       return;
     }
-    const phoneProblem = phoneValidationError(phone);
-    if (phoneProblem) {
-      setError(phoneProblem);
+    const badPhone = phoneValidationError(phone);
+    if (badPhone) {
+      setPhoneTouched(true);
+      setError(badPhone);
       return;
     }
     setBusy(true);
