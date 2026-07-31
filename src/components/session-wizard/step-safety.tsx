@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { AlertTriangle, BookOpen } from "lucide-react";
+import { AlertTriangle, BookOpen, ShieldCheck, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
@@ -15,8 +16,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CONTRAINDICATION_OPTIONS } from "@/lib/frequency-match";
-import { getMyOrgPolicies } from "@/lib/policy-templates.functions";
+import { getScreeningContext } from "@/lib/screening.functions";
+import {
+  SCREENING_CHECKLIST,
+  SCREENING_ATTESTATION_TEXT,
+  isClearableItem,
+} from "@/lib/screening-checklist";
+import { ClearanceLetterDialog } from "@/components/screening/clearance-letter-dialog";
 import { SignaturePad } from "./signature-pad";
 
 export interface SafetyState {
@@ -25,11 +31,13 @@ export interface SafetyState {
   notes: string;
   consentGiven: boolean;
   signature: string | null;
+  practitionerSignature: string | null;
 }
 
 interface Props {
   value: SafetyState;
   onChange: (s: SafetyState) => void;
+  clientId: string;
 }
 
 type PolicyKey = "consent" | "health" | "privacy";
@@ -40,25 +48,31 @@ const POLICY_LABELS: Record<PolicyKey, string> = {
   privacy: "Privacy",
 };
 
-export function StepSafety({ value, onChange }: Props) {
-  const policiesFn = useServerFn(getMyOrgPolicies);
-  const { data: policies } = useQuery({
-    queryKey: ["my-org-policies"],
-    queryFn: () => policiesFn(),
+export function StepSafety({ value, onChange, clientId }: Props) {
+  const ctxFn = useServerFn(getScreeningContext);
+  const { data: ctx, refetch } = useQuery({
+    queryKey: ["screening-context", clientId],
+    queryFn: () => ctxFn({ data: { client_id: clientId } }),
+    enabled: !!clientId,
   });
+
   const [open, setOpen] = useState<PolicyKey | null>(null);
+  const [letterItem, setLetterItem] = useState<string | null>(null);
   const [read, setRead] = useState<Record<PolicyKey, boolean>>({
     consent: false,
     health: false,
     privacy: false,
   });
 
+  const org = ctx?.org;
   const bodyFor = (k: PolicyKey) =>
     k === "consent"
-      ? policies?.consent_text
+      ? org?.consent_text
       : k === "health"
-        ? policies?.health_policy_text
-        : policies?.privacy_policy_text;
+        ? org?.health_policy_text
+        : org?.privacy_policy_text;
+
+  const clearedItems = ctx?.cleared_items ?? [];
 
   const toggle = (v: string) => {
     const has = value.contraindications.includes(v);
@@ -79,23 +93,64 @@ export function StepSafety({ value, onChange }: Props) {
     });
   };
 
-  const flagged = value.contraindications.length > 0;
+  const flagged = value.contraindications;
+  const blocking = flagged.filter(
+    (i) => !isClearableItem(i) || !clearedItems.includes(i),
+  );
 
   return (
     <div className="space-y-6">
+      {ctx?.prior_screening ? (
+        <Alert>
+          <ShieldCheck className="h-4 w-4" />
+          <AlertTitle>Returning client</AlertTitle>
+          <AlertDescription>
+            Last screened {new Date(ctx.prior_screening.created_at).toLocaleDateString()}. Confirm
+            the answers again — any change requires a fresh, fully signed screening.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       <div>
         <Label className="mb-3 block">Safety screening — tick anything that applies</Label>
         <div className="space-y-3 rounded-md border p-4">
-          {CONTRAINDICATION_OPTIONS.map((o) => (
-            <label key={o.value} className="flex items-center gap-3 text-sm">
-              <Checkbox
-                checked={value.contraindications.includes(o.value)}
-                onCheckedChange={() => toggle(o.value)}
-                className="h-5 w-5"
-              />
-              <span>{o.label}</span>
-            </label>
-          ))}
+          {SCREENING_CHECKLIST.map((o) => {
+            const ticked = flagged.includes(o.key);
+            const cleared = ticked && o.clearable && clearedItems.includes(o.key);
+            return (
+              <div key={o.key} className="flex items-center justify-between gap-3">
+                <label className="flex items-center gap-3 text-sm">
+                  <Checkbox
+                    checked={ticked}
+                    onCheckedChange={() => toggle(o.key)}
+                    className="h-5 w-5"
+                  />
+                  <span>{o.label}</span>
+                </label>
+                {ticked ? (
+                  cleared ? (
+                    <Badge variant="secondary" className="shrink-0">
+                      Cleared by letter
+                    </Badge>
+                  ) : o.clearable ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setLetterItem(o.key)}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Clearance letter
+                    </Button>
+                  ) : (
+                    <Badge variant="destructive" className="shrink-0">
+                      Cannot be cleared
+                    </Badge>
+                  )
+                ) : null}
+              </div>
+            );
+          })}
           <div className="mt-2 border-t pt-3">
             <label className="flex items-center gap-3 text-sm font-medium">
               <Checkbox
@@ -103,19 +158,22 @@ export function StepSafety({ value, onChange }: Props) {
                 onCheckedChange={(c) => setNone(c === true)}
                 className="h-5 w-5"
               />
-              <span>None of these apply</span>
+              <span>None of these apply — recorded as a signed attestation</span>
             </label>
           </div>
         </div>
       </div>
 
-      {flagged ? (
-        <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+      {blocking.length > 0 ? (
+        <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Please assess suitability before proceeding</AlertTitle>
+          <AlertTitle>This session cannot proceed</AlertTitle>
           <AlertDescription>
-            One or more items were flagged. Use your professional judgement to decide whether to
-            continue with this session or refer the client for further advice.
+            {blocking
+              .map((b) => SCREENING_CHECKLIST.find((i) => i.key === b)?.label ?? b)
+              .join(", ")}{" "}
+            {blocking.length === 1 ? "is" : "are"} flagged without valid clearance. Signing the
+            screening will record an auditable refusal instead of starting a session.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -130,7 +188,7 @@ export function StepSafety({ value, onChange }: Props) {
         />
       </div>
 
-      {/* Policy acceptance */}
+      {/* Policy acceptance + signatures */}
       <div className="space-y-4 rounded-md border p-4">
         <label className="flex items-start gap-3 text-sm">
           <Checkbox
@@ -140,9 +198,11 @@ export function StepSafety({ value, onChange }: Props) {
           />
           <span>
             I have read and accept the Consent, Health &amp; Safety and Privacy policies
-            {policies?.org_name ? ` of ${policies.org_name}` : ""}.
+            {org?.name ? ` of ${org.name}` : ""}.
           </span>
         </label>
+
+        <p className="text-muted-foreground text-xs">{SCREENING_ATTESTATION_TEXT}</p>
 
         <div className="flex flex-wrap gap-2">
           {(Object.keys(POLICY_LABELS) as PolicyKey[]).map((k) => (
@@ -163,21 +223,42 @@ export function StepSafety({ value, onChange }: Props) {
           ))}
         </div>
 
-        <div className="border-t pt-4">
-          <Label className="mb-2 block">Client signature</Label>
-          <SignaturePad
-            value={value.signature}
-            onChange={(sig) => onChange({ ...value, signature: sig })}
-          />
+        <div className="grid gap-6 border-t pt-4 sm:grid-cols-2">
+          <div>
+            <Label className="mb-2 block">Client signature</Label>
+            <SignaturePad
+              value={value.signature}
+              onChange={(sig) => onChange({ ...value, signature: sig })}
+            />
+          </div>
+          <div>
+            <Label className="mb-2 block">Practitioner countersignature</Label>
+            <SignaturePad
+              value={value.practitionerSignature}
+              onChange={(sig) => onChange({ ...value, practitionerSignature: sig })}
+            />
+          </div>
         </div>
       </div>
+
+      {letterItem && ctx?.org?.id ? (
+        <ClearanceLetterDialog
+          open={!!letterItem}
+          onOpenChange={(o) => !o && setLetterItem(null)}
+          clientId={clientId}
+          orgId={ctx.org.id}
+          itemKey={letterItem}
+          letters={ctx.letters ?? []}
+          onChanged={() => refetch()}
+        />
+      ) : null}
 
       <Dialog open={open !== null} onOpenChange={(o) => !o && setOpen(null)}>
         <DialogContent className="max-h-[85vh] max-w-2xl">
           <DialogHeader>
             <DialogTitle>{open ? POLICY_LABELS[open] : ""} policy</DialogTitle>
             <DialogDescription>
-              {policies?.org_name ?? "Your clinic"} — please read this with your client.
+              {org?.name ?? "Your clinic"} — please read this with your client.
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh] pr-4">
