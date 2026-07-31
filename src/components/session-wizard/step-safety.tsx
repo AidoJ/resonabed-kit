@@ -169,6 +169,12 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
               />
               <span>None of these apply — recorded as a signed attestation</span>
             </label>
+            {!answered && (
+              <p className="text-muted-foreground mt-2 text-xs">
+                An answer is required: tick every item that applies, or tick “None of these apply”.
+                Leaving everything blank is not a valid screening.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -181,11 +187,13 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
             {blocking
               .map((b) => SCREENING_CHECKLIST.find((i) => i.key === b)?.label ?? b)
               .join(", ")}{" "}
-            {blocking.length === 1 ? "is" : "are"} flagged without valid clearance. Signing the
-            screening will record an auditable refusal instead of starting a session.
+            {blocking.length === 1 ? "is" : "are"} flagged without valid clearance. The screening
+            must still be completed and signed by both parties — signing records an auditable
+            refusal (a cancelled session) instead of starting one.
           </AlertDescription>
         </Alert>
       ) : null}
+
 
       <div>
         <Label className="mb-2 block">Practitioner notes (optional)</Label>
