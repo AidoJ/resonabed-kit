@@ -105,16 +105,45 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
     }
     const endsAt = new Date(startsAt.getTime() + service.duration_minutes * 60_000);
 
-    // --- Client: reuse an existing record for this email, else create ---
     const email = data.email.trim().toLowerCase();
-    const { data: existing } = await supabaseAdmin
-      .from("clients")
-      .select("id")
-      .eq("org_id", org.id)
-      .ilike("email", email)
-      .maybeSingle();
+    const phone = data.phone.trim();
+    const fullName = `${data.first_name.trim()} ${data.last_name.trim()}`;
 
-    let clientId = existing?.id ?? null;
+    const { isBlockedContact, findMatchingClientIds, writeBookingEvent } = await import(
+      "./booking-safety.server"
+    );
+
+    // --- Guard 4: block list (phone OR email) ---------------------------
+    // Silent by design. A blocked person sees the ordinary "request received"
+    // response — we neither confirm the block nor invite them to start
+    // varying their details. Nothing reaches the operator's active queue, but
+    // the attempt is logged so a pattern of evasion stays visible.
+    if (await isBlockedContact(supabaseAdmin, { orgId: org.id, email, phone })) {
+      await writeBookingEvent(supabaseAdmin, {
+        orgId: org.id,
+        eventType: "blocked_attempt",
+        requesterName: fullName,
+        requesterEmail: email,
+        requesterPhone: phone,
+        detail: {
+          requested_for: startsAt.toISOString(),
+          service_id: service.id,
+        },
+      });
+      await recordAttempt(supabaseAdmin, { orgId: org.id, ipHash, emailHash, accepted: false });
+      return { ok: true };
+    }
+
+    // --- Client: reuse an existing record for this person ----------------
+    // Matched on normalised phone OR email, so a typo'd address doesn't
+    // fragment a returning client into a second record.
+    const matchedIds = await findMatchingClientIds(supabaseAdmin, {
+      orgId: org.id,
+      email,
+      phone,
+    });
+
+    let clientId = matchedIds[0] ?? null;
     if (!clientId) {
       const { data: created, error: cErr } = await supabaseAdmin
         .from("clients")
@@ -123,7 +152,7 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
           first_name: data.first_name.trim(),
           last_name: data.last_name.trim(),
           email,
-          phone: data.phone?.trim() || null,
+          phone,
         })
         .select("id")
         .single();
@@ -131,25 +160,43 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
         return { ok: false, error: "We couldn't submit your request. Please try again." };
       }
       clientId = created.id;
+    } else {
+      // Keep the phone on file current — it's the primary matching signal.
+      await supabaseAdmin.from("clients").update({ phone }).eq("id", clientId).is("phone", null);
     }
 
     // --- Write: always pending, never assigned, never confirmed ---------
-    const { error: bErr } = await supabaseAdmin.from("bookings").insert({
-      org_id: org.id,
-      client_id: clientId,
-      service_id: service.id,
-      practitioner_id: null,
-      starts_at: startsAt.toISOString(),
-      ends_at: endsAt.toISOString(),
-      status: "pending",
-      source: "public",
-      public_note: data.note?.trim() || null,
-    });
+    const { data: booking, error: bErr } = await supabaseAdmin
+      .from("bookings")
+      .insert({
+        org_id: org.id,
+        client_id: clientId,
+        service_id: service.id,
+        practitioner_id: null,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+        status: "pending",
+        source: "public",
+        public_note: data.note?.trim() || null,
+      })
+      .select("id")
+      .single();
 
-    if (bErr) {
+    if (bErr || !booking) {
       await recordAttempt(supabaseAdmin, { orgId: org.id, ipHash, emailHash, accepted: false });
       return { ok: false, error: "We couldn't submit your request. Please try again." };
     }
+
+    await writeBookingEvent(supabaseAdmin, {
+      orgId: org.id,
+      bookingId: booking.id,
+      clientId,
+      eventType: "request_received",
+      requesterName: fullName,
+      requesterEmail: email,
+      requesterPhone: phone,
+      detail: { requested_for: startsAt.toISOString(), service_id: service.id },
+    });
 
     await recordAttempt(supabaseAdmin, { orgId: org.id, ipHash, emailHash, accepted: true });
     await notifyOperator(org.name, org.public_contact_email);
