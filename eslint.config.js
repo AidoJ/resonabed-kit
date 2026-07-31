@@ -36,5 +36,42 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // Health-data paths must never reach for the service-role client: it
+    // bypasses RLS and would restore a platform-wide read across clinics'
+    // health records. Clinic-scoped access only, through context.supabase.
+    files: [
+      "src/lib/screening.functions.ts",
+      "src/lib/sessions.functions.ts",
+      "src/lib/booking-safety.functions.ts",
+      "src/lib/booking-safety.server.ts",
+      "src/lib/pseudonym.server.ts",
+      "src/lib/platform-metrics.functions.ts",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@/integrations/supabase/client.server",
+                "**/integrations/supabase/client.server",
+              ],
+              message:
+                "Health-data paths must not use the service-role client — it bypasses RLS and re-opens cross-clinic health access. Use context.supabase (clinic-scoped).",
+            },
+          ],
+        },
+      ],
+      "no-restricted-properties": [
+        "error",
+        {
+          object: "supabaseAdmin",
+          message: "Health-data paths must not use the service-role client.",
+        },
+      ],
+    },
+  },
   eslintPluginPrettier,
 );
