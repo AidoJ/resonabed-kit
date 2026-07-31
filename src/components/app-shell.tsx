@@ -138,6 +138,7 @@ function buildNav(
           { to: "/admin/clients", label: "Clients", icon: Users },
           { to: "/bookings", label: "Bookings", icon: Calendar },
           { to: "/availability", label: "Availability", icon: Clock },
+          ...publicPageItem,
         ],
       },
       {
