@@ -359,7 +359,7 @@ export const getPublicRequestDetail = createServerFn({ method: "POST" })
     const { data: row, error } = await context.supabase
       .from("bookings")
       .select(
-        `id, org_id, starts_at, ends_at, status, source, public_note,
+        `id, org_id, client_id, starts_at, ends_at, status, source, public_note,
          client:client_id(first_name, last_name, email, phone),
          service:service_id(name, duration_minutes)`,
       )
@@ -374,10 +374,40 @@ export const getPublicRequestDetail = createServerFn({ method: "POST" })
       .eq("id", row.org_id)
       .maybeSingle();
 
+    // First-time vs returning: matched on normalised phone OR email across
+    // every client row in this org, then judged on prior activity rather
+    // than on the mere existence of a client record (the public flow creates
+    // one on the very first request).
+    const client = row.client as unknown as {
+      first_name: string;
+      last_name: string;
+      email: string | null;
+      phone: string | null;
+    } | null;
+
+    const { findMatchingClientIds, isReturningPerson } = await import(
+      "@/lib/booking-safety.server"
+    );
+    const matchedIds = new Set(
+      await findMatchingClientIds(context.supabase, {
+        orgId: row.org_id,
+        email: client?.email,
+        phone: client?.phone,
+      }),
+    );
+    if (row.client_id) matchedIds.add(row.client_id);
+
+    const returning = await isReturningPerson(context.supabase, {
+      orgId: row.org_id,
+      clientIds: Array.from(matchedIds),
+      excludeBookingId: row.id,
+    });
+
     return {
       ...row,
       clinic_type: ((org?.clinic_type as string) ?? "home") as "retail" | "home",
       public_suburb: (org?.public_suburb as string | null) ?? null,
+      is_first_time: !returning,
     };
   });
 
