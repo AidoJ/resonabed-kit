@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { AvailabilityWindow } from "./availability-pattern";
 
 export type PublicOrg = {
   name: string;
@@ -80,5 +81,6 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       org,
       services: (svcRes.data as PublicService[] | null) ?? [],
       logoUrl,
+      availability: (availRes.data as AvailabilityWindow[] | null) ?? [],
     };
   });
