@@ -64,7 +64,11 @@ function BookingDetail() {
   const setStatus = async (next: BookingStatus) => {
     setBusy(true);
     try {
-      await setStatusFn({ data: { id, status: next } });
+      const res = await setStatusFn({ data: { id, status: next } });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
       toast.success(`Booking ${next.replace("_", " ")}`);
       refetch();
     } catch (e) {

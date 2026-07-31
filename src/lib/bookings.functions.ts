@@ -226,9 +226,12 @@ export const updateBookingStatus = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (error) {
       const friendly = screeningErrorMessage(error.message);
-      throw new Error(friendly ?? error.message);
+      // Expected, user-actionable rejections (e.g. the screening gate) are
+      // returned rather than thrown so the UI can show a toast instead of
+      // tripping the app-level error boundary.
+      return { ok: false as const, error: friendly ?? error.message };
     }
-    return { ok: true };
+    return { ok: true as const };
   });
 
 export const deleteBooking = createServerFn({ method: "POST" })
