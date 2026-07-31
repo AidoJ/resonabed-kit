@@ -455,14 +455,23 @@ export function PublicRequestDialog({
         <DialogFooter className="gap-2 sm:justify-between">
           {mode === "review" ? (
             <>
-              <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
-                Decline
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
+                  Decline
+                </Button>
+                <Button variant="outline" disabled={busy} onClick={() => setMode("alternates")}>
+                  <CalendarClock className="mr-2 h-4 w-4" /> Propose other times
+                </Button>
+              </div>
               <Button disabled={busy} onClick={() => void run("confirm")}>
                 {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
                 Confirm booking
               </Button>
             </>
+          ) : mode === "alternates" ? (
+            <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
+              Back
+            </Button>
           ) : (
             <>
               <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
@@ -475,6 +484,7 @@ export function PublicRequestDialog({
             </>
           )}
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
