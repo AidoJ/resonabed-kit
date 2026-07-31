@@ -410,6 +410,7 @@ export type Database = {
           id: string
           letter_id: string
           org_id: string
+          pseudonym_id: string
           reason: string
           revoked_by: string
         }
@@ -418,6 +419,7 @@ export type Database = {
           id?: string
           letter_id: string
           org_id: string
+          pseudonym_id: string
           reason: string
           revoked_by: string
         }
@@ -426,6 +428,7 @@ export type Database = {
           id?: string
           letter_id?: string
           org_id?: string
+          pseudonym_id?: string
           reason?: string
           revoked_by?: string
         }
@@ -444,6 +447,13 @@ export type Database = {
             referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_clearance_letter_revocations_pseudonym_id_fkey"
+            columns: ["pseudonym_id"]
+            isOneToOne: false
+            referencedRelation: "client_pseudonyms"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_clearance_letters: {
@@ -457,6 +467,7 @@ export type Database = {
           item_key: string
           notes: string | null
           org_id: string
+          pseudonym_id: string
           recorded_by: string
         }
         Insert: {
@@ -469,6 +480,7 @@ export type Database = {
           item_key: string
           notes?: string | null
           org_id: string
+          pseudonym_id: string
           recorded_by: string
         }
         Update: {
@@ -481,6 +493,7 @@ export type Database = {
           item_key?: string
           notes?: string | null
           org_id?: string
+          pseudonym_id?: string
           recorded_by?: string
         }
         Relationships: [
@@ -498,6 +511,13 @@ export type Database = {
             referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_clearance_letters_pseudonym_id_fkey"
+            columns: ["pseudonym_id"]
+            isOneToOne: false
+            referencedRelation: "client_pseudonyms"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_notes: {
@@ -510,6 +530,7 @@ export type Database = {
           id: string
           kind: string
           org_id: string
+          pseudonym_id: string
           updated_at: string
         }
         Insert: {
@@ -521,6 +542,7 @@ export type Database = {
           id?: string
           kind?: string
           org_id: string
+          pseudonym_id: string
           updated_at?: string
         }
         Update: {
@@ -532,6 +554,7 @@ export type Database = {
           id?: string
           kind?: string
           org_id?: string
+          pseudonym_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -544,6 +567,42 @@ export type Database = {
           },
           {
             foreignKeyName: "client_notes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_notes_pseudonym_id_fkey"
+            columns: ["pseudonym_id"]
+            isOneToOne: false
+            referencedRelation: "client_pseudonyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_pseudonyms: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_pseudonyms_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
@@ -579,6 +638,7 @@ export type Database = {
           practitioner_signed_at: string
           prior_screening_id: string | null
           privacy_text_snapshot: string | null
+          pseudonym_id: string
           response: string
         }
         Insert: {
@@ -608,6 +668,7 @@ export type Database = {
           practitioner_signed_at?: string
           prior_screening_id?: string | null
           privacy_text_snapshot?: string | null
+          pseudonym_id: string
           response: string
         }
         Update: {
@@ -637,6 +698,7 @@ export type Database = {
           practitioner_signed_at?: string
           prior_screening_id?: string | null
           privacy_text_snapshot?: string | null
+          pseudonym_id?: string
           response?: string
         }
         Relationships: [
@@ -654,6 +716,13 @@ export type Database = {
             referencedRelation: "client_screenings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_screenings_pseudonym_id_fkey"
+            columns: ["pseudonym_id"]
+            isOneToOne: false
+            referencedRelation: "client_pseudonyms"
+            referencedColumns: ["id"]
+          },
         ]
       }
       clients: {
@@ -669,6 +738,7 @@ export type Database = {
           org_id: string
           phone: string | null
           phone_normalised: string | null
+          pseudonym_id: string
           updated_at: string
         }
         Insert: {
@@ -683,6 +753,7 @@ export type Database = {
           org_id: string
           phone?: string | null
           phone_normalised?: string | null
+          pseudonym_id: string
           updated_at?: string
         }
         Update: {
@@ -697,6 +768,7 @@ export type Database = {
           org_id?: string
           phone?: string | null
           phone_normalised?: string | null
+          pseudonym_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -705,6 +777,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_pseudonym_id_fkey"
+            columns: ["pseudonym_id"]
+            isOneToOne: false
+            referencedRelation: "client_pseudonyms"
             referencedColumns: ["id"]
           },
         ]
@@ -1387,6 +1466,7 @@ export type Database = {
           practitioner_id: string
           practitioner_notes: string | null
           primary_goals: string[]
+          pseudonym_id: string
           recommended_frequency_id: string | null
           screening_id: string | null
           service_id: string | null
@@ -1413,6 +1493,7 @@ export type Database = {
           practitioner_id: string
           practitioner_notes?: string | null
           primary_goals?: string[]
+          pseudonym_id: string
           recommended_frequency_id?: string | null
           screening_id?: string | null
           service_id?: string | null
@@ -1439,6 +1520,7 @@ export type Database = {
           practitioner_id?: string
           practitioner_notes?: string | null
           primary_goals?: string[]
+          pseudonym_id?: string
           recommended_frequency_id?: string | null
           screening_id?: string | null
           service_id?: string | null
@@ -1461,6 +1543,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_pseudonym_id_fkey"
+            columns: ["pseudonym_id"]
+            isOneToOne: false
+            referencedRelation: "client_pseudonyms"
             referencedColumns: ["id"]
           },
           {
@@ -1723,6 +1812,19 @@ export type Database = {
       org_music_licence_ok: { Args: { _org_id: string }; Returns: boolean }
       org_practitioner_permission: {
         Args: { _flag: string; _org_id: string }
+        Returns: boolean
+      }
+      platform_org_session_metrics: {
+        Args: { _since: string }
+        Returns: {
+          org_id: string
+          revenue_total: number
+          sessions_30d: number
+          sessions_total: number
+        }[]
+      }
+      super_admin_supporting_org: {
+        Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
     }
