@@ -44,6 +44,8 @@ export type PublicPageOrg = {
   public_blurb: string | null;
   public_contact_email: string | null;
   public_contact_phone: string | null;
+  public_show_email: boolean;
+  public_show_phone: boolean;
   public_suburb: string | null;
   public_booking_enabled: boolean;
   timezone: string | null;
@@ -77,6 +79,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   const [blurb, setBlurb] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [showEmail, setShowEmail] = useState(false);
+  const [showPhone, setShowPhone] = useState(false);
   const [suburb, setSuburb] = useState("");
   const [tz, setTz] = useState("Australia/Brisbane");
   const [published, setPublished] = useState(false);
@@ -96,6 +100,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     setBlurb(org.public_blurb ?? "");
     setEmail(org.public_contact_email ?? "");
     setPhone(org.public_contact_phone ?? "");
+    setShowEmail(!!org.public_show_email);
+    setShowPhone(!!org.public_show_phone);
     setSuburb(org.public_suburb ?? "");
     setTz(org.timezone ?? "Australia/Brisbane");
     setPublished(!!org.published);
@@ -114,6 +120,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     blurb !== (org.public_blurb ?? "") ||
     email !== (org.public_contact_email ?? "") ||
     phone !== (org.public_contact_phone ?? "") ||
+    showEmail !== !!org.public_show_email ||
+    showPhone !== !!org.public_show_phone ||
     suburb !== (org.public_suburb ?? "") ||
     tz !== (org.timezone ?? "Australia/Brisbane") ||
     published !== !!org.published ||
@@ -159,6 +167,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           public_blurb: blurb || null,
           public_contact_email: email || null,
           public_contact_phone: phone || null,
+          public_show_email: showEmail,
+          public_show_phone: showPhone,
           public_suburb: suburb || null,
           timezone: tz,
           published,
@@ -276,26 +286,67 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="pub-email">Public contact email</Label>
-            <Input
-              id="pub-email"
-              type="email"
-              value={email}
-              placeholder="hello@yourclinic.com.au"
-              onChange={(e) => setEmail(e.target.value)}
-            />
+        {/* ------------------------------------------- direct contact details */}
+        <div className="space-y-4 rounded-lg border p-4">
+          <div>
+            <p className="text-sm font-medium">Your direct contact details</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {clinicType === "home"
+                ? "For a home-based studio, we recommend keeping your direct phone and email private and letting clients reach you through the booking request. You’ll get their details and can contact them yourself. You can choose to publish your contact details if you prefer."
+                : "A shopfront usually wants to be easy to reach, so publishing your phone and email here is fine. Turn either off if you’d rather visitors used the booking request."}
+            </p>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="pub-phone">Public contact phone</Label>
-            <Input
-              id="pub-phone"
-              value={phone}
-              placeholder="07 1234 5678"
-              onChange={(e) => setPhone(e.target.value)}
-            />
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="pub-email">Contact email</Label>
+              <Input
+                id="pub-email"
+                type="email"
+                value={email}
+                placeholder="hello@yourclinic.com.au"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="pub-phone">Contact phone</Label>
+              <Input
+                id="pub-phone"
+                value={phone}
+                placeholder="07 1234 5678"
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
           </div>
+
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Publish my email</p>
+              <p className="text-xs text-muted-foreground">
+                Shows your email on your public page, and includes it in booking emails.
+              </p>
+            </div>
+            <Switch checked={showEmail} onCheckedChange={setShowEmail} />
+          </div>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Publish my phone number</p>
+              <p className="text-xs text-muted-foreground">
+                Shows your number on your public page, and includes it in booking emails.
+              </p>
+            </div>
+            <Switch checked={showPhone} onCheckedChange={setShowPhone} />
+          </div>
+
+          {!showEmail && !showPhone ? (
+            <div className="flex items-start gap-3 rounded-md bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>
+                Your details stay private. Visitors start with a booking request, and you get
+                their name, phone and email so you can call them back.
+              </span>
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-1.5">
