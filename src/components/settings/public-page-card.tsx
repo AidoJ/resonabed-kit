@@ -2,7 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, Check, Copy, Globe, Home, Loader2, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  Copy,
+  ExternalLink,
+  Globe,
+  Home,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
 import { updateOrgSettings } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -423,13 +432,39 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           </div>
         </div>
 
-        {org.published && publicUrl ? (
-          <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3">
-            <span className="truncate text-sm">{publicUrl}</span>
-            <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={copyUrl}>
-              {copied ? <Check className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
-              Copy
-            </Button>
+        {org.slug ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-3">
+            <span className="min-w-0 flex-1 truncate text-sm">{publicUrl}</span>
+            <div className="flex shrink-0 gap-2">
+              <Button variant="outline" size="sm" onClick={copyUrl} disabled={!org.published}>
+                {copied ? (
+                  <Check className="mr-1.5 h-4 w-4" />
+                ) : (
+                  <Copy className="mr-1.5 h-4 w-4" />
+                )}
+                Copy
+              </Button>
+              {org.published ? (
+                <Button size="sm" asChild>
+                  {/* Relative path so this opens the page on whichever site
+                      you're signed in to, not just the live domain. */}
+                  <a href={`/o/${org.slug}`} target="_blank" rel="noreferrer">
+                    <ExternalLink className="mr-1.5 h-4 w-4" />
+                    Go to webpage
+                  </a>
+                </Button>
+              ) : (
+                <Button size="sm" disabled>
+                  <ExternalLink className="mr-1.5 h-4 w-4" />
+                  Go to webpage
+                </Button>
+              )}
+            </div>
+            {!org.published ? (
+              <p className="w-full text-xs text-muted-foreground">
+                Your page isn&rsquo;t published yet, so this link won&rsquo;t work for visitors.
+              </p>
+            ) : null}
           </div>
         ) : null}
 
