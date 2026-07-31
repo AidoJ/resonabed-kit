@@ -96,9 +96,16 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
   };
 
   const flagged = value.contraindications;
-  const blocking = flagged.filter(
-    (i) => !isClearableItem(i) || !clearedItems.includes(i),
-  );
+  const blocking = flagged.filter((i) => !isClearableItem(i) || !clearedItems.includes(i));
+
+  const blockingKey = blocking.join("|");
+  useEffect(() => {
+    onBlockingChange?.(blockingKey ? blockingKey.split("|") : []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blockingKey]);
+
+  const answered = value.noneApply || flagged.length > 0;
+
 
   return (
     <div className="space-y-6">
