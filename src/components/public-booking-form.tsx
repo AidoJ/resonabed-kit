@@ -88,10 +88,12 @@ export function PublicBookingForm({
   })();
 
   // Keep the chosen time valid whenever the date or session type changes.
-  if (date && slots.length > 0 && !slots.includes(time)) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    queueMicrotask(() => setTime(slots[0]));
-  }
+  const slotKey = slots.join(",");
+  useEffect(() => {
+    if (slots.length > 0 && !slots.includes(time)) setTime(slots[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slotKey]);
+
 
   if (done) {
     return (
