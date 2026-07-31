@@ -194,6 +194,8 @@ function BookingDetail() {
             </p>
           </div>
         )}
+
+        <BookingAuditTrail bookingId={id} />
       </div>
 
       <BookingFormDialog
