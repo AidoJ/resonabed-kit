@@ -17,6 +17,7 @@ import {
   QUICK_FACTS,
 } from "@/components/public-clinic/clinic-content";
 import { StickyBookCta } from "@/components/public-clinic/sticky-book-cta";
+import { ScienceSection } from "@/components/public-clinic/science-section";
 import heroWide from "@/assets/resonabed-hero-1536.webp.asset.json";
 import heroSmall from "@/assets/resonabed-hero-768.webp.asset.json";
 
