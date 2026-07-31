@@ -339,6 +339,7 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
       throw new Error(`Cannot start a session from a booking with status ${booking.status}`);
     }
 
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { data: session, error: sErr } = await context.supabase
       .from("sessions")
       .insert({

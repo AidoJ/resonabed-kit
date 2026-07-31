@@ -216,6 +216,7 @@ export const createDraftSession = createServerFn({ method: "POST" })
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
 
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("sessions")
       .insert({

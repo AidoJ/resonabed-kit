@@ -164,6 +164,7 @@ export const submitScreening = createServerFn({ method: "POST" })
       .maybeSingle();
     if (oErr) throw new Error(oErr.message);
 
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const outcome = blocking.length > 0 ? "blocked" : "cleared";
     const now = new Date().toISOString();
 
@@ -295,6 +296,7 @@ export const recordClearanceLetter = createServerFn({ method: "POST" })
         "This item can never be cleared by a doctor's letter — it must be re-screened each session.",
       );
     }
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("client_clearance_letters")
       .insert({
