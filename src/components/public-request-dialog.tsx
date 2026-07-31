@@ -39,9 +39,11 @@ import {
   DECLINE_REASON_LABELS,
   type DeclineReasonCode,
 } from "@/lib/vetting-guide";
+import { BookingAlternatesPanel } from "@/components/booking-alternates-panel";
 import { toast } from "sonner";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
+
 
 export type PublicRequestSummary = {
   id: string;
