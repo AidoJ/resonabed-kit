@@ -21,7 +21,8 @@ export type BookingEventType =
   | "cancelled"
   | "blocked_attempt"
   | "blocked"
-  | "unblocked";
+  | "unblocked"
+  | "note_added";
 
 export interface BookingEventInput {
   orgId: string;

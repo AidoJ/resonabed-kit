@@ -15,6 +15,7 @@ const EVENT_LABELS: Record<string, string> = {
   blocked_attempt: "Blocked person attempted to book",
   blocked: "Person added to the block list",
   unblocked: "Person removed from the block list",
+  note_added: "Private review note added (contents kept in client notes)",
 };
 
 /**
