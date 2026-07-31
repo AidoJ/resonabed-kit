@@ -427,6 +427,17 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
         id: uuid,
         action: z.enum(["confirm", "decline"]),
         practitioner_id: uuid.optional(),
+        // Reason CODES only — never free-text health detail. Specifics belong
+        // in the protected client notes, not in the audit trail.
+        reason_code: z
+          .enum([
+            "health_item_clearance_advised",
+            "not_suitable_at_this_time",
+            "unable_to_accommodate",
+            "other",
+          ])
+          .optional(),
+        notify_client: z.boolean().optional().default(false),
       })
       .parse(data),
   )
@@ -434,7 +445,7 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
     const { data: booking, error } = await context.supabase
       .from("bookings")
       .select(
-        `id, org_id, status, source, practitioner_id, starts_at,
+        `id, org_id, status, source, practitioner_id, starts_at, client_id,
          client:client_id(first_name, last_name, email),
          service:service_id(name)`,
       )
@@ -446,13 +457,65 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
       throw new Error("This booking is not a pending public request");
     }
 
+    const clientRow = booking.client as unknown as {
+      first_name: string;
+      last_name: string;
+      email: string | null;
+    } | null;
+
+    const { writeBookingEvent, displayNameForUser } = await import(
+      "@/lib/booking-safety.server"
+    );
+    const operatorName = await displayNameForUser(context.supabase, context.userId);
+
     if (data.action === "decline") {
       const { error: dErr } = await context.supabase
         .from("bookings")
         .update({ status: "cancelled" })
         .eq("id", data.id);
       if (dErr) throw new Error(dErr.message);
-      return { ok: true as const, emailed: false };
+
+      await writeBookingEvent(context.supabase, {
+        orgId: booking.org_id,
+        bookingId: booking.id,
+        clientId: booking.client_id,
+        eventType: "declined",
+        reasonCode: data.reason_code ?? "unable_to_accommodate",
+        actorUserId: context.userId,
+        actorName: operatorName,
+        requesterName: clientRow ? `${clientRow.first_name} ${clientRow.last_name}` : null,
+        requesterEmail: clientRow?.email ?? null,
+        detail: { notified: data.notify_client === true },
+      });
+
+      // Neutral notification only, and only if the operator asked for it.
+      // No address, no service, no time, no reason.
+      let emailed = false;
+      if (data.notify_client && clientRow?.email) {
+        try {
+          const { data: org } = await context.supabase
+            .from("organisations")
+            .select("name, public_contact_email, public_contact_phone")
+            .eq("id", booking.org_id)
+            .maybeSingle();
+          const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+          const res = await sendTemplateEmail("booking-declined", clientRow.email, {
+            templateData: {
+              orgName: org?.name ?? "the clinic",
+              clientName: clientRow.first_name,
+              contactEmail: org?.public_contact_email ?? "",
+              contactPhone: org?.public_contact_phone ?? "",
+            },
+            replyTo: org?.public_contact_email ?? undefined,
+            idempotencyKey: `booking-declined-${data.id}`,
+          });
+          emailed = res.sent;
+        } catch (err) {
+          console.error("decline notification failed", err);
+        }
+      }
+
+      return { ok: true as const, emailed };
     }
 
     if (!data.practitioner_id) {
@@ -463,6 +526,18 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
       .update({ status: "confirmed", practitioner_id: data.practitioner_id })
       .eq("id", data.id);
     if (cErr) throw new Error(cErr.message);
+
+    await writeBookingEvent(context.supabase, {
+      orgId: booking.org_id,
+      bookingId: booking.id,
+      clientId: booking.client_id,
+      eventType: "confirmed",
+      actorUserId: context.userId,
+      actorName: operatorName,
+      requesterName: clientRow ? `${clientRow.first_name} ${clientRow.last_name}` : null,
+      requesterEmail: clientRow?.email ?? null,
+      detail: { practitioner_id: data.practitioner_id },
+    });
 
     // --- Address release: only now, only to the confirmed client ---------
     let emailed = false;
