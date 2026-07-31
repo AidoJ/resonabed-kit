@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -126,6 +127,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster richColors closeButton position="top-center" />
         <Scripts />
       </body>
     </html>

@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Play, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Play, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import {
   getBooking,
   updateBookingStatus,
@@ -14,6 +14,11 @@ import {
 } from "@/lib/bookings.functions";
 import { BookingFormDialog } from "@/components/booking-form-dialog";
 import { BookingAuditTrail } from "@/components/booking-audit-trail";
+import {
+  PublicRequestDialog,
+  type PublicRequestSummary,
+} from "@/components/public-request-dialog";
+import { listOrgPractitioners } from "@/lib/bookings.functions";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
 
@@ -45,7 +50,13 @@ function BookingDetail() {
   });
 
   const [editOpen, setEditOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const listPracs = useServerFn(listOrgPractitioners);
+  const { data: practitioners = [] } = useQuery({
+    queryKey: ["org-practitioners"],
+    queryFn: () => listPracs(),
+  });
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!booking) return <p>Not found.</p>;
@@ -59,7 +70,9 @@ function BookingDetail() {
     };
   }).session;
   const status = booking.status as BookingStatus;
-  const canStart = status === "pending" || status === "confirmed";
+  const needsReview =
+    (booking as unknown as { source?: string }).source === "public" && status === "pending";
+  const canStart = !needsReview && (status === "pending" || status === "confirmed");
   const unpaid = session?.status === "completed" && session.payment_method === "none";
 
   const setStatus = async (next: BookingStatus) => {
@@ -146,6 +159,27 @@ function BookingDetail() {
           </div>
         )}
 
+        {needsReview && (
+          <div className="mt-6 flex flex-col gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+              <div>
+                <p className="font-semibold text-destructive">Review required</p>
+                <p className="text-sm text-muted-foreground">
+                  This came in through your public page. Nothing can be started, edited or marked
+                  in progress until you review it and confirm or decline.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate({ to: "/bookings" })}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+              <Button onClick={() => setReviewOpen(true)}>Review request</Button>
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 flex flex-wrap gap-2">
           {canStart && (
             <Button size="lg" className="h-12" onClick={startSession}>
@@ -159,7 +193,13 @@ function BookingDetail() {
               </Link>
             </Button>
           )}
-          <Button variant="outline" size="lg" className="h-12" onClick={() => setEditOpen(true)}>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-12"
+            disabled={needsReview}
+            onClick={() => setEditOpen(true)}
+          >
             <Pencil className="mr-2 h-4 w-4" /> Edit
           </Button>
           <Button variant="outline" size="lg" className="h-12" onClick={remove} disabled={busy}>
@@ -169,12 +209,17 @@ function BookingDetail() {
 
         <div className="mt-6 flex flex-wrap gap-2">
           <span className="text-xs uppercase text-muted-foreground self-center">Set status</span>
+          {needsReview && (
+            <span className="self-center text-xs text-destructive">
+              Locked until this request is reviewed
+            </span>
+          )}
           {STATUS_OPTIONS.map((s) => (
             <Button
               key={s}
               size="sm"
               variant={s === status ? "default" : "outline"}
-              disabled={busy || s === status}
+              disabled={busy || s === status || needsReview}
               onClick={() => setStatus(s)}
             >
               {s.replace("_", " ")}
@@ -198,6 +243,17 @@ function BookingDetail() {
 
         <BookingAuditTrail bookingId={id} />
       </div>
+
+      <PublicRequestDialog
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        booking={booking as unknown as PublicRequestSummary}
+        practitioners={practitioners}
+        onDone={() => {
+          setReviewOpen(false);
+          refetch();
+        }}
+      />
 
       <BookingFormDialog
         open={editOpen}

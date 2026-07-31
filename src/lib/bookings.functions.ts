@@ -220,16 +220,25 @@ export const updateBookingStatus = createServerFn({ method: "POST" })
     z.object({ id: uuid, status: z.enum(BOOKING_STATUS) }).parse(data),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { data: updated, error } = await context.supabase
       .from("bookings")
       .update({ status: data.status })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .select("id, status");
     if (error) {
       const friendly = screeningErrorMessage(error.message);
       // Expected, user-actionable rejections (e.g. the screening gate) are
       // returned rather than thrown so the UI can show a toast instead of
       // tripping the app-level error boundary.
       return { ok: false as const, error: friendly ?? error.message };
+    }
+    // A silent no-op (RLS filtered the row, or it no longer exists) must not
+    // look like success — the status bar would simply snap back.
+    if (!updated || updated.length === 0) {
+      return {
+        ok: false as const,
+        error: "That booking couldn't be updated. Refresh the page and try again.",
+      };
     }
 
     // A cancellation on a public request is part of that request's story, so

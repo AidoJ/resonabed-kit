@@ -72,6 +72,32 @@ export const logBookingViewed = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/**
+ * Records that a private note was written while reviewing this request. The
+ * note body itself never leaves protected client notes.
+ */
+export const logBookingNoteAdded = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ booking_id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: booking } = await context.supabase
+      .from("bookings")
+      .select("id, org_id, client_id")
+      .eq("id", data.booking_id)
+      .maybeSingle();
+    if (!booking) return { ok: false as const };
+    const { writeBookingEvent, displayNameForUser } = await import("@/lib/booking-safety.server");
+    await writeBookingEvent(context.supabase, {
+      orgId: booking.org_id,
+      bookingId: booking.id,
+      clientId: booking.client_id,
+      eventType: "note_added",
+      actorUserId: context.userId,
+      actorName: await displayNameForUser(context.supabase, context.userId),
+    });
+    return { ok: true as const };
+  });
+
 // ----------------------------------------------------------------- block list
 
 export const listBlockedContacts = createServerFn({ method: "GET" })
