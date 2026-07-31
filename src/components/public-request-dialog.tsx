@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, ShieldAlert, Phone, UserPlus, Ban, NotebookPen } from "lucide-react";
+import { Loader2, ShieldAlert, Phone, UserPlus, Ban, NotebookPen, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,9 +39,11 @@ import {
   DECLINE_REASON_LABELS,
   type DeclineReasonCode,
 } from "@/lib/vetting-guide";
+import { BookingAlternatesPanel } from "@/components/booking-alternates-panel";
 import { toast } from "sonner";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
+
 
 export type PublicRequestSummary = {
   id: string;
@@ -63,8 +65,9 @@ type RequestDetail = {
     phone: string | null;
   } | null;
   public_note?: string | null;
-  service?: { name: string } | null;
+  service?: { name: string; duration_minutes?: number } | null;
 };
+
 
 export function PublicRequestDialog({
   open,
@@ -92,7 +95,7 @@ export function PublicRequestDialog({
   const [acknowledged, setAcknowledged] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [callNote, setCallNote] = useState("");
-  const [mode, setMode] = useState<"review" | "decline">("review");
+  const [mode, setMode] = useState<"review" | "decline" | "alternates">("review");
   const [reasonCode, setReasonCode] = useState<DeclineReasonCode>("unable_to_accommodate");
   const [notifyClient, setNotifyClient] = useState(true);
   const [alsoBlock, setAlsoBlock] = useState(false);
@@ -377,9 +380,28 @@ export function PublicRequestDialog({
                 </p>
               )}
             </>
+          ) : mode === "alternates" ? (
+            <BookingAlternatesPanel
+              bookingId={booking.id}
+              practitioners={practitioners}
+              durationMinutes={
+                detail?.service?.duration_minutes ??
+                Math.max(
+                  30,
+                  Math.round(
+                    (new Date(booking.ends_at).getTime() -
+                      new Date(booking.starts_at).getTime()) /
+                      60000,
+                  ),
+                )
+              }
+              firstTime={firstTime}
+              onSent={onDone}
+            />
           ) : (
             /* ------------------------- decline flow ------------------------- */
             <div className="grid gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+
               <div className="grid gap-2">
                 <Label htmlFor="pr-reason">Why are you declining?</Label>
                 <Select
@@ -433,14 +455,23 @@ export function PublicRequestDialog({
         <DialogFooter className="gap-2 sm:justify-between">
           {mode === "review" ? (
             <>
-              <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
-                Decline
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
+                  Decline
+                </Button>
+                <Button variant="outline" disabled={busy} onClick={() => setMode("alternates")}>
+                  <CalendarClock className="mr-2 h-4 w-4" /> Propose other times
+                </Button>
+              </div>
               <Button disabled={busy} onClick={() => void run("confirm")}>
                 {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
                 Confirm booking
               </Button>
             </>
+          ) : mode === "alternates" ? (
+            <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
+              Back
+            </Button>
           ) : (
             <>
               <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
@@ -453,6 +484,7 @@ export function PublicRequestDialog({
             </>
           )}
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
