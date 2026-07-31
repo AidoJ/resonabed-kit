@@ -1,0 +1,2 @@
+ALTER TABLE public.booking_events DROP CONSTRAINT booking_events_event_type_check;
+ALTER TABLE public.booking_events ADD CONSTRAINT booking_events_event_type_check CHECK (event_type = ANY (ARRAY['request_received','viewed','confirmed','declined','cancelled','blocked_attempt','blocked','unblocked','note_added']));
