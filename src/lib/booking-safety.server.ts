@@ -152,3 +152,28 @@ export async function isReturningPerson(
     (bookings.count ?? 0) > 0 || (sessions.count ?? 0) > 0 || (screenings.count ?? 0) > 0
   );
 }
+
+// ---------------------------------------------------------------------------
+// Small context helpers used by the authenticated server functions.
+// ---------------------------------------------------------------------------
+
+export async function orgIdForUser(
+  client: AnyClient,
+  userId: string,
+): Promise<string> {
+  const { data } = await client.from("profiles").select("org_id").eq("id", userId).maybeSingle();
+  if (!data?.org_id) throw new Error("No organisation assigned to your profile");
+  return data.org_id as string;
+}
+
+export async function displayNameForUser(
+  client: AnyClient,
+  userId: string,
+): Promise<string | null> {
+  const { data } = await client
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .maybeSingle();
+  return (data?.display_name as string | null) ?? null;
+}
