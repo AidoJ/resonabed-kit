@@ -287,7 +287,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     },
   });
 
-  const nav = buildNav(roles, inSupportMode);
+  const nav = buildNav(
+    roles,
+    inSupportMode,
+    data?.org?.slug ? { slug: data.org.slug, published: data.org.published } : null,
+  );
 
   // While the user context is loading (e.g. right after sign-in), do NOT
   // render the sidebar/shell — the default brand theme and empty nav would
