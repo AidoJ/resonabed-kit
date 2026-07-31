@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { phoneValidationError, PHONE_HELP_TEXT } from "@/lib/phone";
 import {
   Dialog,
   DialogContent,
@@ -259,6 +260,13 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
 
   const handleAddClient = async () => {
     if (!canAddClient) return;
+    if (newPhone.trim()) {
+      const badPhone = phoneValidationError(newPhone);
+      if (badPhone) {
+        toast.error(badPhone);
+        return;
+      }
+    }
     setAddingClient(true);
     try {
       const created = await createClientFn({
@@ -348,6 +356,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
                   <Input placeholder="Last name" value={newLast} onChange={(e) => setNewLast(e.target.value)} />
                   <Input placeholder="Email (optional)" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
                   <Input placeholder="Phone (optional)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">{PHONE_HELP_TEXT}</p>
                 </div>
                 <div className="flex justify-end">
                   <Button
