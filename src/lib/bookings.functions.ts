@@ -345,6 +345,7 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
         org_id: booking.org_id,
         practitioner_id: booking.practitioner_id ?? context.userId,
         client_id: booking.client_id,
+        pseudonym_id: await pseudonymForClient(context.supabase, booking.client_id),
         service_id: booking.service_id,
         screening_id: data.screening_id,
         pain_level: data.pain_level,

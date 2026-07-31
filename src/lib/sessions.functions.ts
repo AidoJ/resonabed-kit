@@ -222,6 +222,7 @@ export const createDraftSession = createServerFn({ method: "POST" })
         org_id: profile.org_id,
         practitioner_id: context.userId,
         client_id: data.client_id,
+        pseudonym_id: await pseudonymForClient(context.supabase, data.client_id),
         service_id: data.service_id,
         screening_id: data.screening_id,
         pain_level: data.pain_level,

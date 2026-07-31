@@ -172,6 +172,7 @@ export const submitScreening = createServerFn({ method: "POST" })
       .insert({
         org_id: orgId,
         client_id: data.client_id,
+        pseudonym_id: await pseudonymForClient(context.supabase, data.client_id),
         practitioner_id: context.userId,
         booking_id: data.booking_id ?? null,
         checklist_version: SCREENING_CHECKLIST_VERSION,
@@ -233,7 +234,7 @@ export const declineSessionForScreening = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: screening, error: sErr } = await context.supabase
       .from("client_screenings")
-      .select("id, org_id, client_id, outcome, blocking_items, practitioner_notes")
+      .select("id, org_id, client_id, pseudonym_id, outcome, blocking_items, practitioner_notes")
       .eq("id", data.screening_id)
       .maybeSingle();
     if (sErr) throw new Error(sErr.message);
@@ -244,6 +245,7 @@ export const declineSessionForScreening = createServerFn({ method: "POST" })
       .insert({
         org_id: screening.org_id,
         client_id: screening.client_id,
+        pseudonym_id: screening.pseudonym_id,
         practitioner_id: context.userId,
         service_id: data.service_id ?? null,
         screening_id: screening.id,
@@ -298,6 +300,7 @@ export const recordClearanceLetter = createServerFn({ method: "POST" })
       .insert({
         org_id: orgId,
         client_id: data.client_id,
+        pseudonym_id: await pseudonymForClient(context.supabase, data.client_id),
         item_key: data.item_key,
         issuer_name: data.issuer_name,
         issued_on: data.issued_on || null,
@@ -321,11 +324,19 @@ export const revokeClearanceLetter = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const orgId = await callerOrgId(context);
+    const { data: letter } = await context.supabase
+      .from("client_clearance_letters")
+      .select("pseudonym_id")
+      .eq("id", data.letter_id)
+      .maybeSingle();
+    if (!letter?.pseudonym_id) throw new Error("That clearance letter could not be found.");
+    const letterPseudonym = letter.pseudonym_id;
     const { error } = await context.supabase
       .from("client_clearance_letter_revocations")
       .insert({
         letter_id: data.letter_id,
         org_id: orgId,
+        pseudonym_id: letterPseudonym,
         reason: data.reason.trim(),
         revoked_by: context.userId,
       });

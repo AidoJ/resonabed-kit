@@ -224,9 +224,11 @@ export const addClientNote = createServerFn({ method: "POST" })
     if (!client) throw new Error("Client not found");
 
     const { displayNameForUser } = await import("@/lib/booking-safety.server");
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { error } = await context.supabase.from("client_notes").insert({
       org_id: client.org_id,
       client_id: client.id,
+      pseudonym_id: await pseudonymForClient(context.supabase, client.id),
       author_id: context.userId,
       author_name: await displayNameForUser(context.supabase, context.userId),
       kind: data.kind,
