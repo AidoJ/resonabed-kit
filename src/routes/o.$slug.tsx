@@ -17,6 +17,7 @@ import {
   QUICK_FACTS,
 } from "@/components/public-clinic/clinic-content";
 import { StickyBookCta } from "@/components/public-clinic/sticky-book-cta";
+import { ScienceSection } from "@/components/public-clinic/science-section";
 import heroWide from "@/assets/resonabed-hero-1536.webp.asset.json";
 import heroSmall from "@/assets/resonabed-hero-768.webp.asset.json";
 
@@ -376,6 +377,11 @@ function PublicOrgPage() {
           </div>
         </div>
       </section>
+
+      {/* ------------------------------------------------- SCIENCE (non-editable) */}
+      <ScienceSection />
+
+
 
       {/* ----------------------------------------------------------- FREQUENCIES */}
       <section className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
