@@ -553,75 +553,17 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
     if (!data.practitioner_id) {
       throw new Error("Assign a practitioner before confirming");
     }
-    const { error: cErr } = await context.supabase
-      .from("bookings")
-      .update({ status: "confirmed", practitioner_id: data.practitioner_id })
-      .eq("id", data.id);
-    if (cErr) throw new Error(cErr.message);
 
-    await writeBookingEvent(context.supabase, {
-      orgId: booking.org_id,
+    const { confirmBookingAndNotify } = await import("@/lib/booking-confirm.server");
+    const res = await confirmBookingAndNotify(context.supabase, {
       bookingId: booking.id,
-      clientId: booking.client_id,
-      eventType: "confirmed",
+      practitionerId: data.practitioner_id,
       actorUserId: context.userId,
       actorName: operatorName,
-      requesterName: clientRow ? `${clientRow.first_name} ${clientRow.last_name}` : null,
-      requesterEmail: clientRow?.email ?? null,
-      detail: { practitioner_id: data.practitioner_id },
     });
+    if (!res.ok) throw new Error(res.error ?? "Could not confirm this booking.");
 
-    // --- Address release: only now, only to the confirmed client ---------
-    let emailed = false;
-    try {
-      const client = booking.client as unknown as {
-        first_name: string;
-        last_name: string;
-        email: string | null;
-      } | null;
-      if (client?.email) {
-        const { data: org } = await context.supabase
-          .from("organisations")
-          .select(
-            "name, clinic_type, timezone, public_contact_email, public_contact_phone, address_line1, address_line2, address_city, address_state, address_postcode, address_country",
-          )
-          .eq("id", booking.org_id)
-          .maybeSingle();
-
-        const { formatOrgAddress } = await import("@/lib/org-address");
-        const { formatInTz, tzAbbrev, DEFAULT_TIMEZONE } = await import("@/lib/timezone");
-        const tz = (org?.timezone as string) || DEFAULT_TIMEZONE;
-        const whenLabel = `${formatInTz(booking.starts_at as string, tz, {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          hour: "numeric",
-          minute: "2-digit",
-        })} (${tzAbbrev(tz)})`;
-
-        const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
-        const result = await sendTemplateEmail("booking-confirmed", client.email, {
-          templateData: {
-            orgName: org?.name ?? "Your clinic",
-            clientName: client.first_name,
-            serviceName:
-              (booking.service as unknown as { name?: string } | null)?.name ?? "your session",
-            whenLabel,
-            address: formatOrgAddress(org ?? {}),
-            isHomeBased: (org?.clinic_type ?? "home") === "home",
-            contactPhone: org?.public_contact_phone ?? "",
-            contactEmail: org?.public_contact_email ?? "",
-          },
-          replyTo: org?.public_contact_email ?? undefined,
-          idempotencyKey: `booking-confirmed-${data.id}`,
-        });
-        emailed = result.sent;
-      }
-    } catch (err) {
-      // A bounced confirmation must not roll back the confirmation itself.
-      console.error("booking confirmation email failed", err);
-    }
-
-    return { ok: true as const, emailed };
+    return { ok: true as const, emailed: res.emailed };
   });
+
 
