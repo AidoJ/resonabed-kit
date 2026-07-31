@@ -459,6 +459,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
                   Go to webpage
                 </Button>
               )}
+            </div>
             {!org.published ? (
               <p className="w-full text-xs text-muted-foreground">
                 Your page isn&rsquo;t published yet, so this link won&rsquo;t work for visitors.
