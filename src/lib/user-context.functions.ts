@@ -88,6 +88,8 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           theme_accent: string | null;
           is_configured: boolean;
           timezone: string | null;
+          slug: string | null;
+          published: boolean | null;
         }
       | null
       | undefined;
