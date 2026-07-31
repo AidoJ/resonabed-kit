@@ -51,6 +51,7 @@ import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_auth
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicHooksOfferTickRouteImport } from './routes/api/public/hooks/offer-tick'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -282,6 +283,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksOfferTickRoute = ApiPublicHooksOfferTickRouteImport.update({
+  id: '/api/public/hooks/offer-tick',
+  path: '/api/public/hooks/offer-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSessionsIdPlayRoute =
   AuthenticatedSessionsIdPlayRouteImport.update({
     id: '/$id/play',
@@ -328,6 +334,7 @@ export interface FileRoutesByFullPath {
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
+  '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/sessions': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
+  '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/_authenticated/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
+  '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -462,6 +471,7 @@ export interface FileRouteTypes {
     | '/bookings/'
     | '/sessions/'
     | '/sessions/$id/play'
+    | '/api/public/hooks/offer-tick'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -504,6 +514,7 @@ export interface FileRouteTypes {
     | '/bookings'
     | '/sessions'
     | '/sessions/$id/play'
+    | '/api/public/hooks/offer-tick'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -549,6 +560,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bookings/'
     | '/_authenticated/sessions/'
     | '/_authenticated/sessions/$id/play'
+    | '/api/public/hooks/offer-tick'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -566,6 +578,7 @@ export interface RootRouteChildren {
   OrderCancelledRoute: typeof OrderCancelledRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
+  ApiPublicHooksOfferTickRoute: typeof ApiPublicHooksOfferTickRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -867,6 +880,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/offer-tick': {
+      id: '/api/public/hooks/offer-tick'
+      path: '/api/public/hooks/offer-tick'
+      fullPath: '/api/public/hooks/offer-tick'
+      preLoaderRoute: typeof ApiPublicHooksOfferTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/sessions/$id/play': {
       id: '/_authenticated/sessions/$id/play'
       path: '/$id/play'
@@ -978,6 +998,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderCancelledRoute: OrderCancelledRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
+  ApiPublicHooksOfferTickRoute: ApiPublicHooksOfferTickRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

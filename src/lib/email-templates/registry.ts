@@ -22,6 +22,9 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'public-booking-request': publicBookingRequestTemplate,
   'booking-confirmed': bookingConfirmedTemplate,
   'booking-declined': bookingDeclinedTemplate,
+  'booking-alternates-offered': bookingAlternatesOfferedTemplate,
+  'booking-alternates-reminder': bookingAlternatesReminderTemplate,
+
 }
 
 
