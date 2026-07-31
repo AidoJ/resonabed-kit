@@ -377,6 +377,11 @@ function PublicOrgPage() {
         </div>
       </section>
 
+      {/* ------------------------------------------------- SCIENCE (non-editable) */}
+      <ScienceSection />
+
+
+
       {/* ----------------------------------------------------------- FREQUENCIES */}
       <section className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
