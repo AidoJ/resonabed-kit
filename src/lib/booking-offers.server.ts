@@ -76,7 +76,7 @@ export async function tickOffers(admin: AnyClient): Promise<{
     .select(
       `id, org_id, booking_id, client_id, expires_at,
        client:client_id(first_name, email),
-       org:org_id(name, timezone, public_contact_email)`,
+       org:org_id(name, timezone, public_contact_email, public_show_email)`,
     )
     .eq("status", "open")
     .is("reminded_at", null)
@@ -90,6 +90,7 @@ export async function tickOffers(admin: AnyClient): Promise<{
       name: string;
       timezone: string | null;
       public_contact_email: string | null;
+      public_show_email: boolean | null;
     } | null;
     // The reminder deliberately carries no fresh link — the client still has
     // the original email, and re-sending a live token widens the window.
@@ -99,11 +100,11 @@ export async function tickOffers(admin: AnyClient): Promise<{
         await sendTemplateEmail("booking-alternates-reminder", client.email, {
           templateData: {
             orgName: org?.name ?? "the clinic",
-            clientName: client.first_name,
+            clientName: formatPersonName(client.first_name),
             expiresLabel: slotLabelFor(offer.expires_at, org?.timezone ?? DEFAULT_TIMEZONE),
-            contactEmail: org?.public_contact_email ?? "",
+            contactEmail: publishedContact(org).email,
           },
-          replyTo: org?.public_contact_email ?? undefined,
+          replyTo: publishedContact(org).replyTo,
           idempotencyKey: `offer-reminder-${offer.id}`,
         });
         reminded += 1;
