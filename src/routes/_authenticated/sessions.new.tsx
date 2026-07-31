@@ -99,6 +99,7 @@ function NewSession() {
     practitionerSignature: null,
   });
   const [screeningId, setScreeningId] = useState<string | null>(null);
+  const [blockingNow, setBlockingNow] = useState<string[]>([]);
   const [blocked, setBlocked] = useState<{ items: string[] } | null>(null);
   const [screeningBusy, setScreeningBusy] = useState(false);
   const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
