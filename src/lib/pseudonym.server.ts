@@ -19,10 +19,7 @@
 type AnyClient = { from: (table: string) => any };
 
 /** Person -> token. Throws rather than writing an orphan health row. */
-export async function pseudonymForClient(
-  client: AnyClient,
-  clientId: string,
-): Promise<string> {
+export async function pseudonymForClient(client: AnyClient, clientId: string): Promise<string> {
   const { data, error } = await client
     .from("clients")
     .select("pseudonym_id")

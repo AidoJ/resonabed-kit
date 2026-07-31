@@ -27,9 +27,7 @@ const requestSchema = z.object({
   captcha_token: z.string().max(4000).optional().nullable(),
 });
 
-export type PublicBookingResult =
-  | { ok: true }
-  | { ok: false; error: string };
+export type PublicBookingResult = { ok: true } | { ok: false; error: string };
 
 /**
  * Anonymous endpoint. Guard order is fixed:
@@ -85,7 +83,8 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
       await recordAttempt(supabaseAdmin, { orgId: org.id, ipHash, emailHash, accepted: false });
       return {
         ok: false,
-        error: "Too many requests just now. Please try again later, or contact the clinic directly.",
+        error:
+          "Too many requests just now. Please try again later, or contact the clinic directly.",
       };
     }
 
@@ -149,14 +148,12 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
       }
     }
 
-
     const email = data.email.trim().toLowerCase();
     const phone = data.phone.trim();
     const fullName = `${data.first_name.trim()} ${data.last_name.trim()}`;
 
-    const { isBlockedContact, findMatchingClientIds, writeBookingEvent } = await import(
-      "./booking-safety.server"
-    );
+    const { isBlockedContact, findMatchingClientIds, writeBookingEvent } =
+      await import("./booking-safety.server");
 
     // --- Guard 4: block list (phone OR email) ---------------------------
     // Silent by design. A blocked person sees the ordinary "request received"

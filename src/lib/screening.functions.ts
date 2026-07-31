@@ -58,9 +58,7 @@ export const getScreeningContext = createServerFn({ method: "POST" })
     if (revRes.error) throw new Error(revRes.error.message);
     if (priorRes.error) throw new Error(priorRes.error.message);
 
-    const revocations = new Map(
-      (revRes.data ?? []).map((r) => [r.letter_id as string, r]),
-    );
+    const revocations = new Map((revRes.data ?? []).map((r) => [r.letter_id as string, r]));
     const letters = (letterRes.data ?? []).map((l) => {
       const rev = revocations.get(l.id as string);
       return {
@@ -320,9 +318,7 @@ export const recordClearanceLetter = createServerFn({ method: "POST" })
 export const revokeClearanceLetter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z
-      .object({ letter_id: uuid, reason: z.string().min(5).max(1000) })
-      .parse(d),
+    z.object({ letter_id: uuid, reason: z.string().min(5).max(1000) }).parse(d),
   )
   .handler(async ({ data, context }) => {
     const orgId = await callerOrgId(context);
@@ -333,15 +329,13 @@ export const revokeClearanceLetter = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!letter?.pseudonym_id) throw new Error("That clearance letter could not be found.");
     const letterPseudonym = letter.pseudonym_id;
-    const { error } = await context.supabase
-      .from("client_clearance_letter_revocations")
-      .insert({
-        letter_id: data.letter_id,
-        org_id: orgId,
-        pseudonym_id: letterPseudonym,
-        reason: data.reason.trim(),
-        revoked_by: context.userId,
-      });
+    const { error } = await context.supabase.from("client_clearance_letter_revocations").insert({
+      letter_id: data.letter_id,
+      org_id: orgId,
+      pseudonym_id: letterPseudonym,
+      reason: data.reason.trim(),
+      revoked_by: context.userId,
+    });
     if (error) {
       if (error.code === "23505") throw new Error("This letter has already been revoked.");
       throw new Error(error.message);

@@ -68,7 +68,9 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
     ] = await Promise.all([
       context.supabase
         .from("organisations")
-        .select("id, name, status, is_configured, music_licence_status, music_licence_expires_at, created_at")
+        .select(
+          "id, name, status, is_configured, music_licence_status, music_licence_expires_at, created_at",
+        )
         .order("name"),
       context.supabase.rpc("platform_org_session_metrics", { _since: thirtyAgo }),
       context.supabase.from("bookings").select("*", { count: "exact", head: true }),
@@ -101,8 +103,14 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
     const sessions30Count = [...sess30.values()].reduce((a, b) => a + b, 0);
     const sessionsTotalCount = [...sessTot.values()].reduce((a, b) => a + b, 0);
 
-    let trial = 0, active = 0, expired = 0, expiring = 0;
-    let configured = 0, unconfigured = 0, activeOrgs = 0, suspended = 0;
+    let trial = 0,
+      active = 0,
+      expired = 0,
+      expiring = 0;
+    let configured = 0,
+      unconfigured = 0,
+      activeOrgs = 0,
+      suspended = 0;
     const perOrg: PlatformMetrics["perOrg"] = [];
     for (const o of orgs ?? []) {
       if (o.status === "suspended") suspended++;
@@ -112,8 +120,7 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
       const status = (o.music_licence_status as "trial" | "active" | "expired") ?? "trial";
       const expIso = o.music_licence_expires_at as string | null;
       const expMs = expIso ? new Date(expIso).getTime() : null;
-      const effectivelyExpired =
-        status === "expired" || expMs === null || expMs <= now;
+      const effectivelyExpired = status === "expired" || expMs === null || expMs <= now;
       if (effectivelyExpired) expired++;
       else if (status === "trial") trial++;
       else active++;

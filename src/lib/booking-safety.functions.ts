@@ -129,9 +129,8 @@ export const blockContact = createServerFn({ method: "POST" })
     const phone = data.phone?.trim() || null;
     if (!email && !phone) throw new Error("A phone number or email is required to block someone.");
 
-    const { writeBookingEvent, displayNameForUser, orgIdForUser } = await import(
-      "@/lib/booking-safety.server"
-    );
+    const { writeBookingEvent, displayNameForUser, orgIdForUser } =
+      await import("@/lib/booking-safety.server");
     const orgId = await orgIdForUser(context.supabase, context.userId);
 
     const { data: row, error } = await context.supabase
