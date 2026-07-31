@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert, Phone, UserPlus, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,8 +18,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { respondToPublicRequest, getPublicRequestDetail } from "@/lib/bookings.functions";
+import {
+  logBookingViewed,
+  addClientNote,
+  blockContact,
+} from "@/lib/booking-safety.functions";
+import {
+  VETTING_CALL_RECOMMENDATION,
+  VETTING_SECTIONS,
+  VETTING_CLOSING_LINE,
+  CLEARABLE_ITEM_GUIDANCE,
+  NON_CLEARABLE_ITEM_GUIDANCE,
+  DECLINE_REASON_CODES,
+  DECLINE_REASON_LABELS,
+  type DeclineReasonCode,
+} from "@/lib/vetting-guide";
 import { toast } from "sonner";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
@@ -35,6 +53,8 @@ export type PublicRequestSummary = {
 
 type RequestDetail = {
   clinic_type: "retail" | "home";
+  client_id?: string | null;
+  is_first_time?: boolean;
   client?: {
     first_name: string;
     last_name: string;
@@ -60,11 +80,20 @@ export function PublicRequestDialog({
 }) {
   const respond = useServerFn(respondToPublicRequest);
   const loadDetail = useServerFn(getPublicRequestDetail);
+  const logViewed = useServerFn(logBookingViewed);
+  const saveNote = useServerFn(addClientNote);
+  const block = useServerFn(blockContact);
   const tz = useOrgTimezone();
   const [practitionerId, setPractitionerId] = useState("");
   const [busy, setBusy] = useState(false);
   const [detail, setDetail] = useState<RequestDetail | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [callNote, setCallNote] = useState("");
+  const [mode, setMode] = useState<"review" | "decline">("review");
+  const [reasonCode, setReasonCode] = useState<DeclineReasonCode>("unable_to_accommodate");
+  const [notifyClient, setNotifyClient] = useState(true);
+  const [alsoBlock, setAlsoBlock] = useState(false);
 
   const bookingId = booking?.id ?? null;
 
@@ -72,26 +101,50 @@ export function PublicRequestDialog({
     if (!open || !bookingId) {
       setDetail(null);
       setAcknowledged(false);
+      setMode("review");
+      setCallNote("");
+      setAlsoBlock(false);
+      setShowGuide(false);
       return;
     }
     let cancelled = false;
     void loadDetail({ data: { id: bookingId } })
       .then((d) => {
-        if (!cancelled) setDetail(d as unknown as RequestDetail);
+        if (!cancelled) {
+          const detailData = d as unknown as RequestDetail;
+          setDetail(detailData);
+          setShowGuide(detailData.is_first_time === true);
+        }
       })
       .catch(() => {
         /* details are advisory; confirm still works */
       });
+    // Append-only: records that this request was opened for review.
+    void logViewed({ data: { booking_id: bookingId } }).catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [open, bookingId, loadDetail]);
+  }, [open, bookingId, loadDetail, logViewed]);
 
   if (!booking) return null;
 
   const homeBased = detail?.clinic_type === "home";
   const client = detail?.client ?? booking.client ?? null;
   const note = detail?.public_note ?? booking.public_note ?? null;
+  const firstTime = detail?.is_first_time === true;
+
+  /** Anything learned on the call goes to protected notes, never the trail. */
+  const persistCallNote = async () => {
+    const body = callNote.trim();
+    if (!body || !detail?.client_id) return;
+    try {
+      await saveNote({
+        data: { client_id: detail.client_id, body, kind: "vetting_call" as const },
+      });
+    } catch {
+      toast.error("Your call notes couldn't be saved — copy them before closing.");
+    }
+  };
 
   const run = async (action: "confirm" | "decline") => {
     if (action === "confirm" && !practitionerId) {
@@ -104,17 +157,33 @@ export function PublicRequestDialog({
     }
     setBusy(true);
     try {
+      await persistCallNote();
       await respond({
         data: {
           id: booking.id,
           action,
           practitioner_id: action === "confirm" ? practitionerId : undefined,
+          reason_code: action === "decline" ? reasonCode : undefined,
+          notify_client: action === "decline" ? notifyClient : false,
         },
       });
+      if (action === "decline" && alsoBlock) {
+        await block({
+          data: {
+            display_name: client ? `${client.first_name} ${client.last_name}` : null,
+            email: detail?.client?.email ?? null,
+            phone: detail?.client?.phone ?? null,
+            reason: DECLINE_REASON_LABELS[reasonCode],
+            booking_id: booking.id,
+          },
+        }).catch(() => toast.error("Declined, but the block couldn't be saved."));
+      }
       toast.success(
         action === "confirm"
           ? "Booking confirmed — the client has been emailed the details and your address."
-          : "Request declined",
+          : notifyClient
+            ? "Request declined and the client has been notified."
+            : "Request declined.",
       );
       onOpenChange(false);
       setPractitionerId("");
@@ -152,7 +221,14 @@ export function PublicRequestDialog({
             <p className="font-medium">{when}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Who is asking</p>
+            <div className="flex items-center gap-2">
+              <p className="text-muted-foreground">Who is asking</p>
+              {detail ? (
+                <Badge variant={firstTime ? "default" : "secondary"} className="text-[11px]">
+                  {firstTime ? "First-time client" : "Returning client"}
+                </Badge>
+              ) : null}
+            </div>
             <p className="font-medium">
               {client?.first_name} {client?.last_name}
             </p>
@@ -176,58 +252,198 @@ export function PublicRequestDialog({
             </div>
           ) : null}
 
-          <div className="grid gap-2">
-            <Label htmlFor="pr-prac">Assign practitioner</Label>
-            <Select value={practitionerId} onValueChange={setPractitionerId}>
-              <SelectTrigger id="pr-prac">
-                <SelectValue placeholder="Choose a practitioner" />
-              </SelectTrigger>
-              <SelectContent>
-                {practitioners.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.display_name ?? p.id.slice(0, 8)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {homeBased ? (
-            <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
-              <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-              <div className="space-y-2">
-                <p className="font-medium">Confirming shares your address with this person.</p>
-                <p className="text-xs leading-relaxed text-amber-800/90 dark:text-amber-100/80">
-                  Your studio is home-based, so your street address is not on your public page. It
-                  is emailed to this person the moment you confirm. Take a moment to check the
-                  request looks genuine.
-                </p>
-                <label className="flex items-start gap-2 text-xs font-medium">
-                  <Checkbox
-                    checked={acknowledged}
-                    onCheckedChange={(v) => setAcknowledged(v === true)}
-                    className="mt-0.5"
-                  />
-                  <span>I&rsquo;ve read this request and I&rsquo;m happy to share my address.</span>
-                </label>
+          {/* ---------------- first-time vetting call guide ---------------- */}
+          {firstTime ? (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <div className="flex items-start gap-3">
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <div className="space-y-2">
+                  <p className="font-medium">We recommend a quick call first</p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    {VETTING_CALL_RECOMMENDATION}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowGuide((v) => !v)}
+                  >
+                    {showGuide ? "Hide question guide" : "Show question guide"}
+                  </Button>
+                </div>
               </div>
+
+              {showGuide ? (
+                <div className="mt-3 space-y-3 border-t pt-3">
+                  {VETTING_SECTIONS.map((section) => (
+                    <div key={section.heading}>
+                      <p className="text-xs font-semibold">{section.heading}</p>
+                      {section.subheading ? (
+                        <p className="text-[11px] text-muted-foreground">{section.subheading}</p>
+                      ) : null}
+                      <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+                        {section.questions.map((q) => (
+                          <li key={q}>{q}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    {VETTING_CLOSING_LINE}
+                  </p>
+                  <Separator />
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    <span className="font-semibold">If a clearable item comes up: </span>
+                    {CLEARABLE_ITEM_GUIDANCE}
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    <span className="font-semibold">If pregnancy comes up: </span>
+                    {NON_CLEARABLE_ITEM_GUIDANCE}
+                  </p>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="pr-note" className="text-xs">
+                      Notes from the call (private to your clinic)
+                    </Label>
+                    <Textarea
+                      id="pr-note"
+                      rows={3}
+                      maxLength={4000}
+                      value={callNote}
+                      onChange={(e) => setCallNote(e.target.value)}
+                      placeholder="Anything you want on file about this conversation."
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      Saved to the client&rsquo;s protected notes. Never shown publicly and never
+                      part of the booking audit trail.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
+          ) : null}
+
+          {mode === "review" ? (
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="pr-prac">Assign practitioner</Label>
+                <Select value={practitionerId} onValueChange={setPractitionerId}>
+                  <SelectTrigger id="pr-prac">
+                    <SelectValue placeholder="Choose a practitioner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {practitioners.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.display_name ?? p.id.slice(0, 8)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {homeBased ? (
+                <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div className="space-y-2">
+                    <p className="font-medium">Confirming shares your address with this person.</p>
+                    <p className="text-xs leading-relaxed text-amber-800/90 dark:text-amber-100/80">
+                      Your studio is home-based, so your street address is not on your public page.
+                      It is emailed to this person the moment you confirm. Take a moment to check
+                      the request looks genuine.
+                    </p>
+                    <label className="flex items-start gap-2 text-xs font-medium">
+                      <Checkbox
+                        checked={acknowledged}
+                        onCheckedChange={(v) => setAcknowledged(v === true)}
+                        className="mt-0.5"
+                      />
+                      <span>
+                        I&rsquo;ve read this request and I&rsquo;m happy to share my address.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Confirming emails this person their appointment details, including your clinic
+                  address.
+                </p>
+              )}
+            </>
           ) : (
-            <p className="text-xs text-muted-foreground">
-              Confirming emails this person their appointment details, including your clinic
-              address.
-            </p>
+            /* ------------------------- decline flow ------------------------- */
+            <div className="grid gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+              <div className="grid gap-2">
+                <Label htmlFor="pr-reason">Why are you declining?</Label>
+                <Select
+                  value={reasonCode}
+                  onValueChange={(v) => setReasonCode(v as DeclineReasonCode)}
+                >
+                  <SelectTrigger id="pr-reason">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DECLINE_REASON_CODES.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {DECLINE_REASON_LABELS[code]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  Recorded on the booking&rsquo;s audit trail as a reason code only. The client is
+                  never told the reason, and no health detail is stored here.
+                </p>
+              </div>
+
+              <label className="flex items-start gap-2 text-xs">
+                <Checkbox
+                  checked={notifyClient}
+                  onCheckedChange={(v) => setNotifyClient(v === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  Email them a short, neutral note that you can&rsquo;t take this booking, with your
+                  contact details if they want to talk.
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 text-xs">
+                <Checkbox
+                  checked={alsoBlock}
+                  onCheckedChange={(v) => setAlsoBlock(v === true)}
+                  className="mt-0.5"
+                />
+                <span className="flex items-center gap-1.5">
+                  <Ban className="h-3.5 w-3.5 shrink-0" />
+                  Also block this person from booking online again.
+                </span>
+              </label>
+            </div>
           )}
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
-          <Button variant="outline" disabled={busy} onClick={() => run("decline")}>
-            Decline
-          </Button>
-          <Button disabled={busy} onClick={() => run("confirm")}>
-            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Confirm booking
-          </Button>
+          {mode === "review" ? (
+            <>
+              <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
+                Decline
+              </Button>
+              <Button disabled={busy} onClick={() => void run("confirm")}>
+                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                Confirm booking
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
+                Back
+              </Button>
+              <Button variant="destructive" disabled={busy} onClick={() => void run("decline")}>
+                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Decline request
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -158,14 +158,18 @@ export function PublicBookingForm({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="pb-phone">Phone</Label>
+              <Label htmlFor="pb-phone">Phone *</Label>
               <Input
                 id="pb-phone"
                 type="tel"
                 value={phone}
                 maxLength={40}
                 onChange={(e) => setPhone(e.target.value)}
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                We may call you before confirming your first session.
+              </p>
             </div>
           </div>
 

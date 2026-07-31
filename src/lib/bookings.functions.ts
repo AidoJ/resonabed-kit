@@ -231,6 +231,29 @@ export const updateBookingStatus = createServerFn({ method: "POST" })
       // tripping the app-level error boundary.
       return { ok: false as const, error: friendly ?? error.message };
     }
+
+    // A cancellation on a public request is part of that request's story, so
+    // it belongs in the audit trail alongside confirm/decline.
+    if (data.status === "cancelled") {
+      const { data: booking } = await context.supabase
+        .from("bookings")
+        .select("id, org_id, client_id, source")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (booking) {
+        const { writeBookingEvent, displayNameForUser } = await import(
+          "@/lib/booking-safety.server"
+        );
+        await writeBookingEvent(context.supabase, {
+          orgId: booking.org_id,
+          bookingId: booking.id,
+          clientId: booking.client_id,
+          eventType: "cancelled",
+          actorUserId: context.userId,
+          actorName: await displayNameForUser(context.supabase, context.userId),
+        });
+      }
+    }
     return { ok: true as const };
   });
 
@@ -359,7 +382,7 @@ export const getPublicRequestDetail = createServerFn({ method: "POST" })
     const { data: row, error } = await context.supabase
       .from("bookings")
       .select(
-        `id, org_id, starts_at, ends_at, status, source, public_note,
+        `id, org_id, client_id, starts_at, ends_at, status, source, public_note,
          client:client_id(first_name, last_name, email, phone),
          service:service_id(name, duration_minutes)`,
       )
@@ -374,10 +397,40 @@ export const getPublicRequestDetail = createServerFn({ method: "POST" })
       .eq("id", row.org_id)
       .maybeSingle();
 
+    // First-time vs returning: matched on normalised phone OR email across
+    // every client row in this org, then judged on prior activity rather
+    // than on the mere existence of a client record (the public flow creates
+    // one on the very first request).
+    const client = row.client as unknown as {
+      first_name: string;
+      last_name: string;
+      email: string | null;
+      phone: string | null;
+    } | null;
+
+    const { findMatchingClientIds, isReturningPerson } = await import(
+      "@/lib/booking-safety.server"
+    );
+    const matchedIds = new Set(
+      await findMatchingClientIds(context.supabase, {
+        orgId: row.org_id,
+        email: client?.email,
+        phone: client?.phone,
+      }),
+    );
+    if (row.client_id) matchedIds.add(row.client_id);
+
+    const returning = await isReturningPerson(context.supabase, {
+      orgId: row.org_id,
+      clientIds: Array.from(matchedIds),
+      excludeBookingId: row.id,
+    });
+
     return {
       ...row,
       clinic_type: ((org?.clinic_type as string) ?? "home") as "retail" | "home",
       public_suburb: (org?.public_suburb as string | null) ?? null,
+      is_first_time: !returning,
     };
   });
 
@@ -397,6 +450,17 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
         id: uuid,
         action: z.enum(["confirm", "decline"]),
         practitioner_id: uuid.optional(),
+        // Reason CODES only — never free-text health detail. Specifics belong
+        // in the protected client notes, not in the audit trail.
+        reason_code: z
+          .enum([
+            "health_item_clearance_advised",
+            "not_suitable_at_this_time",
+            "unable_to_accommodate",
+            "other",
+          ])
+          .optional(),
+        notify_client: z.boolean().optional().default(false),
       })
       .parse(data),
   )
@@ -404,7 +468,7 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
     const { data: booking, error } = await context.supabase
       .from("bookings")
       .select(
-        `id, org_id, status, source, practitioner_id, starts_at,
+        `id, org_id, status, source, practitioner_id, starts_at, client_id,
          client:client_id(first_name, last_name, email),
          service:service_id(name)`,
       )
@@ -416,13 +480,65 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
       throw new Error("This booking is not a pending public request");
     }
 
+    const clientRow = booking.client as unknown as {
+      first_name: string;
+      last_name: string;
+      email: string | null;
+    } | null;
+
+    const { writeBookingEvent, displayNameForUser } = await import(
+      "@/lib/booking-safety.server"
+    );
+    const operatorName = await displayNameForUser(context.supabase, context.userId);
+
     if (data.action === "decline") {
       const { error: dErr } = await context.supabase
         .from("bookings")
         .update({ status: "cancelled" })
         .eq("id", data.id);
       if (dErr) throw new Error(dErr.message);
-      return { ok: true as const, emailed: false };
+
+      await writeBookingEvent(context.supabase, {
+        orgId: booking.org_id,
+        bookingId: booking.id,
+        clientId: booking.client_id,
+        eventType: "declined",
+        reasonCode: data.reason_code ?? "unable_to_accommodate",
+        actorUserId: context.userId,
+        actorName: operatorName,
+        requesterName: clientRow ? `${clientRow.first_name} ${clientRow.last_name}` : null,
+        requesterEmail: clientRow?.email ?? null,
+        detail: { notified: data.notify_client === true },
+      });
+
+      // Neutral notification only, and only if the operator asked for it.
+      // No address, no service, no time, no reason.
+      let emailed = false;
+      if (data.notify_client && clientRow?.email) {
+        try {
+          const { data: org } = await context.supabase
+            .from("organisations")
+            .select("name, public_contact_email, public_contact_phone")
+            .eq("id", booking.org_id)
+            .maybeSingle();
+          const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+          const res = await sendTemplateEmail("booking-declined", clientRow.email, {
+            templateData: {
+              orgName: org?.name ?? "the clinic",
+              clientName: clientRow.first_name,
+              contactEmail: org?.public_contact_email ?? "",
+              contactPhone: org?.public_contact_phone ?? "",
+            },
+            replyTo: org?.public_contact_email ?? undefined,
+            idempotencyKey: `booking-declined-${data.id}`,
+          });
+          emailed = res.sent;
+        } catch (err) {
+          console.error("decline notification failed", err);
+        }
+      }
+
+      return { ok: true as const, emailed };
     }
 
     if (!data.practitioner_id) {
@@ -433,6 +549,18 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
       .update({ status: "confirmed", practitioner_id: data.practitioner_id })
       .eq("id", data.id);
     if (cErr) throw new Error(cErr.message);
+
+    await writeBookingEvent(context.supabase, {
+      orgId: booking.org_id,
+      bookingId: booking.id,
+      clientId: booking.client_id,
+      eventType: "confirmed",
+      actorUserId: context.userId,
+      actorName: operatorName,
+      requesterName: clientRow ? `${clientRow.first_name} ${clientRow.last_name}` : null,
+      requesterEmail: clientRow?.email ?? null,
+      detail: { practitioner_id: data.practitioner_id },
+    });
 
     // --- Address release: only now, only to the confirmed client ---------
     let emailed = false;

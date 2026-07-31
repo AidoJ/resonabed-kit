@@ -13,6 +13,7 @@ import {
   type BookingStatus,
 } from "@/lib/bookings.functions";
 import { BookingFormDialog } from "@/components/booking-form-dialog";
+import { BookingAuditTrail } from "@/components/booking-audit-trail";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
 
@@ -194,6 +195,8 @@ function BookingDetail() {
             </p>
           </div>
         )}
+
+        <BookingAuditTrail bookingId={id} />
       </div>
 
       <BookingFormDialog
