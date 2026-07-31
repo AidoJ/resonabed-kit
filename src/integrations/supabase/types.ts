@@ -166,6 +166,207 @@ export type Database = {
           },
         ]
       }
+      client_clearance_letter_revocations: {
+        Row: {
+          created_at: string
+          id: string
+          letter_id: string
+          org_id: string
+          reason: string
+          revoked_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          letter_id: string
+          org_id: string
+          reason: string
+          revoked_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          letter_id?: string
+          org_id?: string
+          reason?: string
+          revoked_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_clearance_letter_revocations_letter_id_fkey"
+            columns: ["letter_id"]
+            isOneToOne: true
+            referencedRelation: "client_clearance_letters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_clearance_letter_revocations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_clearance_letters: {
+        Row: {
+          client_id: string
+          created_at: string
+          file_path: string | null
+          id: string
+          issued_on: string | null
+          issuer_name: string
+          item_key: string
+          notes: string | null
+          org_id: string
+          recorded_by: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          issued_on?: string | null
+          issuer_name: string
+          item_key: string
+          notes?: string | null
+          org_id: string
+          recorded_by: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          issued_on?: string | null
+          issuer_name?: string
+          item_key?: string
+          notes?: string | null
+          org_id?: string
+          recorded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_clearance_letters_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_clearance_letters_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_screenings: {
+        Row: {
+          blocking_items: string[]
+          booking_id: string | null
+          checklist_snapshot: Json
+          checklist_version: string
+          cleared_items: Json
+          client_id: string
+          client_signature: string
+          client_signed_at: string
+          consent_text_snapshot: string
+          consent_version: number | null
+          created_at: string
+          decline_reason: string | null
+          flagged_items: string[]
+          health_text_snapshot: string | null
+          id: string
+          is_reattestation: boolean
+          none_apply: boolean
+          org_id: string
+          org_name_snapshot: string | null
+          outcome: string
+          practitioner_id: string
+          practitioner_notes: string | null
+          practitioner_signature: string
+          practitioner_signed_at: string
+          prior_screening_id: string | null
+          privacy_text_snapshot: string | null
+          response: string
+        }
+        Insert: {
+          blocking_items?: string[]
+          booking_id?: string | null
+          checklist_snapshot: Json
+          checklist_version: string
+          cleared_items?: Json
+          client_id: string
+          client_signature: string
+          client_signed_at?: string
+          consent_text_snapshot: string
+          consent_version?: number | null
+          created_at?: string
+          decline_reason?: string | null
+          flagged_items?: string[]
+          health_text_snapshot?: string | null
+          id?: string
+          is_reattestation?: boolean
+          none_apply: boolean
+          org_id: string
+          org_name_snapshot?: string | null
+          outcome: string
+          practitioner_id: string
+          practitioner_notes?: string | null
+          practitioner_signature: string
+          practitioner_signed_at?: string
+          prior_screening_id?: string | null
+          privacy_text_snapshot?: string | null
+          response: string
+        }
+        Update: {
+          blocking_items?: string[]
+          booking_id?: string | null
+          checklist_snapshot?: Json
+          checklist_version?: string
+          cleared_items?: Json
+          client_id?: string
+          client_signature?: string
+          client_signed_at?: string
+          consent_text_snapshot?: string
+          consent_version?: number | null
+          created_at?: string
+          decline_reason?: string | null
+          flagged_items?: string[]
+          health_text_snapshot?: string | null
+          id?: string
+          is_reattestation?: boolean
+          none_apply?: boolean
+          org_id?: string
+          org_name_snapshot?: string | null
+          outcome?: string
+          practitioner_id?: string
+          practitioner_notes?: string | null
+          practitioner_signature?: string
+          practitioner_signed_at?: string
+          prior_screening_id?: string | null
+          privacy_text_snapshot?: string | null
+          response?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_screenings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_screenings_prior_screening_id_fkey"
+            columns: ["prior_screening_id"]
+            isOneToOne: false
+            referencedRelation: "client_screenings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
@@ -878,6 +1079,7 @@ export type Database = {
           consent_given: boolean
           contraindications: string[]
           created_at: string
+          decline_reason: string | null
           health_concerns: string[]
           id: string
           org_id: string
@@ -888,6 +1090,7 @@ export type Database = {
           practitioner_notes: string | null
           primary_goals: string[]
           recommended_frequency_id: string | null
+          screening_id: string | null
           service_id: string | null
           signed_at: string | null
           sleep_quality: number | null
@@ -902,6 +1105,7 @@ export type Database = {
           consent_given?: boolean
           contraindications?: string[]
           created_at?: string
+          decline_reason?: string | null
           health_concerns?: string[]
           id?: string
           org_id: string
@@ -912,6 +1116,7 @@ export type Database = {
           practitioner_notes?: string | null
           primary_goals?: string[]
           recommended_frequency_id?: string | null
+          screening_id?: string | null
           service_id?: string | null
           signed_at?: string | null
           sleep_quality?: number | null
@@ -926,6 +1131,7 @@ export type Database = {
           consent_given?: boolean
           contraindications?: string[]
           created_at?: string
+          decline_reason?: string | null
           health_concerns?: string[]
           id?: string
           org_id?: string
@@ -936,6 +1142,7 @@ export type Database = {
           practitioner_notes?: string | null
           primary_goals?: string[]
           recommended_frequency_id?: string | null
+          screening_id?: string | null
           service_id?: string | null
           signed_at?: string | null
           sleep_quality?: number | null
@@ -963,6 +1170,13 @@ export type Database = {
             columns: ["recommended_frequency_id"]
             isOneToOne: false
             referencedRelation: "frequencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_screening_id_fkey"
+            columns: ["screening_id"]
+            isOneToOne: false
+            referencedRelation: "client_screenings"
             referencedColumns: ["id"]
           },
           {
@@ -1148,6 +1362,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      client_item_cleared: {
+        Args: { _client_id: string; _item: string }
+        Returns: boolean
+      }
       current_org_id: { Args: never; Returns: string }
       get_public_org: {
         Args: { p_slug: string }
