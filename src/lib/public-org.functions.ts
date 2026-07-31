@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { AvailabilityWindow } from "./availability-pattern";
 
 export type PublicOrg = {
   name: string;
@@ -42,13 +43,21 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
 
-    const [orgRes, svcRes] = await Promise.all([
+    const [orgRes, svcRes, availRes] = await Promise.all([
       supabase.rpc("get_public_org", { p_slug: data.slug }),
       supabase.rpc("get_public_services", { p_slug: data.slug }),
+      supabase.rpc("get_public_availability", { p_slug: data.slug }),
     ]);
 
     const org = (orgRes.data as PublicOrg[] | null)?.[0] ?? null;
-    if (!org) return { org: null, services: [] as PublicService[], logoUrl: null };
+    if (!org)
+      return {
+        org: null,
+        services: [] as PublicService[],
+        logoUrl: null,
+        availability: [] as AvailabilityWindow[],
+      };
+
 
     // Logos live in a private bucket; sign a short-lived URL for the public page.
     let logoUrl: string | null = org.logo_url ?? null;
@@ -72,5 +81,6 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       org,
       services: (svcRes.data as PublicService[] | null) ?? [],
       logoUrl,
+      availability: (availRes.data as AvailabilityWindow[] | null) ?? [],
     };
   });

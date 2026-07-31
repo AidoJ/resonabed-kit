@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,16 @@ import {
 } from "@/components/ui/select";
 import { requestPublicBooking } from "@/lib/public-booking.functions";
 import { phoneValidationError, PHONE_HELP_TEXT } from "@/lib/phone";
-import { halfHourSlots, slotLabel, DEFAULT_TIMEZONE } from "@/lib/timezone";
+import { halfHourSlots, slotLabel, DEFAULT_TIMEZONE, minutesOfDayInTz } from "@/lib/timezone";
 import type { PublicService } from "@/lib/public-org.functions";
+import {
+  type AvailabilityWindow,
+  describePattern,
+  isWorkingDate,
+  slotsForDate,
+} from "@/lib/availability-pattern";
 
-const SLOTS = halfHourSlots(7, 20);
+const OPEN_SLOTS = halfHourSlots(7, 20);
 
 function todayInTz(tz: string): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -34,11 +40,17 @@ export function PublicBookingForm({
   services,
   timezone,
   clinicName,
+  availability = [],
 }: {
   slug: string;
   services: PublicService[];
   timezone: string;
   clinicName: string;
+  /**
+   * The clinic's merged working pattern. Days/hours only — never a live slot
+   * map, never who is working, never what is already booked.
+   */
+  availability?: AvailabilityWindow[];
 }) {
   const submit = useServerFn(requestPublicBooking);
   const tz = timezone || DEFAULT_TIMEZONE;
@@ -57,6 +69,31 @@ export function PublicBookingForm({
   const [done, setDone] = useState(false);
 
   const phoneProblem = phone ? phoneValidationError(phone) : null;
+
+  const duration = services.find((s) => s.id === serviceId)?.duration_minutes ?? 60;
+  const hasPattern = availability.length > 0;
+  const patternLines = hasPattern ? describePattern(availability) : [];
+  const today = todayInTz(tz);
+  const nowMinutes = minutesOfDayInTz(new Date(), tz);
+
+  const dateIsWorking = !date || !hasPattern || isWorkingDate(availability, date);
+  const slots = (() => {
+    if (!date) return [] as string[];
+    const base = hasPattern ? slotsForDate(availability, date, duration) : OPEN_SLOTS;
+    // An hour's lead time on same-day requests, matching the server rule.
+    return date === today ? base.filter((s) => {
+      const [h, m] = s.split(":").map(Number);
+      return h * 60 + m >= nowMinutes + 60;
+    }) : base;
+  })();
+
+  // Keep the chosen time valid whenever the date or session type changes.
+  const slotKey = slots.join(",");
+  useEffect(() => {
+    if (slots.length > 0 && !slots.includes(time)) setTime(slots[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slotKey]);
+
 
   if (done) {
     return (
@@ -78,6 +115,14 @@ export function PublicBookingForm({
     setError(null);
     if (!serviceId || !date || !time || !firstName || !lastName || !email) {
       setError("Please complete all required fields.");
+      return;
+    }
+    if (hasPattern && !isWorkingDate(availability, date)) {
+      setError("Please choose a date the clinic works.");
+      return;
+    }
+    if (slots.length === 0 || !slots.includes(time)) {
+      setError("Please choose an available start time.");
       return;
     }
     const badPhone = phoneValidationError(phone);
@@ -204,12 +249,12 @@ export function PublicBookingForm({
             </div>
             <div className="grid gap-2">
               <Label htmlFor="pb-time">Preferred time *</Label>
-              <Select value={time} onValueChange={setTime}>
+              <Select value={time} onValueChange={setTime} disabled={slots.length === 0}>
                 <SelectTrigger id="pb-time">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {SLOTS.map((s) => (
+                  {slots.map((s) => (
                     <SelectItem key={s} value={s}>
                       {slotLabel(s)}
                     </SelectItem>
@@ -219,9 +264,35 @@ export function PublicBookingForm({
             </div>
           </div>
 
+          {!dateIsWorking ? (
+            <p className="-mt-1 text-xs text-destructive">
+              The clinic doesn&rsquo;t work on that day. Please choose one of their working
+              days below.
+            </p>
+          ) : date && slots.length === 0 ? (
+            <p className="-mt-1 text-xs text-destructive">
+              No start times left on that date for this session length. Please choose another
+              date.
+            </p>
+          ) : null}
+
           <p className="-mt-1 text-xs text-muted-foreground">
             Times are in {tz.replace(/_/g, " ")}, the clinic&rsquo;s local time.
+            {hasPattern ? " You can request any time within the clinic's working hours." : ""}
           </p>
+
+          {hasPattern ? (
+            <div className="rounded-md border bg-muted/40 px-3 py-2">
+              <p className="text-xs font-medium">Working days and hours</p>
+              <ul className="mt-1 space-y-0.5">
+                {patternLines.map((line) => (
+                  <li key={line} className="text-xs text-muted-foreground">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <div className="grid gap-2">
             <Label htmlFor="pb-note">Anything you&rsquo;d like the clinic to know?</Label>

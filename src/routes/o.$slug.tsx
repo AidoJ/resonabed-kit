@@ -7,6 +7,7 @@ import {
   type PublicService,
 } from "@/lib/public-org.functions";
 import { PublicBookingForm } from "@/components/public-booking-form";
+import type { AvailabilityWindow } from "@/lib/availability-pattern";
 import { DEFAULT_TIMEZONE } from "@/lib/timezone";
 import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
 import {
@@ -25,7 +26,12 @@ const HERO_OG = `${SITE}${heroWide.url}`;
 async function loadPublicPage(slug: string) {
   const res = await getPublicOrgPage({ data: { slug } });
   if (!res.org) throw notFound();
-  return res as { org: PublicOrg; services: PublicService[]; logoUrl: string | null };
+  return res as {
+    org: PublicOrg;
+    services: PublicService[];
+    logoUrl: string | null;
+    availability: AvailabilityWindow[];
+  };
 }
 
 export const Route = createFileRoute("/o/$slug")({
@@ -117,8 +123,9 @@ function PublicOrgPage() {
     org: PublicOrg;
     services: PublicService[];
     logoUrl: string | null;
+    availability: AvailabilityWindow[];
   };
-  const { org, services, logoUrl } = data;
+  const { org, services, logoUrl, availability } = data;
   const theme = clinicThemeVars(org.theme_sidebar, org.theme_primary);
   const tz = org.timezone || DEFAULT_TIMEZONE;
   const bookable = org.public_booking_enabled && services.length > 0;
@@ -439,6 +446,7 @@ function PublicOrgPage() {
                 services={services}
                 timezone={tz}
                 clinicName={org.name}
+                availability={availability}
               />
             </div>
           ) : (

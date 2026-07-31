@@ -22,7 +22,14 @@ export type BookingEventType =
   | "blocked_attempt"
   | "blocked"
   | "unblocked"
-  | "note_added";
+  | "note_added"
+  | "alternates_offered"
+  | "alternates_reminded"
+  | "alternates_accepted"
+  | "alternates_expired"
+  | "alternates_withdrawn"
+  | "re_requested";
+
 
 export interface BookingEventInput {
   orgId: string;

@@ -189,6 +189,141 @@ export type Database = {
           },
         ]
       }
+      booking_offer_slots: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          offer_id: string
+          org_id: string
+          starts_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          offer_id: string
+          org_id: string
+          starts_at: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          offer_id?: string
+          org_id?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_offer_slots_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "booking_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_offer_slots_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_offers: {
+        Row: {
+          accepted_at: string | null
+          accepted_slot_id: string | null
+          booking_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          org_id: string
+          practitioner_id: string
+          reminded_at: string | null
+          sent_at: string
+          service_id: string | null
+          status: string
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_slot_id?: string | null
+          booking_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          org_id: string
+          practitioner_id: string
+          reminded_at?: string | null
+          sent_at?: string
+          service_id?: string | null
+          status?: string
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_slot_id?: string | null
+          booking_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          org_id?: string
+          practitioner_id?: string
+          reminded_at?: string | null
+          sent_at?: string
+          service_id?: string | null
+          status?: string
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_offers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_offers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_offers_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_offers_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_offers_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           client_id: string
@@ -1524,6 +1659,14 @@ export type Database = {
         Returns: boolean
       }
       current_org_id: { Args: never; Returns: string }
+      get_public_availability: {
+        Args: { p_slug: string }
+        Returns: {
+          day_of_week: number
+          end_time: string
+          start_time: string
+        }[]
+      }
       get_public_org: {
         Args: { p_slug: string }
         Returns: {
