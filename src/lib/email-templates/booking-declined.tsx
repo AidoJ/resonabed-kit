@@ -4,7 +4,6 @@ import {
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Preview,
   Section,
@@ -14,8 +13,6 @@ import {
 interface BookingDeclinedProps {
   orgName?: string
   clientName?: string
-  contactEmail?: string
-  contactPhone?: string
 }
 
 /**
@@ -24,12 +21,14 @@ interface BookingDeclinedProps {
  * No address, no service name, no time, no reason, and nothing health
  * related. A decline must never disclose anything, and must never hint at
  * why — the reason lives only in the org's audit trail.
+ *
+ * It also carries NO invitation to make contact. A decline is sometimes a soft
+ * no to someone the operator deliberately vetted out; the email must not push
+ * that person to ring or email them.
  */
 const BookingDeclinedEmail = ({
   orgName = 'the clinic',
   clientName = 'there',
-  contactEmail = '',
-  contactPhone = '',
 }: BookingDeclinedProps) => (
   <Html>
     <Head />
@@ -49,17 +48,6 @@ const BookingDeclinedEmail = ({
             Thank you for your interest in {orgName}. Unfortunately this request
             couldn&rsquo;t be accommodated.
           </Text>
-          {(contactEmail || contactPhone) && (
-            <>
-              <Hr style={{ borderColor: '#eee', margin: '24px 0' }} />
-              <Text style={{ fontSize: '14px', lineHeight: '22px', color: '#555' }}>
-                If you&rsquo;d like to talk it through, you can reach us
-                {contactPhone ? ` on ${contactPhone}` : ''}
-                {contactPhone && contactEmail ? ' or' : ''}
-                {contactEmail ? ` at ${contactEmail}` : ''}.
-              </Text>
-            </>
-          )}
         </Section>
       </Container>
     </Body>
@@ -73,8 +61,6 @@ export const template = {
   previewData: {
     orgName: 'Spiral Light Healing',
     clientName: 'Sam',
-    contactEmail: 'hello@example.com',
-    contactPhone: '0400 000 000',
   },
 }
 
