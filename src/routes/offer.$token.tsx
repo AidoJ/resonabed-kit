@@ -122,7 +122,7 @@ function OfferPage() {
       </p>
 
       <div className="mt-6 grid gap-3">
-        {offer.slots.map((s) => (
+        {offer.slots.map((s: { id: string; starts_at: string }) => (
           <Card key={s.id}>
             <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
               <div className="flex items-center gap-3">

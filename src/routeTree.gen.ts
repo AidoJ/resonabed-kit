@@ -17,6 +17,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OrderSuccessRouteImport } from './routes/order.success'
 import { Route as OrderCancelledRouteImport } from './routes/order.cancelled'
+import { Route as OfferTokenRouteImport } from './routes/offer.$token'
 import { Route as OSlugRouteImport } from './routes/o.$slug'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
@@ -91,6 +92,11 @@ const OrderSuccessRoute = OrderSuccessRouteImport.update({
 const OrderCancelledRoute = OrderCancelledRouteImport.update({
   id: '/order/cancelled',
   path: '/order/cancelled',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfferTokenRoute = OfferTokenRouteImport.update({
+  id: '/offer/$token',
+  path: '/offer/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OSlugRoute = OSlugRouteImport.update({
@@ -311,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/o/$slug': typeof OSlugRoute
+  '/offer/$token': typeof OfferTokenRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
@@ -354,6 +361,7 @@ export interface FileRoutesByTo {
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/services': typeof AuthenticatedServicesRoute
   '/o/$slug': typeof OSlugRoute
+  '/offer/$token': typeof OfferTokenRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
@@ -401,6 +409,7 @@ export interface FileRoutesById {
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/o/$slug': typeof OSlugRoute
+  '/offer/$token': typeof OfferTokenRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
@@ -448,6 +457,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/sessions'
     | '/o/$slug'
+    | '/offer/$token'
     | '/order/cancelled'
     | '/order/success'
     | '/admin/clients'
@@ -491,6 +501,7 @@ export interface FileRouteTypes {
     | '/frequencies'
     | '/services'
     | '/o/$slug'
+    | '/offer/$token'
     | '/order/cancelled'
     | '/order/success'
     | '/admin/clients'
@@ -537,6 +548,7 @@ export interface FileRouteTypes {
     | '/_authenticated/services'
     | '/_authenticated/sessions'
     | '/o/$slug'
+    | '/offer/$token'
     | '/order/cancelled'
     | '/order/success'
     | '/_authenticated/admin/clients'
@@ -575,6 +587,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   OSlugRoute: typeof OSlugRoute
+  OfferTokenRoute: typeof OfferTokenRoute
   OrderCancelledRoute: typeof OrderCancelledRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
@@ -640,6 +653,13 @@ declare module '@tanstack/react-router' {
       path: '/order/cancelled'
       fullPath: '/order/cancelled'
       preLoaderRoute: typeof OrderCancelledRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offer/$token': {
+      id: '/offer/$token'
+      path: '/offer/$token'
+      fullPath: '/offer/$token'
+      preLoaderRoute: typeof OfferTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/o/$slug': {
@@ -995,6 +1015,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   OSlugRoute: OSlugRoute,
+  OfferTokenRoute: OfferTokenRoute,
   OrderCancelledRoute: OrderCancelledRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
