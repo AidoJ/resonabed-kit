@@ -321,7 +321,16 @@ function NewSession() {
       {step === 1 && <StepService value={service} onChange={setService} />}
       {step === 2 && <StepSymptoms value={symptoms} onChange={setSymptoms} />}
       {step === 3 && client && (
-        <StepSafety value={safety} onChange={setSafety} clientId={client.id} />
+        <StepSafety
+          value={safety}
+          onChange={(next) => {
+            // Any edit invalidates a previously signed screening — it must be
+            // re-signed rather than silently reused.
+            setSafety(next);
+            setScreeningId(null);
+          }}
+          clientId={client.id}
+        />
       )}
       {step === 4 && (
         <StepFrequency
