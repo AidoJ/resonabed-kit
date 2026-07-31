@@ -300,10 +300,17 @@ function NewSession() {
             <Button
               size="lg"
               className="h-12"
+              variant={step === 3 && blockingNow.length > 0 ? "destructive" : "default"}
               disabled={!canProceed || screeningBusy}
               onClick={() => (step === 3 ? handleScreeningNext() : setStep((s) => s + 1))}
             >
-              {step === 3 ? (screeningBusy ? "Signing…" : "Sign & continue") : "Next"}
+              {step === 3
+                ? screeningBusy
+                  ? "Signing…"
+                  : blockingNow.length > 0
+                    ? "Sign & record refusal"
+                    : "Sign & continue"
+                : "Next"}
             </Button>
           ) : (
             <Button
