@@ -66,10 +66,12 @@ export const createClientRecord = createServerFn({ method: "POST" })
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
     await assertPractitionerAction(context, profile.org_id, "manage_clients");
+    const { createPseudonym } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("clients")
       .insert({
         org_id: profile.org_id,
+        pseudonym_id: await createPseudonym(context.supabase, profile.org_id),
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email ?? null,

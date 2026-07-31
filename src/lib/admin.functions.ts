@@ -281,9 +281,14 @@ export const upsertClient = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
+    const { createPseudonym } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("clients")
-      .insert({ ...payload, org_id: _org_id })
+      .insert({
+        ...payload,
+        org_id: _org_id,
+        pseudonym_id: await createPseudonym(context.supabase, _org_id),
+      })
       .select("id")
       .single();
     if (error) throw new Error(error.message);

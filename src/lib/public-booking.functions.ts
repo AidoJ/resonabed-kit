@@ -190,10 +190,12 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
 
     let clientId = matchedIds[0] ?? null;
     if (!clientId) {
+      const { createPseudonym } = await import("@/lib/pseudonym.server");
       const { data: created, error: cErr } = await supabaseAdmin
         .from("clients")
         .insert({
           org_id: org.id,
+          pseudonym_id: await createPseudonym(supabaseAdmin, org.id),
           first_name: formatPersonName(data.first_name, data.first_name.trim()),
           last_name: formatPersonName(data.last_name, data.last_name.trim()),
           email,
