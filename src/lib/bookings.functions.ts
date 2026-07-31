@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertPractitionerAction } from "@/lib/practitioner-permissions";
-import { screeningErrorMessage } from "@/lib/sessions.functions";
+import { screeningErrorMessage } from "@/lib/screening-errors";
 
 const uuid = z.string().uuid();
 
