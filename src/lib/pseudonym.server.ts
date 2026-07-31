@@ -16,6 +16,8 @@
  * soak period. It is deliberate and reversible — reverting is dropping a
  * column, not reconstructing links. Do not rely on it in new code.
  */
+// Structurally typed so both the request-scoped and admin clients fit.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = { from: (table: string) => any };
 
 /** Person -> token. Throws rather than writing an orphan health row. */
