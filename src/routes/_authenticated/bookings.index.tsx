@@ -34,7 +34,7 @@ import {
 } from "@/components/public-request-dialog";
 
 const searchSchema = z.object({
-  view: fallback(z.enum(["day", "week"]), "day").default("day"),
+  view: fallback(z.enum(["all", "day", "week"]), "all").default("all"),
   date: fallback(z.string(), "").default(""),
   practitioner: fallback(z.string(), "").default(""),
   filter: fallback(z.string(), "").default(""),
@@ -73,6 +73,10 @@ function BookingsPage() {
   const anchor = search.date || todayInTz(tz);
 
   const { fromDate, toDate } = useMemo(() => {
+    if (view === "all") {
+      // Everything on file, past and future — grouped by day below.
+      return { fromDate: "1970-01-01", toDate: "2100-01-01" };
+    }
     if (view === "week") {
       const start = startOfWeekDate(anchor);
       return { fromDate: start, toDate: addDaysToDate(start, 7) };
@@ -134,9 +138,10 @@ function BookingsPage() {
   }, [bookings, tz]);
 
   const days = useMemo(() => {
+    if (view === "all") return Array.from(grouped.keys()).sort();
     const n = view === "week" ? 7 : 1;
     return Array.from({ length: n }, (_, i) => addDaysToDate(fromDate, i));
-  }, [view, fromDate]);
+  }, [view, fromDate, grouped]);
 
   const shift = (delta: number) => {
     const step = view === "week" ? 7 : 1;
@@ -149,13 +154,16 @@ function BookingsPage() {
         <div>
           <h1 className="text-2xl font-semibold">Bookings</h1>
           <p className="text-sm text-muted-foreground">
-            {view === "week" ? "Week of " : ""}
-            {formatDateLabel(fromDate)}
-            {view === "week" ? ` — ${formatDateLabel(addDaysToDate(fromDate, 6))}` : ""}
+            {view === "all"
+              ? `All bookings (${bookings.length})`
+              : `${view === "week" ? "Week of " : ""}${formatDateLabel(fromDate)}${
+                  view === "week" ? ` — ${formatDateLabel(addDaysToDate(fromDate, 6))}` : ""
+                }`}
             <span className="ml-2 text-xs">· times in {tzAbbrev(tz)} ({tz})</span>
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {view !== "all" && (
           <div className="flex items-center rounded-md border">
             <Button variant="ghost" size="icon" onClick={() => shift(-1)} className="h-10 w-10">
               <ChevronLeft className="h-4 w-4" />
@@ -167,9 +175,11 @@ function BookingsPage() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <Select value={view} onValueChange={(v) => setSearch({ view: v as "day" | "week" })}>
+          )}
+          <Select value={view} onValueChange={(v) => setSearch({ view: v as "all" | "day" | "week" })}>
             <SelectTrigger className="h-10 w-28"><SelectValue /></SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">All</SelectItem>
               <SelectItem value="day">Day</SelectItem>
               <SelectItem value="week">Week</SelectItem>
             </SelectContent>
@@ -207,7 +217,7 @@ function BookingsPage() {
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : bookings.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No bookings in this range.
+          {view === "all" ? "No bookings yet." : "No bookings in this range."}
         </div>
       ) : (
         <div className="space-y-6">
@@ -275,11 +285,13 @@ function BookingsPage() {
                             {isPublicRequest && canManageBookings && (
                               <div className="flex items-center justify-between gap-3 border-t bg-violet-500/5 px-4 py-2 text-xs">
                                 <span className="text-muted-foreground">
-                                  Requested online · not scheduled until confirmed
+                                  <span className="font-medium text-destructive">
+                                    Review required
+                                  </span>{" "}
+                                  · requested online, not scheduled until confirmed
                                 </span>
                                 <Button
                                   size="sm"
-                                  variant="outline"
                                   onClick={() =>
                                     setRequestBooking(b as unknown as PublicRequestSummary)
                                   }
