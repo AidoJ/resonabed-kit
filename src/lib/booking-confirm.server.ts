@@ -91,10 +91,14 @@ export async function confirmBookingAndNotify(
       const { data: org } = await client
         .from("organisations")
         .select(
-          "name, clinic_type, timezone, public_contact_email, public_contact_phone, address_line1, address_line2, address_city, address_state, address_postcode, address_country",
+          `name, clinic_type, timezone, ${ORG_CONTACT_COLUMNS}, address_line1, address_line2, address_city, address_state, address_postcode, address_country`,
         )
         .eq("id", booking.org_id)
         .maybeSingle();
+
+      // Private contact details stay private here too — the page and the
+      // email must never disagree about what the client can see.
+      const contact = publishedContact(org);
 
       const tz = (org?.timezone as string) || DEFAULT_TIMEZONE;
       const when = args.startsAt ?? (booking.starts_at as string);
