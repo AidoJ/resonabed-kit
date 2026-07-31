@@ -114,6 +114,8 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           themeSidebar: orgRow.theme_sidebar,
           themeAccent: orgRow.theme_accent,
           isConfigured: Boolean(orgRow.is_configured),
+          slug: orgRow.slug ?? null,
+          published: Boolean(orgRow.published),
           timezone: orgRow.timezone || DEFAULT_TIMEZONE,
         }
       : null;
