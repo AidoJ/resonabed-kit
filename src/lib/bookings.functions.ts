@@ -231,6 +231,29 @@ export const updateBookingStatus = createServerFn({ method: "POST" })
       // tripping the app-level error boundary.
       return { ok: false as const, error: friendly ?? error.message };
     }
+
+    // A cancellation on a public request is part of that request's story, so
+    // it belongs in the audit trail alongside confirm/decline.
+    if (data.status === "cancelled") {
+      const { data: booking } = await context.supabase
+        .from("bookings")
+        .select("id, org_id, client_id, source")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (booking) {
+        const { writeBookingEvent, displayNameForUser } = await import(
+          "@/lib/booking-safety.server"
+        );
+        await writeBookingEvent(context.supabase, {
+          orgId: booking.org_id,
+          bookingId: booking.id,
+          clientId: booking.client_id,
+          eventType: "cancelled",
+          actorUserId: context.userId,
+          actorName: await displayNameForUser(context.supabase, context.userId),
+        });
+      }
+    }
     return { ok: true as const };
   });
 
