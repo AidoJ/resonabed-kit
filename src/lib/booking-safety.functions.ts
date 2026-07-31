@@ -8,28 +8,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { DECLINE_REASON_CODES } from "@/lib/vetting-guide";
-
-const uuid = z.string().uuid();
-
-async function myOrgId(context: { supabase: any; userId: string }): Promise<string> {
-  const { data } = await context.supabase
-    .from("profiles")
-    .select("org_id, display_name")
-    .eq("id", context.userId)
-    .maybeSingle();
-  if (!data?.org_id) throw new Error("No organisation assigned to your profile");
-  return data.org_id as string;
-}
-
-async function actorName(context: { supabase: any; userId: string }): Promise<string | null> {
-  const { data } = await context.supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", context.userId)
-    .maybeSingle();
-  return (data?.display_name as string | null) ?? null;
-}
 
 // ---------------------------------------------------------------- audit trail
 
@@ -37,7 +15,10 @@ export const listBookingEvents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
     z
-      .object({ booking_id: uuid.optional(), limit: z.number().int().min(1).max(200).default(100) })
+      .object({
+        booking_id: z.string().uuid().optional(),
+        limit: z.number().int().min(1).max(200).default(100),
+      })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -60,7 +41,7 @@ export const listBookingEvents = createServerFn({ method: "POST" })
  */
 export const logBookingViewed = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ booking_id: uuid }).parse(data))
+  .inputValidator((data: unknown) => z.object({ booking_id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: booking } = await context.supabase
       .from("bookings")
@@ -79,14 +60,14 @@ export const logBookingViewed = createServerFn({ method: "POST" })
       .gte("created_at", since);
     if ((count ?? 0) > 0) return { ok: true as const, deduped: true };
 
-    const { writeBookingEvent } = await import("@/lib/booking-safety.server");
+    const { writeBookingEvent, displayNameForUser } = await import("@/lib/booking-safety.server");
     await writeBookingEvent(context.supabase, {
       orgId: booking.org_id,
       bookingId: booking.id,
       clientId: booking.client_id,
       eventType: "viewed",
       actorUserId: context.userId,
-      actorName: await actorName(context),
+      actorName: await displayNameForUser(context.supabase, context.userId),
     });
     return { ok: true as const };
   });
@@ -110,10 +91,10 @@ export const blockContact = createServerFn({ method: "POST" })
     z
       .object({
         display_name: z.string().trim().max(160).optional().nullable(),
-        email: z.string().trim().email().max(255).optional().nullable().or(z.literal("")),
-        phone: z.string().trim().max(40).optional().nullable().or(z.literal("")),
+        email: z.string().trim().max(255).optional().nullable(),
+        phone: z.string().trim().max(40).optional().nullable(),
         reason: z.string().trim().max(500).optional().nullable(),
-        booking_id: uuid.optional().nullable(),
+        booking_id: z.string().uuid().optional().nullable(),
       })
       .parse(data),
   )
@@ -122,7 +103,11 @@ export const blockContact = createServerFn({ method: "POST" })
     const phone = data.phone?.trim() || null;
     if (!email && !phone) throw new Error("A phone number or email is required to block someone.");
 
-    const orgId = await myOrgId(context);
+    const { writeBookingEvent, displayNameForUser, orgIdForUser } = await import(
+      "@/lib/booking-safety.server"
+    );
+    const orgId = await orgIdForUser(context.supabase, context.userId);
+
     const { data: row, error } = await context.supabase
       .from("blocked_contacts")
       .insert({
@@ -137,13 +122,12 @@ export const blockContact = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    const { writeBookingEvent } = await import("@/lib/booking-safety.server");
     await writeBookingEvent(context.supabase, {
       orgId,
       bookingId: data.booking_id ?? null,
       eventType: "blocked",
       actorUserId: context.userId,
-      actorName: await actorName(context),
+      actorName: await displayNameForUser(context.supabase, context.userId),
       requesterName: data.display_name ?? null,
       requesterEmail: email,
       requesterPhone: phone,
@@ -154,7 +138,7 @@ export const blockContact = createServerFn({ method: "POST" })
 
 export const unblockContact = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: uuid }).parse(data))
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: existing } = await context.supabase
       .from("blocked_contacts")
@@ -166,12 +150,12 @@ export const unblockContact = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("blocked_contacts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
 
-    const { writeBookingEvent } = await import("@/lib/booking-safety.server");
+    const { writeBookingEvent, displayNameForUser } = await import("@/lib/booking-safety.server");
     await writeBookingEvent(context.supabase, {
       orgId: existing.org_id,
       eventType: "unblocked",
       actorUserId: context.userId,
-      actorName: await actorName(context),
+      actorName: await displayNameForUser(context.supabase, context.userId),
       requesterName: existing.display_name,
       requesterEmail: existing.email,
       requesterPhone: existing.phone,
@@ -183,7 +167,7 @@ export const unblockContact = createServerFn({ method: "POST" })
 
 export const listClientNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ client_id: uuid }).parse(data))
+  .inputValidator((data: unknown) => z.object({ client_id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("client_notes")
@@ -199,7 +183,7 @@ export const addClientNote = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
       .object({
-        client_id: uuid,
+        client_id: z.string().uuid(),
         body: z.string().trim().min(1).max(4000),
         kind: z.enum(["general", "vetting_call"]).default("general"),
       })
@@ -213,16 +197,15 @@ export const addClientNote = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!client) throw new Error("Client not found");
 
+    const { displayNameForUser } = await import("@/lib/booking-safety.server");
     const { error } = await context.supabase.from("client_notes").insert({
       org_id: client.org_id,
       client_id: client.id,
       author_id: context.userId,
-      author_name: await actorName(context),
+      author_name: await displayNameForUser(context.supabase, context.userId),
       kind: data.kind,
       body: data.body,
     });
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
-
-export const DECLINE_CODES = DECLINE_REASON_CODES;
