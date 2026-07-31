@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { formatPersonName } from "@/lib/person-name";
 import { zonedWallTimeToUtc, DEFAULT_TIMEZONE } from "./timezone";
 import { phoneValidationError } from "./phone";
 
@@ -193,8 +194,8 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
         .from("clients")
         .insert({
           org_id: org.id,
-          first_name: data.first_name.trim(),
-          last_name: data.last_name.trim(),
+          first_name: formatPersonName(data.first_name, data.first_name.trim()),
+          last_name: formatPersonName(data.last_name, data.last_name.trim()),
           email,
           phone,
         })

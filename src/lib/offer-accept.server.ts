@@ -7,6 +7,8 @@
  */
 import { confirmBookingAndNotify } from "./booking-confirm.server";
 import { writeBookingEvent } from "./booking-safety.server";
+import { publishedContact } from "./org-public-contact";
+import { formatPersonName } from "./person-name";
 
 type AnyClient = { from: (table: string) => any };
 
@@ -115,7 +117,7 @@ export async function loadOfferByToken(
     .from("booking_offers")
     .select(
       `id, status, expires_at,
-       org:org_id(name, timezone, public_contact_email, public_contact_phone),
+       org:org_id(name, timezone, public_contact_email, public_contact_phone, public_show_email, public_show_phone),
        client:client_id(first_name),
        service:service_id(name),
        slots:booking_offer_slots(id, starts_at)`,
@@ -135,6 +137,8 @@ export async function loadOfferByToken(
     timezone: string | null;
     public_contact_email: string | null;
     public_contact_phone: string | null;
+    public_show_email: boolean | null;
+    public_show_phone: boolean | null;
   } | null;
 
   return {
@@ -145,9 +149,9 @@ export async function loadOfferByToken(
       clinicName: org?.name ?? "Your clinic",
       timezone: org?.timezone ?? "Australia/Brisbane",
       serviceName: (offer.service as { name?: string } | null)?.name ?? "your session",
-      clientName: (offer.client as { first_name?: string } | null)?.first_name ?? "there",
-      contactEmail: org?.public_contact_email ?? null,
-      contactPhone: org?.public_contact_phone ?? null,
+      clientName: formatPersonName((offer.client as { first_name?: string } | null)?.first_name),
+      contactEmail: publishedContact(org).email || null,
+      contactPhone: publishedContact(org).phone || null,
       slots: ((offer.slots as { id: string; starts_at: string }[]) ?? []).sort((a, b) =>
         a.starts_at.localeCompare(b.starts_at),
       ),

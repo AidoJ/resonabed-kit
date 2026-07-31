@@ -527,18 +527,18 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
         try {
           const { data: org } = await context.supabase
             .from("organisations")
-            .select("name, public_contact_email, public_contact_phone")
+            .select("name")
             .eq("id", booking.org_id)
             .maybeSingle();
+          const { formatPersonName } = await import("@/lib/person-name");
           const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
           const res = await sendTemplateEmail("booking-declined", clientRow.email, {
             templateData: {
               orgName: org?.name ?? "the clinic",
-              clientName: clientRow.first_name,
-              contactEmail: org?.public_contact_email ?? "",
-              contactPhone: org?.public_contact_phone ?? "",
+              clientName: formatPersonName(clientRow.first_name),
             },
-            replyTo: org?.public_contact_email ?? undefined,
+            // No reply-to: a decline must not invite the declined person to
+            // open a channel back to the operator.
             idempotencyKey: `booking-declined-${data.id}`,
           });
           emailed = res.sent;

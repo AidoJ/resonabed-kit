@@ -972,6 +972,8 @@ export type Database = {
           public_booking_enabled: boolean
           public_contact_email: string | null
           public_contact_phone: string | null
+          public_show_email: boolean
+          public_show_phone: boolean
           public_suburb: string | null
           published: boolean
           retail_show_address: boolean
@@ -1022,6 +1024,8 @@ export type Database = {
           public_booking_enabled?: boolean
           public_contact_email?: string | null
           public_contact_phone?: string | null
+          public_show_email?: boolean
+          public_show_phone?: boolean
           public_suburb?: string | null
           published?: boolean
           retail_show_address?: boolean
@@ -1072,6 +1076,8 @@ export type Database = {
           public_booking_enabled?: boolean
           public_contact_email?: string | null
           public_contact_phone?: string | null
+          public_show_email?: boolean
+          public_show_phone?: boolean
           public_suburb?: string | null
           published?: boolean
           retail_show_address?: boolean

@@ -67,6 +67,12 @@ const BookingConfirmedEmail = ({
           ) : null}
         </Section>
 
+        {!address ? (
+          <Text style={note}>
+            {orgName} will confirm the exact location with you before your appointment.
+          </Text>
+        ) : null}
+
         {address && isHomeBased ? (
           <Text style={note}>
             This is a home-based studio. Please keep this address private and use it only for

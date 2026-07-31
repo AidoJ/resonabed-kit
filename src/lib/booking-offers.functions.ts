@@ -6,6 +6,8 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { ORG_CONTACT_COLUMNS, publishedContact } from "@/lib/org-public-contact";
+import { formatPersonName } from "@/lib/person-name";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const uuid = z.string().uuid();
@@ -67,9 +69,11 @@ export const proposeAlternates = createServerFn({ method: "POST" })
 
     const { data: org } = await context.supabase
       .from("organisations")
-      .select("name, timezone, public_contact_email, public_contact_phone")
+      .select(`name, timezone, ${ORG_CONTACT_COLUMNS}`)
       .eq("id", booking.org_id)
       .maybeSingle();
+
+    const contact = publishedContact(org);
 
     const { DEFAULT_TIMEZONE, zonedWallTimeToUtc } = await import("@/lib/timezone");
     const tz = org?.timezone || DEFAULT_TIMEZONE;
@@ -137,17 +141,17 @@ export const proposeAlternates = createServerFn({ method: "POST" })
         const res = await sendTemplateEmail("booking-alternates-offered", clientRow.email, {
           templateData: {
             orgName: org?.name ?? "the clinic",
-            clientName: clientRow.first_name,
+            clientName: formatPersonName(clientRow.first_name),
             serviceName:
               (booking.service as unknown as { name?: string } | null)?.name ?? "your session",
             slots: slots.map((s) => slotLabelFor(s.starts_at, tz)),
             chooseUrl: offerUrl(token),
             expiresLabel: slotLabelFor(expiresAt, tz),
             note: data.note ?? "",
-            contactEmail: org?.public_contact_email ?? "",
-            contactPhone: org?.public_contact_phone ?? "",
+            contactEmail: contact.email,
+            contactPhone: contact.phone,
           },
-          replyTo: org?.public_contact_email ?? undefined,
+          replyTo: contact.replyTo,
           idempotencyKey: `offer-${offer.id}`,
         });
         emailed = res.sent;

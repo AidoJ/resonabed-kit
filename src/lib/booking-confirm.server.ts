@@ -8,6 +8,8 @@
 import { formatOrgAddress } from "./org-address";
 import { formatInTz, tzAbbrev, DEFAULT_TIMEZONE } from "./timezone";
 import { writeBookingEvent } from "./booking-safety.server";
+import { ORG_CONTACT_COLUMNS, publishedContact } from "./org-public-contact";
+import { formatPersonName } from "./person-name";
 
 type AnyClient = { from: (table: string) => any };
 
@@ -91,10 +93,14 @@ export async function confirmBookingAndNotify(
       const { data: org } = await client
         .from("organisations")
         .select(
-          "name, clinic_type, timezone, public_contact_email, public_contact_phone, address_line1, address_line2, address_city, address_state, address_postcode, address_country",
+          `name, clinic_type, timezone, ${ORG_CONTACT_COLUMNS}, address_line1, address_line2, address_city, address_state, address_postcode, address_country`,
         )
         .eq("id", booking.org_id)
         .maybeSingle();
+
+      // Private contact details stay private here too — the page and the
+      // email must never disagree about what the client can see.
+      const contact = publishedContact(org);
 
       const tz = (org?.timezone as string) || DEFAULT_TIMEZONE;
       const when = args.startsAt ?? (booking.starts_at as string);
@@ -110,15 +116,15 @@ export async function confirmBookingAndNotify(
       const result = await sendTemplateEmail("booking-confirmed", clientRow.email, {
         templateData: {
           orgName: org?.name ?? "Your clinic",
-          clientName: clientRow.first_name,
+          clientName: formatPersonName(clientRow.first_name),
           serviceName: (booking.service as { name?: string } | null)?.name ?? "your session",
           whenLabel,
           address: formatOrgAddress(org ?? {}),
           isHomeBased: (org?.clinic_type ?? "home") === "home",
-          contactPhone: org?.public_contact_phone ?? "",
-          contactEmail: org?.public_contact_email ?? "",
+          contactPhone: contact.phone,
+          contactEmail: contact.email,
         },
-        replyTo: org?.public_contact_email ?? undefined,
+        replyTo: contact.replyTo,
         idempotencyKey: `booking-confirmed-${args.bookingId}-${when}`,
       });
       emailed = result.sent;
