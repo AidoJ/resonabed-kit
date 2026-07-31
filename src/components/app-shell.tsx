@@ -23,6 +23,7 @@ import {
   Receipt,
   FileText,
   Banknote,
+  ExternalLink,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -53,6 +54,8 @@ interface NavItem {
   to: string;
   label: string;
   icon: typeof Users;
+  /** Opens in a new tab via a plain anchor instead of the router. */
+  external?: boolean;
 }
 
 interface NavGroup {
@@ -61,7 +64,22 @@ interface NavGroup {
 }
 
 // Three role-driven navigation trees. Each role sees ONLY its own tree.
-function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
+function buildNav(
+  roles: Role[],
+  inSupportMode: boolean,
+  publicPage: { slug: string; published: boolean } | null,
+): NavGroup[] {
+  const publicPageItem: NavItem[] =
+    publicPage && publicPage.published
+      ? [
+          {
+            to: `/o/${publicPage.slug}`,
+            label: "Go to webpage",
+            icon: ExternalLink,
+            external: true,
+          },
+        ]
+      : [];
   if (roles.includes("super_admin")) {
     const groups: NavGroup[] = [
       {
@@ -94,6 +112,7 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
           { to: "/admin/clients", label: "Clients", icon: Users },
           { to: "/bookings", label: "Bookings", icon: Calendar },
           { to: "/availability", label: "Availability", icon: Clock },
+          ...publicPageItem,
         ],
       });
       groups.push({
@@ -119,6 +138,7 @@ function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
           { to: "/admin/clients", label: "Clients", icon: Users },
           { to: "/bookings", label: "Bookings", icon: Calendar },
           { to: "/availability", label: "Availability", icon: Clock },
+          ...publicPageItem,
         ],
       },
       {
@@ -267,7 +287,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     },
   });
 
-  const nav = buildNav(roles, inSupportMode);
+  const nav = buildNav(
+    roles,
+    inSupportMode,
+    data?.org?.slug ? { slug: data.org.slug, published: data.org.published } : null,
+  );
 
   // While the user context is loading (e.g. right after sign-in), do NOT
   // render the sidebar/shell — the default brand theme and empty nav would
@@ -284,7 +308,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const renderItem = (item: NavItem) => {
     const Icon = item.icon;
     const isActive =
-      currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to + "/"));
+      !item.external &&
+      (currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to + "/")));
     return (
       <SidebarMenuItem key={item.to + item.label}>
         <SidebarMenuButton
@@ -292,10 +317,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           isActive={isActive}
           className="h-11 rounded-lg text-[15px] font-normal text-white data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium hover:bg-sidebar-accent/60 hover:text-white"
         >
-          <Link to={item.to} className="flex items-center gap-3">
-            <Icon className="h-[18px] w-[18px]" />
-            <span>{item.label}</span>
-          </Link>
+          {item.external ? (
+            <a
+              href={item.to}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3"
+            >
+              <Icon className="h-[18px] w-[18px]" />
+              <span>{item.label}</span>
+            </a>
+          ) : (
+            <Link to={item.to} className="flex items-center gap-3">
+              <Icon className="h-[18px] w-[18px]" />
+              <span>{item.label}</span>
+            </Link>
+          )}
         </SidebarMenuButton>
       </SidebarMenuItem>
     );

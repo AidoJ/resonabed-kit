@@ -30,6 +30,8 @@ export interface UserContext {
     themeSidebar: string | null;
     themeAccent: string | null;
     isConfigured: boolean;
+    slug: string | null;
+    published: boolean;
     /** IANA timezone. Single source of truth for booking/availability times. */
     timezone: string;
   } | null;
@@ -63,7 +65,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       supabase
         .from("profiles")
         .select(
-          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, theme_primary, theme_sidebar, theme_accent, is_configured, timezone)",
+          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, theme_primary, theme_sidebar, theme_accent, is_configured, timezone, slug, published)",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -86,6 +88,8 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           theme_accent: string | null;
           is_configured: boolean;
           timezone: string | null;
+          slug: string | null;
+          published: boolean | null;
         }
       | null
       | undefined;
@@ -110,6 +114,8 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
           themeSidebar: orgRow.theme_sidebar,
           themeAccent: orgRow.theme_accent,
           isConfigured: Boolean(orgRow.is_configured),
+          slug: orgRow.slug ?? null,
+          published: Boolean(orgRow.published),
           timezone: orgRow.timezone || DEFAULT_TIMEZONE,
         }
       : null;
