@@ -53,6 +53,8 @@ interface NavItem {
   to: string;
   label: string;
   icon: typeof Users;
+  /** Opens in a new tab via a plain anchor instead of the router. */
+  external?: boolean;
 }
 
 interface NavGroup {
@@ -61,7 +63,22 @@ interface NavGroup {
 }
 
 // Three role-driven navigation trees. Each role sees ONLY its own tree.
-function buildNav(roles: Role[], inSupportMode: boolean): NavGroup[] {
+function buildNav(
+  roles: Role[],
+  inSupportMode: boolean,
+  publicPage: { slug: string; published: boolean } | null,
+): NavGroup[] {
+  const publicPageItem: NavItem[] =
+    publicPage && publicPage.published
+      ? [
+          {
+            to: `/o/${publicPage.slug}`,
+            label: "Go to webpage",
+            icon: ExternalLink,
+            external: true,
+          },
+        ]
+      : [];
   if (roles.includes("super_admin")) {
     const groups: NavGroup[] = [
       {
