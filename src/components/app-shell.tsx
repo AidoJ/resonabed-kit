@@ -308,7 +308,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const renderItem = (item: NavItem) => {
     const Icon = item.icon;
     const isActive =
-      currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to + "/"));
+      !item.external &&
+      (currentPath === item.to || (item.to !== "/" && currentPath.startsWith(item.to + "/")));
     return (
       <SidebarMenuItem key={item.to + item.label}>
         <SidebarMenuButton
@@ -316,10 +317,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           isActive={isActive}
           className="h-11 rounded-lg text-[15px] font-normal text-white data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium hover:bg-sidebar-accent/60 hover:text-white"
         >
-          <Link to={item.to} className="flex items-center gap-3">
-            <Icon className="h-[18px] w-[18px]" />
-            <span>{item.label}</span>
-          </Link>
+          {item.external ? (
+            <a
+              href={item.to}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3"
+            >
+              <Icon className="h-[18px] w-[18px]" />
+              <span>{item.label}</span>
+            </a>
+          ) : (
+            <Link to={item.to} className="flex items-center gap-3">
+              <Icon className="h-[18px] w-[18px]" />
+              <span>{item.label}</span>
+            </Link>
+          )}
         </SidebarMenuButton>
       </SidebarMenuItem>
     );
