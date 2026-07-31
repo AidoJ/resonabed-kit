@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertPractitionerAction } from "@/lib/practitioner-permissions";
+import { screeningErrorMessage } from "@/lib/screening-errors";
 
 const uuid = z.string().uuid();
 
@@ -189,6 +190,7 @@ export const deleteFrequency = createServerFn({ method: "POST" })
 const createDraftInput = z.object({
   client_id: uuid,
   service_id: uuid,
+  screening_id: uuid,
   pain_level: z.number().int().min(0).max(10),
   stress_level: z.number().int().min(0).max(10),
   sleep_quality: z.number().int().min(0).max(10),
@@ -221,6 +223,7 @@ export const createDraftSession = createServerFn({ method: "POST" })
         practitioner_id: context.userId,
         client_id: data.client_id,
         service_id: data.service_id,
+        screening_id: data.screening_id,
         pain_level: data.pain_level,
         stress_level: data.stress_level,
         sleep_quality: data.sleep_quality,
@@ -238,6 +241,8 @@ export const createDraftSession = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) {
+      const friendly = screeningErrorMessage(error.message);
+      if (friendly) throw new Error(friendly);
       if (error.message.includes("organisation_not_configured")) {
         throw new Error(
           "Your organisation is still in setup mode. An admin must complete setup and acknowledgement before sessions can be created.",

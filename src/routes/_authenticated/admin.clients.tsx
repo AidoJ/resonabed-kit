@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { ClientScreeningHistory } from "@/components/screening/client-screening-history";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -254,6 +255,11 @@ function ClientsAdmin() {
               )}
             </TableBody>
           </Table>
+          {historyOf ? (
+            <div className="mt-6 border-t pt-4">
+              <ClientScreeningHistory clientId={historyOf.id} />
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
     </div>
