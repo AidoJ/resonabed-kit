@@ -63,8 +63,9 @@ type RequestDetail = {
     phone: string | null;
   } | null;
   public_note?: string | null;
-  service?: { name: string } | null;
+  service?: { name: string; duration_minutes?: number } | null;
 };
+
 
 export function PublicRequestDialog({
   open,
