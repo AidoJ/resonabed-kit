@@ -178,7 +178,7 @@ export const submitScreening = createServerFn({ method: "POST" })
         // Self-contained snapshot: survives org text edits and org deletion.
         checklist_snapshot: {
           version: SCREENING_CHECKLIST_VERSION,
-          items: SCREENING_CHECKLIST,
+          items: SCREENING_CHECKLIST.map((i) => ({ ...i })),
           attestation_text: SCREENING_ATTESTATION_TEXT,
         },
         org_name_snapshot: org?.name ?? null,
