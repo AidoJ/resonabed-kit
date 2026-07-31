@@ -50,7 +50,7 @@ const POLICY_LABELS: Record<PolicyKey, string> = {
   privacy: "Privacy",
 };
 
-export function StepSafety({ value, onChange, clientId }: Props) {
+export function StepSafety({ value, onChange, clientId, onBlockingChange }: Props) {
   const ctxFn = useServerFn(getScreeningContext);
   const { data: ctx, refetch } = useQuery({
     queryKey: ["screening-context", clientId],
