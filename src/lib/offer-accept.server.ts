@@ -7,6 +7,8 @@
  */
 import { confirmBookingAndNotify } from "./booking-confirm.server";
 import { writeBookingEvent } from "./booking-safety.server";
+import { publishedContact } from "./org-public-contact";
+import { formatPersonName } from "./person-name";
 
 type AnyClient = { from: (table: string) => any };
 

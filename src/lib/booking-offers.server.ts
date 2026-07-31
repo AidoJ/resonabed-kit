@@ -7,6 +7,8 @@
  */
 import { createHash, randomBytes } from "crypto";
 import { formatInTz, tzAbbrev, DEFAULT_TIMEZONE } from "./timezone";
+import { publishedContact } from "./org-public-contact";
+import { formatPersonName } from "./person-name";
 
 type AnyClient = { from: (table: string) => any };
 
