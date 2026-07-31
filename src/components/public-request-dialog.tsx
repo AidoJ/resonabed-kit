@@ -380,9 +380,28 @@ export function PublicRequestDialog({
                 </p>
               )}
             </>
+          ) : mode === "alternates" ? (
+            <BookingAlternatesPanel
+              bookingId={booking.id}
+              practitioners={practitioners}
+              durationMinutes={
+                detail?.service?.duration_minutes ??
+                Math.max(
+                  30,
+                  Math.round(
+                    (new Date(booking.ends_at).getTime() -
+                      new Date(booking.starts_at).getTime()) /
+                      60000,
+                  ),
+                )
+              }
+              firstTime={firstTime}
+              onSent={onDone}
+            />
           ) : (
             /* ------------------------- decline flow ------------------------- */
             <div className="grid gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+
               <div className="grid gap-2">
                 <Label htmlFor="pr-reason">Why are you declining?</Label>
                 <Select
