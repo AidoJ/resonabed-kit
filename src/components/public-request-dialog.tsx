@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, ShieldAlert, Phone, UserPlus, Ban } from "lucide-react";
+import { Loader2, ShieldAlert, Phone, UserPlus, Ban, NotebookPen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,6 +27,7 @@ import {
   logBookingViewed,
   addClientNote,
   blockContact,
+  logBookingNoteAdded,
 } from "@/lib/booking-safety.functions";
 import {
   VETTING_CALL_RECOMMENDATION,
@@ -83,6 +84,7 @@ export function PublicRequestDialog({
   const logViewed = useServerFn(logBookingViewed);
   const saveNote = useServerFn(addClientNote);
   const block = useServerFn(blockContact);
+  const logNote = useServerFn(logBookingNoteAdded);
   const tz = useOrgTimezone();
   const [practitionerId, setPractitionerId] = useState("");
   const [busy, setBusy] = useState(false);
@@ -141,6 +143,8 @@ export function PublicRequestDialog({
       await saveNote({
         data: { client_id: detail.client_id, body, kind: "vetting_call" as const },
       });
+      // History records that a note exists, never what it says.
+      await logNote({ data: { booking_id: booking!.id } }).catch(() => {});
     } catch {
       toast.error("Your call notes couldn't be saved — copy them before closing.");
     }
@@ -300,27 +304,31 @@ export function PublicRequestDialog({
                     <span className="font-semibold">If pregnancy comes up: </span>
                     {NON_CLEARABLE_ITEM_GUIDANCE}
                   </p>
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="pr-note" className="text-xs">
-                      Notes from the call (private to your clinic)
-                    </Label>
-                    <Textarea
-                      id="pr-note"
-                      rows={3}
-                      maxLength={4000}
-                      value={callNote}
-                      onChange={(e) => setCallNote(e.target.value)}
-                      placeholder="Anything you want on file about this conversation."
-                    />
-                    <p className="text-[11px] text-muted-foreground">
-                      Saved to the client&rsquo;s protected notes. Never shown publicly and never
-                      part of the booking audit trail.
-                    </p>
-                  </div>
                 </div>
               ) : null}
             </div>
           ) : null}
+
+          {/* -------- review notes: always visible, always saved -------- */}
+          <div className="grid gap-2 rounded-lg border-2 border-dashed border-primary/40 bg-background p-3">
+            <Label htmlFor="pr-note" className="flex items-center gap-2 text-sm font-semibold">
+              <NotebookPen className="h-4 w-4 text-primary" />
+              Review notes (private to your clinic)
+            </Label>
+            <Textarea
+              id="pr-note"
+              rows={4}
+              maxLength={4000}
+              value={callNote}
+              onChange={(e) => setCallNote(e.target.value)}
+              placeholder="Type here — e.g. what was said on the call, why you're confirming or declining."
+              className="bg-card"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Saved to the client&rsquo;s protected notes when you confirm or decline. The booking
+              history records only that a note was added — never its contents.
+            </p>
+          </div>
 
           {mode === "review" ? (
             <>
