@@ -30,6 +30,8 @@ export interface UserContext {
     themeSidebar: string | null;
     themeAccent: string | null;
     isConfigured: boolean;
+    slug: string | null;
+    published: boolean;
     /** IANA timezone. Single source of truth for booking/availability times. */
     timezone: string;
   } | null;
