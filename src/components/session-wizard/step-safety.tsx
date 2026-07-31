@@ -38,6 +38,8 @@ interface Props {
   value: SafetyState;
   onChange: (s: SafetyState) => void;
   clientId: string;
+  /** Reports which ticked items currently block the session (no valid clearance). */
+  onBlockingChange?: (items: string[]) => void;
 }
 
 type PolicyKey = "consent" | "health" | "privacy";
