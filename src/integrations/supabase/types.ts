@@ -86,6 +86,109 @@ export type Database = {
           },
         ]
       }
+      blocked_contacts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+          org_id: string
+          phone: string | null
+          phone_normalised: string | null
+          reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          org_id: string
+          phone?: string | null
+          phone_normalised?: string | null
+          reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          org_id?: string
+          phone?: string | null
+          phone_normalised?: string | null
+          reason?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_contacts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_events: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          booking_id: string | null
+          client_id: string | null
+          created_at: string
+          detail: Json
+          event_type: string
+          id: string
+          org_id: string
+          reason_code: string | null
+          requester_email: string | null
+          requester_name: string | null
+          requester_phone: string | null
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          booking_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          detail?: Json
+          event_type: string
+          id?: string
+          org_id: string
+          reason_code?: string | null
+          requester_email?: string | null
+          requester_name?: string | null
+          requester_phone?: string | null
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          booking_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          detail?: Json
+          event_type?: string
+          id?: string
+          org_id?: string
+          reason_code?: string | null
+          requester_email?: string | null
+          requester_name?: string | null
+          requester_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           client_id: string
@@ -262,6 +365,57 @@ export type Database = {
           },
         ]
       }
+      client_notes: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          body: string
+          client_id: string
+          created_at: string
+          id: string
+          kind: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          author_name?: string | null
+          body: string
+          client_id: string
+          created_at?: string
+          id?: string
+          kind?: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          author_name?: string | null
+          body?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_notes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_screenings: {
         Row: {
           blocking_items: string[]
@@ -379,6 +533,7 @@ export type Database = {
           last_name: string
           org_id: string
           phone: string | null
+          phone_normalised: string | null
           updated_at: string
         }
         Insert: {
@@ -392,6 +547,7 @@ export type Database = {
           last_name: string
           org_id: string
           phone?: string | null
+          phone_normalised?: string | null
           updated_at?: string
         }
         Update: {
@@ -405,6 +561,7 @@ export type Database = {
           last_name?: string
           org_id?: string
           phone?: string | null
+          phone_normalised?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1409,6 +1566,7 @@ export type Database = {
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       next_kit_invoice_number: { Args: never; Returns: string }
       next_kit_receipt_number: { Args: never; Returns: string }
+      normalise_phone: { Args: { _phone: string }; Returns: string }
       org_has_active_support_grant: {
         Args: { _org_id: string }
         Returns: boolean
