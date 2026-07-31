@@ -15,11 +15,21 @@ import {
   createDraftSession,
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
+import { submitScreening, declineSessionForScreening } from "@/lib/screening.functions";
+import { SCREENING_CHECKLIST } from "@/lib/screening-checklist";
 import { getBooking, startSessionFromBooking } from "@/lib/bookings.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { computeTargetHz, rankFrequencies } from "@/lib/frequency-match";
 import { Link } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
@@ -86,7 +96,11 @@ function NewSession() {
     notes: "",
     consentGiven: false,
     signature: null,
+    practitionerSignature: null,
   });
+  const [screeningId, setScreeningId] = useState<string | null>(null);
+  const [blocked, setBlocked] = useState<{ items: string[] } | null>(null);
+  const [screeningBusy, setScreeningBusy] = useState(false);
   const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -121,13 +135,76 @@ function NewSession() {
     if (step === 0) return !!client;
     if (step === 1) return !!service;
     if (step === 2) return true;
-    if (step === 3) return safety.consentGiven && !!safety.signature;
+    if (step === 3)
+      return (
+        safety.consentGiven &&
+        !!safety.signature &&
+        !!safety.practitionerSignature &&
+        (safety.noneApply || safety.contraindications.length > 0)
+      );
     if (step === 4) return !!activeFreqId;
     return false;
   })();
 
+  const submitScreeningFn = useServerFn(submitScreening);
+  const declineFn = useServerFn(declineSessionForScreening);
+
+  /**
+   * The screening is signed and stored BEFORE any session row exists — the
+   * session then references it. A blocked outcome never creates a session.
+   */
+  const handleScreeningNext = async () => {
+    if (!client) return;
+    setScreeningBusy(true);
+    try {
+      const res = await submitScreeningFn({
+        data: {
+          client_id: client.id,
+          booking_id: booking_id ?? null,
+          none_apply: safety.noneApply,
+          flagged_items: safety.contraindications,
+          practitioner_notes: safety.notes || undefined,
+          client_signature: safety.signature!,
+          practitioner_signature: safety.practitionerSignature!,
+          is_reattestation: false,
+        },
+      });
+      setScreeningId(res.id);
+      if (res.outcome === "blocked") {
+        setBlocked({ items: res.blocking_items ?? [] });
+        return;
+      }
+      setStep(4);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save the screening");
+    } finally {
+      setScreeningBusy(false);
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!screeningId) return;
+    setScreeningBusy(true);
+    try {
+      await declineFn({
+        data: {
+          screening_id: screeningId,
+          service_id: service?.id ?? null,
+          booking_id: booking_id ?? null,
+          notes: safety.notes || undefined,
+        },
+      });
+      toast.success("Refusal recorded — session cancelled and logged");
+      navigate({ to: "/sessions" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not record the refusal");
+    } finally {
+      setScreeningBusy(false);
+    }
+  };
+
   const handleFinish = async () => {
-    if (!client || !service || !activeFreqId) return;
+    if (!client || !service || !activeFreqId || !screeningId) return;
     setSubmitting(true);
     try {
       const payload = {
@@ -142,6 +219,7 @@ function NewSession() {
         consent_given: true as const,
         client_signature: safety.signature ?? undefined,
         recommended_frequency_id: activeFreqId,
+        screening_id: screeningId,
       };
       let sessionId: string;
       if (booking_id) {
@@ -168,7 +246,7 @@ function NewSession() {
     "Pick an existing client or add a new one.",
     "Choose the service being delivered.",
     "Quick snapshot of how the client feels right now.",
-    "Screen for contraindications and confirm consent.",
+    "Screen for contraindications, then both parties sign. This record is permanent.",
     "Suggested frequency for this intake — override if you prefer.",
   ];
 
@@ -221,10 +299,10 @@ function NewSession() {
             <Button
               size="lg"
               className="h-12"
-              disabled={!canProceed}
-              onClick={() => setStep((s) => s + 1)}
+              disabled={!canProceed || screeningBusy}
+              onClick={() => (step === 3 ? handleScreeningNext() : setStep((s) => s + 1))}
             >
-              Next
+              {step === 3 ? (screeningBusy ? "Signing…" : "Sign & continue") : "Next"}
             </Button>
           ) : (
             <Button
@@ -242,7 +320,9 @@ function NewSession() {
       {step === 0 && <StepClient value={client} onChange={setClient} />}
       {step === 1 && <StepService value={service} onChange={setService} />}
       {step === 2 && <StepSymptoms value={symptoms} onChange={setSymptoms} />}
-      {step === 3 && <StepSafety value={safety} onChange={setSafety} />}
+      {step === 3 && client && (
+        <StepSafety value={safety} onChange={setSafety} clientId={client.id} />
+      )}
       {step === 4 && (
         <StepFrequency
           ranked={ranked}
@@ -253,6 +333,33 @@ function NewSession() {
         />
 
       )}
+
+      <Dialog open={!!blocked} onOpenChange={() => {}}>
+        <DialogContent className="max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Session blocked by screening</DialogTitle>
+            <DialogDescription>
+              The signed screening flagged{" "}
+              {(blocked?.items ?? [])
+                .map((b) => SCREENING_CHECKLIST.find((i) => i.key === b)?.label ?? b)
+                .join(", ")}{" "}
+              without valid clearance. The screening has been recorded and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-muted-foreground text-sm">
+            Recording the refusal writes a cancelled session linked to this screening so the
+            decision is auditable.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => navigate({ to: "/sessions" })}>
+              Leave without recording
+            </Button>
+            <Button variant="destructive" disabled={screeningBusy} onClick={handleDecline}>
+              Record refusal &amp; cancel session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </WizardShell>
   );
 }
