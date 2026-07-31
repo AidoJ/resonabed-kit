@@ -58,9 +58,7 @@ export const getScreeningContext = createServerFn({ method: "POST" })
     if (revRes.error) throw new Error(revRes.error.message);
     if (priorRes.error) throw new Error(priorRes.error.message);
 
-    const revocations = new Map(
-      (revRes.data ?? []).map((r) => [r.letter_id as string, r]),
-    );
+    const revocations = new Map((revRes.data ?? []).map((r) => [r.letter_id as string, r]));
     const letters = (letterRes.data ?? []).map((l) => {
       const rev = revocations.get(l.id as string);
       return {
@@ -164,6 +162,7 @@ export const submitScreening = createServerFn({ method: "POST" })
       .maybeSingle();
     if (oErr) throw new Error(oErr.message);
 
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const outcome = blocking.length > 0 ? "blocked" : "cleared";
     const now = new Date().toISOString();
 
@@ -172,6 +171,7 @@ export const submitScreening = createServerFn({ method: "POST" })
       .insert({
         org_id: orgId,
         client_id: data.client_id,
+        pseudonym_id: await pseudonymForClient(context.supabase, data.client_id),
         practitioner_id: context.userId,
         booking_id: data.booking_id ?? null,
         checklist_version: SCREENING_CHECKLIST_VERSION,
@@ -233,7 +233,7 @@ export const declineSessionForScreening = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: screening, error: sErr } = await context.supabase
       .from("client_screenings")
-      .select("id, org_id, client_id, outcome, blocking_items, practitioner_notes")
+      .select("id, org_id, client_id, pseudonym_id, outcome, blocking_items, practitioner_notes")
       .eq("id", data.screening_id)
       .maybeSingle();
     if (sErr) throw new Error(sErr.message);
@@ -244,6 +244,7 @@ export const declineSessionForScreening = createServerFn({ method: "POST" })
       .insert({
         org_id: screening.org_id,
         client_id: screening.client_id,
+        pseudonym_id: screening.pseudonym_id,
         practitioner_id: context.userId,
         service_id: data.service_id ?? null,
         screening_id: screening.id,
@@ -293,11 +294,13 @@ export const recordClearanceLetter = createServerFn({ method: "POST" })
         "This item can never be cleared by a doctor's letter — it must be re-screened each session.",
       );
     }
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("client_clearance_letters")
       .insert({
         org_id: orgId,
         client_id: data.client_id,
+        pseudonym_id: await pseudonymForClient(context.supabase, data.client_id),
         item_key: data.item_key,
         issuer_name: data.issuer_name,
         issued_on: data.issued_on || null,
@@ -315,20 +318,24 @@ export const recordClearanceLetter = createServerFn({ method: "POST" })
 export const revokeClearanceLetter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z
-      .object({ letter_id: uuid, reason: z.string().min(5).max(1000) })
-      .parse(d),
+    z.object({ letter_id: uuid, reason: z.string().min(5).max(1000) }).parse(d),
   )
   .handler(async ({ data, context }) => {
     const orgId = await callerOrgId(context);
-    const { error } = await context.supabase
-      .from("client_clearance_letter_revocations")
-      .insert({
-        letter_id: data.letter_id,
-        org_id: orgId,
-        reason: data.reason.trim(),
-        revoked_by: context.userId,
-      });
+    const { data: letter } = await context.supabase
+      .from("client_clearance_letters")
+      .select("pseudonym_id")
+      .eq("id", data.letter_id)
+      .maybeSingle();
+    if (!letter?.pseudonym_id) throw new Error("That clearance letter could not be found.");
+    const letterPseudonym = letter.pseudonym_id;
+    const { error } = await context.supabase.from("client_clearance_letter_revocations").insert({
+      letter_id: data.letter_id,
+      org_id: orgId,
+      pseudonym_id: letterPseudonym,
+      reason: data.reason.trim(),
+      revoked_by: context.userId,
+    });
     if (error) {
       if (error.code === "23505") throw new Error("This letter has already been revoked.");
       throw new Error(error.message);

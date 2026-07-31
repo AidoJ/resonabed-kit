@@ -61,23 +61,18 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
 
     const [
       { data: orgs },
-      { data: sessions30 },
-      { data: sessionsAll },
+      { data: sessionAgg },
       { count: bookingsTotal },
       { count: bookings30 },
       { count: newOrgs30 },
     ] = await Promise.all([
       context.supabase
         .from("organisations")
-        .select("id, name, status, is_configured, music_licence_status, music_licence_expires_at, created_at")
+        .select(
+          "id, name, status, is_configured, music_licence_status, music_licence_expires_at, created_at",
+        )
         .order("name"),
-      context.supabase
-        .from("sessions")
-        .select("org_id")
-        .gte("created_at", thirtyAgo),
-      context.supabase
-        .from("sessions")
-        .select("org_id, payment_amount, status"),
+      context.supabase.rpc("platform_org_session_metrics", { _since: thirtyAgo }),
       context.supabase.from("bookings").select("*", { count: "exact", head: true }),
       context.supabase
         .from("bookings")
@@ -89,23 +84,33 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
         .gte("created_at", thirtyAgo),
     ]);
 
+    // Counts only. The platform can no longer read session rows across
+    // clinics — this comes from a SECURITY DEFINER aggregate that returns
+    // per-org totals and never any health content.
     const sess30 = new Map<string, number>();
-    for (const s of sessions30 ?? []) {
-      const k = s.org_id as string;
-      sess30.set(k, (sess30.get(k) ?? 0) + 1);
-    }
     const sessTot = new Map<string, number>();
     const revenue = new Map<string, number>();
-    for (const s of sessionsAll ?? []) {
-      const k = s.org_id as string;
-      sessTot.set(k, (sessTot.get(k) ?? 0) + 1);
-      if (s.status === "completed" && s.payment_amount) {
-        revenue.set(k, (revenue.get(k) ?? 0) + Number(s.payment_amount));
-      }
+    for (const r of (sessionAgg ?? []) as Array<{
+      org_id: string;
+      sessions_30d: number;
+      sessions_total: number;
+      revenue_total: number;
+    }>) {
+      sess30.set(r.org_id, Number(r.sessions_30d));
+      sessTot.set(r.org_id, Number(r.sessions_total));
+      revenue.set(r.org_id, Number(r.revenue_total));
     }
+    const sessions30Count = [...sess30.values()].reduce((a, b) => a + b, 0);
+    const sessionsTotalCount = [...sessTot.values()].reduce((a, b) => a + b, 0);
 
-    let trial = 0, active = 0, expired = 0, expiring = 0;
-    let configured = 0, unconfigured = 0, activeOrgs = 0, suspended = 0;
+    let trial = 0,
+      active = 0,
+      expired = 0,
+      expiring = 0;
+    let configured = 0,
+      unconfigured = 0,
+      activeOrgs = 0,
+      suspended = 0;
     const perOrg: PlatformMetrics["perOrg"] = [];
     for (const o of orgs ?? []) {
       if (o.status === "suspended") suspended++;
@@ -115,8 +120,7 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
       const status = (o.music_licence_status as "trial" | "active" | "expired") ?? "trial";
       const expIso = o.music_licence_expires_at as string | null;
       const expMs = expIso ? new Date(expIso).getTime() : null;
-      const effectivelyExpired =
-        status === "expired" || expMs === null || expMs <= now;
+      const effectivelyExpired = status === "expired" || expMs === null || expMs <= now;
       if (effectivelyExpired) expired++;
       else if (status === "trial") trial++;
       else active++;
@@ -140,8 +144,8 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
       licences: { trial, active, expired, expiring_30d: expiring },
       perOrg,
       totals: {
-        sessions_30d: (sessions30 ?? []).length,
-        sessions_total: (sessionsAll ?? []).length,
+        sessions_30d: sessions30Count,
+        sessions_total: sessionsTotalCount,
         revenue_total: perOrg.reduce((a, b) => a + b.revenue_total, 0),
         bookings_total: bookingsTotal ?? 0,
         bookings_30d: bookings30 ?? 0,

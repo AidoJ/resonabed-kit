@@ -144,7 +144,10 @@ export const createBooking = createServerFn({ method: "POST" })
     // A practitioner (not super_admin, not org_admin of this org) may only
     // create bookings assigned to themselves — enforced here regardless of
     // what the UI submitted.
-    if (!(await isAdminForOrg(context, profile.org_id)) && data.practitioner_id !== context.userId) {
+    if (
+      !(await isAdminForOrg(context, profile.org_id)) &&
+      data.practitioner_id !== context.userId
+    ) {
       throw new Error("Practitioners can only create bookings assigned to themselves.");
     }
 
@@ -198,27 +201,19 @@ export const updateBooking = createServerFn({ method: "POST" })
       if (full?.practitioner_id && full.practitioner_id !== context.userId) {
         throw new Error("Practitioners can only edit their own bookings.");
       }
-      if (
-        data.patch.practitioner_id &&
-        data.patch.practitioner_id !== context.userId
-      ) {
+      if (data.patch.practitioner_id && data.patch.practitioner_id !== context.userId) {
         throw new Error("Practitioners cannot reassign a booking to another practitioner.");
       }
     }
 
-    const { error } = await context.supabase
-      .from("bookings")
-      .update(data.patch)
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("bookings").update(data.patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
 export const updateBookingStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ id: uuid, status: z.enum(BOOKING_STATUS) }).parse(data),
-  )
+  .inputValidator((data) => z.object({ id: uuid, status: z.enum(BOOKING_STATUS) }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: updated, error } = await context.supabase
       .from("bookings")
@@ -250,9 +245,8 @@ export const updateBookingStatus = createServerFn({ method: "POST" })
         .eq("id", data.id)
         .maybeSingle();
       if (booking) {
-        const { writeBookingEvent, displayNameForUser } = await import(
-          "@/lib/booking-safety.server"
-        );
+        const { writeBookingEvent, displayNameForUser } =
+          await import("@/lib/booking-safety.server");
         await writeBookingEvent(context.supabase, {
           orgId: booking.org_id,
           bookingId: booking.id,
@@ -339,12 +333,14 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
       throw new Error(`Cannot start a session from a booking with status ${booking.status}`);
     }
 
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { data: session, error: sErr } = await context.supabase
       .from("sessions")
       .insert({
         org_id: booking.org_id,
         practitioner_id: booking.practitioner_id ?? context.userId,
         client_id: booking.client_id,
+        pseudonym_id: await pseudonymForClient(context.supabase, booking.client_id),
         service_id: booking.service_id,
         screening_id: data.screening_id,
         pain_level: data.pain_level,
@@ -417,9 +413,8 @@ export const getPublicRequestDetail = createServerFn({ method: "POST" })
       phone: string | null;
     } | null;
 
-    const { findMatchingClientIds, isReturningPerson } = await import(
-      "@/lib/booking-safety.server"
-    );
+    const { findMatchingClientIds, isReturningPerson } =
+      await import("@/lib/booking-safety.server");
     const matchedIds = new Set(
       await findMatchingClientIds(context.supabase, {
         orgId: row.org_id,
@@ -495,9 +490,7 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
       email: string | null;
     } | null;
 
-    const { writeBookingEvent, displayNameForUser } = await import(
-      "@/lib/booking-safety.server"
-    );
+    const { writeBookingEvent, displayNameForUser } = await import("@/lib/booking-safety.server");
     const operatorName = await displayNameForUser(context.supabase, context.userId);
 
     if (data.action === "decline") {
@@ -565,5 +558,3 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
 
     return { ok: true as const, emailed: res.emailed };
   });
-
-

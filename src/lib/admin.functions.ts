@@ -112,7 +112,6 @@ export const upsertService = createServerFn({ method: "POST" })
     return row;
   });
 
-
 export const deleteService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: uuid }).parse(d))
@@ -135,11 +134,10 @@ export const listTeam = createServerFn({ method: "GET" })
       .select("id, display_name, is_active, org_id, email_status, bio, avatar_path")
       .order("display_name");
     if (orgId) profilesQ = profilesQ.eq("org_id", orgId);
-    const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] =
-      await Promise.all([
-        profilesQ,
-        context.supabase.from("user_roles").select("user_id, role"),
-      ]);
+    const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
+      profilesQ,
+      context.supabase.from("user_roles").select("user_id, role"),
+    ]);
     if (pErr) throw new Error(pErr.message);
     if (rErr) throw new Error(rErr.message);
     const rolesByUser = new Map<string, string[]>();
@@ -197,14 +195,10 @@ export const updateTeamMemberProfile = createServerFn({ method: "POST" })
     if (data.bio !== undefined) patch.bio = data.bio?.trim() ? data.bio.trim() : null;
     if (data.avatar_path !== undefined) patch.avatar_path = data.avatar_path;
     if (Object.keys(patch).length === 0) return { ok: true };
-    const { error } = await context.supabase
-      .from("profiles")
-      .update(patch)
-      .eq("id", data.user_id);
+    const { error } = await context.supabase.from("profiles").update(patch).eq("id", data.user_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
-
 
 // ---------- Clients (admin + permitted practitioners) ----------
 
@@ -281,9 +275,14 @@ export const upsertClient = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
+    const { createPseudonym } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("clients")
-      .insert({ ...payload, org_id: _org_id })
+      .insert({
+        ...payload,
+        org_id: _org_id,
+        pseudonym_id: await createPseudonym(context.supabase, _org_id),
+      })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
@@ -336,9 +335,7 @@ export const getReports = createServerFn({ method: "POST" })
     const unpaidCount = rows.filter(
       (r) =>
         r.status === "completed" &&
-        (!r.payment_method ||
-          r.payment_method === "none" ||
-          r.payment_method === "unpaid"),
+        (!r.payment_method || r.payment_method === "none" || r.payment_method === "unpaid"),
     ).length;
     const freqCounts = new Map<string, { hz: number; label: string; count: number }>();
 
@@ -479,7 +476,6 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         address_state: z.string().max(60).nullable().optional(),
         address_postcode: z.string().max(20).nullable().optional(),
         address_country: z.string().max(80).nullable().optional(),
-
       })
       .parse(d),
   )
@@ -487,7 +483,10 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
     await requireAdmin(context);
     const { orgId } = await resolveEffectiveOrgId(context);
     const { data: profile } = await context.supabase
-      .from("profiles").select("display_name").eq("id", context.userId).maybeSingle();
+      .from("profiles")
+      .select("display_name")
+      .eq("id", context.userId)
+      .maybeSingle();
     const _org_id = orgId;
     if (!_org_id) throw new Error("No organisation");
 
@@ -560,7 +559,6 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       if (patch.clinic_type !== undefined) patch.clinic_type_confirmed = true;
     }
 
-
     for (const field of POLICY_FIELDS) {
       const v = data[field];
       const oldVal = (existing as unknown as Record<string, string | null>)[field] ?? null;
@@ -615,7 +613,6 @@ export const completeOrgSetup = createServerFn({ method: "POST" })
           .regex(/^data:image\/png;base64,/, "Signature must be a PNG image"),
       })
       .parse(d),
-
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
@@ -655,7 +652,6 @@ export const completeOrgSetup = createServerFn({ method: "POST" })
         configured_acknowledgement_by: data.acknowledger_name.trim(),
         configured_acknowledgement_at: now,
         configured_acknowledgement_signature: data.signature,
-
       })
       .eq("id", _org_id);
     if (error) throw new Error(error.message);

@@ -52,8 +52,17 @@ export const createClientRecord = createServerFn({ method: "POST" })
       .object({
         first_name: z.string().min(1).max(80),
         last_name: z.string().min(1).max(80),
-        email: z.string().email().max(160).optional().or(z.literal("").transform(() => undefined)),
-        phone: z.string().max(40).optional().or(z.literal("").transform(() => undefined)),
+        email: z
+          .string()
+          .email()
+          .max(160)
+          .optional()
+          .or(z.literal("").transform(() => undefined)),
+        phone: z
+          .string()
+          .max(40)
+          .optional()
+          .or(z.literal("").transform(() => undefined)),
       })
       .parse(data),
   )
@@ -66,10 +75,12 @@ export const createClientRecord = createServerFn({ method: "POST" })
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
     await assertPractitionerAction(context, profile.org_id, "manage_clients");
+    const { createPseudonym } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("clients")
       .insert({
         org_id: profile.org_id,
+        pseudonym_id: await createPseudonym(context.supabase, profile.org_id),
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email ?? null,
@@ -98,9 +109,7 @@ export const listMyOrgServices = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
-
-const FREQ_COLUMNS =
-  "id, hz, name, description, benefits, color, goal_tags, body_area_tags";
+const FREQ_COLUMNS = "id, hz, name, description, benefits, color, goal_tags, body_area_tags";
 
 export const listFrequencies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -216,12 +225,14 @@ export const createDraftSession = createServerFn({ method: "POST" })
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
 
+    const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("sessions")
       .insert({
         org_id: profile.org_id,
         practitioner_id: context.userId,
         client_id: data.client_id,
+        pseudonym_id: await pseudonymForClient(context.supabase, data.client_id),
         service_id: data.service_id,
         screening_id: data.screening_id,
         pain_level: data.pain_level,
@@ -299,15 +310,7 @@ export const completeSession = createServerFn({ method: "POST" })
     z
       .object({
         id: uuid,
-        payment_method: z.enum([
-          "cash",
-          "eftpos",
-          "payid",
-          "other",
-          "unpaid",
-          "comp",
-          "none",
-        ]),
+        payment_method: z.enum(["cash", "eftpos", "payid", "other", "unpaid", "comp", "none"]),
         payment_amount: z.number().min(0).max(100000).nullable(),
         practitioner_notes: z.string().max(4000).optional(),
       })
@@ -324,17 +327,13 @@ export const completeSession = createServerFn({ method: "POST" })
     if (!sessionRow) throw new Error("Session not found");
 
     const isPaid = (PAID_METHODS as readonly string[]).includes(data.payment_method);
-    const isDeferred = (DEFERRED_METHODS as readonly string[]).includes(
-      data.payment_method,
-    );
+    const isDeferred = (DEFERRED_METHODS as readonly string[]).includes(data.payment_method);
 
     // A paid outcome must include a real (>0) amount so completion always
     // records a conscious payment decision — no silent zero-amount closes.
     if (isPaid) {
       if (data.payment_amount == null || data.payment_amount <= 0) {
-        throw new Error(
-          "Enter the amount collected, or choose an unpaid/comp outcome.",
-        );
+        throw new Error("Enter the amount collected, or choose an unpaid/comp outcome.");
       }
     }
 
@@ -350,9 +349,7 @@ export const completeSession = createServerFn({ method: "POST" })
       const list = roles ?? [];
       const isAdminForOrg =
         list.some((r) => r.role === "super_admin") ||
-        list.some(
-          (r) => r.role === "org_admin" && r.org_id === sessionRow.org_id,
-        );
+        list.some((r) => r.role === "org_admin" && r.org_id === sessionRow.org_id);
       if (!isAdminForOrg) {
         const { data: allowed, error: fErr } = await context.supabase.rpc(
           "org_practitioner_permission",
@@ -439,9 +436,7 @@ async function callerHasGlobalLicence(context: {
 
 export const getAudioForFrequency = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { frequency_id: string }) =>
-    z.object({ frequency_id: uuid }).parse(data),
-  )
+  .inputValidator((data: { frequency_id: string }) => z.object({ frequency_id: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: profile } = await context.supabase
       .from("profiles")
@@ -505,4 +500,3 @@ export const getSignedAudioUrl = createServerFn({ method: "POST" })
     if (sErr) throw new Error(sErr.message);
     return { url: signed.signedUrl };
   });
-
