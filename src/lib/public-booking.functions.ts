@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { zonedWallTimeToUtc, DEFAULT_TIMEZONE } from "./timezone";
+import { phoneValidationError } from "./phone";
 
 const requestSchema = z.object({
   slug: z.string().min(1).max(64),
@@ -11,7 +12,14 @@ const requestSchema = z.object({
   email: z.string().trim().email().max(255),
   // Phone is REQUIRED on the public path: it is the operator's
   // verification-by-call tool and the stronger of the two blocking signals.
-  phone: z.string().trim().min(6).max(40),
+  phone: z
+    .string()
+    .trim()
+    .max(40)
+    .refine((v) => phoneValidationError(v) === null, {
+      message:
+        "Enter an Australian mobile (04xxxxxxxx), an 8-digit landline, or an overseas number starting with +.",
+    }),
   preferred_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   preferred_time: z.string().regex(/^\d{2}:\d{2}$/),
   note: z.string().trim().max(500).optional().or(z.literal("")),
