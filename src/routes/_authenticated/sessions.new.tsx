@@ -338,6 +338,7 @@ function NewSession() {
             setScreeningId(null);
           }}
           clientId={client.id}
+          onBlockingChange={setBlockingNow}
         />
       )}
       {step === 4 && (
