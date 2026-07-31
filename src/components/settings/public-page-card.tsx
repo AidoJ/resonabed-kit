@@ -444,15 +444,21 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
                 )}
                 Copy
               </Button>
-              <Button size="sm" asChild disabled={!org.published}>
-                {/* Relative path so this opens the page on whichever site you're
-                    signed in to, not just the live domain. */}
-                <a href={`/o/${org.slug}`} target="_blank" rel="noreferrer">
+              {org.published ? (
+                <Button size="sm" asChild>
+                  {/* Relative path so this opens the page on whichever site
+                      you're signed in to, not just the live domain. */}
+                  <a href={`/o/${org.slug}`} target="_blank" rel="noreferrer">
+                    <ExternalLink className="mr-1.5 h-4 w-4" />
+                    Go to webpage
+                  </a>
+                </Button>
+              ) : (
+                <Button size="sm" disabled>
                   <ExternalLink className="mr-1.5 h-4 w-4" />
                   Go to webpage
-                </a>
-              </Button>
-            </div>
+                </Button>
+              )}
             {!org.published ? (
               <p className="w-full text-xs text-muted-foreground">
                 Your page isn&rsquo;t published yet, so this link won&rsquo;t work for visitors.
