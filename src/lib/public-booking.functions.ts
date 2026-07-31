@@ -113,6 +113,42 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
     }
     const endsAt = new Date(startsAt.getTime() + service.duration_minutes * 60_000);
 
+    // --- Guard 3b: the request must land inside the clinic's working pattern.
+    // The form only offers valid times, but the form is not the security
+    // boundary. When an org has published no hours at all we fall back to open
+    // entry rather than silently killing their public page.
+    {
+      const { data: windows } = await supabaseAdmin
+        .from("practitioner_availability")
+        .select("day_of_week, start_time, end_time, practitioner:practitioner_id(is_active)")
+        .eq("org_id", org.id)
+        .eq("is_active", true);
+      const pattern = (windows ?? [])
+        .filter((w: any) => w.practitioner?.is_active !== false)
+        .map((w: any) => ({
+          day_of_week: w.day_of_week,
+          start_time: w.start_time,
+          end_time: w.end_time,
+        }));
+      if (pattern.length > 0) {
+        const { isWithinPattern } = await import("./availability-pattern");
+        if (
+          !isWithinPattern(
+            pattern,
+            data.preferred_date,
+            data.preferred_time,
+            service.duration_minutes,
+          )
+        ) {
+          return {
+            ok: false,
+            error: "That time is outside the clinic's working hours. Please choose another.",
+          };
+        }
+      }
+    }
+
+
     const email = data.email.trim().toLowerCase();
     const phone = data.phone.trim();
     const fullName = `${data.first_name.trim()} ${data.last_name.trim()}`;
