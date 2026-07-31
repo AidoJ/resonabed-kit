@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { requestPublicBooking } from "@/lib/public-booking.functions";
+import { phoneValidationError, PHONE_HELP_TEXT } from "@/lib/phone";
 import { halfHourSlots, slotLabel, DEFAULT_TIMEZONE } from "@/lib/timezone";
 import type { PublicService } from "@/lib/public-org.functions";
 
@@ -47,12 +48,15 @@ export function PublicBookingForm({
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("10:00");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  const phoneProblem = phone ? phoneValidationError(phone) : null;
 
   if (done) {
     return (
@@ -74,6 +78,11 @@ export function PublicBookingForm({
     setError(null);
     if (!serviceId || !date || !time || !firstName || !lastName || !email) {
       setError("Please complete all required fields.");
+      return;
+    }
+    const phoneProblem = phoneValidationError(phone);
+    if (phoneProblem) {
+      setError(phoneProblem);
       return;
     }
     setBusy(true);
@@ -166,7 +175,14 @@ export function PublicBookingForm({
                 maxLength={40}
                 onChange={(e) => setPhone(e.target.value)}
                 required
+                aria-invalid={phoneTouched && phoneProblem !== null}
+                onBlur={() => setPhoneTouched(true)}
               />
+              {phoneTouched && phoneProblem ? (
+                <p className="text-xs text-destructive">{phoneProblem}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{PHONE_HELP_TEXT}</p>
+              )}
               <p className="text-xs text-muted-foreground">
                 We may call you before confirming your first session.
               </p>
