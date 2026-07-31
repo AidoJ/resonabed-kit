@@ -23,6 +23,7 @@ import {
   Receipt,
   FileText,
   Banknote,
+  ExternalLink,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
