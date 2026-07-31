@@ -8,6 +8,8 @@
 import { formatOrgAddress } from "./org-address";
 import { formatInTz, tzAbbrev, DEFAULT_TIMEZONE } from "./timezone";
 import { writeBookingEvent } from "./booking-safety.server";
+import { ORG_CONTACT_COLUMNS, publishedContact } from "./org-public-contact";
+import { formatPersonName } from "./person-name";
 
 type AnyClient = { from: (table: string) => any };
 
@@ -114,15 +116,15 @@ export async function confirmBookingAndNotify(
       const result = await sendTemplateEmail("booking-confirmed", clientRow.email, {
         templateData: {
           orgName: org?.name ?? "Your clinic",
-          clientName: clientRow.first_name,
+          clientName: formatPersonName(clientRow.first_name),
           serviceName: (booking.service as { name?: string } | null)?.name ?? "your session",
           whenLabel,
           address: formatOrgAddress(org ?? {}),
           isHomeBased: (org?.clinic_type ?? "home") === "home",
-          contactPhone: org?.public_contact_phone ?? "",
-          contactEmail: org?.public_contact_email ?? "",
+          contactPhone: contact.phone,
+          contactEmail: contact.email,
         },
-        replyTo: org?.public_contact_email ?? undefined,
+        replyTo: contact.replyTo,
         idempotencyKey: `booking-confirmed-${args.bookingId}-${when}`,
       });
       emailed = result.sent;
