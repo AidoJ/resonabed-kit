@@ -99,6 +99,7 @@ function NewSession() {
     practitionerSignature: null,
   });
   const [screeningId, setScreeningId] = useState<string | null>(null);
+  const [blockingNow, setBlockingNow] = useState<string[]>([]);
   const [blocked, setBlocked] = useState<{ items: string[] } | null>(null);
   const [screeningBusy, setScreeningBusy] = useState(false);
   const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
@@ -299,10 +300,17 @@ function NewSession() {
             <Button
               size="lg"
               className="h-12"
+              variant={step === 3 && blockingNow.length > 0 ? "destructive" : "default"}
               disabled={!canProceed || screeningBusy}
               onClick={() => (step === 3 ? handleScreeningNext() : setStep((s) => s + 1))}
             >
-              {step === 3 ? (screeningBusy ? "Signing…" : "Sign & continue") : "Next"}
+              {step === 3
+                ? screeningBusy
+                  ? "Signing…"
+                  : blockingNow.length > 0
+                    ? "Sign & record refusal"
+                    : "Sign & continue"
+                : "Next"}
             </Button>
           ) : (
             <Button
@@ -330,6 +338,7 @@ function NewSession() {
             setScreeningId(null);
           }}
           clientId={client.id}
+          onBlockingChange={setBlockingNow}
         />
       )}
       {step === 4 && (

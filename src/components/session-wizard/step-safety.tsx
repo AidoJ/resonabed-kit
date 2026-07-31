@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, BookOpen, ShieldCheck, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -38,6 +38,8 @@ interface Props {
   value: SafetyState;
   onChange: (s: SafetyState) => void;
   clientId: string;
+  /** Reports which ticked items currently block the session (no valid clearance). */
+  onBlockingChange?: (items: string[]) => void;
 }
 
 type PolicyKey = "consent" | "health" | "privacy";
@@ -48,7 +50,7 @@ const POLICY_LABELS: Record<PolicyKey, string> = {
   privacy: "Privacy",
 };
 
-export function StepSafety({ value, onChange, clientId }: Props) {
+export function StepSafety({ value, onChange, clientId, onBlockingChange }: Props) {
   const ctxFn = useServerFn(getScreeningContext);
   const { data: ctx, refetch } = useQuery({
     queryKey: ["screening-context", clientId],
@@ -94,9 +96,16 @@ export function StepSafety({ value, onChange, clientId }: Props) {
   };
 
   const flagged = value.contraindications;
-  const blocking = flagged.filter(
-    (i) => !isClearableItem(i) || !clearedItems.includes(i),
-  );
+  const blocking = flagged.filter((i) => !isClearableItem(i) || !clearedItems.includes(i));
+
+  const blockingKey = blocking.join("|");
+  useEffect(() => {
+    onBlockingChange?.(blockingKey ? blockingKey.split("|") : []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blockingKey]);
+
+  const answered = value.noneApply || flagged.length > 0;
+
 
   return (
     <div className="space-y-6">
@@ -160,6 +169,12 @@ export function StepSafety({ value, onChange, clientId }: Props) {
               />
               <span>None of these apply — recorded as a signed attestation</span>
             </label>
+            {!answered && (
+              <p className="text-muted-foreground mt-2 text-xs">
+                An answer is required: tick every item that applies, or tick “None of these apply”.
+                Leaving everything blank is not a valid screening.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -172,11 +187,13 @@ export function StepSafety({ value, onChange, clientId }: Props) {
             {blocking
               .map((b) => SCREENING_CHECKLIST.find((i) => i.key === b)?.label ?? b)
               .join(", ")}{" "}
-            {blocking.length === 1 ? "is" : "are"} flagged without valid clearance. Signing the
-            screening will record an auditable refusal instead of starting a session.
+            {blocking.length === 1 ? "is" : "are"} flagged without valid clearance. The screening
+            must still be completed and signed by both parties — signing records an auditable
+            refusal (a cancelled session) instead of starting one.
           </AlertDescription>
         </Alert>
       ) : null}
+
 
       <div>
         <Label className="mb-2 block">Practitioner notes (optional)</Label>
