@@ -423,13 +423,32 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           </div>
         </div>
 
-        {org.published && publicUrl ? (
-          <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3">
-            <span className="truncate text-sm">{publicUrl}</span>
-            <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={copyUrl}>
-              {copied ? <Check className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
-              Copy
-            </Button>
+        {org.slug ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-3">
+            <span className="min-w-0 flex-1 truncate text-sm">{publicUrl}</span>
+            <div className="flex shrink-0 gap-2">
+              <Button variant="outline" size="sm" onClick={copyUrl} disabled={!org.published}>
+                {copied ? (
+                  <Check className="mr-1.5 h-4 w-4" />
+                ) : (
+                  <Copy className="mr-1.5 h-4 w-4" />
+                )}
+                Copy
+              </Button>
+              <Button size="sm" asChild disabled={!org.published}>
+                {/* Relative path so this opens the page on whichever site you're
+                    signed in to, not just the live domain. */}
+                <a href={`/o/${org.slug}`} target="_blank" rel="noreferrer">
+                  <ExternalLink className="mr-1.5 h-4 w-4" />
+                  Go to webpage
+                </a>
+              </Button>
+            </div>
+            {!org.published ? (
+              <p className="w-full text-xs text-muted-foreground">
+                Your page isn&rsquo;t published yet, so this link won&rsquo;t work for visitors.
+              </p>
+            ) : null}
           </div>
         ) : null}
 
