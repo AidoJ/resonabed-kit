@@ -65,7 +65,7 @@ export const getCurrentUserContext = createServerFn({ method: "GET" })
       supabase
         .from("profiles")
         .select(
-          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, theme_primary, theme_sidebar, theme_accent, is_configured, timezone)",
+          "display_name, org_id, is_active, organisations:org_id(id, name, brand_color, logo_url, logo_path, theme_primary, theme_sidebar, theme_accent, is_configured, timezone, slug, published)",
         )
         .eq("id", userId)
         .maybeSingle(),
