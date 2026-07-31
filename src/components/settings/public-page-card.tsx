@@ -371,7 +371,16 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             </Label>
             <Select
               value={clinicType}
-              onValueChange={(v) => setClinicType(v as "retail" | "home")}
+              onValueChange={(v) => {
+                const next = v as "retail" | "home";
+                setClinicType(next);
+                // Safe default follows the clinic type: a lone home operator
+                // starts private, a shopfront starts reachable.
+                if (!org.clinic_type_confirmed) {
+                  setShowEmail(next === "retail");
+                  setShowPhone(next === "retail");
+                }
+              }}
             >
               <SelectTrigger id="pub-clinic-type">
                 <SelectValue placeholder="Choose retail/commercial or home-based" />

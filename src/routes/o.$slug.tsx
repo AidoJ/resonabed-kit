@@ -477,6 +477,11 @@ function PublicOrgPage() {
                     <Mail className="h-4 w-4" /> {org.public_contact_email}
                   </a>
                 ) : null}
+                {!org.public_contact_phone && !org.public_contact_email ? (
+                  <p className="text-sm text-muted-foreground">
+                    Online requests will reopen soon. Please check back shortly.
+                  </p>
+                ) : null}
               </div>
             </div>
           )}
@@ -528,6 +533,15 @@ function PublicOrgPage() {
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   {org.public_contact_email}
                 </a>
+              ) : null}
+              {!org.public_contact_phone && !org.public_contact_email && bookable ? (
+                <p className="flex items-start gap-3 text-muted-foreground">
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    The quickest way to reach us is a booking request — leave your details and
+                    we&rsquo;ll be in touch personally.
+                  </span>
+                </p>
               ) : null}
               <div className="flex items-center gap-3 text-muted-foreground">
                 <Clock className="h-4 w-4" />
