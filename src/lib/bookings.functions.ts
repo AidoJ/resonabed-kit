@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertPractitionerAction } from "@/lib/practitioner-permissions";
+import { screeningErrorMessage } from "@/lib/sessions.functions";
 
 const uuid = z.string().uuid();
 
@@ -223,7 +224,10 @@ export const updateBookingStatus = createServerFn({ method: "POST" })
       .from("bookings")
       .update({ status: data.status })
       .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    if (error) {
+      const friendly = screeningErrorMessage(error.message);
+      throw new Error(friendly ?? error.message);
+    }
     return { ok: true };
   });
 
@@ -269,6 +273,7 @@ export const listOrgPractitioners = createServerFn({ method: "GET" })
 
 const startSessionInput = z.object({
   booking_id: uuid,
+  screening_id: uuid,
   pain_level: z.number().int().min(0).max(10),
   stress_level: z.number().int().min(0).max(10),
   sleep_quality: z.number().int().min(0).max(10),
@@ -306,6 +311,7 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
         practitioner_id: booking.practitioner_id ?? context.userId,
         client_id: booking.client_id,
         service_id: booking.service_id,
+        screening_id: data.screening_id,
         pain_level: data.pain_level,
         stress_level: data.stress_level,
         sleep_quality: data.sleep_quality,
@@ -322,7 +328,10 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (sErr) throw new Error(sErr.message);
+    if (sErr) {
+      const friendly = screeningErrorMessage(sErr.message);
+      throw new Error(friendly ?? sErr.message);
+    }
 
     const { error: linkErr } = await context.supabase
       .from("bookings")
