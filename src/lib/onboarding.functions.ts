@@ -89,9 +89,9 @@ export const updateOnboardingOrder = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireSuperAdmin(context);
-    const patch: Record<string, unknown> = {};
-    if (data.status) patch["status"] = data.status;
-    if (data.notes !== undefined) patch["notes"] = data.notes;
+    const patch: { status?: string; notes?: string | null } = {};
+    if (data.status) patch.status = data.status;
+    if (data.notes !== undefined) patch.notes = data.notes;
     if (Object.keys(patch).length === 0) return { ok: true };
     const { error } = await context.supabase
       .from("kit_onboarding_orders")
