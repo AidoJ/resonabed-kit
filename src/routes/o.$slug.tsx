@@ -133,6 +133,40 @@ function PublicOrgPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground" style={theme}>
+      {/* ---------------------------------------------------------------- LOGO BAND */}
+      <header className="relative z-30 border-b border-black/8 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5 md:px-10 md:py-6">
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={`${org.name} logo`}
+              className="h-14 w-auto object-contain md:h-20"
+              draggable={false}
+            />
+          ) : (
+            <span
+              className="text-lg font-light tracking-tight"
+              style={{ color: "var(--clinic-ink)" }}
+            >
+              {org.name}
+            </span>
+          )}
+          {org.public_contact_phone ? (
+            <a
+              href={`tel:${org.public_contact_phone.replace(/\s+/g, "")}`}
+              className="inline-flex h-10 items-center gap-2 rounded-full border px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              style={{
+                borderColor: "color-mix(in oklab, var(--clinic-ink) 18%, transparent)",
+                color: "var(--clinic-ink)",
+              }}
+            >
+              <Phone className="h-4 w-4" />
+              {org.public_contact_phone}
+            </a>
+          ) : null}
+        </div>
+      </header>
+
       {/* ---------------------------------------------------------------- HERO */}
       <section
         className="relative overflow-hidden"
@@ -147,31 +181,7 @@ function PublicOrgPage() {
           }}
         />
 
-        <header className="relative z-20">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-6 md:px-10 md:py-8">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={`${org.name} logo`}
-                className="h-14 w-auto object-contain md:h-20"
-                draggable={false}
-              />
-            ) : (
-              <span className="text-lg font-light tracking-tight">{org.name}</span>
-            )}
-            {org.public_contact_phone ? (
-              <a
-                href={`tel:${org.public_contact_phone.replace(/\s+/g, "")}`}
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-current/25 px-5 text-sm font-medium opacity-90 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
-              >
-                <Phone className="h-4 w-4" />
-                {org.public_contact_phone}
-              </a>
-            ) : null}
-          </div>
-        </header>
-
-        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-6 md:grid-cols-2 md:gap-10 md:px-10 md:pb-28 md:pt-10">
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-10 md:grid-cols-2 md:gap-10 md:px-10 md:pb-28 md:pt-14">
           <div className="flex flex-col justify-center">
             <span
               className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] backdrop-blur"
