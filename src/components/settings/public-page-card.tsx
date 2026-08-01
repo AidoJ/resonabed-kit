@@ -440,39 +440,25 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             )}
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="addr1">Street address</Label>
-              <Input
-                id="addr1"
-                value={line1}
-                placeholder="12 Quiet Street"
-                onChange={(e) => setLine1(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="addr2">Unit / suite (optional)</Label>
-              <Input id="addr2" value={line2} onChange={(e) => setLine2(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="addr-city">Suburb / city</Label>
-              <Input id="addr-city" value={city} onChange={(e) => setCity(e.target.value)} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="addr-state">State</Label>
-                <Input id="addr-state" value={state} onChange={(e) => setState(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="addr-pc">Postcode</Label>
-                <Input
-                  id="addr-pc"
-                  value={postcode}
-                  onChange={(e) => setPostcode(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
+          <AddressAutocomplete
+            label="Clinic address"
+            value={{
+              line1,
+              line2,
+              city,
+              state,
+              postcode,
+              country: "AU",
+            }}
+            onChange={(a) => {
+              setLine1(a.line1);
+              setLine2(a.line2);
+              setCity(a.city);
+              setState(a.state);
+              setPostcode(a.postcode);
+            }}
+          />
+
 
           {clinicType === "home" ? (
             <div className="flex items-start gap-3 rounded-md bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
