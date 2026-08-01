@@ -15,12 +15,20 @@ export const HOME_SAFETY_INTRO =
   "Resonabed is a personal relaxation product. It is not a medical device, and it is not " +
   "intended to diagnose, treat, cure or prevent any condition.";
 
+/** Lead-in for the checklist below. */
+export const HOME_SAFETY_CHECK_LEAD =
+  "Check with your doctor before use if any of the following are present:";
+
 /** Self-assessment prompts. Answers are NOT collected or stored. */
 export const HOME_SAFETY_POINTS: readonly string[] = [
-  "Speak to your doctor before using it if you have a pacemaker or any implanted electronic device.",
-  "Speak to your doctor before using it if you are pregnant.",
-  "Speak to your doctor before using it if you have had recent surgery, a blood clot, or acute inflammation.",
-  "Speak to your doctor before using it if you have epilepsy or very low blood pressure.",
+  "A pacemaker or any implanted electronic device",
+  "Pregnancy",
+  "Recent surgery, a blood clot, or acute inflammation",
+  "Epilepsy or very low blood pressure",
+];
+
+/** Always applies, regardless of the checklist above. */
+export const HOME_SAFETY_GENERAL: readonly string[] = [
   "Stop the session if you feel unwell, dizzy or uncomfortable at any point.",
   "Keep the volume and intensity at a level that feels comfortable to you.",
 ];
