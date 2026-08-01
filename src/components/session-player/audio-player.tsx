@@ -27,7 +27,7 @@ function fmt(sec: number): string {
 }
 
 export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPlayer(
-  { src, title, onPlayingChange },
+  { src, title, onPlayingChange, hideTransport = false },
   ref,
 ) {
   const audioRef = useRef<HTMLAudioElement>(null);
