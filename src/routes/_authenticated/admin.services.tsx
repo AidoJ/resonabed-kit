@@ -15,7 +15,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/services")({
   head: () => ({ meta: [{ title: "Services, Admin, ResonaBed" }] }),
