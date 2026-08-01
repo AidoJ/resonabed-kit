@@ -7,7 +7,10 @@ interface Props {
   src: string;
   title: string;
   onPlayingChange?: (playing: boolean) => void;
+  /** Hide play/pause/stop so the session timer is the single start control. */
+  hideTransport?: boolean;
 }
+
 
 export interface AudioPlayerHandle {
   play: () => void;
@@ -24,7 +27,7 @@ function fmt(sec: number): string {
 }
 
 export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPlayer(
-  { src, title, onPlayingChange },
+  { src, title, onPlayingChange, hideTransport = false },
   ref,
 ) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -144,27 +147,32 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
         className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5"
       />
       <div className="flex items-center gap-4">
-        <Button
-          onClick={toggle}
-          className="h-16 w-16 rounded-full p-0 shadow-lift"
-          aria-label={playing ? "Pause" : "Play"}
-          type="button"
-        >
-          {playing ? (
-            <Pause className="h-6 w-6" fill="currentColor" strokeWidth={0} />
-          ) : (
-            <Play className="h-6 w-6" fill="currentColor" strokeWidth={0} />
-          )}
-        </Button>
-        <Button
-          onClick={doStop}
-          variant="ghost"
-          className="h-12 w-12 rounded-full p-0 text-foreground/80 hover:bg-white/5"
-          aria-label="Stop"
-          type="button"
-        >
-          <Square className="h-5 w-5" fill="currentColor" strokeWidth={0} />
-        </Button>
+        {hideTransport ? null : (
+          <>
+            <Button
+              onClick={toggle}
+              className="h-16 w-16 rounded-full p-0 shadow-lift"
+              aria-label={playing ? "Pause" : "Play"}
+              type="button"
+            >
+              {playing ? (
+                <Pause className="h-6 w-6" fill="currentColor" strokeWidth={0} />
+              ) : (
+                <Play className="h-6 w-6" fill="currentColor" strokeWidth={0} />
+              )}
+            </Button>
+            <Button
+              onClick={doStop}
+              variant="ghost"
+              className="h-12 w-12 rounded-full p-0 text-foreground/80 hover:bg-white/5"
+              aria-label="Stop"
+              type="button"
+            >
+              <Square className="h-5 w-5" fill="currentColor" strokeWidth={0} />
+            </Button>
+          </>
+        )}
+
         <div className="ml-auto flex flex-1 items-center gap-3">
           <Volume2 className="h-4 w-4 text-muted-foreground" />
           <Slider
