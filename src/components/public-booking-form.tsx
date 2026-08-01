@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { Check, CheckCircle2, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { requestPublicBooking } from "@/lib/public-booking.functions";
 import { phoneValidationError, PHONE_HELP_TEXT } from "@/lib/phone";
 import { halfHourSlots, slotLabel, DEFAULT_TIMEZONE, minutesOfDayInTz } from "@/lib/timezone";
@@ -25,6 +19,26 @@ import {
 } from "@/lib/availability-pattern";
 
 const OPEN_SLOTS = halfHourSlots(7, 20);
+
+function money(v: number) {
+  return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(v);
+}
+
+/** Split start times into friendly parts of the day so long days don't become a wall of pills. */
+function groupSlots(slots: string[]) {
+  const groups: { label: string; items: string[] }[] = [
+    { label: "Morning", items: [] },
+    { label: "Afternoon", items: [] },
+    { label: "Evening", items: [] },
+  ];
+  for (const s of slots) {
+    const h = Number(s.slice(0, 2));
+    if (h < 12) groups[0].items.push(s);
+    else if (h < 17) groups[1].items.push(s);
+    else groups[2].items.push(s);
+  }
+  return groups.filter((g) => g.items.length > 0);
+}
 
 function todayInTz(tz: string): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -161,21 +175,38 @@ export function PublicBookingForm({
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={onSubmit} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="pb-service">Session type *</Label>
-            <Select value={serviceId} onValueChange={setServiceId}>
-              <SelectTrigger id="pb-service">
-                <SelectValue placeholder="Choose a session" />
-              </SelectTrigger>
-              <SelectContent>
-                {services.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.name} · {s.duration_minutes} min
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <fieldset className="grid gap-3">
+            <legend className="mb-1 text-sm font-medium">Choose your session</legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {services.map((s) => {
+                const selected = s.id === serviceId;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setServiceId(s.id)}
+                    aria-pressed={selected}
+                    className={cn(
+                      "flex items-start justify-between gap-3 rounded-xl border p-4 text-left transition-colors hover:border-primary/60",
+                      selected && "border-primary bg-primary/5",
+                    )}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{s.name}</span>
+                      <span className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" />
+                        {s.duration_minutes} min
+                        {s.price !== null && s.price !== undefined
+                          ? ` · ${money(Number(s.price))}`
+                          : ""}
+                      </span>
+                    </span>
+                    {selected ? <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" /> : null}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
@@ -247,22 +278,36 @@ export function PublicBookingForm({
                 required
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="pb-time">Preferred time *</Label>
-              <Select value={time} onValueChange={setTime} disabled={slots.length === 0}>
-                <SelectTrigger id="pb-time">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {slots.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {slotLabel(s)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
+
+          {slots.length > 0 ? (
+            <fieldset className="grid gap-3">
+              <legend className="mb-1 text-sm font-medium">Preferred time *</legend>
+              {groupSlots(slots).map((g) => (
+                <div key={g.label}>
+                  <p className="mb-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                    {g.label}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {g.items.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        aria-pressed={s === time}
+                        onClick={() => setTime(s)}
+                        className={cn(
+                          "rounded-full border px-4 py-1.5 text-sm transition-colors hover:border-primary/60",
+                          s === time && "border-primary bg-primary text-primary-foreground",
+                        )}
+                      >
+                        {slotLabel(s)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </fieldset>
+          ) : null}
 
           {!dateIsWorking ? (
             <p className="-mt-1 text-xs text-destructive">
