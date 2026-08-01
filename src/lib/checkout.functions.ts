@@ -39,9 +39,21 @@ const ShippingAddressSchema = z.object({
     .transform((s) => s.toUpperCase()),
 });
 
+const BusinessDetailsSchema = z.object({
+  businessName: z.string().trim().min(2).max(160),
+  contactName: z.string().trim().min(1).max(120),
+  contactEmail: z.string().trim().email().max(200),
+  contactPhone: z.string().trim().max(40).optional().or(z.literal("")),
+  abn: z.string().trim().max(20).optional().or(z.literal("")),
+});
+
+export type BusinessDetails = z.infer<typeof BusinessDetailsSchema>;
+
 const InputSchema = z
   .object({
     package: z.enum(["pro", "premium"]),
+    buyerType: z.enum(["personal", "business"]).default("personal"),
+    business: BusinessDetailsSchema.optional(),
     plan: z.enum(["full", "installments"]).default("full"),
     origin: z.string().url(),
     promoCode: z.string().trim().min(3).max(40).optional().or(z.literal("")),
@@ -51,6 +63,10 @@ const InputSchema = z
   .refine((v) => v.pickup || v.shippingAddress, {
     message: "Shipping address is required unless pickup is selected",
     path: ["shippingAddress"],
+  })
+  .refine((v) => v.buyerType !== "business" || !!v.business, {
+    message: "Clinic details are required for a business purchase",
+    path: ["business"],
   });
 
 async function loadShippingRateForCountry(country: string) {
@@ -113,6 +129,17 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       shipping_region: shipping.region,
       shipping_amount_cents: String(shipping.amount),
     };
+
+    // Buyer type is chosen explicitly at purchase and decides the whole
+    // post-payment path: personal -> access code, business -> onboarding queue.
+    const buyerMetadata: Record<string, string> = { buyer_type: data.buyerType };
+    if (data.buyerType === "business" && data.business) {
+      buyerMetadata["business_name"] = data.business.businessName;
+      buyerMetadata["contact_name"] = data.business.contactName;
+      buyerMetadata["contact_email"] = data.business.contactEmail;
+      if (data.business.contactPhone) buyerMetadata["contact_phone"] = data.business.contactPhone;
+      if (data.business.abn) buyerMetadata["abn"] = data.business.abn;
+    }
 
     // Stripe shipping/customer address shape shared by both flows.
     const stripeAddress = addr
@@ -190,10 +217,11 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             months: String(months),
             cancel_after_months: String(months),
             ...shippingMetadata,
+            ...buyerMetadata,
           },
         },
         allow_promotion_codes: false,
-        metadata: { package: data.package, plan: "installments", ...shippingMetadata },
+        metadata: { package: data.package, plan: "installments", ...shippingMetadata, ...buyerMetadata },
       };
       session = await stripe.checkout.sessions.create(params);
     } else {
@@ -277,7 +305,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
           }]),
         ],
         allow_promotion_codes: false,
-        metadata: { package: data.package, plan: "full", ...shippingMetadata, ...promoMetadata },
+        metadata: { package: data.package, plan: "full", ...shippingMetadata, ...promoMetadata, ...buyerMetadata },
       };
       session = await stripe.checkout.sessions.create(params);
       if (!session.client_secret) throw new Error("Stripe did not return a client secret");
@@ -314,26 +342,23 @@ export const finalizeCheckoutSession = createServerFn({ method: "POST" })
       expand: ["subscription"],
     });
 
-    // Belt and braces: the Stripe webhook normally issues the home-app access
-    // code, but issuing here too (idempotent on the session id) means the buyer
-    // still gets it if the webhook is delayed or not yet configured.
-    const buyerEmail =
-      session.customer_details?.email ?? (session.customer_email as string | null) ?? null;
-    let home: { codeEmail: string | null } = { codeEmail: null };
-    if (buyerEmail && session.payment_status !== "unpaid") {
+    // Belt and braces: the Stripe webhook is the source of truth for
+    // fulfilment, but running it here too (idempotent on the session id) means
+    // a delayed or misconfigured webhook can never leave a buyer stranded.
+    let home: { buyerType: "personal" | "business"; codeEmail: string | null } = {
+      buyerType:
+        (session.metadata?.["buyer_type"] as string | undefined) === "business"
+          ? "business"
+          : "personal",
+      codeEmail: null,
+    };
+    if (session.payment_status !== "unpaid") {
       try {
-        const { issueAccessCode } = await import("@/lib/home-access.server");
-        const issued = await issueAccessCode({
-          buyerEmail,
-          buyerName: session.customer_details?.name ?? null,
-          buyerPhone: session.customer_details?.phone ?? null,
-          packageKey: (session.metadata?.["package"] as string | undefined) ?? null,
-          source: "stripe",
-          sourceRef: session.id,
-        });
-        home = { codeEmail: issued.buyerEmail };
+        const { fulfilCheckoutSession } = await import("@/lib/order-fulfilment.server");
+        const result = await fulfilCheckoutSession(session);
+        home = { buyerType: result.buyerType, codeEmail: result.codeEmail };
       } catch (err) {
-        console.error("Failed to issue home access code on order success", err);
+        console.error("Order fulfilment on success page failed", err);
       }
     }
 
@@ -437,6 +462,8 @@ export const validatePromoCode = createServerFn({ method: "POST" })
 
 const EftOrderSchema = z.object({
   package: z.enum(["pro", "premium"]),
+  buyerType: z.enum(["personal", "business"]).default("personal"),
+  business: BusinessDetailsSchema.optional(),
   promoCode: z.string().trim().max(40).optional().or(z.literal("")),
   customerEmail: z.string().trim().email().max(160),
   customerPhone: z.string().trim().max(40).optional().or(z.literal("")),
@@ -468,11 +495,16 @@ export const requestKitEftInvoice = createServerFn({ method: "POST" })
     const { createEftKitInvoice } = await import("@/lib/eft-order.server");
     return await createEftKitInvoice({
       packageKey: data.package,
-      customerName: (data.customerName || addr?.name || data.customerEmail).slice(0, 120),
-      customerEmail: data.customerEmail,
-      customerPhone: data.customerPhone || null,
+      customerName: (
+        data.business?.contactName || data.customerName || addr?.name || data.customerEmail
+      ).slice(0, 120),
+      customerEmail: data.business?.contactEmail || data.customerEmail,
+      customerPhone: data.business?.contactPhone || data.customerPhone || null,
       shippingAddress: shippingAddressText,
       promoCode: data.promoCode || null,
       shipping,
+      buyerType: data.buyerType,
+      businessName: data.business?.businessName ?? null,
+      abn: data.business?.abn || null,
     });
   });
