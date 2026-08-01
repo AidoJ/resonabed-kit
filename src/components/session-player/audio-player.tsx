@@ -7,7 +7,10 @@ interface Props {
   src: string;
   title: string;
   onPlayingChange?: (playing: boolean) => void;
+  /** Hide play/pause/stop so the session timer is the single start control. */
+  hideTransport?: boolean;
 }
+
 
 export interface AudioPlayerHandle {
   play: () => void;
