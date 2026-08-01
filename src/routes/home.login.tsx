@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import logo from "@/assets/resonabed-logo.png";
+import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/home/login")({
   head: () => ({
@@ -54,7 +54,7 @@ function HomeLogin() {
   return (
     <div className="min-h-dvh bg-background px-5 py-16">
       <div className="mx-auto w-full max-w-sm">
-        <img src={logo} alt="Resonabed" className="mx-auto mb-8 h-11 w-auto" />
+        <img src={logo.url} alt="Resonabed" className="mx-auto mb-8 h-11 w-auto" />
         <h1 className="text-center text-2xl font-medium">Welcome back</h1>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           Sign in to your personal Resonabed app.

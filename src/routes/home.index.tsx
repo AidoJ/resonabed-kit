@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/resonabed-logo.png";
+import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/home/")({
   head: () => ({
@@ -63,7 +63,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh bg-background px-5 py-10">
       <div className="mx-auto w-full max-w-2xl">
-        <img src={logo} alt="Resonabed" className="mx-auto mb-10 h-10 w-auto" />
+        <img src={logo.url} alt="Resonabed" className="mx-auto mb-10 h-10 w-auto" />
         {children}
       </div>
     </div>

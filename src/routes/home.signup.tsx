@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/resonabed-logo.png";
+import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/home/signup")({
   head: () => ({
@@ -86,7 +86,7 @@ function HomeSignup() {
   return (
     <div className="min-h-dvh bg-background px-5 py-12">
       <div className="mx-auto w-full max-w-md">
-        <img src={logo} alt="Resonabed" className="mx-auto mb-8 h-11 w-auto" />
+        <img src={logo.url} alt="Resonabed" className="mx-auto mb-8 h-11 w-auto" />
         <h1 className="text-center text-2xl font-medium">Set up your Resonabed app</h1>
         <p className="mt-3 text-center text-sm text-muted-foreground">
           Enter the access code we emailed you after your kit purchase. It works once, and your
