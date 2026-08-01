@@ -1,17 +1,22 @@
 import { createFileRoute, Link, redirect, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { getPublicOrgBranding } from "@/lib/public-org.functions";
+import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
   reset: z.enum(["success"]).optional(),
+  /** Optional clinic slug: brands this page with that clinic's logo/colours. */
+  clinic: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -41,6 +46,15 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Cosmetic only: brand the shared login page for therapists arriving from
+  // their clinic's public page. Falls back to Resonabed branding.
+  const { data: clinic } = useQuery({
+    queryKey: ["auth-clinic-branding", search.clinic],
+    enabled: !!search.clinic,
+    staleTime: 5 * 60_000,
+    queryFn: () => getPublicOrgBranding({ data: { slug: search.clinic! } }),
+  });
+
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
@@ -66,43 +80,72 @@ function AuthPage() {
     navigate({ to: search.redirect ?? "/dashboard", replace: true });
   };
 
+  const branded = !!clinic;
+  const themeVars = branded
+    ? clinicThemeVars(clinic!.themeSidebar, clinic!.themePrimary)
+    : undefined;
+
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: `url(${logoMark})`,
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          backgroundSize: "min(140vw, 1400px) auto",
-          opacity: 0.08,
-        }}
-      />
+    <main
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4"
+      style={themeVars}
+    >
+      {branded ? null : (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: `url(${logoMark})`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: "min(140vw, 1400px) auto",
+            opacity: 0.08,
+          }}
+        />
+      )}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-70"
         style={{
-          background:
-            "radial-gradient(60% 45% at 50% 20%, color-mix(in oklab, var(--brand-violet) 14%, transparent), transparent 70%)",
+          background: branded
+            ? "radial-gradient(60% 45% at 50% 20%, color-mix(in oklab, var(--clinic-accent) 16%, transparent), transparent 70%)"
+            : "radial-gradient(60% 45% at 50% 20%, color-mix(in oklab, var(--brand-violet) 14%, transparent), transparent 70%)",
         }}
       />
       <div className="relative w-full max-w-md">
         <div className="mb-6 flex flex-col items-center">
-          <img
-            src={logo.url}
-            alt="Resonabed"
-            className="h-36 w-auto"
-            draggable={false}
-          />
+          {branded && clinic!.logoUrl ? (
+            <div className="rounded-2xl bg-white px-6 py-4 shadow-soft">
+              <img
+                src={clinic!.logoUrl}
+                alt={clinic!.name}
+                className="h-24 w-auto"
+                draggable={false}
+              />
+            </div>
+          ) : branded ? (
+            <h2
+              className="text-2xl font-medium tracking-tight"
+              style={{ color: "var(--clinic-accent)" }}
+            >
+              {clinic!.name}
+            </h2>
+          ) : (
+            <img src={logo.url} alt="Resonabed" className="h-36 w-auto" draggable={false} />
+          )}
         </div>
         <div className="shadow-soft rounded-2xl bg-card p-8">
           <div className="mb-6 text-center">
-            <h1 className="text-2xl font-light tracking-tight text-brand-indigo">
+            <h1
+              className="text-2xl font-light tracking-tight text-brand-indigo"
+              style={branded ? { color: "var(--clinic-accent)" } : undefined}
+            >
               Welcome back
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Sign in to your practitioner account.
+              {branded
+                ? `Sign in to your ${clinic!.name} practitioner account.`
+                : "Sign in to your practitioner account."}
             </p>
             {search.reset === "success" ? (
               <p className="mt-4 rounded-lg bg-success/10 px-3 py-2 text-sm text-success">
@@ -158,6 +201,14 @@ function AuthPage() {
               type="submit"
               disabled={loading}
               className="h-12 w-full rounded-[10px] text-[15px] font-medium"
+              style={
+                branded
+                  ? {
+                      backgroundColor: "var(--clinic-accent)",
+                      color: "var(--clinic-accent-fg)",
+                    }
+                  : undefined
+              }
             >
               {loading ? "Signing in…" : "Sign in"}
             </Button>
@@ -166,6 +217,7 @@ function AuthPage() {
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Accounts are created by administrators. Contact your organisation admin if you need
           access.
+          {branded ? " Powered by Resonabed." : null}
         </p>
       </div>
     </main>
