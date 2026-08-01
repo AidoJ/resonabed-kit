@@ -10,15 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FlyerRouteImport } from './routes/flyer'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HomeIndexRouteImport } from './routes/home.index'
 import { Route as OrderSuccessRouteImport } from './routes/order.success'
 import { Route as OrderCancelledRouteImport } from './routes/order.cancelled'
 import { Route as OfferTokenRouteImport } from './routes/offer.$token'
 import { Route as OSlugRouteImport } from './routes/o.$slug'
+import { Route as HomeSignupRouteImport } from './routes/home.signup'
+import { Route as HomeLoginRouteImport } from './routes/home.login'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -50,16 +54,23 @@ import { Route as AuthenticatedAdminMetricsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated/admin.clients'
+import { Route as AuthenticatedAdminAccessCodesRouteImport } from './routes/_authenticated/admin.access-codes'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicHooksStripeRouteImport } from './routes/api/public/hooks/stripe'
 import { Route as ApiPublicHooksOfferTickRouteImport } from './routes/api/public/hooks/offer-tick'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -86,6 +97,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HomeIndexRoute = HomeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HomeRoute,
+} as any)
 const OrderSuccessRoute = OrderSuccessRouteImport.update({
   id: '/order/success',
   path: '/order/success',
@@ -105,6 +121,16 @@ const OSlugRoute = OSlugRouteImport.update({
   id: '/o/$slug',
   path: '/o/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const HomeSignupRoute = HomeSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => HomeRoute,
+} as any)
+const HomeLoginRoute = HomeLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => HomeRoute,
 } as any)
 const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
   id: '/sessions',
@@ -280,6 +306,12 @@ const AuthenticatedAdminClientsRoute =
     path: '/clients',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAccessCodesRoute =
+  AuthenticatedAdminAccessCodesRouteImport.update({
+    id: '/access-codes',
+    path: '/access-codes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedSessionsIdIndexRoute =
   AuthenticatedSessionsIdIndexRouteImport.update({
     id: '/$id/',
@@ -302,6 +334,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksStripeRoute = ApiPublicHooksStripeRouteImport.update({
+  id: '/api/public/hooks/stripe',
+  path: '/api/public/hooks/stripe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksOfferTickRoute = ApiPublicHooksOfferTickRouteImport.update({
   id: '/api/public/hooks/offer-tick',
   path: '/api/public/hooks/offer-tick',
@@ -319,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/flyer': typeof FlyerRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/home': typeof HomeRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/audio': typeof AuthenticatedAudioRoute
@@ -330,10 +368,14 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/home/login': typeof HomeLoginRoute
+  '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
   '/offer/$token': typeof OfferTokenRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
+  '/home/': typeof HomeIndexRoute
+  '/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -357,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
+  '/api/public/hooks/stripe': typeof ApiPublicHooksStripeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -376,10 +419,14 @@ export interface FileRoutesByTo {
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/home/login': typeof HomeLoginRoute
+  '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
   '/offer/$token': typeof OfferTokenRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
+  '/home': typeof HomeIndexRoute
+  '/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -403,6 +450,7 @@ export interface FileRoutesByTo {
   '/sessions': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
+  '/api/public/hooks/stripe': typeof ApiPublicHooksStripeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -415,6 +463,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/flyer': typeof FlyerRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/home': typeof HomeRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/audio': typeof AuthenticatedAudioRoute
@@ -426,10 +475,14 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/home/login': typeof HomeLoginRoute
+  '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
   '/offer/$token': typeof OfferTokenRoute
   '/order/cancelled': typeof OrderCancelledRoute
   '/order/success': typeof OrderSuccessRoute
+  '/home/': typeof HomeIndexRoute
+  '/_authenticated/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -453,6 +506,7 @@ export interface FileRoutesById {
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/_authenticated/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
+  '/api/public/hooks/stripe': typeof ApiPublicHooksStripeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -465,6 +519,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/flyer'
     | '/forgot-password'
+    | '/home'
     | '/reset-password'
     | '/admin'
     | '/audio'
@@ -476,10 +531,14 @@ export interface FileRouteTypes {
     | '/profile'
     | '/services'
     | '/sessions'
+    | '/home/login'
+    | '/home/signup'
     | '/o/$slug'
     | '/offer/$token'
     | '/order/cancelled'
     | '/order/success'
+    | '/home/'
+    | '/admin/access-codes'
     | '/admin/clients'
     | '/admin/global-services'
     | '/admin/invoices'
@@ -503,6 +562,7 @@ export interface FileRouteTypes {
     | '/sessions/'
     | '/sessions/$id/play'
     | '/api/public/hooks/offer-tick'
+    | '/api/public/hooks/stripe'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -522,10 +582,14 @@ export interface FileRouteTypes {
     | '/frequencies'
     | '/profile'
     | '/services'
+    | '/home/login'
+    | '/home/signup'
     | '/o/$slug'
     | '/offer/$token'
     | '/order/cancelled'
     | '/order/success'
+    | '/home'
+    | '/admin/access-codes'
     | '/admin/clients'
     | '/admin/global-services'
     | '/admin/invoices'
@@ -549,6 +613,7 @@ export interface FileRouteTypes {
     | '/sessions'
     | '/sessions/$id/play'
     | '/api/public/hooks/offer-tick'
+    | '/api/public/hooks/stripe'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -560,6 +625,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/flyer'
     | '/forgot-password'
+    | '/home'
     | '/reset-password'
     | '/_authenticated/admin'
     | '/_authenticated/audio'
@@ -571,10 +637,14 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/services'
     | '/_authenticated/sessions'
+    | '/home/login'
+    | '/home/signup'
     | '/o/$slug'
     | '/offer/$token'
     | '/order/cancelled'
     | '/order/success'
+    | '/home/'
+    | '/_authenticated/admin/access-codes'
     | '/_authenticated/admin/clients'
     | '/_authenticated/admin/global-services'
     | '/_authenticated/admin/invoices'
@@ -598,6 +668,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sessions/'
     | '/_authenticated/sessions/$id/play'
     | '/api/public/hooks/offer-tick'
+    | '/api/public/hooks/stripe'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -610,6 +681,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   FlyerRoute: typeof FlyerRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  HomeRoute: typeof HomeRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
   OSlugRoute: typeof OSlugRoute
   OfferTokenRoute: typeof OfferTokenRoute
@@ -617,6 +689,7 @@ export interface RootRouteChildren {
   OrderSuccessRoute: typeof OrderSuccessRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   ApiPublicHooksOfferTickRoute: typeof ApiPublicHooksOfferTickRoute
+  ApiPublicHooksStripeRoute: typeof ApiPublicHooksStripeRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -629,6 +702,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -666,6 +746,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/home/': {
+      id: '/home/'
+      path: '/'
+      fullPath: '/home/'
+      preLoaderRoute: typeof HomeIndexRouteImport
+      parentRoute: typeof HomeRoute
+    }
     '/order/success': {
       id: '/order/success'
       path: '/order/success'
@@ -693,6 +780,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/o/$slug'
       preLoaderRoute: typeof OSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/home/signup': {
+      id: '/home/signup'
+      path: '/signup'
+      fullPath: '/home/signup'
+      preLoaderRoute: typeof HomeSignupRouteImport
+      parentRoute: typeof HomeRoute
+    }
+    '/home/login': {
+      id: '/home/login'
+      path: '/login'
+      fullPath: '/home/login'
+      preLoaderRoute: typeof HomeLoginRouteImport
+      parentRoute: typeof HomeRoute
     }
     '/_authenticated/sessions': {
       id: '/_authenticated/sessions'
@@ -911,6 +1012,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClientsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/access-codes': {
+      id: '/_authenticated/admin/access-codes'
+      path: '/access-codes'
+      fullPath: '/admin/access-codes'
+      preLoaderRoute: typeof AuthenticatedAdminAccessCodesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/sessions/$id/': {
       id: '/_authenticated/sessions/$id/'
       path: '/$id'
@@ -939,6 +1047,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/stripe': {
+      id: '/api/public/hooks/stripe'
+      path: '/api/public/hooks/stripe'
+      fullPath: '/api/public/hooks/stripe'
+      preLoaderRoute: typeof ApiPublicHooksStripeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/offer-tick': {
       id: '/api/public/hooks/offer-tick'
       path: '/api/public/hooks/offer-tick'
@@ -957,6 +1072,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAccessCodesRoute: typeof AuthenticatedAdminAccessCodesRoute
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRoute
   AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
@@ -976,6 +1092,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAccessCodesRoute: AuthenticatedAdminAccessCodesRoute,
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRoute,
   AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
@@ -1050,12 +1167,27 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface HomeRouteChildren {
+  HomeLoginRoute: typeof HomeLoginRoute
+  HomeSignupRoute: typeof HomeSignupRoute
+  HomeIndexRoute: typeof HomeIndexRoute
+}
+
+const HomeRouteChildren: HomeRouteChildren = {
+  HomeLoginRoute: HomeLoginRoute,
+  HomeSignupRoute: HomeSignupRoute,
+  HomeIndexRoute: HomeIndexRoute,
+}
+
+const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   FlyerRoute: FlyerRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  HomeRoute: HomeRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
   OSlugRoute: OSlugRoute,
   OfferTokenRoute: OfferTokenRoute,
@@ -1063,6 +1195,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderSuccessRoute: OrderSuccessRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   ApiPublicHooksOfferTickRoute: ApiPublicHooksOfferTickRoute,
+  ApiPublicHooksStripeRoute: ApiPublicHooksStripeRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
@@ -1070,13 +1203,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

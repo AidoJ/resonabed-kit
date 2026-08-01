@@ -14,7 +14,11 @@ import {
   type EftInvoiceResult,
   type EftContactDetails,
 } from "@/components/payment-method-step-dialog";
-import { ShippingAddressStepDialog, type ShippingContinuePayload, type EnteredShippingAddress } from "@/components/shipping-address-step-dialog";
+import {
+  ShippingAddressStepDialog,
+  type ShippingContinuePayload,
+  type EnteredShippingAddress,
+} from "@/components/shipping-address-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
@@ -129,7 +133,6 @@ function LandingPage() {
         </header>
 
         <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-8 md:grid-cols-2 md:gap-8 md:px-10 md:pb-28 md:pt-12">
-
           <div className="flex flex-col justify-center">
             <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-white/80 backdrop-blur">
               <Waves className="h-3.5 w-3.5" />
@@ -143,10 +146,10 @@ function LandingPage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-            Turn a therapy table you already own into a new source of income. The Resonabed kit can
-            potentially convert your existing massage, chiropractic, osteopathic or any
-            therapeutic treatment bed into a vibroacoustic therapy table, a calm, high-margin
-            session your clients will book again and again.
+              Turn a therapy table you already own into a new source of income. The Resonabed kit
+              can potentially convert your existing massage, chiropractic, osteopathic or any
+              therapeutic treatment bed into a vibroacoustic therapy table, a calm, high-margin
+              session your clients will book again and again.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <a href="#packages">
@@ -167,7 +170,9 @@ function LandingPage() {
               ].map((x) => (
                 <div key={x.k}>
                   <dt className="text-xl font-medium tracking-tight">{x.k}</dt>
-                  <dd className="mt-1.5 text-xs uppercase tracking-[0.12em] text-white/55">{x.v}</dd>
+                  <dd className="mt-1.5 text-xs uppercase tracking-[0.12em] text-white/55">
+                    {x.v}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -204,8 +209,8 @@ function LandingPage() {
             A new revenue stream in the room you already work in.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            The kit arrives ready to install: speakers, amplifier, player app and booking tools. Just
-            fit it to the table you already own, open the app, and start offering sessions.
+            The kit arrives ready to install: speakers, amplifier, player app and booking tools.
+            Just fit it to the table you already own, open the app, and start offering sessions.
           </p>
         </div>
 
@@ -400,7 +405,10 @@ function LandingPage() {
           <p className="mt-4 text-muted-foreground">
             Both packages include the complete kit: tactile speakers, amplifier, Resonabed player
             and booking app, 9 therapeutic Solfeggio frequencies, and 100 professionally designed{" "}
-            <Link to="/flyer" className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong">
+            <Link
+              to="/flyer"
+              className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
+            >
               marketing flyers
             </Link>
             .
@@ -443,7 +451,8 @@ function LandingPage() {
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
           *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment bed.
-          The kit is designed to upgrade the table you already use and must have a solid timber base to attach the equipment.
+          The kit is designed to upgrade the table you already use and must have a solid timber base
+          to attach the equipment.
         </p>
       </section>
 
@@ -458,10 +467,10 @@ function LandingPage() {
               A vibroacoustic session is about uninterrupted calm.
             </h2>
             <p className="mt-5 max-w-xl text-white/70">
-              A phone can ring mid-session. A laptop can chime with an email or reminder, and
-              those sounds carry straight through the table to your client. We recommend running
-              Resonabed on a device kept just for sessions. The Premium package includes one ready
-              to go, so nothing breaks the stillness.
+              A phone can ring mid-session. A laptop can chime with an email or reminder, and those
+              sounds carry straight through the table to your client. We recommend running Resonabed
+              on a device kept just for sessions. The Premium package includes one ready to go, so
+              nothing breaks the stillness.
             </p>
             <ul className="mt-8 grid gap-3 text-sm text-white/80 sm:grid-cols-2">
               {[
@@ -524,6 +533,17 @@ function LandingPage() {
             <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
               Choose the package that fits your clinic, complete checkout, and start offering
               vibroacoustic sessions in the room you already use.
+            </p>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
+              Buying a kit for your own home? Every purchase includes the personal Resonabed app. We
+              email you an access code, and you set it up at{" "}
+              <Link
+                to="/home/signup"
+                className="text-brand-indigo underline-offset-4 hover:underline"
+              >
+                resonabed.com/home/signup
+              </Link>
+              .
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <a href="#packages">
@@ -600,7 +620,6 @@ function PackageCard({
   const [eftResult, setEftResult] = useState<EftInvoiceResult | null>(null);
   const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
 
-
   const plan = INSTALLMENTS[packageKey];
   const totalInstallments = plan.deposit + plan.monthly * plan.months;
   const packagePriceCents = packageKey === "pro" ? 119900 : 139900;
@@ -614,7 +633,11 @@ function PackageCard({
     setActivePlan(which);
     try {
       const address: EnteredShippingAddress | undefined = ship.pickup ? undefined : ship.address;
-      const { clientSecret: cs, appliedPromo, shipping } = await startCheckout({
+      const {
+        clientSecret: cs,
+        appliedPromo,
+        shipping,
+      } = await startCheckout({
         data: {
           package: packageKey,
           plan: which,
@@ -637,7 +660,11 @@ function PackageCard({
       setClientSecret(cs);
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "Couldn't start checkout. Please try again or contact us.");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Couldn't start checkout. Please try again or contact us.",
+      );
     } finally {
       setLoading(null);
     }
@@ -678,7 +705,9 @@ function PackageCard({
       setEftResult(result);
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "Couldn't raise your invoice. Please contact us.");
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't raise your invoice. Please contact us.",
+      );
     } finally {
       setEftSubmitting(false);
     }
@@ -720,9 +749,7 @@ function PackageCard({
           ) : null}
         </div>
         <p
-          className={
-            "mt-2 text-sm " + (highlighted ? "text-white/80" : "text-brand-violet-strong")
-          }
+          className={"mt-2 text-sm " + (highlighted ? "text-white/80" : "text-brand-violet-strong")}
         >
           {tagline}
         </p>
@@ -735,19 +762,11 @@ function PackageCard({
           >
             {price}
           </span>
-          <span
-            className={
-              "text-sm " + (highlighted ? "text-white/60" : "text-muted-foreground")
-            }
-          >
+          <span className={"text-sm " + (highlighted ? "text-white/60" : "text-muted-foreground")}>
             AUD · incl. GST
           </span>
         </div>
-        <p
-          className={
-            "mt-1 text-xs " + (highlighted ? "text-white/55" : "text-muted-foreground")
-          }
-        >
+        <p className={"mt-1 text-xs " + (highlighted ? "text-white/55" : "text-muted-foreground")}>
           {packageKey === "pro" ? "$1,090 + $109 GST = $1,199" : "$1,272 + $127 GST = $1,399"}
         </p>
         <p
@@ -877,6 +896,3 @@ function PackageCard({
     </div>
   );
 }
-
-
-

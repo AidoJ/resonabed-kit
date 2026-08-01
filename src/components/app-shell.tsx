@@ -26,6 +26,7 @@ import {
   ExternalLink,
   UserCog,
   ShieldPlus,
+  KeyRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -104,6 +105,7 @@ function buildNav(
           { to: "/admin/payments", label: "Payments", icon: Banknote },
           { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
           { to: "/admin/shipping", label: "Shipping rates", icon: Truck },
+          { to: "/admin/access-codes", label: "Home access codes", icon: KeyRound },
         ],
       },
     ];

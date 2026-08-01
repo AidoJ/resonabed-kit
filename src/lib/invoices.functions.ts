@@ -98,12 +98,8 @@ export const createKitInvoice = createServerFn({ method: "POST" })
     await assertSuper(context);
     const sb = context.supabase as any;
 
-    const totalCents = Math.max(
-      0,
-      data.listCents - data.discountCents + data.shippingCents,
-    );
-    const taxable =
-      totalCents - (data.shippingGstInclusive ? 0 : data.shippingCents);
+    const totalCents = Math.max(0, data.listCents - data.discountCents + data.shippingCents);
+    const taxable = totalCents - (data.shippingGstInclusive ? 0 : data.shippingCents);
     const gstCents = gstOf(Math.max(0, taxable));
 
     const { data: numberRow, error: numErr } = await sb.rpc("next_kit_invoice_number");
@@ -228,6 +224,18 @@ export const recordKitPayment = createServerFn({ method: "POST" })
     );
     if (sum >= (invoice?.total_cents ?? 0) && invoice?.status !== "void") {
       await sb.from("kit_invoices").update({ status: "paid" }).eq("id", data.invoiceId);
+      // A fully paid kit invoice earns the buyer their home-app access code.
+      if (invoice?.customer_email) {
+        const { issueAccessCode } = await import("@/lib/home-access.server");
+        await issueAccessCode({
+          buyerEmail: invoice.customer_email as string,
+          buyerName: (invoice.customer_name as string | null) ?? null,
+          buyerPhone: (invoice.customer_phone as string | null) ?? null,
+          packageKey: (invoice.package_key as string | null) ?? null,
+          source: "eft",
+          sourceRef: invoice.invoice_number as string,
+        }).catch((err) => console.error("issueAccessCode (invoice) failed", err));
+      }
     } else if (invoice?.status === "draft") {
       await sb.from("kit_invoices").update({ status: "sent" }).eq("id", data.invoiceId);
     }
