@@ -81,6 +81,7 @@ export function PublicBookingForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [period, setPeriod] = useState<string | null>(null);
 
   const phoneProblem = phone ? phoneValidationError(phone) : null;
 
