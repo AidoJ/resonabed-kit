@@ -1,17 +1,22 @@
 import { createFileRoute, Link, redirect, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { getPublicOrgBranding } from "@/lib/public-org.functions";
+import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
   reset: z.enum(["success"]).optional(),
+  /** Optional clinic slug: brands this page with that clinic's logo/colours. */
+  clinic: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
