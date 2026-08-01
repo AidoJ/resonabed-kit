@@ -96,6 +96,8 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
             {selected.frequency.description}
           </p>
         ) : null}
+        <TagSummary frequency={selected.frequency} className="mt-3" />
+
 
       </div>
 
