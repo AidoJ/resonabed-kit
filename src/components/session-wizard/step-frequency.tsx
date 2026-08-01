@@ -133,7 +133,9 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {r.frequency.benefits || r.frequency.description}
                   </p>
+                  <TagSummary frequency={r.frequency} className="mt-2" />
                 </div>
+
 
                 {active ? <Check className="h-4 w-4 text-primary" /> : null}
               </button>
