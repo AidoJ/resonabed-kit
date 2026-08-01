@@ -211,7 +211,9 @@ function PlaySession() {
               src={signed.url}
               title={audio.title}
               onPlayingChange={setAmbient}
+              hideTransport
             />
+
           ) : licence && !licence.is_ok ? (
             <div className="flex items-center gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-foreground/90">
               <Music className="h-5 w-5" />
