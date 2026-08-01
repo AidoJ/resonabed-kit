@@ -155,8 +155,11 @@ function HomeMain({ displayName }: { displayName: string | null }) {
     queryFn: () => libraryFn(),
   });
 
-  const frequencies = (data?.frequencies ?? []) as FrequencyRow[];
-  const tracks = data?.tracks ?? [];
+  const frequencies = useMemo(
+    () => (data?.frequencies ?? []) as FrequencyRow[],
+    [data?.frequencies],
+  );
+  const tracks = useMemo(() => data?.tracks ?? [], [data?.tracks]);
 
   const chosen = useMemo(() => {
     if (frequencies.length === 0) return null;
