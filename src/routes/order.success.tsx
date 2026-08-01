@@ -23,13 +23,15 @@ function OrderSuccess() {
   const finalize = useServerFn(finalizeCheckoutSession);
 
   const [codeEmail, setCodeEmail] = useState<string | null>(null);
+  const [buyerType, setBuyerType] = useState<"personal" | "business" | null>(null);
 
   useEffect(() => {
     if (!session_id) return;
     finalize({ data: { sessionId: session_id } })
       .then((res) => {
-        const email = (res as { codeEmail?: string | null })?.codeEmail ?? null;
-        if (email) setCodeEmail(email);
+        const r = res as { codeEmail?: string | null; buyerType?: "personal" | "business" };
+        if (r?.codeEmail) setCodeEmail(r.codeEmail);
+        if (r?.buyerType) setBuyerType(r.buyerType);
       })
       .catch((err) => {
         // Non-fatal: payment is already complete; admin records can be reconciled manually.
@@ -47,24 +49,46 @@ function OrderSuccess() {
           Thank you, your order is confirmed.
         </h1>
         <p className="mt-4 max-w-md text-muted-foreground">
-          You'll receive a receipt by email shortly. Our team will be in touch within one business
-          day to confirm shipping details and next steps.
+          {buyerType === "business"
+            ? "You'll receive a receipt by email shortly, and your clinic account is being set up now."
+            : "You'll receive a receipt by email shortly. Our team will be in touch within one business day to confirm shipping details and next steps."}
         </p>
-        <div className="mt-8 w-full rounded-2xl border border-brand-violet/20 bg-brand-violet/5 p-6 text-left">
-          <h2 className="text-lg font-medium text-brand-indigo">Your personal Resonabed app</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Your kit includes the personal app for home use. We've emailed a one-time access code
-            {codeEmail ? ` to ${codeEmail}` : " to the address used at checkout"}. Enter it at{" "}
-            <Link to="/home/signup" className="text-brand-violet-strong underline">
-              resonabed.com/home/signup
-            </Link>{" "}
-            to create your account, it stays with you for good.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Code not arrived within a few minutes? Check your junk folder, or email
-            info@resonabed.com and we'll reissue it.
-          </p>
-        </div>
+
+        {buyerType === "business" ? (
+          <div className="mt-8 w-full rounded-2xl border border-brand-violet/20 bg-brand-violet/5 p-6 text-left">
+            <h2 className="text-lg font-medium text-brand-indigo">
+              Your clinic account is being set up
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We set each clinic up by hand so your public web address, ABN and clinic type
+              (home-based or retail premises) are right from day one. Clinic type decides whether
+              your street address can ever be shown publicly, so we confirm it rather than guess.
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              You'll get a second email with your login details and a temporary password, usually
+              within one business day. Nothing to do in the meantime.
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Need it sooner, or need to change something? Email info@resonabed.com.
+            </p>
+          </div>
+        ) : buyerType === "personal" ? (
+          <div className="mt-8 w-full rounded-2xl border border-brand-violet/20 bg-brand-violet/5 p-6 text-left">
+            <h2 className="text-lg font-medium text-brand-indigo">Your personal Resonabed app</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Your kit includes the personal app for home use. We've emailed a one-time access code
+              {codeEmail ? ` to ${codeEmail}` : " to the address used at checkout"}. Enter it at{" "}
+              <Link to="/home/signup" className="text-brand-violet-strong underline">
+                resonabed.com/home/signup
+              </Link>{" "}
+              to create your account, it stays with you for good.
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Code not arrived within a few minutes? Check your junk folder, or email
+              info@resonabed.com and we'll reissue it.
+            </p>
+          </div>
+        ) : null}
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link to="/">
