@@ -1,7 +1,40 @@
 import { Check, Music, MusicIcon, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { RankedFrequency } from "@/lib/frequency-match";
+import {
+  BODY_AREA_OPTIONS,
+  GOAL_OPTIONS,
+  type FrequencyRow,
+  type RankedFrequency,
+} from "@/lib/frequency-match";
 import { Badge } from "@/components/ui/badge";
+
+function labelFor(list: { value: string; label: string }[], value: string) {
+  return list.find((o) => o.value === value)?.label ?? value;
+}
+
+function TagSummary({ frequency, className }: { frequency: FrequencyRow; className?: string }) {
+  const goals = (frequency.goal_tags ?? []).map((g) => labelFor(GOAL_OPTIONS, g));
+  const areas = (frequency.body_area_tags ?? []).map((b) => labelFor(BODY_AREA_OPTIONS, b));
+  if (goals.length === 0 && areas.length === 0) return null;
+  return (
+    <div className={cn("text-xs leading-relaxed text-muted-foreground", className)}>
+      This frequency has been associated with
+      {goals.length > 0 ? (
+        <>
+          {" "}these goals: <span className="font-medium text-foreground">{goals.join(", ")}</span>
+        </>
+      ) : null}
+      {goals.length > 0 && areas.length > 0 ? " and" : null}
+      {areas.length > 0 ? (
+        <>
+          {" "}these body areas:{" "}
+          <span className="font-medium text-foreground">{areas.join(", ")}</span>
+        </>
+      ) : null}
+      .
+    </div>
+  );
+}
 
 interface Props {
   ranked: RankedFrequency[];
@@ -63,6 +96,8 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
             {selected.frequency.description}
           </p>
         ) : null}
+        <TagSummary frequency={selected.frequency} className="mt-3" />
+
 
       </div>
 
@@ -98,7 +133,9 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {r.frequency.benefits || r.frequency.description}
                   </p>
+                  <TagSummary frequency={r.frequency} className="mt-2" />
                 </div>
+
 
                 {active ? <Check className="h-4 w-4 text-primary" /> : null}
               </button>
