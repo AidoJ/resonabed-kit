@@ -27,6 +27,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'booking-alternates-offered': bookingAlternatesOfferedTemplate,
   'booking-alternates-reminder': bookingAlternatesReminderTemplate,
   'home-access-code': homeAccessCodeTemplate,
+  'clinic-order-received': clinicOrderReceivedTemplate,
 
 }
 
