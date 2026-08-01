@@ -1,0 +1,178 @@
+import { useState } from "react";
+import { Building2, User } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export type BusinessBuyerDetails = {
+  businessName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  abn?: string;
+};
+
+export type BuyerTypeContinuePayload =
+  | { buyerType: "personal" }
+  | { buyerType: "business"; business: BusinessBuyerDetails };
+
+/**
+ * The buyer says which they are before paying. Personal buyers go straight to
+ * the home-app access code; business buyers go to the clinic onboarding queue.
+ * We never infer this after the fact.
+ */
+export function BuyerTypeStepDialog({
+  open,
+  onOpenChange,
+  packageName,
+  onContinue,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  packageName: string;
+  onContinue: (payload: BuyerTypeContinuePayload) => void;
+}) {
+  const [choice, setChoice] = useState<"personal" | "business" | null>(null);
+  const [form, setForm] = useState({
+    businessName: "",
+    contactName: "",
+    contactEmail: "",
+    contactPhone: "",
+    abn: "",
+  });
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const businessValid =
+    form.businessName.trim().length >= 2 &&
+    form.contactName.trim().length >= 1 &&
+    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.contactEmail.trim());
+
+  const handleContinue = () => {
+    if (choice === "personal") {
+      onContinue({ buyerType: "personal" });
+      return;
+    }
+    if (choice === "business" && businessValid) {
+      onContinue({
+        buyerType: "business",
+        business: {
+          businessName: form.businessName.trim(),
+          contactName: form.contactName.trim(),
+          contactEmail: form.contactEmail.trim(),
+          contactPhone: form.contactPhone.trim() || undefined,
+          abn: form.abn.trim() || undefined,
+        },
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>How will you use the {packageName}?</DialogTitle>
+          <DialogDescription>
+            This sets up the right account for you after payment. It doesn't change the price.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setChoice("personal")}
+            className={
+              "rounded-xl border p-4 text-left transition " +
+              (choice === "personal"
+                ? "border-brand-violet bg-brand-violet/5 ring-1 ring-brand-violet"
+                : "border-border hover:border-brand-violet/50")
+            }
+          >
+            <User className="h-5 w-5 text-brand-violet-strong" />
+            <div className="mt-2 font-medium">Personal use</div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              For your own home. You get a one-time code to set up the personal app straight away.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setChoice("business")}
+            className={
+              "rounded-xl border p-4 text-left transition " +
+              (choice === "business"
+                ? "border-brand-violet bg-brand-violet/5 ring-1 ring-brand-violet"
+                : "border-border hover:border-brand-violet/50")
+            }
+          >
+            <Building2 className="h-5 w-5 text-brand-violet-strong" />
+            <div className="mt-2 font-medium">Business or clinic</div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              For paying clients. We set up your clinic account and public page, then email your
+              login.
+            </p>
+          </button>
+        </div>
+
+        {choice === "business" ? (
+          <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
+            <p className="text-xs text-muted-foreground">
+              We set each clinic up by hand, so your details are correct from day one. Expect your
+              login by email within one business day of payment.
+            </p>
+            <div className="space-y-1.5">
+              <Label>Clinic or business name</Label>
+              <Input value={form.businessName} onChange={set("businessName")} maxLength={160} />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Contact name</Label>
+                <Input value={form.contactName} onChange={set("contactName")} maxLength={120} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Contact email</Label>
+                <Input
+                  type="email"
+                  value={form.contactEmail}
+                  onChange={set("contactEmail")}
+                  maxLength={200}
+                />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Phone (optional)</Label>
+                <Input value={form.contactPhone} onChange={set("contactPhone")} maxLength={40} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>ABN (optional)</Label>
+                <Input value={form.abn} onChange={set("abn")} maxLength={20} />
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleContinue}
+            disabled={!choice || (choice === "business" && !businessValid)}
+          >
+            Continue
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,6 +1,7 @@
 /**
- * Stripe webhook: issues the home-app access code the moment a kit purchase
- * completes. Signature-verified, idempotent (one live code per checkout
+ * Stripe webhook: fulfils a kit purchase the moment it completes. Personal
+ * buyers get a home-app access code; business buyers land in the clinic
+ * onboarding queue for a human to provision. Signature-verified, idempotent (one live code per checkout
  * session), and independent of whether the buyer's browser reaches
  * /order/success.
  *
@@ -40,28 +41,15 @@ export const Route = createFileRoute("/api/public/hooks/stripe")({
         }
 
         const session = event.data.object as Stripe.Checkout.Session;
-        const email =
-          session.customer_details?.email ?? (session.customer_email as string | null) ?? null;
-        if (!email) {
-          console.error("checkout.session.completed with no email", session.id);
-          return Response.json({ received: true, issued: false });
-        }
 
         try {
-          const { issueAccessCode } = await import("@/lib/home-access.server");
-          const issued = await issueAccessCode({
-            buyerEmail: email,
-            buyerName: session.customer_details?.name ?? null,
-            buyerPhone: session.customer_details?.phone ?? null,
-            packageKey: (session.metadata?.["package"] as string | undefined) ?? null,
-            source: "stripe",
-            sourceRef: session.id,
-          });
-          return Response.json({ received: true, issued: !issued.alreadyExisted });
+          const { fulfilCheckoutSession } = await import("@/lib/order-fulfilment.server");
+          const result = await fulfilCheckoutSession(session);
+          return Response.json({ received: true, ...result });
         } catch (err) {
           // Returning 500 asks Stripe to retry, which is what we want.
-          console.error("Failed to issue access code from Stripe webhook", err);
-          return new Response("Failed to issue access code", { status: 500 });
+          console.error("Failed to fulfil checkout session from Stripe webhook", err);
+          return new Response("Failed to fulfil order", { status: 500 });
         }
       },
     },

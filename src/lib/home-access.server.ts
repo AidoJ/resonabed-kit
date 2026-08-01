@@ -29,6 +29,8 @@ export type IssueCodeInput = {
   source: string;
   /** Stripe checkout session id, or invoice number. Used for idempotency. */
   sourceRef?: string | null;
+  /** 'personal' | 'business'. Business buyers only get a code on request. */
+  buyerType?: string | null;
 };
 
 export type IssuedCode = {
@@ -78,6 +80,7 @@ export async function issueAccessCode(input: IssueCodeInput): Promise<IssuedCode
         package_key: input.packageKey ?? null,
         source: input.source,
         source_ref: input.sourceRef ?? null,
+        buyer_type: input.buyerType ?? "personal",
         status: "issued",
       })
       .select("id, code, buyer_email")

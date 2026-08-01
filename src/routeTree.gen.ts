@@ -50,6 +50,7 @@ import { Route as AuthenticatedAdminPolicyTemplatesRouteImport } from './routes/
 import { Route as AuthenticatedAdminPlatformAdminsRouteImport } from './routes/_authenticated/admin.platform-admins'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin.payments'
 import { Route as AuthenticatedAdminOrganisationsRouteImport } from './routes/_authenticated/admin.organisations'
+import { Route as AuthenticatedAdminOnboardingRouteImport } from './routes/_authenticated/admin.onboarding'
 import { Route as AuthenticatedAdminMetricsRouteImport } from './routes/_authenticated/admin.metrics'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
@@ -282,6 +283,12 @@ const AuthenticatedAdminOrganisationsRoute =
     path: '/organisations',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminOnboardingRoute =
+  AuthenticatedAdminOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminMetricsRoute =
   AuthenticatedAdminMetricsRouteImport.update({
     id: '/metrics',
@@ -380,6 +387,7 @@ export interface FileRoutesByFullPath {
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
+  '/admin/onboarding': typeof AuthenticatedAdminOnboardingRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
@@ -431,6 +439,7 @@ export interface FileRoutesByTo {
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
+  '/admin/onboarding': typeof AuthenticatedAdminOnboardingRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
@@ -487,6 +496,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/admin/metrics': typeof AuthenticatedAdminMetricsRoute
+  '/_authenticated/admin/onboarding': typeof AuthenticatedAdminOnboardingRoute
   '/_authenticated/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
@@ -543,6 +553,7 @@ export interface FileRouteTypes {
     | '/admin/global-services'
     | '/admin/invoices'
     | '/admin/metrics'
+    | '/admin/onboarding'
     | '/admin/organisations'
     | '/admin/payments'
     | '/admin/platform-admins'
@@ -594,6 +605,7 @@ export interface FileRouteTypes {
     | '/admin/global-services'
     | '/admin/invoices'
     | '/admin/metrics'
+    | '/admin/onboarding'
     | '/admin/organisations'
     | '/admin/payments'
     | '/admin/platform-admins'
@@ -649,6 +661,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/global-services'
     | '/_authenticated/admin/invoices'
     | '/_authenticated/admin/metrics'
+    | '/_authenticated/admin/onboarding'
     | '/_authenticated/admin/organisations'
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/platform-admins'
@@ -984,6 +997,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOrganisationsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/onboarding': {
+      id: '/_authenticated/admin/onboarding'
+      path: '/onboarding'
+      fullPath: '/admin/onboarding'
+      preLoaderRoute: typeof AuthenticatedAdminOnboardingRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/metrics': {
       id: '/_authenticated/admin/metrics'
       path: '/metrics'
@@ -1077,6 +1097,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
   AuthenticatedAdminMetricsRoute: typeof AuthenticatedAdminMetricsRoute
+  AuthenticatedAdminOnboardingRoute: typeof AuthenticatedAdminOnboardingRoute
   AuthenticatedAdminOrganisationsRoute: typeof AuthenticatedAdminOrganisationsRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminPlatformAdminsRoute: typeof AuthenticatedAdminPlatformAdminsRoute
@@ -1097,6 +1118,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
   AuthenticatedAdminMetricsRoute: AuthenticatedAdminMetricsRoute,
+  AuthenticatedAdminOnboardingRoute: AuthenticatedAdminOnboardingRoute,
   AuthenticatedAdminOrganisationsRoute: AuthenticatedAdminOrganisationsRoute,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
   AuthenticatedAdminPlatformAdminsRoute: AuthenticatedAdminPlatformAdminsRoute,
@@ -1203,13 +1225,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

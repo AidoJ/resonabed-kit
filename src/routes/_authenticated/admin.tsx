@@ -1,4 +1,5 @@
-import { createFileRoute, redirect, Outlet, Link, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute, redirect, Outlet, Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
@@ -17,6 +18,7 @@ import {
   FileText,
   Banknote,
   KeyRound,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +37,7 @@ const SUPER_TABS: Tab[] = [
   { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
   { to: "/admin/shipping", label: "Shipping rates", icon: Truck },
   { to: "/admin/sales", label: "Kit purchases", icon: Receipt },
+  { to: "/admin/onboarding", label: "Clinic onboarding", icon: ClipboardCheck },
   { to: "/admin/access-codes", label: "Home access codes", icon: KeyRound },
   { to: "/admin/invoices", label: "Invoices", icon: FileText },
   { to: "/admin/payments", label: "Payments", icon: Banknote },

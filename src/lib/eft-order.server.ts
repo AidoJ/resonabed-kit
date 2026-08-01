@@ -19,6 +19,10 @@ export type EftOrderInput = {
   shippingAddress?: string | null;
   promoCode?: string | null;
   shipping: { region: string; label: string; amount: number; gstInclusive: boolean };
+  /** 'personal' | 'business'. Decides the post-payment path when paid. */
+  buyerType?: string | null;
+  businessName?: string | null;
+  abn?: string | null;
 };
 
 const gstOf = (inclusiveCents: number) => Math.round(inclusiveCents / 11);
@@ -62,6 +66,9 @@ export async function createEftKitInvoice(input: EftOrderInput) {
       customer_name: input.customerName,
       customer_email: input.customerEmail,
       customer_phone: input.customerPhone || null,
+      buyer_type: input.buyerType || "personal",
+      business_name: input.businessName || null,
+      abn: input.abn || null,
       shipping_address: input.shippingAddress || null,
       package_key: input.packageKey,
       package_label: pkg.label,

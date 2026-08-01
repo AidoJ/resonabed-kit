@@ -19,6 +19,10 @@ import {
   type ShippingContinuePayload,
   type EnteredShippingAddress,
 } from "@/components/shipping-address-step-dialog";
+import {
+  BuyerTypeStepDialog,
+  type BuyerTypeContinuePayload,
+} from "@/components/buyer-type-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
@@ -619,6 +623,8 @@ function PackageCard({
   const [eftSubmitting, setEftSubmitting] = useState(false);
   const [eftResult, setEftResult] = useState<EftInvoiceResult | null>(null);
   const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
+  const [buyerOpen, setBuyerOpen] = useState(false);
+  const [buyer, setBuyer] = useState<BuyerTypeContinuePayload | null>(null);
 
   const plan = INSTALLMENTS[packageKey];
   const totalInstallments = plan.deposit + plan.monthly * plan.months;
@@ -628,6 +634,7 @@ function PackageCard({
     which: "full" | "installments",
     promoCode: string,
     ship: ShippingContinuePayload,
+    who: BuyerTypeContinuePayload | null,
   ) => {
     setLoading(which);
     setActivePlan(which);
@@ -645,6 +652,8 @@ function PackageCard({
           promoCode: which === "full" ? promoCode : "",
           pickup: ship.pickup,
           shippingAddress: address,
+          buyerType: who?.buyerType ?? "personal",
+          business: who && who.buyerType === "business" ? who.business : undefined,
         },
       });
       const shippingBlurb = shipping
@@ -673,6 +682,13 @@ function PackageCard({
   const handleOrder = (which: "full" | "installments") => {
     setPendingPlan(which);
     setShippingChoice(null);
+    setBuyer(null);
+    setBuyerOpen(true);
+  };
+
+  const handleBuyerContinue = (payload: BuyerTypeContinuePayload) => {
+    setBuyer(payload);
+    setBuyerOpen(false);
     setShippingOpen(true);
   };
 
@@ -682,7 +698,7 @@ function PackageCard({
     if (pendingPlan === "full") {
       setPromoOpen(true);
     } else if (pendingPlan === "installments") {
-      void runCheckout("installments", "", payload);
+      void runCheckout("installments", "", payload, buyer);
     }
   };
 
@@ -699,6 +715,8 @@ function PackageCard({
           pickup: shippingChoice.pickup,
           shippingAddress: shippingChoice.pickup ? undefined : shippingChoice.address,
           customerName: shippingChoice.pickup ? undefined : shippingChoice.address.name,
+          buyerType: buyer?.buyerType ?? "personal",
+          business: buyer && buyer.buyerType === "business" ? buyer.business : undefined,
         },
       });
       setPayMethodOpen(false);
@@ -861,6 +879,13 @@ function PackageCard({
             : `Complete your ${name} order`
         }
       />
+      <BuyerTypeStepDialog
+        open={buyerOpen}
+        onOpenChange={setBuyerOpen}
+        packageName={name}
+        onContinue={handleBuyerContinue}
+      />
+
       <ShippingAddressStepDialog
         open={shippingOpen}
         packagePriceCents={packagePriceCents}
@@ -888,7 +913,7 @@ function PackageCard({
         onCancel={() => setPayMethodOpen(false)}
         onCard={() => {
           setPayMethodOpen(false);
-          if (shippingChoice) void runCheckout("full", promoChoice, shippingChoice);
+          if (shippingChoice) void runCheckout("full", promoChoice, shippingChoice, buyer);
         }}
         onEft={(contact) => void handleEftRequest(contact)}
       />
