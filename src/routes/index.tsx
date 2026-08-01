@@ -49,7 +49,7 @@ export const Route = createFileRoute("/")({
         content:
           "Turn a therapy table* you already own into a new revenue stream. The Resonabed kit can potentially convert your existing massage, chiropractic, osteopathic or any therapeutic treatment table into a vibroacoustic therapy table, kit, app, and music licence included.",
       },
-      { property: "og:title", content: "Resonabed — Sound you can feel. Rest that goes deeper." },
+      { property: "og:title", content: "Resonabed — Sound you can feel. Where tension unwinds." },
       {
         property: "og:description",
         content:
@@ -139,7 +139,7 @@ function LandingPage() {
               Sound you can feel.
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[color-mix(in_oklab,var(--brand-violet)_60%,white)]">
-                Rest that goes deeper.
+                Where tension unwinds.
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
