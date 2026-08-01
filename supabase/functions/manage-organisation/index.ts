@@ -28,6 +28,11 @@ type Action =
       admin_email: string;
       admin_display_name?: string | null;
       admin_phone?: string | null;
+      slug?: string | null;
+      abn?: string | null;
+      business_name?: string | null;
+      contact_email?: string | null;
+      clinic_type?: "home" | "retail" | null;
       seed_services: boolean;
       seed_frequencies: boolean; // no-op flag (frequencies are global)
       seed_audio?: boolean; // deprecated no-op: global audio library is shared, not copied
@@ -171,6 +176,13 @@ Deno.serve(async (req) => {
             brand_color: body.brand_color ?? null,
             logo_path: body.logo_path ?? null,
             status: "active",
+            slug: body.slug?.trim().toLowerCase() || null,
+            abn: body.abn?.trim() || null,
+            business_name: body.business_name?.trim() || null,
+            contact_email: body.contact_email?.trim().toLowerCase() || null,
+            ...(body.clinic_type
+              ? { clinic_type: body.clinic_type, clinic_type_confirmed: true }
+              : {}),
             consent_text: tplBy.get("consent") ?? null,
             privacy_policy_text: tplBy.get("privacy") ?? null,
             health_policy_text: tplBy.get("health_safety") ?? null,
