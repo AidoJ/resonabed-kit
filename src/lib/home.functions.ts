@@ -75,7 +75,10 @@ export const getHomeContext = createServerFn({ method: "GET" })
 /** Records the one-time product-safety acknowledgement. Append-only. */
 export const acknowledgeHomeSafety = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ signature: z.string().trim().min(2).max(120) }).parse(data))
+  .inputValidator((data) =>
+    // Drawn signature: a PNG data URL, same capture as the clinic app.
+    z.object({ signature: z.string().trim().min(2).max(400_000) }).parse(data),
+  )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("home_safety_acknowledgements").insert({
       user_id: context.userId,
