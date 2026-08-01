@@ -1405,6 +1405,7 @@ export type Database = {
           org_id: string | null
           price: number
           rrp: number | null
+          show_price: boolean
           source_global_id: string | null
           updated_at: string
         }
@@ -1418,6 +1419,7 @@ export type Database = {
           org_id?: string | null
           price?: number
           rrp?: number | null
+          show_price?: boolean
           source_global_id?: string | null
           updated_at?: string
         }
@@ -1431,6 +1433,7 @@ export type Database = {
           org_id?: string | null
           price?: number
           rrp?: number | null
+          show_price?: boolean
           source_global_id?: string | null
           updated_at?: string
         }
@@ -1792,6 +1795,7 @@ export type Database = {
           id: string
           name: string
           price: number
+          show_price: boolean
         }[]
       }
       has_role: {
