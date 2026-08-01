@@ -313,11 +313,36 @@ export const finalizeCheckoutSession = createServerFn({ method: "POST" })
     const session = await stripe.checkout.sessions.retrieve(data.sessionId, {
       expand: ["subscription"],
     });
+
+    // Belt and braces: the Stripe webhook normally issues the home-app access
+    // code, but issuing here too (idempotent on the session id) means the buyer
+    // still gets it if the webhook is delayed or not yet configured.
+    const buyerEmail =
+      session.customer_details?.email ?? (session.customer_email as string | null) ?? null;
+    let home: { codeEmail: string | null } = { codeEmail: null };
+    if (buyerEmail && session.payment_status !== "unpaid") {
+      try {
+        const { issueAccessCode } = await import("@/lib/home-access.server");
+        const issued = await issueAccessCode({
+          buyerEmail,
+          buyerName: session.customer_details?.name ?? null,
+          buyerPhone: session.customer_details?.phone ?? null,
+          packageKey: (session.metadata?.["package"] as string | undefined) ?? null,
+          source: "stripe",
+          sourceRef: session.id,
+        });
+        home = { codeEmail: issued.buyerEmail };
+      } catch (err) {
+        console.error("Failed to issue home access code on order success", err);
+      }
+    }
+
     if (session.mode !== "subscription") {
       const promoCodeId = session.metadata?.promo_code_id;
       if (session.payment_status !== "paid" || !promoCodeId) {
-        return { ok: true, skipped: "not-discounted-payment" };
+        return { ok: true, skipped: "not-discounted-payment", ...home };
       }
+
 
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { error: redemptionError } = await supabaseAdmin
