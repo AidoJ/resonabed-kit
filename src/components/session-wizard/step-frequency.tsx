@@ -59,11 +59,11 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
           <span className="ml-2 text-xl font-medium">{selected.frequency.name}</span>
         </div>
         {selected.frequency.description ? (
-          <p className="mt-3 text-sm text-muted-foreground">{selected.frequency.description}</p>
+          <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+            {selected.frequency.description}
+          </p>
         ) : null}
-        {selected.frequency.benefits ? (
-          <p className="mt-2 text-sm">{selected.frequency.benefits}</p>
-        ) : null}
+
       </div>
 
       <div>
