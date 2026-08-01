@@ -81,6 +81,7 @@ export function PublicBookingForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [period, setPeriod] = useState<string | null>(null);
 
   const phoneProblem = phone ? phoneValidationError(phone) : null;
 
@@ -101,12 +102,23 @@ export function PublicBookingForm({
     }) : base;
   })();
 
+  const groups = groupSlots(slots);
+  const activePeriod =
+    (period && groups.some((g) => g.label === period) ? period : null) ??
+    groups.find((g) => g.items.includes(time))?.label ??
+    groups[0]?.label ??
+    null;
+  const activeItems = groups.find((g) => g.label === activePeriod)?.items ?? [];
+
   // Keep the chosen time valid whenever the date or session type changes.
   const slotKey = slots.join(",");
   useEffect(() => {
     if (slots.length > 0 && !slots.includes(time)) setTime(slots[0]);
+    setPeriod(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slotKey]);
+
+
 
 
   if (done) {
@@ -283,31 +295,45 @@ export function PublicBookingForm({
           {slots.length > 0 ? (
             <fieldset className="grid gap-3">
               <legend className="mb-1 text-sm font-medium">Preferred time *</legend>
-              {groupSlots(slots).map((g) => (
-                <div key={g.label}>
-                  <p className="mb-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                    {g.label}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {g.items.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        aria-pressed={s === time}
-                        onClick={() => setTime(s)}
-                        className={cn(
-                          "rounded-full border px-4 py-1.5 text-sm transition-colors hover:border-primary/60",
-                          s === time && "border-primary bg-primary text-primary-foreground",
-                        )}
-                      >
-                        {slotLabel(s)}
-                      </button>
-                    ))}
-                  </div>
+              {groups.length > 1 ? (
+                <div className="flex flex-wrap gap-2">
+                  {groups.map((g) => (
+                    <button
+                      key={g.label}
+                      type="button"
+                      aria-pressed={g.label === activePeriod}
+                      onClick={() => setPeriod(g.label)}
+                      className={cn(
+                        "rounded-full border px-5 py-2 text-sm font-medium transition-colors hover:border-primary/60",
+                        g.label === activePeriod
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
                 </div>
-              ))}
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {activeItems.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    aria-pressed={s === time}
+                    onClick={() => setTime(s)}
+                    className={cn(
+                      "rounded-full border px-4 py-1.5 text-sm transition-colors hover:border-primary/60",
+                      s === time && "border-primary bg-primary text-primary-foreground",
+                    )}
+                  >
+                    {slotLabel(s)}
+                  </button>
+                ))}
+              </div>
             </fieldset>
           ) : null}
+
 
           {!dateIsWorking ? (
             <p className="-mt-1 text-xs text-destructive">
