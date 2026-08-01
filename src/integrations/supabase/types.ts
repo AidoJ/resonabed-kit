@@ -900,6 +900,7 @@ export type Database = {
           buyer_email: string
           buyer_name: string | null
           buyer_phone: string | null
+          buyer_type: string
           code: string
           created_at: string
           id: string
@@ -919,6 +920,7 @@ export type Database = {
           buyer_email: string
           buyer_name?: string | null
           buyer_phone?: string | null
+          buyer_type?: string
           code: string
           created_at?: string
           id?: string
@@ -938,6 +940,7 @@ export type Database = {
           buyer_email?: string
           buyer_name?: string | null
           buyer_phone?: string | null
+          buyer_type?: string
           code?: string
           created_at?: string
           id?: string
@@ -965,7 +968,10 @@ export type Database = {
       }
       kit_invoices: {
         Row: {
+          abn: string | null
           billing_address: string | null
+          business_name: string | null
+          buyer_type: string
           created_at: string
           created_by: string | null
           currency: string
@@ -993,7 +999,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          abn?: string | null
           billing_address?: string | null
+          business_name?: string | null
+          buyer_type?: string
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -1021,7 +1030,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          abn?: string | null
           billing_address?: string | null
+          business_name?: string | null
+          buyer_type?: string
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -1049,6 +1061,80 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      kit_onboarding_orders: {
+        Row: {
+          abn: string | null
+          amount_cents: number | null
+          business_name: string | null
+          contact_email: string
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          org_id: string | null
+          package_key: string | null
+          plan: string | null
+          provisioned_at: string | null
+          provisioned_by: string | null
+          shipping_address: string | null
+          source: string
+          source_ref: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          abn?: string | null
+          amount_cents?: number | null
+          business_name?: string | null
+          contact_email: string
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string | null
+          package_key?: string | null
+          plan?: string | null
+          provisioned_at?: string | null
+          provisioned_by?: string | null
+          shipping_address?: string | null
+          source?: string
+          source_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          abn?: string | null
+          amount_cents?: number | null
+          business_name?: string | null
+          contact_email?: string
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string | null
+          package_key?: string | null
+          plan?: string | null
+          provisioned_at?: string | null
+          provisioned_by?: string | null
+          shipping_address?: string | null
+          source?: string
+          source_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_onboarding_orders_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kit_payments: {
         Row: {
