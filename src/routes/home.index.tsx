@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Loader2, LogOut, Music, X } from "lucide-react";
+import { Loader2, LogOut, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getHomeContext,
@@ -13,21 +13,26 @@ import {
 import {
   HOME_DURATION_PRESETS,
   HOME_SAFETY_ATTESTATION,
+  HOME_SAFETY_CHECK_LEAD,
+  HOME_SAFETY_GENERAL,
   HOME_SAFETY_HEADING,
   HOME_SAFETY_INTRO,
   HOME_SAFETY_POINTS,
+  HOME_SAFETY_VERSION,
   HOME_SESSION_REMINDER,
 } from "@/lib/home-safety";
 import {
-  GOAL_OPTIONS,
+  computeTargetHz,
   rankFrequencies,
-  type IntakeGoal,
   type FrequencyRow,
 } from "@/lib/frequency-match";
+import { WizardShell } from "@/components/session-wizard/wizard-shell";
+import { StepSymptoms, type SymptomsState } from "@/components/session-wizard/step-symptoms";
+import { StepFrequency } from "@/components/session-wizard/step-frequency";
+import { SignaturePad } from "@/components/session-wizard/signature-pad";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
 import { AudioPlayer, type AudioPlayerHandle } from "@/components/session-player/audio-player";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
@@ -53,107 +58,93 @@ export const Route = createFileRoute("/home/")({
 
 function HomeApp() {
   const { home } = Route.useRouteContext();
-  if (!home.acknowledged) return <SafetyAcknowledgement />;
-  return <HomeMain displayName={home.displayName} />;
+  return <HomeWizard displayName={home.displayName} acknowledged={home.acknowledged} />;
 }
 
 /* ---------------------------------------------------------------- */
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({
+  children,
+  onSignOut,
+}: {
+  children: React.ReactNode;
+  onSignOut?: () => void;
+}) {
   return (
-    <div className="min-h-dvh bg-background px-5 py-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <img src={logo.url} alt="Resonabed" className="mx-auto mb-10 h-10 w-auto" />
+    <div className="min-h-dvh bg-background px-5 py-8">
+      <div className="mx-auto w-full max-w-3xl">
+        <div className="mb-8 flex items-center justify-between">
+          <img src={logo.url} alt="Resonabed" className="h-9 w-auto" />
+          {onSignOut ? (
+            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={onSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </Button>
+          ) : null}
+        </div>
         {children}
       </div>
     </div>
   );
 }
 
-function SafetyAcknowledgement() {
-  const router = useRouter();
-  const ack = useServerFn(acknowledgeHomeSafety);
-  const [signature, setSignature] = useState("");
-  const [agreed, setAgreed] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const mutation = useMutation({
-    mutationFn: () => ack({ data: { signature: signature.trim() } }),
-    onSuccess: () => router.invalidate(),
-    onError: (e) => setError(e instanceof Error ? e.message : "Please try again."),
-  });
-
-  return (
-    <Shell>
-      <h1 className="text-2xl font-medium">{HOME_SAFETY_HEADING}</h1>
-      <p className="mt-3 text-sm text-muted-foreground">{HOME_SAFETY_INTRO}</p>
-
-      <ul className="mt-6 space-y-3 rounded-2xl border bg-card/60 p-5">
-        {HOME_SAFETY_POINTS.map((p) => (
-          <li key={p} className="flex gap-3 text-sm">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-            <span>{p}</span>
-          </li>
-        ))}
-      </ul>
-
-      <p className="mt-5 text-xs text-muted-foreground">
-        We record only that you accepted this notice, along with the date and your signature. We do
-        not ask for, or keep, any health information about you.
-      </p>
-
-      <label className="mt-6 flex cursor-pointer items-start gap-3 text-sm">
-        <input
-          type="checkbox"
-          checked={agreed}
-          onChange={(e) => setAgreed(e.target.checked)}
-          className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--primary)]"
-        />
-        <span>{HOME_SAFETY_ATTESTATION}</span>
-      </label>
-
-      <div className="mt-5">
-        <Label htmlFor="signature">Type your full name to sign</Label>
-        <Input
-          id="signature"
-          value={signature}
-          onChange={(e) => setSignature(e.target.value)}
-          className="mt-1.5"
-          placeholder="Your full name"
-        />
-      </div>
-
-      {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
-
-      <Button
-        className="mt-6 h-12 w-full"
-        disabled={!agreed || signature.trim().length < 2 || mutation.isPending}
-        onClick={() => {
-          setError(null);
-          mutation.mutate();
-        }}
-      >
-        {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Agree and continue
-      </Button>
-    </Shell>
-  );
-}
-
 /* ---------------------------------------------------------------- */
 
-function HomeMain({ displayName }: { displayName: string | null }) {
+const STEP_TITLES = ["Reminder", "Length", "Symptoms", "Frequency"] as const;
+
+const SUBTITLES = [
+  "A short safety note before you settle in.",
+  "How long do you have today?",
+  "A quick snapshot of how you feel right now.",
+  "Your suggested frequency, change it if you prefer.",
+];
+
+function todayLabel() {
+  return new Date().toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function HomeWizard({
+  displayName,
+  acknowledged,
+}: {
+  displayName: string | null;
+  acknowledged: boolean;
+}) {
+  const router = useRouter();
   const libraryFn = useServerFn(listHomeLibrary);
-  const [goals, setGoals] = useState<IntakeGoal[]>(["relaxation"]);
+  const ackFn = useServerFn(acknowledgeHomeSafety);
+
+  const [step, setStep] = useState(0);
   const [minutes, setMinutes] = useState<number>(30);
-  const [reminderOpen, setReminderOpen] = useState(false);
-  const [reminderRead, setReminderRead] = useState(false);
+  const [symptoms, setSymptoms] = useState<SymptomsState>({
+    painLevel: 3,
+    stressLevel: 5,
+    sleepQuality: 5,
+    bodyAreas: [],
+    goals: [],
+  });
+  const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["home-library"],
-    queryFn: () => libraryFn(),
+  // First run: drawn signature + attestation. Afterwards: a tick box only.
+  const [signature, setSignature] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
+  const [ackError, setAckError] = useState<string | null>(null);
+
+  const ackMutation = useMutation({
+    mutationFn: () => ackFn({ data: { signature: signature! } }),
+    onSuccess: async () => {
+      await router.invalidate();
+      setStep(1);
+    },
+    onError: (e) => setAckError(e instanceof Error ? e.message : "Please try again."),
   });
+
+  const { data } = useQuery({ queryKey: ["home-library"], queryFn: () => libraryFn() });
 
   const frequencies = useMemo(
     () => (data?.frequencies ?? []) as FrequencyRow[],
@@ -161,24 +152,35 @@ function HomeMain({ displayName }: { displayName: string | null }) {
   );
   const tracks = useMemo(() => data?.tracks ?? [], [data?.tracks]);
 
-  const chosen = useMemo(() => {
-    if (frequencies.length === 0) return null;
-    const ranked = rankFrequencies(frequencies, {
-      painLevel: 5,
-      stressLevel: 5,
-      sleepQuality: 5,
-      bodyAreas: [],
-      goals: goals.length ? goals : (["relaxation"] as IntakeGoal[]),
-    });
-    // Prefer the closest match that actually has a track to play.
-    const withAudio = ranked.find((r) => tracks.some((t) => t.frequency_id === r.frequency.id));
-    return (withAudio ?? ranked[0])?.frequency ?? null;
-  }, [frequencies, tracks, goals]);
+  const hasAudio = useMemo(() => {
+    const m: Record<string, boolean> = {};
+    for (const f of frequencies) m[f.id] = tracks.some((t) => t.frequency_id === f.id);
+    return m;
+  }, [frequencies, tracks]);
 
+  const targetHz = useMemo(
+    () => computeTargetHz(symptoms, frequencies),
+    [symptoms, frequencies],
+  );
+
+  const ranked = useMemo(
+    () => (frequencies.length ? rankFrequencies(frequencies, symptoms) : []),
+    [frequencies, symptoms],
+  );
+
+  const defaultFreqId = useMemo(() => {
+    const withAudio = ranked.find((r) => hasAudio[r.frequency.id]);
+    return (withAudio ?? ranked[0])?.frequency.id ?? null;
+  }, [ranked, hasAudio]);
+
+  const activeFreqId = chosenFreqId ?? defaultFreqId;
+  const chosen = ranked.find((r) => r.frequency.id === activeFreqId)?.frequency ?? null;
   const track = chosen ? (tracks.find((t) => t.frequency_id === chosen.id) ?? null) : null;
 
-  const toggleGoal = (g: IntakeGoal) =>
-    setGoals((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]));
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    window.location.assign("/home/login");
+  };
 
   if (playing && chosen) {
     return (
@@ -187,164 +189,211 @@ function HomeMain({ displayName }: { displayName: string | null }) {
         frequency={chosen}
         trackId={track?.id ?? null}
         trackTitle={track?.title ?? `${chosen.hz} Hz`}
-        onExit={() => {
-          setPlaying(false);
-          setReminderOpen(false);
-          setReminderRead(false);
-        }}
+        onExit={() => setPlaying(false)}
       />
     );
   }
 
+  const canProceed = (() => {
+    if (step === 0)
+      return acknowledged ? agreed : agreed && !!signature && !ackMutation.isPending;
+    if (step === 1) return !!minutes;
+    if (step === 2) return true;
+    if (step === 3) return !!activeFreqId;
+    return false;
+  })();
+
+  const handleNext = () => {
+    if (step === 0 && !acknowledged) {
+      setAckError(null);
+      ackMutation.mutate();
+      return;
+    }
+    setStep((s) => s + 1);
+  };
+
   return (
-    <Shell>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-medium">
-            {displayName ? `Hello ${displayName.split(" ")[0]}` : "Hello"}
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Pick how you would like to feel, and how long you have.
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            window.location.assign("/home/login");
-          }}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign out
-        </Button>
+    <Shell onSignOut={signOut}>
+      <div className="mb-6">
+        <h1 className="text-2xl font-medium">
+          {displayName ? `Hello ${displayName.split(" ")[0]}` : "Hello"}
+        </h1>
       </div>
 
-      <section className="mt-9">
-        <Label className="mb-3 block">How would you like to feel?</Label>
-        <div className="flex flex-wrap gap-2">
-          {GOAL_OPTIONS.map((o) => {
-            const active = goals.includes(o.value);
-            return (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => toggleGoal(o.value)}
-                className={cn(
-                  "h-11 rounded-full border px-5 text-sm transition-colors",
-                  active
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-input bg-background hover:bg-muted",
-                )}
-              >
-                {o.label}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="mt-8">
-        <Label className="mb-3 block">Session length</Label>
-        <div className="grid grid-cols-4 gap-2">
-          {HOME_DURATION_PRESETS.map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMinutes(m)}
-              className={cn(
-                "h-14 rounded-xl border text-base transition-colors",
-                minutes === m
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-input bg-background hover:bg-muted",
-              )}
-            >
-              {m} min
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-8 rounded-2xl border bg-card/60 p-5">
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading your library…</p>
-        ) : chosen ? (
+      <WizardShell
+        step={step}
+        totalSteps={STEP_TITLES.length}
+        stepLabels={STEP_TITLES}
+        title={STEP_TITLES[step]!}
+        subtitle={SUBTITLES[step]}
+        footer={
           <>
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Your session
-            </p>
-            <div className="mt-2 flex items-baseline gap-3">
-              <span
-                className="text-4xl font-semibold tabular-nums"
-                style={{ color: chosen.color ?? undefined }}
-              >
-                {chosen.hz}
-              </span>
-              <span className="text-muted-foreground">Hz</span>
-              <span className="text-lg">{chosen.name}</span>
-            </div>
-            {chosen.description ? (
-              <p className="mt-2 text-sm text-muted-foreground">{chosen.description}</p>
-            ) : null}
-            <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <Music className="h-3.5 w-3.5" />
-              {track ? track.title : "No track available for this frequency yet"}
-            </p>
-          </>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Your sound library is not available right now.
-          </p>
-        )}
-      </section>
-
-      <Button
-        className="mt-7 h-14 w-full text-base"
-        disabled={!chosen}
-        onClick={() => setReminderOpen(true)}
-      >
-        Start session
-      </Button>
-
-      <p className="mt-4 text-center text-xs text-muted-foreground">
-        Sessions are never recorded. Nothing you choose here is saved.
-      </p>
-
-      {reminderOpen ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-5">
-          <div className="w-full max-w-md rounded-2xl border bg-card p-6">
-            <h2 className="text-lg font-medium">Before you settle in</h2>
-            <p className="mt-3 text-sm text-muted-foreground">{HOME_SESSION_REMINDER}</p>
-            <label className="mt-5 flex cursor-pointer items-start gap-3 text-sm">
-              <input
-                type="checkbox"
-                checked={reminderRead}
-                onChange={(e) => setReminderRead(e.target.checked)}
-                className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--primary)]"
-              />
-              <span>I have read this</span>
-            </label>
-            <div className="mt-6 flex gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-12"
+              disabled={step === 0}
+              onClick={() => setStep((s) => Math.max(0, s - 1))}
+            >
+              Back
+            </Button>
+            {step < STEP_TITLES.length - 1 ? (
+              <Button size="lg" className="h-12" disabled={!canProceed} onClick={handleNext}>
+                {ackMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                {step === 0 && !acknowledged ? "Agree and continue" : "Next"}
+              </Button>
+            ) : (
               <Button
-                variant="ghost"
-                className="flex-1"
-                onClick={() => {
-                  setReminderOpen(false);
-                  setReminderRead(false);
-                }}
+                size="lg"
+                className="h-12"
+                disabled={!canProceed}
+                onClick={() => setPlaying(true)}
               >
-                Not now
+                Start session
               </Button>
-              <Button className="flex-1" disabled={!reminderRead} onClick={() => setPlaying(true)}>
-                <Check className="mr-2 h-4 w-4" />
-                Begin
-              </Button>
+            )}
+          </>
+        }
+      >
+        {step === 0 && (
+          <SafetyStep
+            firstRun={!acknowledged}
+            agreed={agreed}
+            onAgreedChange={setAgreed}
+            signature={signature}
+            onSignatureChange={setSignature}
+            error={ackError}
+          />
+        )}
+
+        {step === 1 && (
+          <div>
+            <Label className="mb-3 block">Session length</Label>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {HOME_DURATION_PRESETS.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMinutes(m)}
+                  className={cn(
+                    "h-16 rounded-xl border text-base transition-colors",
+                    minutes === m
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-input bg-background hover:bg-muted",
+                  )}
+                >
+                  {m} min
+                </button>
+              ))}
             </div>
           </div>
+        )}
+
+        {step === 2 && <StepSymptoms value={symptoms} onChange={setSymptoms} />}
+
+        {step === 3 &&
+          (ranked.length ? (
+            <StepFrequency
+              ranked={ranked}
+              hasAudio={hasAudio}
+              targetHz={targetHz}
+              selectedId={activeFreqId}
+              onChange={setChosenFreqId}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Your sound library is not available right now.
+            </p>
+          ))}
+      </WizardShell>
+
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        Sessions are never recorded. Nothing you choose here is saved.
+      </p>
+    </Shell>
+  );
+}
+
+/* ---------------------------------------------------------------- */
+
+function SafetyStep({
+  firstRun,
+  agreed,
+  onAgreedChange,
+  signature,
+  onSignatureChange,
+  error,
+}: {
+  firstRun: boolean;
+  agreed: boolean;
+  onAgreedChange: (v: boolean) => void;
+  signature: string | null;
+  onSignatureChange: (v: string | null) => void;
+  error: string | null;
+}) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-medium">{HOME_SAFETY_HEADING}</h2>
+        <p className="mt-3 text-sm text-muted-foreground">{HOME_SAFETY_INTRO}</p>
+      </div>
+
+      <div className="rounded-2xl border bg-card/60 p-5">
+        <p className="text-sm font-medium">{HOME_SAFETY_CHECK_LEAD}</p>
+        <ul className="mt-3 space-y-2">
+          {HOME_SAFETY_POINTS.map((p) => (
+            <li key={p} className="flex gap-3 text-sm">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+        <ul className="mt-4 space-y-2 border-t pt-4">
+          {HOME_SAFETY_GENERAL.map((p) => (
+            <li key={p} className="flex gap-3 text-sm text-muted-foreground">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/60" />
+              <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {!firstRun ? (
+        <p className="text-sm text-muted-foreground">{HOME_SESSION_REMINDER}</p>
+      ) : null}
+
+      <label className="flex cursor-pointer items-start gap-3 text-sm">
+        <input
+          type="checkbox"
+          checked={agreed}
+          onChange={(e) => onAgreedChange(e.target.checked)}
+          className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--primary)]"
+        />
+        <span>{firstRun ? HOME_SAFETY_ATTESTATION : "I have read this"}</span>
+      </label>
+
+      {firstRun ? (
+        <div className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <Label>Sign to confirm</Label>
+            <span className="text-xs text-muted-foreground">{todayLabel()}</span>
+          </div>
+          <SignaturePad
+            value={signature}
+            onChange={onSignatureChange}
+            helperText="Sign with your finger, stylus or mouse."
+          />
+          <p className="text-xs text-muted-foreground">
+            We record only that you accepted this notice ({HOME_SAFETY_VERSION}), the date and your
+            signature. We do not ask for, or keep, any health information about you.
+          </p>
         </div>
       ) : null}
-    </Shell>
+
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </div>
   );
 }
 
