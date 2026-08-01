@@ -38,9 +38,10 @@ export const listServices = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("services")
       .select(
-        "id, name, duration_minutes, buffer_minutes, price, show_price, is_active, created_at, source_global_id",
+        "id, name, duration_minutes, buffer_minutes, price, show_price, is_active, created_at, source_global_id, sort_order",
       )
       .not("org_id", "is", null)
+      .order("sort_order")
       .order("name");
     if (orgId) q = q.eq("org_id", orgId);
     const { data, error } = await q;
