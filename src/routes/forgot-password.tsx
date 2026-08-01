@@ -10,7 +10,7 @@ export const Route = createFileRoute("/forgot-password")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Reset password — Resonabed" },
+      { title: "Reset password, Resonabed" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -48,7 +48,7 @@ interface Props {
 
 /**
  * Doctor's clearance letters are append-only. A mistaken entry is neutralised
- * with a revocation carrying a reason — never edited or deleted.
+ * with a revocation carrying a reason, never edited or deleted.
  */
 export function ClearanceLetterDialog({
   open,
@@ -112,7 +112,7 @@ export function ClearanceLetterDialog({
     mutationFn: async (letterId: string) =>
       revokeFn({ data: { letter_id: letterId, reason: reason.trim() } }),
     onSuccess: () => {
-      toast.success("Letter revoked — the trail is preserved");
+      toast.success("Letter revoked, the trail is preserved");
       setRevokingId(null);
       setReason("");
       qc.invalidateQueries({ queryKey: ["screening-context"] });
@@ -134,7 +134,7 @@ export function ClearanceLetterDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Doctor's clearance — {screeningItemLabel(itemKey)}</DialogTitle>
+          <DialogTitle>Doctor's clearance, {screeningItemLabel(itemKey)}</DialogTitle>
           <DialogDescription>
             {clearable
               ? "A letter on file clears this item indefinitely until it is revoked."
@@ -157,7 +157,7 @@ export function ClearanceLetterDialog({
                     {l.notes && <p className="mt-1 text-xs">{l.notes}</p>}
                     {l.revoked_at && (
                       <p className="mt-1 text-xs text-destructive">
-                        Revoked {new Date(l.revoked_at).toLocaleDateString()} — {l.revoked_reason}
+                        Revoked {new Date(l.revoked_at).toLocaleDateString()}, {l.revoked_reason}
                       </p>
                     )}
                   </div>

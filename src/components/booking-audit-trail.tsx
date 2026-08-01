@@ -19,7 +19,7 @@ const EVENT_LABELS: Record<string, string> = {
 };
 
 /**
- * Append-only history for a booking. Reason codes only — nothing a client
+ * Append-only history for a booking. Reason codes only, nothing a client
  * told the therapist in confidence appears here; that lives in protected
  * client notes.
  */

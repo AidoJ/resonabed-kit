@@ -155,7 +155,7 @@ function buildNav(
     ];
   }
 
-  // Practitioner (only when roles have actually loaded — otherwise return an
+  // Practitioner (only when roles have actually loaded, otherwise return an
   // empty nav so org_admins don't briefly see the practitioner sidebar while
   // the user-context query is in flight).
   if (!roles.includes("practitioner")) {
@@ -294,7 +294,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 
   // While the user context is loading (e.g. right after sign-in), do NOT
-  // render the sidebar/shell — the default brand theme and empty nav would
+  // render the sidebar/shell, the default brand theme and empty nav would
   // flash before the org's theme and role-specific navigation resolve,
   // which looks like the wrong role's dashboard bleeding through.
   if (isLoading || !data) {
@@ -388,7 +388,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="flex items-center gap-2">
                 <LifeBuoy className="h-4 w-4" />
                 <span>
-                  Support mode — viewing <strong>{support!.org_name}</strong>
+                  Support mode, viewing <strong>{support!.org_name}</strong>
                   {support!.reason ? <> · {support!.reason}</> : null}
                 </span>
               </div>

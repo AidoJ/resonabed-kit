@@ -115,7 +115,7 @@ const footer = { fontSize: '12px', lineHeight: '18px', color: '#8a8a8a' }
 export const template = {
   component: BookingConfirmedEmail,
   subject: (data: Record<string, unknown>) =>
-    `Booking confirmed — ${(data.orgName as string) ?? 'your clinic'}`,
+    `Booking confirmed, ${(data.orgName as string) ?? 'your clinic'}`,
   displayName: 'Booking confirmed (client, includes address)',
   previewData: {
     orgName: 'Spiral Light Wellness',

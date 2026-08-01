@@ -27,7 +27,7 @@ import { UserPlus, Copy, MailWarning, User } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
-  head: () => ({ meta: [{ title: "Team — Admin — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Team, Admin, ResonaBed" }] }),
   component: TeamAdmin,
 });
 
@@ -95,7 +95,7 @@ function TeamAdmin() {
         });
         if (r?.sent) toast.success("Welcome email sent");
         else if (r?.reason === "recipient_suppressed")
-          toast.warning("Email not sent — recipient is suppressed. Share the password manually.");
+          toast.warning("Email not sent, recipient is suppressed. Share the password manually.");
       } catch (e) {
         toast.warning(`Welcome email failed: ${(e as Error).message}. Share the password manually.`);
       }
@@ -188,7 +188,7 @@ function TeamAdmin() {
           });
           if (r?.sent) toast.success("Password reset email sent");
           else if (r?.reason === "recipient_suppressed")
-            toast.warning("Email not sent — recipient is suppressed. Share the password manually.");
+            toast.warning("Email not sent, recipient is suppressed. Share the password manually.");
         } catch (e) {
           toast.warning(`Email failed: ${(e as Error).message}. Share the password manually.`);
         }
@@ -434,7 +434,7 @@ function TeamAdmin() {
             <div className="space-y-3">
               <Alert>
                 <AlertDescription>
-                  Account created. Copy this temporary password now — it will not be shown again.
+                  Account created. Copy this temporary password now, it will not be shown again.
                   The user must set a new password on first sign-in.
                 </AlertDescription>
               </Alert>
@@ -544,8 +544,8 @@ function TeamAdmin() {
             <Alert>
               <AlertDescription>
                 {resetResult?.email
-                  ? "An email with the new password has been sent (if delivery succeeded). Copy it now as a backup — it will not be shown again."
-                  : "Copy this temporary password now — it will not be shown again."}
+                  ? "An email with the new password has been sent (if delivery succeeded). Copy it now as a backup, it will not be shown again."
+                  : "Copy this temporary password now, it will not be shown again."}
               </AlertDescription>
             </Alert>
             <div className="flex items-center gap-2">
@@ -597,7 +597,7 @@ function TeamAdmin() {
 
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit profile — {editing?.name}</DialogTitle>
+            <DialogTitle>Edit profile, {editing?.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex items-center gap-4">

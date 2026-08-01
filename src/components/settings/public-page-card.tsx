@@ -216,7 +216,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          A simple public page for your clinic — your name, logo, services and contact details.
+          A simple public page for your clinic, your name, logo, services and contact details.
           It stays hidden until you publish it.
         </p>
 
@@ -310,7 +310,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             rows={5}
             maxLength={4000}
             value={blurb}
-            placeholder="A short welcome for visitors — who you are, what a session is like, where you're located."
+            placeholder="A short welcome for visitors, who you are, what a session is like, where you're located."
             onChange={(e) => setBlurb(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
@@ -391,7 +391,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             onChange={(e) => setSuburb(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            The general area only — shown publicly for every clinic. Never your street address.
+            The general area only, shown publicly for every clinic. Never your street address.
           </p>
         </div>
 
@@ -425,7 +425,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             </Select>
             {clinicType === "home" ? (
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Your address stays private. It&rsquo;s never shown on your public page — clients
+                Your address stays private. It&rsquo;s never shown on your public page, clients
                 receive it in their confirmation email once you confirm their booking.
               </p>
             ) : clinicType === "retail" ? (
@@ -436,7 +436,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             ) : (
               <p className="text-xs leading-relaxed text-muted-foreground">
                 This choice decides whether your street address can ever appear publicly, so
-                please choose it yourself — there&rsquo;s no default.
+                please choose it yourself, there&rsquo;s no default.
               </p>
             )}
           </div>
@@ -500,7 +500,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
               <p className="text-sm font-medium">Public booking requests</p>
               <p className="text-xs text-muted-foreground">
                 Lets visitors send you a booking request. Requests always arrive as pending for you
-                to confirm — nothing is booked automatically.
+                to confirm, nothing is booked automatically.
               </p>
             </div>
             <Switch

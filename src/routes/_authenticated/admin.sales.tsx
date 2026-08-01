@@ -16,7 +16,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/sales")({
   head: () => ({
     meta: [
-      { title: "Kit sales — Admin — ResonaBed" },
+      { title: "Kit sales, Admin, ResonaBed" },
       {
         name: "description",
         content: "Website kit sales: prices, promo discounts, shipping and GST collected.",

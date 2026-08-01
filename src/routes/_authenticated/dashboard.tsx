@@ -25,7 +25,7 @@ import {
 } from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Resonabed" }] }),
+  head: () => ({ meta: [{ title: "Dashboard, Resonabed" }] }),
   component: DashboardPage,
 });
 
@@ -177,7 +177,7 @@ function DashboardPage() {
               <>
                 <strong>Music licence expired.</strong> The 9 global Solfeggio tracks are locked
                 until renewal. Your own uploaded audio still plays.{" "}
-                {renewalPrice ? <>Renew for {renewalPrice} — c</> : <>C</>}ontact ResonaBed to renew.
+                {renewalPrice ? <>Renew for {renewalPrice}, c</> : <>C</>}ontact ResonaBed to renew.
               </>
             ) : (
               <>
@@ -280,7 +280,7 @@ function DashboardPage() {
           )}
         </section>
 
-        {/* Bookings — secondary */}
+        {/* Bookings, secondary */}
         <section className="shadow-soft rounded-2xl bg-card p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-[20px] font-medium text-brand-indigo">Bookings</h2>
@@ -418,13 +418,13 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
           Welcome{displayName ? `, ${displayName.split(" ")[0]}` : ""}
         </h1>
         <p className="mt-2 text-[15px] text-muted-foreground">
-          Aggregate platform metrics only. Individual clinic records are never shown here — use
+          Aggregate platform metrics only. Individual clinic records are never shown here, use
           <strong> Access for support</strong> on the Organisations list to enter a specific
           clinic&rsquo;s data with a logged audit trail.
         </p>
       </div>
 
-      {/* Aggregate metrics — counts and totals only, never individual rows. */}
+      {/* Aggregate metrics, counts and totals only, never individual rows. */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Organisations"
@@ -450,15 +450,15 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
           hint={metrics ? `${metrics.totals.bookings_total} lifetime` : undefined}
         />
         <MetricCard
-          label="Licences — trial"
+          label="Licences, trial"
           value={isLoading ? "—" : String(metrics?.licences.trial ?? 0)}
         />
         <MetricCard
-          label="Licences — active"
+          label="Licences, active"
           value={isLoading ? "—" : String(metrics?.licences.active ?? 0)}
         />
         <MetricCard
-          label="Licences — expiring < 30d"
+          label="Licences, expiring < 30d"
           value={isLoading ? "—" : String(metrics?.licences.expiring_30d ?? 0)}
           hint={metrics ? `${metrics.licences.expired} expired` : undefined}
         />

@@ -23,7 +23,7 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
         <span className="text-muted-foreground">Target:</span>{" "}
         <span className="font-semibold tabular-nums">{targetHz} Hz</span>
         <span className="ml-2 text-xs text-muted-foreground">
-          Computed from goals, sliders and body areas — closest frequency is recommended.
+          Computed from goals, sliders and body areas, closest frequency is recommended.
         </span>
       </div>
 

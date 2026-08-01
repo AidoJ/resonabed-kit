@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/_authenticated/change-password")({
-  head: () => ({ meta: [{ title: "Change password — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Change password, ResonaBed" }] }),
   component: ChangePassword,
 });
 
@@ -63,7 +63,7 @@ function ChangePassword() {
       if (fnErr) throw new Error(fnErr.message);
       await supabase.auth.refreshSession();
       // Wait for the refetch to complete so the app-shell guard sees the
-      // cleared mustChangePassword flag before we navigate — otherwise it
+      // cleared mustChangePassword flag before we navigate, otherwise it
       // redirects us straight back to /change-password.
       await qc.refetchQueries({ queryKey: ["user-context"] });
       toast.success("Password updated");

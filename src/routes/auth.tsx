@@ -19,7 +19,7 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in — Resonabed" },
+      { title: "Sign in, Resonabed" },
       { name: "description", content: "Sign in to your Resonabed practitioner account." },
       { name: "robots", content: "noindex" },
     ],

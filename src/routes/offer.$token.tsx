@@ -10,7 +10,7 @@ import { formatInTz, tzAbbrev } from "@/lib/timezone";
 export const Route = createFileRoute("/offer/$token")({
   head: () => ({
     meta: [
-      { title: "Choose a session time — ResonaBed" },
+      { title: "Choose a session time, ResonaBed" },
       {
         name: "description",
         content:
@@ -77,7 +77,7 @@ function OfferPage() {
   if (state === "declined") {
     return (
       <Shell>
-        <h1 className="text-xl font-semibold">Thanks — we&rsquo;ve let them know</h1>
+        <h1 className="text-xl font-semibold">Thanks, we&rsquo;ve let them know</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {offer.clinicName} knows none of those times suited and will be in touch.
           {offer.contactPhone ? ` You can also call ${offer.contactPhone}.` : ""}
@@ -118,7 +118,7 @@ function OfferPage() {
       <h1 className="mt-1 text-2xl font-semibold">Hi {offer.clientName}, pick a time</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         The time you asked for wasn&rsquo;t available. Choose whichever of these suits you and
-        it&rsquo;s yours — {offer.serviceName}.
+        it&rsquo;s yours, {offer.serviceName}.
       </p>
 
       <div className="mt-6 grid gap-3">

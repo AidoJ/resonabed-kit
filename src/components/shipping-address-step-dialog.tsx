@@ -361,7 +361,7 @@ export function ShippingAddressStepDialog({
               <div>
                 <div className="text-sm font-medium text-brand-indigo">I'll collect in person</div>
                 <div className="text-xs text-muted-foreground">
-                  No delivery — arrange pickup with us directly. No shipping charge.
+                  No delivery, arrange pickup with us directly. No shipping charge.
                 </div>
               </div>
             </div>
@@ -504,7 +504,7 @@ export function ShippingAddressStepDialog({
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>
-                          Shipping — {matchedRate.label}
+                          Shipping, {matchedRate.label}
                           <span className="ml-1 text-xs">
                             ({matchedRate.gst_inclusive ? "incl. GST" : "GST-free export"})
                           </span>
@@ -529,7 +529,7 @@ export function ShippingAddressStepDialog({
                 <span>{fmt(packagePriceCents)}</span>
               </div>
               <div className="flex justify-between text-muted-foreground">
-                <span>Shipping — pickup</span>
+                <span>Shipping, pickup</span>
                 <span>Free</span>
               </div>
               <div className="mt-1 flex justify-between border-t border-brand-indigo/10 pt-2 font-medium text-brand-indigo">

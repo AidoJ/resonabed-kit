@@ -67,7 +67,7 @@ export function KitDocumentDialog({
     if (invoice.discount_cents > 0) rows.push({ label: "Discount", amount: -invoice.discount_cents });
     if (invoice.shipping_cents > 0)
       rows.push({
-        label: `Shipping${invoice.shipping_region ? ` — ${invoice.shipping_region.toUpperCase()}` : ""}${invoice.shipping_gst_inclusive ? "" : " (GST-free export)"}`,
+        label: `Shipping${invoice.shipping_region ? `, ${invoice.shipping_region.toUpperCase()}` : ""}${invoice.shipping_gst_inclusive ? "" : " (GST-free export)"}`,
         amount: invoice.shipping_cents,
       });
     return rows;

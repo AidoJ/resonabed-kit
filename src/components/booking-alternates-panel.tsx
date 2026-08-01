@@ -128,10 +128,10 @@ export function BookingAlternatesPanel({
       }
       toast.success(
         res.verbal
-          ? "Times saved — read them out on the call, then mark the one they pick."
+          ? "Times saved, read them out on the call, then mark the one they pick."
           : res.emailed
             ? "Times emailed to the client."
-            : "Times saved, but the email couldn't be sent — call them instead.",
+            : "Times saved, but the email couldn't be sent, call them instead.",
       );
       setRows(emptyRows);
       setNote("");
@@ -149,7 +149,7 @@ export function BookingAlternatesPanel({
     try {
       const res = await withdraw({ data: { offer_id: offerId } });
       if (!res.ok) toast.error(res.error);
-      else toast.success("Offer withdrawn — the link no longer works.");
+      else toast.success("Offer withdrawn, the link no longer works.");
       await refetchOffers();
     } finally {
       setBusy(false);
@@ -164,7 +164,7 @@ export function BookingAlternatesPanel({
         toast.error((res as { error?: string }).error ?? "Couldn't book that time.");
         return;
       }
-      toast.success("Booked — the client has been emailed their confirmation.");
+      toast.success("Booked, the client has been emailed their confirmation.");
       await refetchOffers();
       onSent?.();
     } catch (e) {
@@ -319,7 +319,7 @@ export function BookingAlternatesPanel({
           className="mt-0.5"
         />
         <span>
-          Handle this by phone — don&rsquo;t email a booking link. Recommended for first-time
+          Handle this by phone, don&rsquo;t email a booking link. Recommended for first-time
           clients: read the times out on your vetting call and mark the one they pick.
         </span>
       </label>
@@ -335,7 +335,7 @@ export function BookingAlternatesPanel({
             maxLength={500}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="e.g. Sorry, that morning is booked — any of these suit?"
+            placeholder="e.g. Sorry, that morning is booked, any of these suit?"
             className="bg-card"
           />
         </div>

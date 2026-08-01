@@ -80,13 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ResonaBed — Vibroacoustic therapy platform" },
+      { title: "ResonaBed, Vibroacoustic therapy platform" },
       {
         name: "description",
         content:
           "ResonaBed helps independent therapists deliver, track, and personalise vibroacoustic therapy sessions for their clients.",
       },
-      { property: "og:title", content: "ResonaBed — Vibroacoustic therapy platform" },
+      { property: "og:title", content: "ResonaBed, Vibroacoustic therapy platform" },
       {
         property: "og:description",
         content:
@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "ResonaBed — Vibroacoustic therapy platform" },
+      { name: "twitter:title", content: "ResonaBed, Vibroacoustic therapy platform" },
       { name: "twitter:description", content: "ResonaBed helps independent therapists deliver, track, and personalise vibroacoustic therapy sessions for their clients." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f05acb5b-2ba8-44c9-9e4e-b69018e1cca0/id-preview-63390ecb--2fed58e3-4d88-4192-9c63-c4ffbc643340.lovable.app-1784085788050.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f05acb5b-2ba8-44c9-9e4e-b69018e1cca0/id-preview-63390ecb--2fed58e3-4d88-4192-9c63-c4ffbc643340.lovable.app-1784085788050.png" },

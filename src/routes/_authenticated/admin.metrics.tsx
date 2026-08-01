@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/admin/metrics")({
-  head: () => ({ meta: [{ title: "Platform metrics — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Platform metrics, ResonaBed" }] }),
   component: PlatformMetricsPage,
 });
 
@@ -36,7 +36,7 @@ function PlatformMetricsPage() {
     <div className="space-y-6">
       <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
         Aggregate, non-identifiable data only. Individual clients, bookings and session records
-        are never shown here — use <strong>Access for support</strong> on an organisation for
+        are never shown here, use <strong>Access for support</strong> on an organisation for
         one-off, logged access.
       </div>
 

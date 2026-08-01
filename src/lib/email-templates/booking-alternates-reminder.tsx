@@ -30,7 +30,7 @@ const Email = ({
           <Text style={text}>They&rsquo;re held until {expiresLabel}.</Text>
         ) : null}
         <Text style={muted}>
-          If none of them suit, no problem — just make a fresh request, or get in touch.
+          If none of them suit, no problem, just make a fresh request, or get in touch.
           {contactEmail ? ` You can reply to ${contactEmail}.` : ''}
         </Text>
         <Text style={muted}>{orgName}</Text>
@@ -42,7 +42,7 @@ const Email = ({
 export const template = {
   component: Email,
   subject: (d: Record<string, any>) =>
-    `${d.orgName ?? 'Your clinic'} — a reminder about your session times`,
+    `${d.orgName ?? 'Your clinic'}, a reminder about your session times`,
   displayName: 'Booking: alternate times reminder',
   previewData: {
     orgName: 'Spiral Light Healing',

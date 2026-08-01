@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/_authenticated/admin/policy-templates")({
-  head: () => ({ meta: [{ title: "Policy templates — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Policy templates, ResonaBed" }] }),
   component: PolicyTemplatesAdmin,
 });
 
@@ -36,7 +36,7 @@ function PolicyTemplatesAdmin() {
       <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
         <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
         <div className="text-sm">
-          <p className="font-medium">Global sample wording — ships with every new clinic</p>
+          <p className="font-medium">Global sample wording, ships with every new clinic</p>
           <p className="text-amber-800/80 dark:text-amber-100/80">
             These templates are seeded into a new organisation's settings on creation.
             Each clinic must edit the wording before they can save their policies, so

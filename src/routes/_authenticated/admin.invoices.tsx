@@ -29,7 +29,7 @@ import { FileText, Plus, Trash2, Banknote } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/admin/invoices")({
   head: () => ({
     meta: [
-      { title: "Kit invoices — Admin — ResonaBed" },
+      { title: "Kit invoices, Admin, ResonaBed" },
       { name: "description", content: "Raise EFT tax invoices for ResonaBed kit orders and track their status." },
     ],
   }),
@@ -282,7 +282,7 @@ function NewInvoiceDialog({
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {PACKAGES.map((x) => (
-                  <SelectItem key={x.key} value={x.key}>{x.label} — {money(x.cents)}</SelectItem>
+                  <SelectItem key={x.key} value={x.key}>{x.label}, {money(x.cents)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

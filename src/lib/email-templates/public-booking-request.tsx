@@ -16,7 +16,7 @@ interface PublicBookingRequestProps {
 }
 
 /**
- * Operator nudge only. Deliberately contains NO client PII — no name, email,
+ * Operator nudge only. Deliberately contains NO client PII, no name, email,
  * phone, requested time, or note. Staff sign in to see the request.
  */
 const PublicBookingRequestEmail = ({
@@ -70,7 +70,7 @@ const footer = { fontSize: '12px', lineHeight: '18px', color: '#8a8a8a', marginT
 export const template = {
   component: PublicBookingRequestEmail,
   subject: (data: Record<string, unknown>) =>
-    `New booking request — ${(data.orgName as string) ?? 'your clinic'}`,
+    `New booking request, ${(data.orgName as string) ?? 'your clinic'}`,
   displayName: 'Public booking request (operator nudge)',
   previewData: { orgName: 'Spiral Light Wellness', loginUrl: 'https://resonabed.com/bookings' },
 }

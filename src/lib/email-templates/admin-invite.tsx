@@ -33,7 +33,7 @@ const AdminInviteEmail = ({
     <Preview>
       {isReset
         ? `Your ResonaBed password has been reset`
-        : `Welcome to ResonaBed — your ${orgName} admin account`}
+        : `Welcome to ResonaBed, your ${orgName} admin account`}
     </Preview>
     <Body style={main}>
       <Container style={container}>
@@ -80,7 +80,7 @@ export const template = {
   subject: (data: Record<string, unknown>) =>
     (data as AdminInviteProps).isReset
       ? 'Your ResonaBed password has been reset'
-      : `Welcome to ResonaBed — ${(data as AdminInviteProps).orgName ?? 'your clinic'}`,
+      : `Welcome to ResonaBed, ${(data as AdminInviteProps).orgName ?? 'your clinic'}`,
   displayName: 'Admin invite / password reset',
   previewData: {
     recipientName: 'Alex',

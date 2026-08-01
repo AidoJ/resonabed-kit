@@ -38,7 +38,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/frequencies")({
-  head: () => ({ meta: [{ title: "Frequencies — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Frequencies, ResonaBed" }] }),
   component: FrequenciesPage,
 });
 
@@ -165,7 +165,7 @@ function FrequenciesAdmin() {
       containsMedicalClaim(editing.benefits);
     if (flagged) {
       return toast.error(
-        `Please rephrase — "${flagged}" is a medical/therapeutic term. Use wellbeing language only.`,
+        `Please rephrase, "${flagged}" is a medical/therapeutic term. Use wellbeing language only.`,
       );
     }
     upsertMut.mutate(editing);
@@ -177,7 +177,7 @@ function FrequenciesAdmin() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Frequencies</h1>
           <p className="text-sm text-muted-foreground">
-            Manage the frequency library. Matching uses the target-Hz model — the intake
+            Manage the frequency library. Matching uses the target-Hz model, the intake
             wizard computes a target Hz and ranks frequencies by proximity.
           </p>
         </div>

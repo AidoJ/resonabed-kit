@@ -37,7 +37,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/sessions/new")({
-  head: () => ({ meta: [{ title: "New session — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "New session, ResonaBed" }] }),
   validateSearch: zodValidator(searchSchema),
   component: NewSession,
 });
@@ -151,7 +151,7 @@ function NewSession() {
   const declineFn = useServerFn(declineSessionForScreening);
 
   /**
-   * The screening is signed and stored BEFORE any session row exists — the
+   * The screening is signed and stored BEFORE any session row exists, the
    * session then references it. A blocked outcome never creates a session.
    */
   const handleScreeningNext = async () => {
@@ -195,7 +195,7 @@ function NewSession() {
           notes: safety.notes || undefined,
         },
       });
-      toast.success("Refusal recorded — session cancelled and logged");
+      toast.success("Refusal recorded, session cancelled and logged");
       navigate({ to: "/sessions" });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not record the refusal");
@@ -248,7 +248,7 @@ function NewSession() {
     "Choose the service being delivered.",
     "Quick snapshot of how the client feels right now.",
     "Screen for contraindications, then both parties sign. This record is permanent.",
-    "Suggested frequency for this intake — override if you prefer.",
+    "Suggested frequency for this intake, override if you prefer.",
   ];
 
   if (!isConfigured) {
@@ -261,7 +261,7 @@ function NewSession() {
             <p className="text-sm">
               Sessions are blocked until your organisation admin has completed the clinic setup —
               business identity, logo, consent wording, privacy policy, and health &amp; safety
-              policy — and signed the go-live acknowledgement.
+              policy, and signed the go-live acknowledgement.
             </p>
             {isAdmin ? (
               <Button asChild>
@@ -332,7 +332,7 @@ function NewSession() {
         <StepSafety
           value={safety}
           onChange={(next) => {
-            // Any edit invalidates a previously signed screening — it must be
+            // Any edit invalidates a previously signed screening, it must be
             // re-signed rather than silently reused.
             setSafety(next);
             setScreeningId(null);
