@@ -84,7 +84,7 @@ const SLIDER_WEIGHT = 0.3;
 const AREA_WEIGHT = 0.1;
 
 // Slider contribution. Each slider only votes when it has moved off neutral,
-// weighted by intensity — pain=0 stops the pain slider from dragging the
+// weighted by intensity, pain=0 stops the pain slider from dragging the
 // target upward, and sleepQuality now grounds the target when sleep is poor.
 //   pain: neutral 432 → 200 as pain → 10
 //   stress: neutral 432 → ~500 near stress = 5 (mid-range activation)

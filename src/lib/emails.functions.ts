@@ -15,7 +15,7 @@ const inviteSchema = z.object({
  * Sends the admin/practitioner invite or password-reset email with the
  * temporary password. Callable by super_admin, or by an org_admin of the
  * supplied orgId. Best-effort: caller should not fail the whole flow if
- * email delivery errors out — the temp password is still shown in-app.
+ * email delivery errors out, the temp password is still shown in-app.
  */
 export const sendAdminInviteEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

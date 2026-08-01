@@ -144,7 +144,7 @@ export const revokeSupportAccess = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** History of support sessions (entries) for an org — the trust artifact. */
+/** History of support sessions (entries) for an org, the trust artifact. */
 export const listSupportSessionsHistory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ org_id: uuid.optional().nullable() }).parse(d))

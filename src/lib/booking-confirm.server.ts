@@ -98,7 +98,7 @@ export async function confirmBookingAndNotify(
         .eq("id", booking.org_id)
         .maybeSingle();
 
-      // Private contact details stay private here too — the page and the
+      // Private contact details stay private here too, the page and the
       // email must never disagree about what the client can see.
       const contact = publishedContact(org);
 

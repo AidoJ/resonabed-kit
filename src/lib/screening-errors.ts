@@ -7,7 +7,7 @@ export function screeningErrorMessage(message: string): string | null {
   if (message.includes("screening_required"))
     return "A signed, countersigned screening is required before this session can start.";
   if (message.includes("screening_blocked"))
-    return "This screening flagged a contraindication without valid clearance — the session cannot proceed.";
+    return "This screening flagged a contraindication without valid clearance, the session cannot proceed.";
   if (message.includes("screening_already_used"))
     return "That screening has already authorised another session. Complete a new screening.";
   if (message.includes("screening_mismatch"))

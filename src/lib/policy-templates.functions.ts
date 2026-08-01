@@ -23,7 +23,7 @@ export const listPolicyTemplates = createServerFn({ method: "GET" })
     return (data ?? []) as PolicyTemplate[];
   });
 
-/** Super_admin only — RLS enforces server-side. */
+/** Super_admin only, RLS enforces server-side. */
 export const updatePolicyTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
@@ -52,7 +52,7 @@ export interface OrgPolicies {
   consent_version: number | null;
 }
 
-/** Policies of the signed-in user's own organisation — shown to clients at intake. */
+/** Policies of the signed-in user's own organisation, shown to clients at intake. */
 export const getMyOrgPolicies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<OrgPolicies | null> => {

@@ -19,7 +19,7 @@ export interface PublishedContact {
   /** Empty string when the operator has not opted to publish it. */
   email: string;
   phone: string;
-  /** Safe to use as an email Reply-To — undefined when the address is private. */
+  /** Safe to use as an email Reply-To, undefined when the address is private. */
   replyTo: string | undefined;
 }
 

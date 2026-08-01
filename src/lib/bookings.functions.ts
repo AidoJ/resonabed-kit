@@ -142,7 +142,7 @@ export const createBooking = createServerFn({ method: "POST" })
     await assertPractitionerAction(context, profile.org_id, "manage_bookings");
 
     // A practitioner (not super_admin, not org_admin of this org) may only
-    // create bookings assigned to themselves — enforced here regardless of
+    // create bookings assigned to themselves, enforced here regardless of
     // what the UI submitted.
     if (
       !(await isAdminForOrg(context, profile.org_id)) &&
@@ -228,7 +228,7 @@ export const updateBookingStatus = createServerFn({ method: "POST" })
       return { ok: false as const, error: friendly ?? error.message };
     }
     // A silent no-op (RLS filtered the row, or it no longer exists) must not
-    // look like success — the status bar would simply snap back.
+    // look like success, the status bar would simply snap back.
     if (!updated || updated.length === 0) {
       return {
         ok: false as const,
@@ -454,7 +454,7 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
         id: uuid,
         action: z.enum(["confirm", "decline"]),
         practitioner_id: uuid.optional(),
-        // Reason CODES only — never free-text health detail. Specifics belong
+        // Reason CODES only, never free-text health detail. Specifics belong
         // in the protected client notes, not in the audit trail.
         reason_code: z
           .enum([

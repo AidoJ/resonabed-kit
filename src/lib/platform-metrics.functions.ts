@@ -48,7 +48,7 @@ export interface PlatformMetrics {
 }
 
 /**
- * Aggregate platform metrics — NO individual client/session rows, ever.
+ * Aggregate platform metrics, NO individual client/session rows, ever.
  * Only counts and sums, grouped by org.
  */
 export const getPlatformMetrics = createServerFn({ method: "GET" })
@@ -85,7 +85,7 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
     ]);
 
     // Counts only. The platform can no longer read session rows across
-    // clinics — this comes from a SECURITY DEFINER aggregate that returns
+    // clinics, this comes from a SECURITY DEFINER aggregate that returns
     // per-org totals and never any health content.
     const sess30 = new Map<string, number>();
     const sessTot = new Map<string, number>();

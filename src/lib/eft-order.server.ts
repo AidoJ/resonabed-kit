@@ -77,7 +77,7 @@ export async function createEftKitInvoice(input: EftOrderInput) {
       due_date: due.toISOString().slice(0, 10),
       status: "sent",
       notes: [
-        "Website order — pay by EFT bank transfer.",
+        "Website order, pay by EFT bank transfer.",
         `Shipping: ${input.shipping.label}.`,
         promoLabel ? `Promo: ${promoLabel}.` : null,
       ]

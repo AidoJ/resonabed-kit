@@ -11,7 +11,7 @@
 export const VETTING_CALL_RECOMMENDATION =
   "For a first-time client, we recommend a quick phone call before you confirm. " +
   "It lets you get a feel for the person, understand what they're looking for, " +
-  "and flag anything that might make the session unsuitable — saving them a wasted trip.";
+  "and flag anything that might make the session unsuitable, saving them a wasted trip.";
 
 export interface VettingSection {
   heading: string;
@@ -39,7 +39,7 @@ export const VETTING_SECTIONS: readonly VettingSection[] = [
   {
     heading: "A few quick health checks",
     subheading:
-      "So we know it's suitable — you'll go through these properly at the first session.",
+      "So we know it's suitable, you'll go through these properly at the first session.",
     questions: [
       "Do you have a pacemaker or any implanted electronic device?",
       "Are you pregnant?",
@@ -51,7 +51,7 @@ export const VETTING_SECTIONS: readonly VettingSection[] = [
 ] as const;
 
 export const VETTING_CLOSING_LINE =
-  "If any health items come up, that is not necessarily a no — it means a short conversation " +
+  "If any health items come up, that is not necessarily a no, it means a short conversation " +
   "about whether the session is right for them. Their full screening and consent happen in " +
   "person before the first session.";
 
@@ -69,7 +69,7 @@ export const DECLINE_REASON_CODES = [
 export type DeclineReasonCode = (typeof DECLINE_REASON_CODES)[number];
 
 export const DECLINE_REASON_LABELS: Record<DeclineReasonCode, string> = {
-  health_item_clearance_advised: "Health item raised — doctor's clearance advised",
+  health_item_clearance_advised: "Health item raised, doctor's clearance advised",
   not_suitable_at_this_time: "Not suitable at this time",
   unable_to_accommodate: "Unable to accommodate",
   other: "Other",
@@ -83,8 +83,8 @@ export const DECLINE_REASON_LABELS: Record<DeclineReasonCode, string> = {
  */
 export const CLEARABLE_ITEM_GUIDANCE =
   "Explain you can't proceed as things stand. If they'd still like to go ahead, they need to " +
-  "see their doctor and get a letter clearing them specifically for vibroacoustic therapy — " +
-  "they can bring it to a future booking. Decline this request as \"health item raised — " +
+  "see their doctor and get a letter clearing them specifically for vibroacoustic therapy, " +
+  "they can bring it to a future booking. Decline this request as \"health item raised, " +
   "doctor's clearance advised\".";
 
 export const NON_CLEARABLE_ITEM_GUIDANCE =

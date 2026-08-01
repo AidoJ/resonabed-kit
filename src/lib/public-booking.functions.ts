@@ -157,7 +157,7 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
 
     // --- Guard 4: block list (phone OR email) ---------------------------
     // Silent by design. A blocked person sees the ordinary "request received"
-    // response — we neither confirm the block nor invite them to start
+    // response, we neither confirm the block nor invite them to start
     // varying their details. Nothing reaches the operator's active queue, but
     // the attempt is logged so a pattern of evasion stays visible.
     if (await isBlockedContact(supabaseAdmin, { orgId: org.id, email, phone })) {
@@ -205,7 +205,7 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
       }
       clientId = created.id;
     } else {
-      // Keep the phone on file current — it's the primary matching signal.
+      // Keep the phone on file current, it's the primary matching signal.
       await supabaseAdmin.from("clients").update({ phone }).eq("id", clientId).is("phone", null);
     }
 

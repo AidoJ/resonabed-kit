@@ -12,7 +12,7 @@ export type PractitionerFlag =
  * - super_admin and org_admin of the org: always allowed.
  * - practitioner: allowed only when the org has the corresponding toggle on.
  *
- * These toggles cannot be bypassed by calling the server function directly —
+ * These toggles cannot be bypassed by calling the server function directly,
  * the UI hides/disables the affordance but this is the real gate.
  */
 export async function assertPractitionerAction(
@@ -28,7 +28,7 @@ export async function assertPractitionerAction(
   const list = roles ?? [];
   if (list.some((r) => r.role === "super_admin")) return;
   if (list.some((r) => r.role === "org_admin" && r.org_id === orgId)) return;
-  // Practitioner (or anything else) — must check the org flag.
+  // Practitioner (or anything else), must check the org flag.
   const { data: allowed, error: fnErr } = await ctx.supabase.rpc(
     "org_practitioner_permission",
     { _org_id: orgId, _flag: flag },

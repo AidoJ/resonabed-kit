@@ -14,7 +14,7 @@ export interface ShippingRateRow {
 }
 
 /**
- * Public server fn — returns active shipping rates so the shipping-step
+ * Public server fn, returns active shipping rates so the shipping-step
  * dialog can render the picker. No sensitive data.
  */
 export const getShippingRates = createServerFn({ method: "GET" }).handler(
@@ -43,7 +43,7 @@ async function requireSuperAdmin(ctx: {
   if (!data) throw new Error("Forbidden");
 }
 
-/** Admin list — includes inactive rows too, for the editor. */
+/** Admin list, includes inactive rows too, for the editor. */
 export const listShippingRatesAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ShippingRateRow[]> => {
