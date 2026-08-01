@@ -126,6 +126,25 @@ export const deleteService = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const reorderServices = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ ids: z.array(uuid).min(1).max(200) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { orgId } = await resolveEffectiveOrgId(context);
+    if (!orgId) throw new Error("No organisation");
+    for (let i = 0; i < data.ids.length; i++) {
+      const { error } = await context.supabase
+        .from("services")
+        .update({ sort_order: i + 1 })
+        .eq("id", data.ids[i])
+        .eq("org_id", orgId);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+
 // ---------- Team list ----------
 
 export const listTeam = createServerFn({ method: "GET" })
