@@ -219,8 +219,9 @@ function PublicOrgPage() {
               className="mt-6 max-w-xl whitespace-pre-line text-lg leading-relaxed"
               style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 78%, transparent)" }}
             >
-              A calm, passive session at {org.name}. You lie back fully clothed while
-              low-frequency sound moves gently through the body.
+              A calm, passive session of Vibroacoustic therapy at {org.name}. You simply
+              relax back on the bed fully clothed while low-frequency sound moves gently
+              through your body.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3">
