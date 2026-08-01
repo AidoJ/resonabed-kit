@@ -192,7 +192,7 @@ export function PublicBookingForm({
                     )}
                   >
                     <span className="min-w-0">
-                      <span className="block truncate font-medium">{s.name}</span>
+                      <span className="block font-medium leading-snug">{s.name}</span>
                       <span className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                         <Clock className="h-3.5 w-3.5" />
                         {s.duration_minutes} min
@@ -232,7 +232,7 @@ export function PublicBookingForm({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="pb-email">Email *</Label>
               <Input
                 id="pb-email"
@@ -243,7 +243,7 @@ export function PublicBookingForm({
                 required
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="pb-phone">Phone *</Label>
               <Input
                 id="pb-phone"
