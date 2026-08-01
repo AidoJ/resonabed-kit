@@ -88,3 +88,58 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       availability: (availRes.data as AvailabilityWindow[] | null) ?? [],
     };
   });
+
+export type PublicOrgBranding = {
+  name: string;
+  logoUrl: string | null;
+  themeSidebar: string | null;
+  themePrimary: string | null;
+  slug: string;
+};
+
+/**
+ * Cosmetic branding for the shared login page when a therapist arrives from
+ * their clinic's public page (/auth?clinic=slug). Returns only data the public
+ * clinic page already exposes, and only for published, active orgs.
+ */
+export const getPublicOrgBranding = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) =>
+    z.object({ slug: z.string().min(1).max(64) }).parse(data),
+  )
+  .handler(async ({ data }): Promise<PublicOrgBranding | null> => {
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_PUBLISHABLE_KEY!,
+      { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+    );
+
+    const { data: rows } = await supabase.rpc("get_public_org", { p_slug: data.slug });
+    const org = (rows as PublicOrg[] | null)?.[0] ?? null;
+    if (!org) return null;
+
+    let logoUrl: string | null = org.logo_url ?? null;
+    if (!logoUrl) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: orgRow } = await supabaseAdmin
+        .from("organisations")
+        .select("logo_path")
+        .eq("slug", data.slug)
+        .eq("published", true)
+        .maybeSingle();
+      if (orgRow?.logo_path) {
+        const signed = await supabaseAdmin.storage
+          .from("org-logos")
+          .createSignedUrl(orgRow.logo_path, 60 * 60 * 24 * 7);
+        logoUrl = signed.data?.signedUrl ?? null;
+      }
+    }
+
+    return {
+      name: org.name,
+      logoUrl,
+      themeSidebar: org.theme_sidebar,
+      themePrimary: org.theme_primary,
+      slug: org.slug,
+    };
+  });
