@@ -21,6 +21,7 @@ import { Route as OfferTokenRouteImport } from './routes/offer.$token'
 import { Route as OSlugRouteImport } from './routes/o.$slug'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedFrequenciesRouteImport } from './routes/_authenticated/frequencies'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
@@ -42,6 +43,7 @@ import { Route as AuthenticatedAdminSalesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminPromoCodesRouteImport } from './routes/_authenticated/admin.promo-codes'
 import { Route as AuthenticatedAdminPolicyTemplatesRouteImport } from './routes/_authenticated/admin.policy-templates'
+import { Route as AuthenticatedAdminPlatformAdminsRouteImport } from './routes/_authenticated/admin.platform-admins'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin.payments'
 import { Route as AuthenticatedAdminOrganisationsRouteImport } from './routes/_authenticated/admin.organisations'
 import { Route as AuthenticatedAdminMetricsRouteImport } from './routes/_authenticated/admin.metrics'
@@ -112,6 +114,11 @@ const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
 const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFrequenciesRoute =
@@ -231,6 +238,12 @@ const AuthenticatedAdminPolicyTemplatesRoute =
     path: '/policy-templates',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminPlatformAdminsRoute =
+  AuthenticatedAdminPlatformAdminsRouteImport.update({
+    id: '/platform-admins',
+    path: '/platform-admins',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminPaymentsRoute =
   AuthenticatedAdminPaymentsRouteImport.update({
     id: '/payments',
@@ -314,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/o/$slug': typeof OSlugRoute
@@ -326,6 +340,7 @@ export interface FileRoutesByFullPath {
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
   '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -359,6 +374,7 @@ export interface FileRoutesByTo {
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/services': typeof AuthenticatedServicesRoute
   '/o/$slug': typeof OSlugRoute
   '/offer/$token': typeof OfferTokenRoute
@@ -370,6 +386,7 @@ export interface FileRoutesByTo {
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
   '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -406,6 +423,7 @@ export interface FileRoutesById {
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/frequencies': typeof AuthenticatedFrequenciesRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/o/$slug': typeof OSlugRoute
@@ -418,6 +436,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/_authenticated/admin/organisations': typeof AuthenticatedAdminOrganisationsRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/_authenticated/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
   '/_authenticated/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
   '/_authenticated/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -454,6 +473,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/dashboard'
     | '/frequencies'
+    | '/profile'
     | '/services'
     | '/sessions'
     | '/o/$slug'
@@ -466,6 +486,7 @@ export interface FileRouteTypes {
     | '/admin/metrics'
     | '/admin/organisations'
     | '/admin/payments'
+    | '/admin/platform-admins'
     | '/admin/policy-templates'
     | '/admin/promo-codes'
     | '/admin/reports'
@@ -499,6 +520,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/dashboard'
     | '/frequencies'
+    | '/profile'
     | '/services'
     | '/o/$slug'
     | '/offer/$token'
@@ -510,6 +532,7 @@ export interface FileRouteTypes {
     | '/admin/metrics'
     | '/admin/organisations'
     | '/admin/payments'
+    | '/admin/platform-admins'
     | '/admin/policy-templates'
     | '/admin/promo-codes'
     | '/admin/reports'
@@ -545,6 +568,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/frequencies'
+    | '/_authenticated/profile'
     | '/_authenticated/services'
     | '/_authenticated/sessions'
     | '/o/$slug'
@@ -557,6 +581,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/metrics'
     | '/_authenticated/admin/organisations'
     | '/_authenticated/admin/payments'
+    | '/_authenticated/admin/platform-admins'
     | '/_authenticated/admin/policy-templates'
     | '/_authenticated/admin/promo-codes'
     | '/_authenticated/admin/reports'
@@ -681,6 +706,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof AuthenticatedServicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/frequencies': {
@@ -830,6 +862,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPolicyTemplatesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/platform-admins': {
+      id: '/_authenticated/admin/platform-admins'
+      path: '/platform-admins'
+      fullPath: '/admin/platform-admins'
+      preLoaderRoute: typeof AuthenticatedAdminPlatformAdminsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/payments': {
       id: '/_authenticated/admin/payments'
       path: '/payments'
@@ -924,6 +963,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminMetricsRoute: typeof AuthenticatedAdminMetricsRoute
   AuthenticatedAdminOrganisationsRoute: typeof AuthenticatedAdminOrganisationsRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
+  AuthenticatedAdminPlatformAdminsRoute: typeof AuthenticatedAdminPlatformAdminsRoute
   AuthenticatedAdminPolicyTemplatesRoute: typeof AuthenticatedAdminPolicyTemplatesRoute
   AuthenticatedAdminPromoCodesRoute: typeof AuthenticatedAdminPromoCodesRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
@@ -942,6 +982,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminMetricsRoute: AuthenticatedAdminMetricsRoute,
   AuthenticatedAdminOrganisationsRoute: AuthenticatedAdminOrganisationsRoute,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
+  AuthenticatedAdminPlatformAdminsRoute: AuthenticatedAdminPlatformAdminsRoute,
   AuthenticatedAdminPolicyTemplatesRoute:
     AuthenticatedAdminPolicyTemplatesRoute,
   AuthenticatedAdminPromoCodesRoute: AuthenticatedAdminPromoCodesRoute,
@@ -984,6 +1025,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFrequenciesRoute: typeof AuthenticatedFrequenciesRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRouteWithChildren
   AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
@@ -998,6 +1040,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFrequenciesRoute: AuthenticatedFrequenciesRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRouteWithChildren,
   AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,

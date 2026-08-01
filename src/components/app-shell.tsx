@@ -24,6 +24,8 @@ import {
   FileText,
   Banknote,
   ExternalLink,
+  UserCog,
+  ShieldPlus,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -90,6 +92,7 @@ function buildNav(
           { to: "/frequencies", label: "Global frequencies", icon: Waves },
           { to: "/audio", label: "Global audio", icon: Music },
           { to: "/admin/policy-templates", label: "Policy templates", icon: ScrollText },
+          { to: "/admin/platform-admins", label: "Platform admins", icon: ShieldPlus },
           { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
         ],
       },
@@ -368,6 +371,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </SidebarContent>
           <SidebarFooter className="px-3 pb-4">
+            <Button
+              asChild
+              variant="ghost"
+              className="h-11 w-full justify-start rounded-lg text-white hover:bg-sidebar-accent/60 hover:text-white"
+            >
+              <Link to="/profile" className="flex items-center">
+                <UserCog className="mr-3 h-[18px] w-[18px]" />
+                My profile
+              </Link>
+            </Button>
             <Button
               variant="ghost"
               className="h-11 w-full justify-start rounded-lg text-white hover:bg-sidebar-accent/60 hover:text-white"
