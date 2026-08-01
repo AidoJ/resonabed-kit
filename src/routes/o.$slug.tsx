@@ -109,10 +109,6 @@ function Unavailable() {
   );
 }
 
-function money(v: number) {
-  return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(v);
-}
-
 function Eyebrow({ children, onDark = false }: { children: React.ReactNode; onDark?: boolean }) {
   return (
     <p
@@ -223,8 +219,8 @@ function PublicOrgPage() {
               className="mt-6 max-w-xl whitespace-pre-line text-lg leading-relaxed"
               style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 78%, transparent)" }}
             >
-              {org.public_blurb ??
-                `A calm, passive session at ${org.name}. You lie back fully clothed while low-frequency sound moves gently through the body.`}
+              A calm, passive session at {org.name}. You lie back fully clothed while
+              low-frequency sound moves gently through the body.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -443,6 +439,21 @@ function PublicOrgPage() {
         </p>
       </section>
 
+      {/* ---------------------------------------------------------------- ABOUT */}
+      {org.public_blurb ? (
+        <section className="border-t">
+          <div className="mx-auto max-w-3xl px-6 py-20 md:px-10 md:py-24">
+            <Eyebrow>About</Eyebrow>
+            <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">
+              About {org.name}
+            </h2>
+            <div className="mt-6 max-w-[65ch] space-y-5 whitespace-pre-line text-lg font-light leading-relaxed text-muted-foreground">
+              {org.public_blurb}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* ------------------------------------------------------- SESSIONS + BOOK */}
       <section className="border-t" style={{ background: "var(--clinic-tint-soft)" }}>
         <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
@@ -452,22 +463,6 @@ function PublicOrgPage() {
               Book your session
             </h2>
           </div>
-
-          {services.length > 0 ? (
-            <div className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {services.map((s) => (
-                <div key={s.id} className="rounded-2xl border bg-background p-6">
-                  <h3 className="text-lg font-medium tracking-tight">{s.name}</h3>
-                  <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" /> {s.duration_minutes} min
-                  </p>
-                  <p className="mt-4 text-2xl font-light tracking-tight">
-                    {money(Number(s.price))}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : null}
 
           {bookable ? (
             <div id="request" className="mx-auto mt-12 max-w-2xl scroll-mt-8">

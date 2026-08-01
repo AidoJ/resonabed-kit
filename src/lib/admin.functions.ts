@@ -38,7 +38,7 @@ export const listServices = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("services")
       .select(
-        "id, name, duration_minutes, buffer_minutes, price, is_active, created_at, source_global_id",
+        "id, name, duration_minutes, buffer_minutes, price, show_price, is_active, created_at, source_global_id",
       )
       .not("org_id", "is", null)
       .order("name");
@@ -74,6 +74,7 @@ export const upsertService = createServerFn({ method: "POST" })
         duration_minutes: z.number().int().min(1).max(600),
         buffer_minutes: z.number().int().min(0).max(240),
         price: z.number().min(0).max(100000),
+        show_price: z.boolean().default(true),
         is_active: z.boolean(),
       })
       .parse(d),
@@ -90,6 +91,7 @@ export const upsertService = createServerFn({ method: "POST" })
           duration_minutes: data.duration_minutes,
           buffer_minutes: data.buffer_minutes,
           price: data.price,
+          show_price: data.show_price,
           is_active: data.is_active,
         })
         .eq("id", data.id);
@@ -104,6 +106,7 @@ export const upsertService = createServerFn({ method: "POST" })
         duration_minutes: data.duration_minutes,
         buffer_minutes: data.buffer_minutes,
         price: data.price,
+        show_price: data.show_price,
         is_active: data.is_active,
       })
       .select("id")
