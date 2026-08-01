@@ -1,6 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -35,25 +34,23 @@ export const Route = createFileRoute("/auth")({
       throw redirect({ to: search.redirect ?? "/dashboard" });
     }
   },
+  // Resolved before the page paints, so a branded login never flashes the
+  // Resonabed identity first.
+  loaderDeps: ({ search }) => ({ clinic: search.clinic }),
+  loader: async ({ deps }) =>
+    deps.clinic ? await getPublicOrgBranding({ data: { slug: deps.clinic } }) : null,
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
+  const clinic = Route.useLoaderData();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Cosmetic only: brand the shared login page for therapists arriving from
-  // their clinic's public page. Falls back to Resonabed branding.
-  const { data: clinic } = useQuery({
-    queryKey: ["auth-clinic-branding", search.clinic],
-    enabled: !!search.clinic,
-    staleTime: 5 * 60_000,
-    queryFn: () => getPublicOrgBranding({ data: { slug: search.clinic! } }),
-  });
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -90,19 +87,20 @@ function AuthPage() {
       className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4"
       style={themeVars}
     >
-      {branded ? null : (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage: `url(${logoMark})`,
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
-            backgroundSize: "min(140vw, 1400px) auto",
-            opacity: 0.08,
-          }}
-        />
-      )}
+      {/* Light greyscale Resonabed mark, behind both the branded and the
+          unbranded variants. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `url(${logoMark})`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: "min(140vw, 1400px) auto",
+          filter: "grayscale(1)",
+          opacity: branded ? 0.05 : 0.08,
+        }}
+      />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-70"
@@ -115,15 +113,14 @@ function AuthPage() {
       <div className="relative w-full max-w-md">
         <div className="mb-6 flex flex-col items-center">
           {branded && clinic!.logoUrl ? (
-            <div className="rounded-2xl bg-white px-6 py-4 shadow-soft">
-              <img
-                src={clinic!.logoUrl}
-                alt={clinic!.name}
-                className="h-24 w-auto"
-                draggable={false}
-              />
-            </div>
+            <img
+              src={clinic!.logoUrl}
+              alt={clinic!.name}
+              className="h-28 w-auto"
+              draggable={false}
+            />
           ) : branded ? (
+
             <h2
               className="text-2xl font-medium tracking-tight"
               style={{ color: "var(--clinic-accent)" }}
