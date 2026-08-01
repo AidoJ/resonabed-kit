@@ -28,6 +28,7 @@ type Service = {
   duration_minutes: number;
   buffer_minutes: number;
   price: number;
+  show_price: boolean;
   is_active: boolean;
   /** Live recommended retail price from the global catalogue. Display only. */
   rrp?: number | null;
@@ -50,6 +51,7 @@ function ServicesAdmin() {
           duration_minutes: Number(payload.duration_minutes ?? 30),
           buffer_minutes: Number(payload.buffer_minutes ?? 15),
           price: Number(payload.price ?? 0),
+          show_price: payload.show_price ?? true,
           is_active: payload.is_active ?? true,
         },
       }),
@@ -73,7 +75,7 @@ function ServicesAdmin() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={() => setEditing({ is_active: true, duration_minutes: 30, buffer_minutes: 15, price: 0 })}>
+        <Button onClick={() => setEditing({ is_active: true, show_price: true, duration_minutes: 30, buffer_minutes: 15, price: 0 })}>
           <Plus className="mr-2 h-4 w-4" /> New service
         </Button>
       </div>
@@ -101,6 +103,9 @@ function ServicesAdmin() {
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
                 <TableCell>
                   {Number(s.price).toFixed(2)}
+                  {s.show_price === false ? (
+                    <div className="text-xs text-muted-foreground">Hidden on public page</div>
+                  ) : null}
                   <div className="text-xs text-muted-foreground">
                     {s.rrp === null || s.rrp === undefined
                       ? "No RRP set"
@@ -200,6 +205,19 @@ function ServicesAdmin() {
                 <p className="mt-1 text-xs text-muted-foreground">
                   Turnaround after each appointment for cleaning and reset. Not shown to clients; blocks the practitioner from being double-booked.
                 </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Switch
+                  checked={editing.show_price ?? true}
+                  onCheckedChange={(v) => setEditing({ ...editing, show_price: v })}
+                />
+                <div>
+                  <Label>Show price on the public page</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Turn this off to list the session without a price. The price is still recorded
+                    internally for payments and reporting.
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Switch

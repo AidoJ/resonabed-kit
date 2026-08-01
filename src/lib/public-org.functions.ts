@@ -30,7 +30,9 @@ export type PublicService = {
   id: string;
   name: string;
   duration_minutes: number;
-  price: number;
+  /** Null when the clinic has chosen not to publish this session's price. */
+  price: number | null;
+  show_price: boolean;
 };
 
 export const getPublicOrgPage = createServerFn({ method: "GET" })
