@@ -295,9 +295,10 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           </div>
           <p className="text-xs font-medium leading-relaxed text-destructive">
             Your words, your responsibility. Don&rsquo;t claim to treat, heal, cure or diagnose any
-            condition, and avoid guaranteed outcomes or medical language — this applies to
-            anything you say about your clinic, not just vibroacoustic therapy. Straplines that
-            make health claims may breach advertising and therapeutic-goods rules.
+            condition, and avoid guaranteed outcomes or medical language unless you are medically
+            qualified to do so. This applies to anything you say about your clinic, not just
+            vibroacoustic therapy. Straplines that make health claims may breach advertising and
+            therapeutic-goods rules.
           </p>
         </div>
 
