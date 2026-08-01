@@ -1053,6 +1053,7 @@ export type Database = {
           public_contact_phone: string | null
           public_show_email: boolean
           public_show_phone: boolean
+          public_strapline: string | null
           public_suburb: string | null
           published: boolean
           retail_show_address: boolean
@@ -1105,6 +1106,7 @@ export type Database = {
           public_contact_phone?: string | null
           public_show_email?: boolean
           public_show_phone?: boolean
+          public_strapline?: string | null
           public_suburb?: string | null
           published?: boolean
           retail_show_address?: boolean
@@ -1157,6 +1159,7 @@ export type Database = {
           public_contact_phone?: string | null
           public_show_email?: boolean
           public_show_phone?: boolean
+          public_strapline?: string | null
           public_suburb?: string | null
           published?: boolean
           retail_show_address?: boolean
@@ -1774,6 +1777,7 @@ export type Database = {
           public_booking_enabled: boolean
           public_contact_email: string
           public_contact_phone: string
+          public_strapline: string
           public_suburb: string
           slug: string
           theme_primary: string
