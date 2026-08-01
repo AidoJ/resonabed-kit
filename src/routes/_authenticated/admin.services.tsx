@@ -72,13 +72,83 @@ function ServicesAdmin() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reorder = useServerFn(reorderServices);
+  const reorderMut = useMutation({
+    mutationFn: (ids: string[]) => reorder({ data: { ids } }),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["admin-services"] });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-services"] }),
+  });
+
+  const rows = (data ?? []) as Service[];
+
+  function move(index: number, dir: -1 | 1) {
+    const next = [...rows];
+    const target = index + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    // Optimistically reflect the new order while the save runs.
+    qc.setQueryData(["admin-services"], next);
+    reorderMut.mutate(next.map((s) => s.id));
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          Use the arrows to set the order sessions appear on your public page.
+        </p>
         <Button onClick={() => setEditing({ is_active: true, show_price: true, duration_minutes: 30, buffer_minutes: 15, price: 0 })}>
           <Plus className="mr-2 h-4 w-4" /> New service
         </Button>
       </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-20">Order</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Duration</TableHead>
+            <TableHead>Changeover</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-24" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <TableRow><TableCell colSpan={7}>Loading…</TableCell></TableRow>
+          ) : rows.length === 0 ? (
+            <TableRow><TableCell colSpan={7} className="text-muted-foreground">No services yet.</TableCell></TableRow>
+          ) : (
+            rows.map((s, i) => (
+              <TableRow key={s.id}>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      aria-label={`Move ${s.name} up`}
+                      disabled={i === 0 || reorderMut.isPending}
+                      onClick={() => move(i, -1)}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      aria-label={`Move ${s.name} down`}
+                      disabled={i === rows.length - 1 || reorderMut.isPending}
+                      onClick={() => move(i, 1)}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+                <TableCell>{s.name}</TableCell>
       <Table>
         <TableHeader>
           <TableRow>
