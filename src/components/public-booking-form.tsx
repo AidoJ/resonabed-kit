@@ -102,12 +102,23 @@ export function PublicBookingForm({
     }) : base;
   })();
 
+  const groups = groupSlots(slots);
+  const activePeriod =
+    (period && groups.some((g) => g.label === period) ? period : null) ??
+    groups.find((g) => g.items.includes(time))?.label ??
+    groups[0]?.label ??
+    null;
+  const activeItems = groups.find((g) => g.label === activePeriod)?.items ?? [];
+
   // Keep the chosen time valid whenever the date or session type changes.
   const slotKey = slots.join(",");
   useEffect(() => {
     if (slots.length > 0 && !slots.includes(time)) setTime(slots[0]);
+    setPeriod(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slotKey]);
+
+
 
 
   if (done) {
