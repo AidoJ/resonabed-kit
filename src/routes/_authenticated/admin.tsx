@@ -18,6 +18,7 @@ import {
   FileText,
   Banknote,
   KeyRound,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

@@ -28,6 +28,7 @@ import {
   UserCog,
   ShieldPlus,
   KeyRound,
+  ClipboardCheck,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
