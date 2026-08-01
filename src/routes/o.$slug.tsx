@@ -155,10 +155,9 @@ function PublicOrgPage() {
             )}
             {org.public_strapline ? (
               <p
-                className="min-w-0 text-sm font-light leading-snug tracking-tight sm:border-l sm:pl-4 sm:text-base md:text-lg"
+                className="min-w-0 text-xl font-semibold leading-tight tracking-tight sm:pl-4 sm:text-2xl md:text-3xl lg:text-4xl"
                 style={{
-                  color: "color-mix(in oklab, var(--clinic-ink) 75%, transparent)",
-                  borderColor: "color-mix(in oklab, var(--clinic-ink) 15%, transparent)",
+                  color: "color-mix(in oklab, var(--clinic-ink) 88%, transparent)",
                 }}
               >
                 {org.public_strapline}
