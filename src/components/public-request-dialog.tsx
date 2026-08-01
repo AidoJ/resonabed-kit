@@ -217,7 +217,7 @@ export function PublicRequestDialog({
         <DialogHeader>
           <DialogTitle>Public booking request</DialogTitle>
           <DialogDescription>
-            Submitted through your public page. Nothing is scheduled, and no address is shared —
+            Submitted through your public page. Nothing is scheduled, and no address is shared,
             until you confirm.
           </DialogDescription>
         </DialogHeader>

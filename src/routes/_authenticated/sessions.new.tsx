@@ -259,7 +259,7 @@ function NewSession() {
           <div className="space-y-3">
             <h2 className="text-lg font-semibold">Setup not complete</h2>
             <p className="text-sm">
-              Sessions are blocked until your organisation admin has completed the clinic setup —
+              Sessions are blocked until your organisation admin has completed the clinic setup,
               business identity, logo, consent wording, privacy policy, and health &amp; safety
               policy, and signed the go-live acknowledgement.
             </p>

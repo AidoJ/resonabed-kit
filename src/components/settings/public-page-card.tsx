@@ -314,7 +314,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             onChange={(e) => setBlurb(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Keep it about relaxation and general wellbeing. Avoid medical or treatment claims —
+            Keep it about relaxation and general wellbeing. Avoid medical or treatment claims,
             a standard wellbeing notice is shown on every public page.
           </p>
         </div>

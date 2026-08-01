@@ -359,7 +359,7 @@ function RecordPaymentDialog({
   return (
     <Dialog open={!!invoice} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Record payment {invoice ? `— ${invoice.invoice_number}` : ""}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Record payment {invoice ? `, ${invoice.invoice_number}` : ""}</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground">Outstanding: {money(outstanding)}</p>
         <div className="grid gap-3">
           <div><Label>Amount received ($)</Label><Input value={amount} placeholder={(outstanding / 100).toFixed(2)} onChange={(e) => setAmount(e.target.value)} /></div>

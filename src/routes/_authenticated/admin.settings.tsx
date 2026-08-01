@@ -665,7 +665,7 @@ function SettingsAdmin() {
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 Control what practitioners in your clinic can do. Org admins and super admins
-                always have full access. Session delivery is always available to practitioners —
+                always have full access. Session delivery is always available to practitioners,
                 these toggles never block running a session.
               </p>
               <PermissionToggle
