@@ -371,16 +371,16 @@ export const finalizeCheckoutSession = createServerFn({ method: "POST" })
         }
       }
 
-      return { ok: true, promoRecorded: !redemptionError };
+      return { ok: true, promoRecorded: !redemptionError, ...home };
     }
     const sub = session.subscription;
-    if (!sub || typeof sub === "string") return { ok: true, skipped: "no-subscription" };
+    if (!sub || typeof sub === "string") return { ok: true, skipped: "no-subscription", ...home };
 
     const monthsRaw = sub.metadata?.cancel_after_months ?? sub.metadata?.months;
     const months = monthsRaw ? Number(monthsRaw) : NaN;
-    if (!Number.isFinite(months) || months <= 0) return { ok: true, skipped: "no-months" };
+    if (!Number.isFinite(months) || months <= 0) return { ok: true, skipped: "no-months", ...home };
 
-    if (sub.cancel_at) return { ok: true, alreadySet: true };
+    if (sub.cancel_at) return { ok: true, alreadySet: true, ...home };
 
     // Anchor to current_period_start + months (30d approximation to align with monthly cycles)
     const anchor = (sub as unknown as { current_period_start?: number }).current_period_start
@@ -389,7 +389,7 @@ export const finalizeCheckoutSession = createServerFn({ method: "POST" })
 
     const cancelAt = anchor + months * 30 * 24 * 60 * 60 + 24 * 60 * 60;
     await stripe.subscriptions.update(sub.id, { cancel_at: cancelAt });
-    return { ok: true, cancelAt };
+    return { ok: true, cancelAt, ...home };
   });
 
 export const finalizeInstallmentsPlan = finalizeCheckoutSession;
