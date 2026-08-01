@@ -149,26 +149,6 @@ function ServicesAdmin() {
                   </div>
                 </TableCell>
                 <TableCell>{s.name}</TableCell>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Duration</TableHead>
-            <TableHead>Changeover</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-24" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow><TableCell colSpan={6}>Loading…</TableCell></TableRow>
-          ) : (data ?? []).length === 0 ? (
-            <TableRow><TableCell colSpan={6} className="text-muted-foreground">No services yet.</TableCell></TableRow>
-          ) : (
-            (data ?? []).map((s) => (
-              <TableRow key={s.id}>
-                <TableCell>{s.name}</TableCell>
                 <TableCell>{s.duration_minutes} min</TableCell>
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
                 <TableCell>
