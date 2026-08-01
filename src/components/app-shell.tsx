@@ -1,5 +1,5 @@
 import {
-  ClipboardCheck, useEffect } from "react";
+  useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
