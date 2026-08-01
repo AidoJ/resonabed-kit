@@ -78,12 +78,12 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
                 type="button"
                 onClick={() => onChange(r.frequency.id)}
                 className={cn(
-                  "flex items-center gap-3 rounded-md border p-3 text-left transition-colors hover:border-primary",
+                  "flex items-start gap-3 rounded-md border p-3 text-left transition-colors hover:border-primary",
                   active && "border-primary bg-primary/5",
                 )}
               >
                 <span
-                  className="h-8 w-8 shrink-0 rounded-full"
+                  className="mt-0.5 h-8 w-8 shrink-0 rounded-full"
                   style={{ background: r.frequency.color ?? "#888" }}
                 />
                 <div className="min-w-0 flex-1">
@@ -95,10 +95,11 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
                       <Music className="h-3.5 w-3.5 text-primary" aria-label="Audio available" />
                     ) : null}
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {r.frequency.description}
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {r.frequency.benefits || r.frequency.description}
                   </p>
                 </div>
+
                 {active ? <Check className="h-4 w-4 text-primary" /> : null}
               </button>
             );
