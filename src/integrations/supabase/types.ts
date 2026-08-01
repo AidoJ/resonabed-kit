@@ -1406,6 +1406,7 @@ export type Database = {
           price: number
           rrp: number | null
           show_price: boolean
+          sort_order: number
           source_global_id: string | null
           updated_at: string
         }
@@ -1420,6 +1421,7 @@ export type Database = {
           price?: number
           rrp?: number | null
           show_price?: boolean
+          sort_order?: number
           source_global_id?: string | null
           updated_at?: string
         }
@@ -1434,6 +1436,7 @@ export type Database = {
           price?: number
           rrp?: number | null
           show_price?: boolean
+          sort_order?: number
           source_global_id?: string | null
           updated_at?: string
         }

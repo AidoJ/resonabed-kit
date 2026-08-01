@@ -38,9 +38,10 @@ export const listServices = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("services")
       .select(
-        "id, name, duration_minutes, buffer_minutes, price, show_price, is_active, created_at, source_global_id",
+        "id, name, duration_minutes, buffer_minutes, price, show_price, is_active, created_at, source_global_id, sort_order",
       )
       .not("org_id", "is", null)
+      .order("sort_order")
       .order("name");
     if (orgId) q = q.eq("org_id", orgId);
     const { data, error } = await q;
@@ -124,6 +125,25 @@ export const deleteService = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const reorderServices = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ ids: z.array(uuid).min(1).max(200) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { orgId } = await resolveEffectiveOrgId(context);
+    if (!orgId) throw new Error("No organisation");
+    for (let i = 0; i < data.ids.length; i++) {
+      const { error } = await context.supabase
+        .from("services")
+        .update({ sort_order: i + 1 })
+        .eq("id", data.ids[i])
+        .eq("org_id", orgId);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
 
 // ---------- Team list ----------
 

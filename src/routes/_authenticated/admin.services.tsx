@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { listServices, upsertService, deleteService } from "@/lib/admin.functions";
+import { listServices, upsertService, deleteService, reorderServices } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/services")({
   head: () => ({ meta: [{ title: "Services, Admin, ResonaBed" }] }),
@@ -72,9 +72,34 @@ function ServicesAdmin() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reorder = useServerFn(reorderServices);
+  const reorderMut = useMutation({
+    mutationFn: (ids: string[]) => reorder({ data: { ids } }),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["admin-services"] });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-services"] }),
+  });
+
+  const rows = (data ?? []) as Service[];
+
+  function move(index: number, dir: -1 | 1) {
+    const next = [...rows];
+    const target = index + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    // Optimistically reflect the new order while the save runs.
+    qc.setQueryData(["admin-services"], next);
+    reorderMut.mutate(next.map((s) => s.id));
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          Use the arrows to set the order sessions appear on your public page.
+        </p>
         <Button onClick={() => setEditing({ is_active: true, show_price: true, duration_minutes: 30, buffer_minutes: 15, price: 0 })}>
           <Plus className="mr-2 h-4 w-4" /> New service
         </Button>
@@ -82,6 +107,7 @@ function ServicesAdmin() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-20">Order</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Changeover</TableHead>
@@ -92,12 +118,36 @@ function ServicesAdmin() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow><TableCell colSpan={6}>Loading…</TableCell></TableRow>
-          ) : (data ?? []).length === 0 ? (
-            <TableRow><TableCell colSpan={6} className="text-muted-foreground">No services yet.</TableCell></TableRow>
+            <TableRow><TableCell colSpan={7}>Loading…</TableCell></TableRow>
+          ) : rows.length === 0 ? (
+            <TableRow><TableCell colSpan={7} className="text-muted-foreground">No services yet.</TableCell></TableRow>
           ) : (
-            (data ?? []).map((s) => (
+            rows.map((s, i) => (
               <TableRow key={s.id}>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      aria-label={`Move ${s.name} up`}
+                      disabled={i === 0 || reorderMut.isPending}
+                      onClick={() => move(i, -1)}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      aria-label={`Move ${s.name} down`}
+                      disabled={i === rows.length - 1 || reorderMut.isPending}
+                      onClick={() => move(i, 1)}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
                 <TableCell>{s.name}</TableCell>
                 <TableCell>{s.duration_minutes} min</TableCell>
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
