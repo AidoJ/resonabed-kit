@@ -109,10 +109,6 @@ function Unavailable() {
   );
 }
 
-function money(v: number) {
-  return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(v);
-}
-
 function Eyebrow({ children, onDark = false }: { children: React.ReactNode; onDark?: boolean }) {
   return (
     <p
