@@ -1,6 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -35,25 +34,23 @@ export const Route = createFileRoute("/auth")({
       throw redirect({ to: search.redirect ?? "/dashboard" });
     }
   },
+  // Resolved before the page paints, so a branded login never flashes the
+  // Resonabed identity first.
+  loaderDeps: ({ search }) => ({ clinic: search.clinic }),
+  loader: async ({ deps }) =>
+    deps.clinic ? await getPublicOrgBranding({ data: { slug: deps.clinic } }) : null,
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
+  const clinic = Route.useLoaderData();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Cosmetic only: brand the shared login page for therapists arriving from
-  // their clinic's public page. Falls back to Resonabed branding.
-  const { data: clinic } = useQuery({
-    queryKey: ["auth-clinic-branding", search.clinic],
-    enabled: !!search.clinic,
-    staleTime: 5 * 60_000,
-    queryFn: () => getPublicOrgBranding({ data: { slug: search.clinic! } }),
-  });
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
