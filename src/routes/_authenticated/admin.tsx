@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Admin, ResonaBed" }] }),
   component: AdminLayout,
 });
 

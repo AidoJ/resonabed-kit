@@ -123,7 +123,7 @@ export const exitSupportMode = createServerFn({ method: "POST" })
   });
 
 /**
- * Support-access history for an organisation — visible to that org's admins
+ * Support-access history for an organisation, visible to that org's admins
  * (the trust artifact) and to super_admin.
  */
 export const listSupportSessionsForOrg = createServerFn({ method: "POST" })

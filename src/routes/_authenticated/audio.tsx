@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/audio")({
-  head: () => ({ meta: [{ title: "Audio library — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Audio library, ResonaBed" }] }),
   component: AudioPage,
 });
 
@@ -524,7 +524,7 @@ function UploadDialog({
         try {
           await remove(createdId);
         } catch {
-          // swallow — user can clean up manually
+          // swallow, user can clean up manually
         }
       }
       toast.error(e instanceof Error ? e.message : "Upload failed");
@@ -546,7 +546,7 @@ function UploadDialog({
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. 396 Hz — Deep rest loop"
+              placeholder="e.g. 396 Hz, Deep rest loop"
             />
           </div>
           <div>

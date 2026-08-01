@@ -3,7 +3,7 @@
  * times their clinic proposed.
  *
  * The token is the only credential. It reveals nothing beyond the clinic name,
- * session type and the proposed times — no address (that stays behind the
+ * session type and the proposed times, no address (that stays behind the
  * confirmation gate), no health data, no other bookings.
  */
 import { createServerFn } from "@tanstack/react-start";
@@ -42,7 +42,7 @@ export const acceptOffer = createServerFn({ method: "POST" })
   });
 
 /**
- * "None of these work" — a dead end otherwise. Keeps the request alive and
+ * "None of these work", a dead end otherwise. Keeps the request alive and
  * tells the clinic to try again, without exposing anything new.
  */
 export const declineOffer = createServerFn({ method: "POST" })

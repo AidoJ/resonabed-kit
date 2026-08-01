@@ -88,7 +88,7 @@ const Email = ({
 export const template = {
   component: Email,
   subject: (d: Record<string, any>) =>
-    `${d.orgName ?? 'Your clinic'} — a few other times for your session`,
+    `${d.orgName ?? 'Your clinic'}, a few other times for your session`,
   displayName: 'Booking: alternate times offered',
   previewData: {
     orgName: 'Spiral Light Healing',

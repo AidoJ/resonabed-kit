@@ -42,7 +42,7 @@ import { PublicPageCard } from "@/components/settings/public-page-card";
 
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
-  head: () => ({ meta: [{ title: "Settings — Admin — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Settings, Admin, ResonaBed" }] }),
   component: SettingsAdmin,
 });
 
@@ -188,9 +188,9 @@ function SettingsAdmin() {
     if (!consent.trim()) m.push("Consent wording");
     if (!privacy.trim()) m.push("Privacy policy");
     if (!health.trim()) m.push("Health & safety policy");
-    if (consentUnedited) m.push("Consent wording — edit the sample to make it yours");
-    if (privacyUnedited) m.push("Privacy policy — edit the sample to make it yours");
-    if (healthUnedited) m.push("Health & safety policy — edit the sample to make it yours");
+    if (consentUnedited) m.push("Consent wording, edit the sample to make it yours");
+    if (privacyUnedited) m.push("Privacy policy, edit the sample to make it yours");
+    if (healthUnedited) m.push("Health & safety policy, edit the sample to make it yours");
     return m;
   }, [
     businessName,
@@ -206,7 +206,7 @@ function SettingsAdmin() {
 
   const canGoLive = missing.length === 0 && !org?.is_configured;
 
-  // Dirty detection per section — compares live form state against loaded org.
+  // Dirty detection per section, compares live form state against loaded org.
   const identityDirty = !!org && (
     name !== org.name ||
     (businessName || "") !== (org.business_name ?? "") ||
@@ -328,7 +328,7 @@ function SettingsAdmin() {
         data: { acknowledger_name: ackName, acknowledged: true, signature: ackSignature },
       });
 
-      toast.success("Setup complete — your clinic is live.");
+      toast.success("Setup complete, your clinic is live.");
       qc.invalidateQueries({ queryKey: ["org-settings"] });
       qc.invalidateQueries({ queryKey: ["user-context"] });
     } catch (e) {
@@ -380,7 +380,7 @@ function SettingsAdmin() {
         <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
           <div className="text-sm">
-            <p className="font-medium">Setup mode — sessions are blocked</p>
+            <p className="font-medium">Setup mode, sessions are blocked</p>
             <p className="text-amber-800/80 dark:text-amber-100/80">
               Complete the required fields below, then sign the acknowledgement to go live.
               Practitioners can log in but cannot create sessions until setup is complete.
@@ -665,7 +665,7 @@ function SettingsAdmin() {
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 Control what practitioners in your clinic can do. Org admins and super admins
-                always have full access. Session delivery is always available to practitioners —
+                always have full access. Session delivery is always available to practitioners,
                 these toggles never block running a session.
               </p>
               <PermissionToggle
@@ -676,7 +676,7 @@ function SettingsAdmin() {
               />
               <PermissionToggle
                 label="Can view the full client list"
-                description="When off, practitioners must search for a specific client by name or email — they can't browse everyone."
+                description="When off, practitioners must search for a specific client by name or email, they can't browse everyone."
                 checked={permViewAllClients}
                 onChange={setPermViewAllClients}
               />
@@ -1145,7 +1145,7 @@ function PolicyField({
         <Label>{label}</Label>
         {unedited && (
           <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300">
-            Unedited sample — you must change this
+            Unedited sample, you must change this
           </Badge>
         )}
       </div>

@@ -2,7 +2,7 @@
  * Server-only safety helpers for the booking pipeline.
  *
  * Two jobs:
- *   1. Identity matching — "is this the same person?" — on normalised phone OR
+ *   1. Identity matching, "is this the same person?", on normalised phone OR
  *      email. Phone is the stronger signal but either match counts, because a
  *      block keyed on both together is walked through by changing one field.
  *   2. Append-only audit writes into public.booking_events.
@@ -46,7 +46,7 @@ export interface BookingEventInput {
 }
 
 /**
- * Append-only. Never carries health detail — decline reasons are codes.
+ * Append-only. Never carries health detail, decline reasons are codes.
  */
 export async function writeBookingEvent(
   client: AnyClient,
@@ -124,7 +124,7 @@ export async function findMatchingClientIds(
 /**
  * Returning = any prior non-cancelled booking, session, or screening in this
  * org across every client row that matches this person. `excludeBookingId` is
- * the request being reviewed — it must not make its own requester look
+ * the request being reviewed, it must not make its own requester look
  * returning.
  */
 export async function isReturningPerson(

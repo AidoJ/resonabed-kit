@@ -91,7 +91,7 @@ export const proposeAlternates = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Proposed times must be in the future." };
     }
 
-    // Only one live offer per booking — a superseded one is withdrawn so its
+    // Only one live offer per booking, a superseded one is withdrawn so its
     // link stops working the moment new times go out.
     const { writeBookingEvent, displayNameForUser } = await import("@/lib/booking-safety.server");
     const operatorName = await displayNameForUser(context.supabase, context.userId);

@@ -120,7 +120,7 @@ export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props)
               <SelectItem value="payid">PayID</SelectItem>
               <SelectItem value="other">Other paid method</SelectItem>
               <SelectItem value="unpaid" disabled={!canCompleteUnpaid}>
-                Unpaid — to be collected
+                Unpaid, to be collected
               </SelectItem>
               <SelectItem value="comp" disabled={!canCompleteUnpaid}>
                 Comp / no charge
@@ -148,7 +148,7 @@ export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props)
           {isDeferred && (
             <p className="text-xs text-muted-foreground">
               {method === "unpaid"
-                ? "Flagged as unpaid — visible to org admins for follow-up."
+                ? "Flagged as unpaid, visible to org admins for follow-up."
                 : "Recorded as no charge (comp)."}
             </p>
           )}

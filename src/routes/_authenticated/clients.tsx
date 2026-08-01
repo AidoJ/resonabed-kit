@@ -23,7 +23,7 @@ import { Pencil, Plus, History, MailWarning } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_authenticated/clients")({
-  head: () => ({ meta: [{ title: "Clients — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Clients, ResonaBed" }] }),
   component: ClientsPage,
 });
 
@@ -239,7 +239,7 @@ function ClientsPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              Session history — {historyOf?.first_name} {historyOf?.last_name}
+              Session history, {historyOf?.first_name} {historyOf?.last_name}
             </DialogTitle>
           </DialogHeader>
           <Table>

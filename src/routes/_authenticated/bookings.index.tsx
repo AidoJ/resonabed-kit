@@ -41,7 +41,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/bookings/")({
-  head: () => ({ meta: [{ title: "Bookings — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Bookings, ResonaBed" }] }),
   validateSearch: zodValidator(searchSchema),
   component: BookingsPage,
 });
@@ -74,7 +74,7 @@ function BookingsPage() {
 
   const { fromDate, toDate } = useMemo(() => {
     if (view === "all") {
-      // Everything on file, past and future — grouped by day below.
+      // Everything on file, past and future, grouped by day below.
       return { fromDate: "1970-01-01", toDate: "2100-01-01" };
     }
     if (view === "week") {
@@ -157,7 +157,7 @@ function BookingsPage() {
             {view === "all"
               ? `All bookings (${bookings.length})`
               : `${view === "week" ? "Week of " : ""}${formatDateLabel(fromDate)}${
-                  view === "week" ? ` — ${formatDateLabel(addDaysToDate(fromDate, 6))}` : ""
+                  view === "week" ? `, ${formatDateLabel(addDaysToDate(fromDate, 6))}` : ""
                 }`}
             <span className="ml-2 text-xs">· times in {tzAbbrev(tz)} ({tz})</span>
           </p>

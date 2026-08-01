@@ -46,7 +46,7 @@ export interface UserContext {
   /**
    * Effective UI-level permission flags. Admins / super_admins are always
    * true. Practitioners reflect their org's toggles. Server-side enforcement
-   * is the real gate — these are for hiding/disabling UI affordances.
+   * is the real gate, these are for hiding/disabling UI affordances.
    */
   permissions: {
     manageClients: boolean;

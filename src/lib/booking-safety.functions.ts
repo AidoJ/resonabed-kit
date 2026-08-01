@@ -2,7 +2,7 @@
  * Booking-side safety and vetting layer: block list, protected client notes,
  * and the append-only booking audit trail.
  *
- * Nothing in here is reachable from the public surface — every function is
+ * Nothing in here is reachable from the public surface, every function is
  * behind requireSupabaseAuth and RLS scopes rows to the caller's org.
  */
 import { createServerFn } from "@tanstack/react-start";

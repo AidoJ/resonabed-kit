@@ -1,7 +1,7 @@
 /**
  * Working-pattern helpers.
  *
- * A "pattern" is the clinic's MERGED weekly working window — day-of-week plus
+ * A "pattern" is the clinic's MERGED weekly working window, day-of-week plus
  * wall-clock start/end in the org's timezone. It deliberately carries no
  * practitioner identity and no booking data, so publishing it never reveals
  * who works when, nor which slots are taken.

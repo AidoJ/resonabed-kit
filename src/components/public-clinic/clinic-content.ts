@@ -38,7 +38,7 @@ export const REASONS = [
   {
     icon: BrainCircuit,
     title: "Stillness for a busy mind",
-    body: "There's nothing to do and nothing to think about — just sound you can feel.",
+    body: "There's nothing to do and nothing to think about, just sound you can feel.",
   },
   {
     icon: Clock3,

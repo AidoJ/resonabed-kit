@@ -27,7 +27,7 @@ export const listMyOrgClients = createServerFn({ method: "POST" })
         await assertPractitionerAction(context, orgId, "view_all_clients");
       } catch {
         // Practitioners without view-all still need to look up a client to
-        // start a session — require a search term to scope the list.
+        // start a session, require a search term to scope the list.
         if (!hasSearch) return [];
       }
     }
@@ -330,7 +330,7 @@ export const completeSession = createServerFn({ method: "POST" })
     const isDeferred = (DEFERRED_METHODS as readonly string[]).includes(data.payment_method);
 
     // A paid outcome must include a real (>0) amount so completion always
-    // records a conscious payment decision — no silent zero-amount closes.
+    // records a conscious payment decision, no silent zero-amount closes.
     if (isPaid) {
       if (data.payment_amount == null || data.payment_amount <= 0) {
         throw new Error("Enter the amount collected, or choose an unpaid/comp outcome.");
@@ -490,7 +490,7 @@ export const getSignedAudioUrl = createServerFn({ method: "POST" })
       const licensed = await callerHasGlobalLicence(context);
       if (!licensed) {
         throw new Error(
-          "Music licence expired — contact ResonaBed to renew access to the global library.",
+          "Music licence expired, contact ResonaBed to renew access to the global library.",
         );
       }
     }

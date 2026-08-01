@@ -20,7 +20,7 @@ interface BookingDeclinedProps {
  *
  * No address, no service name, no time, no reason, and nothing health
  * related. A decline must never disclose anything, and must never hint at
- * why — the reason lives only in the org's audit trail.
+ * why, the reason lives only in the org's audit trail.
  *
  * It also carries NO invitation to make contact. A decline is sometimes a soft
  * no to someone the operator deliberately vetted out; the email must not push

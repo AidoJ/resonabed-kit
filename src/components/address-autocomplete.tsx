@@ -95,7 +95,7 @@ export function formatAddress(a: StructuredAddress) {
 
 /**
  * Google Places (New) backed address entry. There are no free-text address
- * fields — an address only becomes set when the operator picks a real place,
+ * fields, an address only becomes set when the operator picks a real place,
  * so what we store is always a valid, structured address.
  */
 export function AddressAutocomplete({

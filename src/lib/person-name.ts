@@ -3,7 +3,7 @@
  * "AIDAN", "aidan" or "aIdan" as often as "Aidan". Emails address a real
  * person; shouting their name back at them reads as spam.
  *
- * Only normalise when the input is uniformly cased — anything with a
+ * Only normalise when the input is uniformly cased, anything with a
  * deliberate internal capital (McKenzie, DeLuca) is left exactly as given.
  */
 function capitalisePart(part: string): string {

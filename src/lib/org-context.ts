@@ -22,7 +22,7 @@ export async function resolveEffectiveOrgId(ctx: {
     .maybeSingle();
   if (profile?.org_id) return { orgId: profile.org_id as string, supportMode: false };
 
-  // No profile org — could be super_admin. Look for an open support session.
+  // No profile org, could be super_admin. Look for an open support session.
   const { data: support } = await ctx.supabase
     .from("support_sessions")
     .select("org_id")

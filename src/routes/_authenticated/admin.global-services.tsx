@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/global-services")({
-  head: () => ({ meta: [{ title: "Global services — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Global services, ResonaBed" }] }),
   component: GlobalServicesAdmin,
 });
 

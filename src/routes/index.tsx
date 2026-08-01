@@ -43,13 +43,13 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Resonabed — Vibroacoustic upgrade kits for clinics" },
+      { title: "Resonabed, Vibroacoustic upgrade kits for clinics" },
       {
         name: "description",
         content:
           "Turn a therapy table* you already own into a new revenue stream. The Resonabed kit can potentially convert your existing massage, chiropractic, osteopathic or any therapeutic treatment table into a vibroacoustic therapy table, kit, app, and music licence included.",
       },
-      { property: "og:title", content: "Resonabed — Sound you can feel. Where tension unwinds." },
+      { property: "og:title", content: "Resonabed, Sound you can feel. Where tension unwinds." },
       {
         property: "og:description",
         content:
@@ -626,11 +626,11 @@ function PackageCard({
       });
       const shippingBlurb = shipping
         ? shipping.amount === 0
-          ? `Pickup — no shipping charge.`
+          ? `Pickup, no shipping charge.`
           : `Shipping to ${shipping.label}: $${(shipping.amount / 100).toFixed(2)} AUD${shipping.gstInclusive ? " (incl. GST)" : " (GST-free export)"}.`
         : null;
       const promoBlurb = appliedPromo
-        ? `${appliedPromo.code} applied — ${appliedPromo.percentOff}% off, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
+        ? `${appliedPromo.code} applied, ${appliedPromo.percentOff}% off, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
         : null;
       const combined = [promoBlurb, shippingBlurb].filter(Boolean).join(" ");
       setCheckoutNote(combined || null);
@@ -796,7 +796,7 @@ function PackageCard({
                 : "bg-brand-indigo text-white hover:bg-brand-indigo/90")
             }
           >
-            {loading === "full" ? "Preparing checkout…" : `Pay in full — ${price}`}
+            {loading === "full" ? "Preparing checkout…" : `Pay in full, ${price}`}
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
 
@@ -838,7 +838,7 @@ function PackageCard({
         subtitle={checkoutNote}
         title={
           activePlan === "installments"
-            ? `${name} — Deposit + monthly plan`
+            ? `${name}, Deposit + monthly plan`
             : `Complete your ${name} order`
         }
       />

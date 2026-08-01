@@ -160,7 +160,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     setNewPhone("");
   }, [open, booking, defaultStartsAt, tz]);
 
-  // Practitioners can only assign themselves — lock the value once we know who they are.
+  // Practitioners can only assign themselves, lock the value once we know who they are.
   useEffect(() => {
     if (!open || !selfOnly || !ctx) return;
     if (practitionerId !== ctx.userId) setPractitionerId(ctx.userId);
@@ -196,7 +196,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
     if (windows.length === 0) return [];
     const duration = svc.duration_minutes;
     // Existing bookings for this practitioner (excluding the one being edited).
-    // Unconfirmed public requests never block a slot — they're only requests.
+    // Unconfirmed public requests never block a slot, they're only requests.
     const busy = dayBookings
       .filter(
         (b) =>
@@ -229,7 +229,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
   useEffect(() => {
     if (!slotMin) return;
     if (!slots.includes(Number(slotMin))) {
-      // Keep the slot if we're editing this booking's original time — availability may not include it.
+      // Keep the slot if we're editing this booking's original time, availability may not include it.
       if (booking) {
         const orig = minutesOfDayInTz(booking.starts_at, tz);
         if (orig === Number(slotMin) && practitionerId === booking.practitioner_id) return;

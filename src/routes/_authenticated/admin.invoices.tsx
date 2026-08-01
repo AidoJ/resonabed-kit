@@ -29,7 +29,7 @@ import { FileText, Plus, Trash2, Banknote } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/admin/invoices")({
   head: () => ({
     meta: [
-      { title: "Kit invoices — Admin — ResonaBed" },
+      { title: "Kit invoices, Admin, ResonaBed" },
       { name: "description", content: "Raise EFT tax invoices for ResonaBed kit orders and track their status." },
     ],
   }),
@@ -282,7 +282,7 @@ function NewInvoiceDialog({
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {PACKAGES.map((x) => (
-                  <SelectItem key={x.key} value={x.key}>{x.label} — {money(x.cents)}</SelectItem>
+                  <SelectItem key={x.key} value={x.key}>{x.label}, {money(x.cents)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -359,7 +359,7 @@ function RecordPaymentDialog({
   return (
     <Dialog open={!!invoice} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Record payment {invoice ? `— ${invoice.invoice_number}` : ""}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Record payment {invoice ? `, ${invoice.invoice_number}` : ""}</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground">Outstanding: {money(outstanding)}</p>
         <div className="grid gap-3">
           <div><Label>Amount received ($)</Label><Input value={amount} placeholder={(outstanding / 100).toFixed(2)} onChange={(e) => setAmount(e.target.value)} /></div>

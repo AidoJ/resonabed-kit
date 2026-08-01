@@ -117,18 +117,18 @@ export const submitScreening = createServerFn({ method: "POST" })
     }
     if (!data.none_apply && flagged.length === 0) {
       throw new Error(
-        "The screening must be answered — either tick the items that apply or confirm 'None of these apply'.",
+        "The screening must be answered, either tick the items that apply or confirm 'None of these apply'.",
       );
     }
     const unknown = flagged.filter((f) => !SCREENING_CHECKLIST.some((i) => i.key === f));
     if (unknown.length) throw new Error(`Unknown screening item: ${unknown.join(", ")}`);
 
-    // Recompute clearances server-side — never trust the client.
+    // Recompute clearances server-side, never trust the client.
     const cleared: Record<string, string> = {};
     const blocking: string[] = [];
     for (const item of flagged) {
       if (!isClearableItem(item)) {
-        blocking.push(item); // e.g. pregnancy — never clearable by any path
+        blocking.push(item); // e.g. pregnancy, never clearable by any path
         continue;
       }
       const { data: letters, error } = await context.supabase
@@ -214,7 +214,7 @@ export const submitScreening = createServerFn({ method: "POST" })
 // ---------- Auditable refusal ----------
 
 /**
- * A blocked screening is not a therapist quietly backing out of the wizard —
+ * A blocked screening is not a therapist quietly backing out of the wizard,
  * it writes a cancelled session carrying the screening id and a decline
  * reason, so the refusal is a recorded clinical event.
  */
@@ -291,7 +291,7 @@ export const recordClearanceLetter = createServerFn({ method: "POST" })
     const orgId = await callerOrgId(context);
     if (!isClearableItem(data.item_key)) {
       throw new Error(
-        "This item can never be cleared by a doctor's letter — it must be re-screened each session.",
+        "This item can never be cleared by a doctor's letter, it must be re-screened each session.",
       );
     }
     const { pseudonymForClient } = await import("@/lib/pseudonym.server");

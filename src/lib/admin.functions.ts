@@ -29,7 +29,7 @@ async function requireAdmin(context: {
   return { isSuper, adminOrgs };
 }
 
-// ---------- Services CRUD (org-scoped only — global catalogue lives elsewhere) ----------
+// ---------- Services CRUD (org-scoped only, global catalogue lives elsewhere) ----------
 
 export const listServices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

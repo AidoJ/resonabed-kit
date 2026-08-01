@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
-  head: () => ({ meta: [{ title: "Admin overview — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Admin overview, ResonaBed" }] }),
   component: AdminIndex,
 });
 

@@ -87,7 +87,7 @@ export function PromoStepDialog({
                 variant="outline"
                 className="h-11 w-full rounded-full border-brand-indigo/25 text-brand-indigo hover:bg-brand-tint"
               >
-                No — continue to payment
+                No, continue to payment
               </Button>
             </div>
           </div>
@@ -129,7 +129,7 @@ export function PromoStepDialog({
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
               <div className="flex items-center gap-2 text-emerald-800">
                 <CheckCircle2 className="h-5 w-5" />
-                <span className="font-medium">{applied.code} applied — {applied.percentOff}% off</span>
+                <span className="font-medium">{applied.code} applied, {applied.percentOff}% off</span>
               </div>
               <dl className="mt-3 space-y-1.5 text-sm">
                 <div className="flex justify-between text-muted-foreground">

@@ -25,7 +25,7 @@ import {
 import { Truck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/shipping")({
-  head: () => ({ meta: [{ title: "Shipping rates — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Shipping rates, ResonaBed" }] }),
   component: ShippingRatesPage,
 });
 

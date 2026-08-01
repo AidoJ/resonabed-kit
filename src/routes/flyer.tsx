@@ -10,7 +10,7 @@ export const Route = createFileRoute("/flyer")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Marketing flyer — Resonabed client leaflet" },
+      { title: "Marketing flyer, Resonabed client leaflet" },
       {
         name: "description",
         content:
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/flyer")({
       {
         property: "og:description",
         content:
-          "The professionally designed DL client leaflet included with every Resonabed kit — preview both sides and download the print-ready PDF.",
+          "The professionally designed DL client leaflet included with every Resonabed kit, preview both sides and download the print-ready PDF.",
       },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -59,7 +59,7 @@ function FlyerPage() {
           The Resonabed client flyer
         </h1>
         <p className="mt-4 text-muted-foreground">
-          250 professionally designed DL flyers ship with every kit — a calm, plain-language
+          250 professionally designed DL flyers ship with every kit, a calm, plain-language
           introduction your clients can pick up in reception. Space is left on the back panel for
           your clinic details.
         </p>
@@ -74,7 +74,7 @@ function FlyerPage() {
             loading="lazy"
           />
           <figcaption className="border-t border-border px-6 py-4 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            Outside — cover, common questions, what to expect
+            Outside, cover, common questions, what to expect
           </figcaption>
         </figure>
 
@@ -86,7 +86,7 @@ function FlyerPage() {
             loading="lazy"
           />
           <figcaption className="border-t border-border px-6 py-4 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            Inside — what it is, why people come back, the nine tones
+            Inside, what it is, why people come back, the nine tones
           </figcaption>
         </figure>
 

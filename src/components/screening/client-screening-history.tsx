@@ -21,7 +21,7 @@ interface ChecklistSnapshotItem {
 }
 
 /**
- * Renders a historic screening exactly as it was signed — the snapshot stored
+ * Renders a historic screening exactly as it was signed, the snapshot stored
  * on the row, never today's wording.
  */
 export function ClientScreeningHistory({ clientId }: { clientId: string }) {
@@ -87,7 +87,7 @@ export function ClientScreeningHistory({ clientId }: { clientId: string }) {
           <DialogHeader>
             <DialogTitle>Screening record</DialogTitle>
             <DialogDescription>
-              Reproduced verbatim from the signed record — {record?.checklist_version as string}
+              Reproduced verbatim from the signed record, {record?.checklist_version as string}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[65vh] pr-4">
@@ -107,8 +107,8 @@ export function ClientScreeningHistory({ clientId }: { clientId: string }) {
                         <li key={f}>
                           {labelOf(f)}
                           {(record.blocking_items as string[])?.includes(f)
-                            ? " — blocking"
-                            : " — cleared by letter on file"}
+                            ? ", blocking"
+                            : ", cleared by letter on file"}
                         </li>
                       ))}
                     </ul>

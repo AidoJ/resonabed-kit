@@ -52,7 +52,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
-  head: () => ({ meta: [{ title: "Organisations — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Organisations, ResonaBed" }] }),
   component: OrganisationsPage,
 });
 
@@ -333,7 +333,7 @@ function OrganisationsPage() {
             <DialogTitle>Access {supportOrg?.name} for support</DialogTitle>
             <DialogDescription>
               Normal access requires the clinic to have granted a support-access window in
-              their Settings. Every entry — normal or emergency — is logged in a permanent
+              their Settings. Every entry, normal or emergency, is logged in a permanent
               audit trail visible to the clinic.
             </DialogDescription>
           </DialogHeader>
@@ -354,7 +354,7 @@ function OrganisationsPage() {
               onCheckedChange={(v) => setSupportEmergency(Boolean(v))}
             />
             <Label htmlFor="emergency" className="text-sm font-normal">
-              <strong className="text-destructive">Emergency access</strong> — bypass the
+              <strong className="text-destructive">Emergency access</strong>, bypass the
               grant requirement because the clinic cannot grant access right now (e.g. they're
               locked out). This will be flagged prominently in their audit trail.
             </Label>
@@ -559,7 +559,7 @@ function CreateOrgDialog({
                 onChange={() => setBundle("basic")}
               />
               <Label htmlFor="bundle-basic" className="font-normal">
-                Basic — 1 month trial only
+                Basic, 1 month trial only
                 <span className="block text-xs text-muted-foreground">
                   Default. Org starts with the standard 1-month trial.
                 </span>
@@ -575,7 +575,7 @@ function CreateOrgDialog({
                 onChange={() => setBundle("pro")}
               />
               <Label htmlFor="bundle-pro" className="font-normal">
-                Pro / Platinum — trial + 12 months
+                Pro / Platinum, trial + 12 months
                 <span className="block text-xs text-muted-foreground">
                   Stacks 12 months on top of the trial (~13 months total from creation).
                 </span>
@@ -603,11 +603,11 @@ function CreateOrgDialog({
                 onCheckedChange={(v) => setSeedFrequencies(!!v)}
               />
               <Label htmlFor="seed-freq" className="font-normal">
-                Frequencies (global — always available)
+                Frequencies (global, always available)
               </Label>
             </div>
             <p className="text-xs text-muted-foreground">
-              Audio library is global — new organisations inherit the shipped Solfeggio tracks
+              Audio library is global, new organisations inherit the shipped Solfeggio tracks
               automatically. Frequencies are global too.
             </p>
           </div>
@@ -805,7 +805,7 @@ function ResetAdminPasswordDialog({
           </DialogTitle>
           <DialogDescription>
             Admins for <strong>{org.name}</strong>. Reset a password to issue a new temporary one and
-            sign the admin out everywhere. Revoke to remove their org_admin role — their account
+            sign the admin out everywhere. Revoke to remove their org_admin role, their account
             stays, but they lose all access to this organisation. Add a replacement with "Add admin"
             before revoking the last one.
           </DialogDescription>
@@ -1061,11 +1061,11 @@ function LicenceDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Music className="h-5 w-5" /> Music licence — {org.name}
+            <Music className="h-5 w-5" /> Music licence, {org.name}
           </DialogTitle>
           <DialogDescription>
             Extensions stack onto the existing expiry, so no unused days are lost. The
-            org's own uploaded audio is unaffected — only the 9 global tracks are gated.
+            org's own uploaded audio is unaffected, only the 9 global tracks are gated.
           </DialogDescription>
         </DialogHeader>
 
@@ -1154,7 +1154,7 @@ function LicenceDialog({
               id="lic-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g. Pro bundle 13mo — $49.50 paid"
+              placeholder="e.g. Pro bundle 13mo, $49.50 paid"
             />
           </div>
         </div>

@@ -41,7 +41,7 @@ export const Route = createFileRoute("/o/$slug")({
     if (!loaderData) {
       return {
         meta: [
-          { title: "Page not available — Resonabed" },
+          { title: "Page not available, Resonabed" },
           { name: "robots", content: "noindex" },
         ],
       };
@@ -49,8 +49,8 @@ export const Route = createFileRoute("/o/$slug")({
     const { org } = loaderData;
     const url = `${SITE}/o/${params.slug}`;
     const title = org.public_strapline
-      ? `${org.name} — ${org.public_strapline}`.slice(0, 70)
-      : `${org.name} — Vibroacoustic relaxation sessions`;
+      ? `${org.name}, ${org.public_strapline}`.slice(0, 70)
+      : `${org.name}, Vibroacoustic relaxation sessions`;
     const description =
       org.public_strapline
         ? `${org.public_strapline}. ${org.public_blurb ?? `Book a Resonabed vibroacoustic relaxation session with ${org.name}.`}`.slice(0, 155)
@@ -366,7 +366,7 @@ function PublicOrgPage() {
               </p>
               <p>
                 It&rsquo;s a very old idea in a modern form. People have used sound, drums and tone
-                to settle the body for thousands of years — this is the same instinct, delivered
+                to settle the body for thousands of years, this is the same instinct, delivered
                 precisely and quietly, while you rest.
               </p>
             </div>
@@ -483,7 +483,7 @@ function PublicOrgPage() {
             <div className="mx-auto mt-12 max-w-xl rounded-2xl border bg-background p-8 text-center">
               <h3 className="text-lg font-medium tracking-tight">Get in touch to book</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Online requests aren&rsquo;t open right now — contact {org.name} directly and
+                Online requests aren&rsquo;t open right now, contact {org.name} directly and
                 we&rsquo;ll find a time.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -568,7 +568,7 @@ function PublicOrgPage() {
                 <p className="flex items-start gap-3 text-muted-foreground">
                   <Mail className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
-                    The quickest way to reach us is a booking request — leave your details and
+                    The quickest way to reach us is a booking request, leave your details and
                     we&rsquo;ll be in touch personally.
                   </span>
                 </p>
@@ -583,7 +583,7 @@ function PublicOrgPage() {
           <div className="rounded-2xl border p-8" style={{ background: "var(--clinic-tint-soft)" }}>
             <h3 className="text-lg font-medium tracking-tight">A natural add-on</h3>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              A vibroacoustic session pairs beautifully with massage or bodywork — before, to help
+              A vibroacoustic session pairs beautifully with massage or bodywork, before, to help
               the body let go, or after, to hold the calm a little longer. Ask us about adding one
               to your usual appointment.
             </p>

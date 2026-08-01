@@ -149,7 +149,7 @@ export function PublicRequestDialog({
       // History records that a note exists, never what it says.
       await logNote({ data: { booking_id: booking!.id } }).catch(() => {});
     } catch {
-      toast.error("Your call notes couldn't be saved — copy them before closing.");
+      toast.error("Your call notes couldn't be saved, copy them before closing.");
     }
   };
 
@@ -187,7 +187,7 @@ export function PublicRequestDialog({
       }
       toast.success(
         action === "confirm"
-          ? "Booking confirmed — the client has been emailed the details and your address."
+          ? "Booking confirmed, the client has been emailed the details and your address."
           : notifyClient
             ? "Request declined and the client has been notified."
             : "Request declined.",
@@ -217,7 +217,7 @@ export function PublicRequestDialog({
         <DialogHeader>
           <DialogTitle>Public booking request</DialogTitle>
           <DialogDescription>
-            Submitted through your public page. Nothing is scheduled — and no address is shared —
+            Submitted through your public page. Nothing is scheduled, and no address is shared,
             until you confirm.
           </DialogDescription>
         </DialogHeader>
@@ -324,12 +324,12 @@ export function PublicRequestDialog({
               maxLength={4000}
               value={callNote}
               onChange={(e) => setCallNote(e.target.value)}
-              placeholder="Type here — e.g. what was said on the call, why you're confirming or declining."
+              placeholder="Type here, e.g. what was said on the call, why you're confirming or declining."
               className="bg-card"
             />
             <p className="text-[11px] text-muted-foreground">
               Saved to the client&rsquo;s protected notes when you confirm or decline. The booking
-              history records only that a note was added — never its contents.
+              history records only that a note was added, never its contents.
             </p>
           </div>
 

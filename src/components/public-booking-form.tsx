@@ -61,7 +61,7 @@ export function PublicBookingForm({
   timezone: string;
   clinicName: string;
   /**
-   * The clinic's merged working pattern. Days/hours only — never a live slot
+   * The clinic's merged working pattern. Days/hours only, never a live slot
    * map, never who is working, never what is already booked.
    */
   availability?: AvailabilityWindow[];
@@ -373,7 +373,7 @@ export function PublicBookingForm({
               maxLength={500}
               rows={3}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Optional — preferred alternative times, accessibility needs, etc."
+              placeholder="Optional, preferred alternative times, accessibility needs, etc."
             />
           </div>
 

@@ -1,6 +1,6 @@
 /**
  * Cron endpoint: expires stale alternate-time offers and sends the ~13 hour
- * reminder. Idempotent — safe to call as often as you like.
+ * reminder. Idempotent, safe to call as often as you like.
  *
  * Authenticated with the project's anon key in the `apikey` header, matching
  * every other scheduled job here.

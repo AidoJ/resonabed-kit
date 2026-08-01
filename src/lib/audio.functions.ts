@@ -7,7 +7,7 @@ const uuid = z.string().uuid();
 export const listOrgAudioFiles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    // Returns both global (org_id IS NULL) and the caller's own org rows — RLS
+    // Returns both global (org_id IS NULL) and the caller's own org rows, RLS
     // filters the rest. The session player uses the same visibility.
     const { data, error } = await context.supabase
       .from("audio_files")
@@ -129,7 +129,7 @@ export const deleteAudioFile = createServerFn({ method: "POST" })
       const { error: rmErr } = await context.supabase.storage
         .from("audio-files")
         .remove([row.file_url]);
-      // Ignore "not found" — row can still be deleted.
+      // Ignore "not found", row can still be deleted.
       if (rmErr && !/not.?found/i.test(rmErr.message)) {
         throw new Error(rmErr.message);
       }

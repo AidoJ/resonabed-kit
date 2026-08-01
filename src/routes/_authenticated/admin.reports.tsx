@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
-  head: () => ({ meta: [{ title: "Reports — Admin — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Reports, Admin, ResonaBed" }] }),
   component: ReportsAdmin,
 });
 
@@ -134,7 +134,7 @@ function ReportsAdmin() {
                 <TableBody>
                   {data.topFrequencies.map((f, i) => (
                     <TableRow key={i}>
-                      <TableCell>{f.hz} Hz {f.label && `— ${f.label}`}</TableCell>
+                      <TableCell>{f.hz} Hz {f.label && `, ${f.label}`}</TableCell>
                       <TableCell>{f.count}</TableCell>
                     </TableRow>
                   ))}

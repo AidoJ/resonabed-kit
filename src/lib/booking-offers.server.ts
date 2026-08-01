@@ -94,7 +94,7 @@ export async function tickOffers(admin: AnyClient): Promise<{
       public_contact_email: string | null;
       public_show_email: boolean | null;
     } | null;
-    // The reminder deliberately carries no fresh link — the client still has
+    // The reminder deliberately carries no fresh link, the client still has
     // the original email, and re-sending a live token widens the window.
     if (client?.email) {
       try {

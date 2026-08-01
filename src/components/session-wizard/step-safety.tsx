@@ -115,13 +115,13 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
           <AlertTitle>Returning client</AlertTitle>
           <AlertDescription>
             Last screened {new Date(ctx.prior_screening.created_at).toLocaleDateString()}. Confirm
-            the answers again — any change requires a fresh, fully signed screening.
+            the answers again, any change requires a fresh, fully signed screening.
           </AlertDescription>
         </Alert>
       ) : null}
 
       <div>
-        <Label className="mb-3 block">Safety screening — tick anything that applies</Label>
+        <Label className="mb-3 block">Safety screening, tick anything that applies</Label>
         <div className="space-y-3 rounded-md border p-4">
           {SCREENING_CHECKLIST.map((o) => {
             const ticked = flagged.includes(o.key);
@@ -167,7 +167,7 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
                 onCheckedChange={(c) => setNone(c === true)}
                 className="h-5 w-5"
               />
-              <span>None of these apply — recorded as a signed attestation</span>
+              <span>None of these apply, recorded as a signed attestation</span>
             </label>
             {!answered && (
               <p className="text-muted-foreground mt-2 text-xs">
@@ -188,7 +188,7 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
               .map((b) => SCREENING_CHECKLIST.find((i) => i.key === b)?.label ?? b)
               .join(", ")}{" "}
             {blocking.length === 1 ? "is" : "are"} flagged without valid clearance. The screening
-            must still be completed and signed by both parties — signing records an auditable
+            must still be completed and signed by both parties, signing records an auditable
             refusal (a cancelled session) instead of starting one.
           </AlertDescription>
         </Alert>
@@ -234,7 +234,7 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
               }}
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              {POLICY_LABELS[k]} — Read now
+              {POLICY_LABELS[k]}, Read now
               {read[k] ? " ✓" : ""}
             </Button>
           ))}
@@ -275,7 +275,7 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
           <DialogHeader>
             <DialogTitle>{open ? POLICY_LABELS[open] : ""} policy</DialogTitle>
             <DialogDescription>
-              {org?.name ?? "Your clinic"} — please read this with your client.
+              {org?.name ?? "Your clinic"}, please read this with your client.
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh] pr-4">

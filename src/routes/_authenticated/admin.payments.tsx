@@ -15,7 +15,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/admin/payments")({
   head: () => ({
     meta: [
-      { title: "Kit payments — Admin — ResonaBed" },
+      { title: "Kit payments, Admin, ResonaBed" },
       { name: "description", content: "Payments received against ResonaBed kit invoices, with printable receipts." },
     ],
   }),

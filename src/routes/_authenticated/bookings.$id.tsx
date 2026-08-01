@@ -23,7 +23,7 @@ import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
-  head: () => ({ meta: [{ title: "Booking — ResonaBed" }] }),
+  head: () => ({ meta: [{ title: "Booking, ResonaBed" }] }),
   component: BookingDetail,
 });
 

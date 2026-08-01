@@ -6,7 +6,7 @@ const PACKAGES = {
   pro: {
     name: "Resonabed Pro Kit",
     description:
-      "Complete upgrade kit: 2x tactile transducers, Bluetooth amplifier, wiring & fittings, Resonabed session player + booking app, 9 Solfeggio frequencies, 250 DL marketing flyers. Price incl. GST — $1,090 + $109 GST = $1,199 AUD.",
+      "Complete upgrade kit: 2x tactile transducers, Bluetooth amplifier, wiring & fittings, Resonabed session player + booking app, 9 Solfeggio frequencies, 250 DL marketing flyers. Price incl. GST, $1,090 + $109 GST = $1,199 AUD.",
     amount: 119900,
     exGst: 109000,
     gst: 10900,
@@ -15,7 +15,7 @@ const PACKAGES = {
   premium: {
     name: "Resonabed Premium Kit",
     description:
-      "Everything in Pro, plus a 9\" Android tablet pre-configured for session-only use. Price incl. GST — $1,272 + $127 GST = $1,399 AUD.",
+      "Everything in Pro, plus a 9\" Android tablet pre-configured for session-only use. Price incl. GST, $1,272 + $127 GST = $1,399 AUD.",
     amount: 139900,
     exGst: 127200,
     gst: 12700,
@@ -98,7 +98,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       : await loadShippingRateForCountry(addr!.country);
 
     const shippingGstNote = shipping.gstInclusive ? "incl. GST" : "GST-free export";
-    const shippingLineName = `Shipping — ${shipping.label}`;
+    const shippingLineName = `Shipping, ${shipping.label}`;
     const shippingLineDescription = `Flat-rate shipping to ${shipping.label} (${shippingGstNote}).`;
 
     const baseParams = {
@@ -151,8 +151,8 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             price_data: {
               currency: "aud",
               product_data: {
-                name: `${pkg.name} — Deposit`,
-                description: `Deposit incl. GST — $${Math.round((deposit / 100) / 1.1)} + $${Math.round((deposit / 100) - (deposit / 100) / 1.1)} GST = $${(deposit / 100).toFixed(0)} AUD. Followed by ${months} monthly payments.`,
+                name: `${pkg.name}, Deposit`,
+                description: `Deposit incl. GST, $${Math.round((deposit / 100) / 1.1)} + $${Math.round((deposit / 100) - (deposit / 100) / 1.1)} GST = $${(deposit / 100).toFixed(0)} AUD. Followed by ${months} monthly payments.`,
               },
               unit_amount: deposit,
             },
@@ -173,7 +173,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             price_data: {
               currency: "aud",
               product_data: {
-                name: `${pkg.name} — Monthly payment`,
+                name: `${pkg.name}, Monthly payment`,
                 description: `${months} monthly payments of $${(monthly / 100).toFixed(0)} incl. GST ($91 + $9 GST) following the deposit. Repayment total $${((deposit + monthly * months) / 100).toFixed(0)} AUD.`,
               },
               unit_amount: monthly,
@@ -183,7 +183,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
           },
         ],
         subscription_data: {
-          description: `${pkg.name} — repayment plan (${months} months)`,
+          description: `${pkg.name}, repayment plan (${months} months)`,
           metadata: {
             package: data.package,
             plan: "installments",
@@ -241,7 +241,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       }
 
       const discountDescription = appliedPromo
-        ? `${pkg.description} Promo ${appliedPromo.code}: ${appliedPromo.percentOff}% off — saves $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
+        ? `${pkg.description} Promo ${appliedPromo.code}: ${appliedPromo.percentOff}% off, saves $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
         : pkg.description;
 
       const params: Stripe.Checkout.SessionCreateParams = {
@@ -263,7 +263,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
             },
             quantity: 1,
           },
-          // Shipping is a separate, non-discounted line item — promo only touches the kit line.
+          // Shipping is a separate, non-discounted line item, promo only touches the kit line.
           ...(isPickup ? [] : [{
             price_data: {
               currency: "aud" as const,
@@ -301,7 +301,7 @@ const FinalizeSchema = z.object({ sessionId: z.string().min(1) });
 /**
  * Called after a successful installments checkout. Reads the subscription
  * from the session and sets `cancel_at` so billing stops after the last
- * planned monthly payment. Idempotent — safe to call multiple times.
+ * planned monthly payment. Idempotent, safe to call multiple times.
  */
 export const finalizeCheckoutSession = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => FinalizeSchema.parse(input))
@@ -438,7 +438,7 @@ export const requestKitEftInvoice = createServerFn({ method: "POST" })
       ? [addr.line1, addr.line2, `${addr.city} ${addr.state ?? ""} ${addr.postalCode}`.trim(), addr.country]
           .filter(Boolean)
           .join("\n")
-      : "Pickup — customer collects";
+      : "Pickup, customer collects";
 
     const { createEftKitInvoice } = await import("@/lib/eft-order.server");
     return await createEftKitInvoice({

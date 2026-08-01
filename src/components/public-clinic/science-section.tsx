@@ -4,7 +4,7 @@
  * LIABILITY CONTROL: every word here is hardcoded template content, identical
  * on every clinic page. Nothing in this file may be sourced from an
  * operator-editable field, and no operator-editable content may be rendered
- * inside or adjacent to this section — the hedged wording must never be
+ * inside or adjacent to this section, the hedged wording must never be
  * strengthened or amplified by an individual clinic.
  */
 

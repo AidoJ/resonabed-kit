@@ -28,7 +28,7 @@ export interface GlobalService {
 }
 
 /**
- * Global service catalogue — the template copied into new orgs at creation.
+ * Global service catalogue, the template copied into new orgs at creation.
  * `rrp` is a Recommended Retail Price: a display-only guide for clinics.
  * A clinic's own `price` is never bound to it.
  */

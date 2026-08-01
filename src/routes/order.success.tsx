@@ -37,7 +37,7 @@ function OrderSuccess() {
           <CheckCircle2 className="h-8 w-8" />
         </div>
         <h1 className="mt-6 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-          Thank you — your order is confirmed.
+          Thank you, your order is confirmed.
         </h1>
         <p className="mt-4 max-w-md text-muted-foreground">
           You'll receive a receipt by email shortly. Our team will be in touch within one business
