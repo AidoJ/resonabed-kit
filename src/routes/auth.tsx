@@ -80,43 +80,72 @@ function AuthPage() {
     navigate({ to: search.redirect ?? "/dashboard", replace: true });
   };
 
+  const branded = !!clinic;
+  const themeVars = branded
+    ? clinicThemeVars(clinic!.themeSidebar, clinic!.themePrimary)
+    : undefined;
+
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: `url(${logoMark})`,
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          backgroundSize: "min(140vw, 1400px) auto",
-          opacity: 0.08,
-        }}
-      />
+    <main
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4"
+      style={themeVars}
+    >
+      {branded ? null : (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: `url(${logoMark})`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: "min(140vw, 1400px) auto",
+            opacity: 0.08,
+          }}
+        />
+      )}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-70"
         style={{
-          background:
-            "radial-gradient(60% 45% at 50% 20%, color-mix(in oklab, var(--brand-violet) 14%, transparent), transparent 70%)",
+          background: branded
+            ? "radial-gradient(60% 45% at 50% 20%, color-mix(in oklab, var(--clinic-accent) 16%, transparent), transparent 70%)"
+            : "radial-gradient(60% 45% at 50% 20%, color-mix(in oklab, var(--brand-violet) 14%, transparent), transparent 70%)",
         }}
       />
       <div className="relative w-full max-w-md">
         <div className="mb-6 flex flex-col items-center">
-          <img
-            src={logo.url}
-            alt="Resonabed"
-            className="h-36 w-auto"
-            draggable={false}
-          />
+          {branded && clinic!.logoUrl ? (
+            <div className="rounded-2xl bg-white px-6 py-4 shadow-soft">
+              <img
+                src={clinic!.logoUrl}
+                alt={clinic!.name}
+                className="h-24 w-auto"
+                draggable={false}
+              />
+            </div>
+          ) : branded ? (
+            <h2
+              className="text-2xl font-medium tracking-tight"
+              style={{ color: "var(--clinic-accent)" }}
+            >
+              {clinic!.name}
+            </h2>
+          ) : (
+            <img src={logo.url} alt="Resonabed" className="h-36 w-auto" draggable={false} />
+          )}
         </div>
         <div className="shadow-soft rounded-2xl bg-card p-8">
           <div className="mb-6 text-center">
-            <h1 className="text-2xl font-light tracking-tight text-brand-indigo">
+            <h1
+              className="text-2xl font-light tracking-tight text-brand-indigo"
+              style={branded ? { color: "var(--clinic-accent)" } : undefined}
+            >
               Welcome back
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Sign in to your practitioner account.
+              {branded
+                ? `Sign in to your ${clinic!.name} practitioner account.`
+                : "Sign in to your practitioner account."}
             </p>
             {search.reset === "success" ? (
               <p className="mt-4 rounded-lg bg-success/10 px-3 py-2 text-sm text-success">
