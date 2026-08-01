@@ -457,7 +457,13 @@ function HomePlayer({
 
           <div className="w-full">
             {signed?.url ? (
-              <AudioPlayer ref={audioHandleRef} src={signed.url} title={trackTitle} />
+              <AudioPlayer
+                ref={audioHandleRef}
+                src={signed.url}
+                title={trackTitle}
+                hideTransport
+              />
+
             ) : (
               <p className="text-center text-sm text-muted-foreground">
                 {trackId ? "Preparing your sound…" : "No track available for this frequency yet."}
