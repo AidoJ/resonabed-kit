@@ -82,9 +82,12 @@ export const updateMyProfile = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, string | null> = {
-      display_name: data.display_name.trim(),
-    };
+    const patch: {
+      display_name: string;
+      phone?: string | null;
+      bio?: string | null;
+      avatar_path?: string | null;
+    } = { display_name: data.display_name.trim() };
     if (data.phone !== undefined) patch.phone = data.phone?.trim() ? data.phone.trim() : null;
     if (data.bio !== undefined) patch.bio = data.bio?.trim() ? data.bio.trim() : null;
     if (data.avatar_path !== undefined) patch.avatar_path = data.avatar_path;
@@ -113,12 +116,21 @@ export const listPlatformAdmins = createServerFn({ method: "GET" })
     await requireSuper(context);
     const { data, error } = await context.supabase
       .from("user_roles")
-      .select("user_id, created_at, profiles:user_id(display_name, is_active)")
+      .select("user_id, created_at")
       .eq("role", "super_admin")
       .order("created_at");
     if (error) throw new Error(error.message);
+    const ids = (data ?? []).map((r) => r.user_id as string);
+    const byId = new Map<string, { display_name: string | null; is_active: boolean }>();
+    if (ids.length > 0) {
+      const { data: profs } = await context.supabase
+        .from("profiles")
+        .select("id, display_name, is_active")
+        .in("id", ids);
+      for (const p of profs ?? []) byId.set(p.id, { display_name: p.display_name, is_active: p.is_active });
+    }
     return (data ?? []).map((r) => {
-      const p = r.profiles as { display_name: string | null; is_active: boolean } | null;
+      const p = byId.get(r.user_id as string);
       return {
         userId: r.user_id as string,
         displayName: p?.display_name ?? null,
@@ -151,14 +163,7 @@ export const createPlatformAdmin = createServerFn({ method: "POST" })
     for (let i = 0; i < buf.length; i++) tempPassword += alphabet[buf[i]! % alphabet.length];
 
     // Find an existing auth user with this email, otherwise create one.
-    let userId: string | null = null;
-    const { data: existing } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("id", "00000000-0000-0000-0000-000000000000")
-      .maybeSingle();
-    void existing;
-
+    let userId: string;
     const { data: list, error: listErr } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 1000,
