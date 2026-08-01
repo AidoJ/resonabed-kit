@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { HOME_SAFETY_VERSION } from "@/lib/home-safety";
 
 /**
@@ -84,7 +86,9 @@ export const acknowledgeHomeSafety = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-async function assertHomeUser(context: { supabase: any; userId: string }) {
+type AuthedCtx = { supabase: SupabaseClient<Database>; userId: string };
+
+async function assertHomeUser(context: AuthedCtx) {
   const { data, error } = await context.supabase
     .from("home_accounts")
     .select("user_id")

@@ -1,12 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 /** Platform-admin management of home-user kit access codes. */
 
 const uuid = z.string().uuid();
 
-async function requireSuperAdmin(context: { supabase: any; userId: string }) {
+type AuthedCtx = { supabase: SupabaseClient<Database>; userId: string };
+
+async function requireSuperAdmin(context: AuthedCtx) {
   const { data, error } = await context.supabase.rpc("is_super_admin", {
     _user_id: context.userId,
   });
