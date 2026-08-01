@@ -182,6 +182,23 @@ function HomeWizard({
     window.location.assign("/home/login");
   };
 
+  // End of a session returns to a clean start: nothing is carried over.
+  const endSession = () => {
+    setPlaying(false);
+    setStep(0);
+    setAgreed(false);
+    setChosenFreqId(null);
+    setMinutes(30);
+    setSymptoms({
+      painLevel: 3,
+      stressLevel: 5,
+      sleepQuality: 5,
+      bodyAreas: [],
+      goals: [],
+    });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+  };
+
   if (playing && chosen) {
     return (
       <HomePlayer
@@ -189,7 +206,7 @@ function HomeWizard({
         frequency={chosen}
         trackId={track?.id ?? null}
         trackTitle={track?.title ?? `${chosen.hz} Hz`}
-        onExit={() => setPlaying(false)}
+        onExit={endSession}
       />
     );
   }
