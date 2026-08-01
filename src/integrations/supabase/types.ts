@@ -833,6 +833,136 @@ export type Database = {
         }
         Relationships: []
       }
+      home_accounts: {
+        Row: {
+          access_code_id: string
+          created_at: string
+          display_name: string | null
+          email: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_code_id: string
+          created_at?: string
+          display_name?: string | null
+          email: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_code_id?: string
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "home_accounts_access_code_id_fkey"
+            columns: ["access_code_id"]
+            isOneToOne: true
+            referencedRelation: "kit_access_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      home_safety_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          created_at: string
+          id: string
+          signature: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          created_at?: string
+          id?: string
+          signature: string
+          user_id: string
+          version: string
+        }
+        Update: {
+          acknowledged_at?: string
+          created_at?: string
+          id?: string
+          signature?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      kit_access_codes: {
+        Row: {
+          buyer_email: string
+          buyer_name: string | null
+          buyer_phone: string | null
+          code: string
+          created_at: string
+          id: string
+          issued_at: string
+          package_key: string | null
+          redeemed_at: string | null
+          redeemed_by: string | null
+          replaced_by_id: string | null
+          revoked_at: string | null
+          revoked_reason: string | null
+          source: string
+          source_ref: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_email: string
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          package_key?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          replaced_by_id?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          source?: string
+          source_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_email?: string
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          package_key?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          replaced_by_id?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          source?: string
+          source_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_access_codes_replaced_by_id_fkey"
+            columns: ["replaced_by_id"]
+            isOneToOne: false
+            referencedRelation: "kit_access_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kit_invoices: {
         Row: {
           billing_address: string | null
@@ -1808,6 +1938,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_home_user: { Args: { _user_id: string }; Returns: boolean }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean

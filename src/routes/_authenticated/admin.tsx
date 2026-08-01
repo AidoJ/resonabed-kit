@@ -16,6 +16,7 @@ import {
   Receipt,
   FileText,
   Banknote,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ const SUPER_TABS: Tab[] = [
   { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
   { to: "/admin/shipping", label: "Shipping rates", icon: Truck },
   { to: "/admin/sales", label: "Kit purchases", icon: Receipt },
+  { to: "/admin/access-codes", label: "Home access codes", icon: KeyRound },
   { to: "/admin/invoices", label: "Invoices", icon: FileText },
   { to: "/admin/payments", label: "Payments", icon: Banknote },
   { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
