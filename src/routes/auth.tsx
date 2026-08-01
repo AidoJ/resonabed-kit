@@ -46,6 +46,15 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Cosmetic only: brand the shared login page for therapists arriving from
+  // their clinic's public page. Falls back to Resonabed branding.
+  const { data: clinic } = useQuery({
+    queryKey: ["auth-clinic-branding", search.clinic],
+    enabled: !!search.clinic,
+    staleTime: 5 * 60_000,
+    queryFn: () => getPublicOrgBranding({ data: { slug: search.clinic! } }),
+  });
+
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
