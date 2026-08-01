@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import {
+  ClipboardCheck, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
@@ -101,6 +102,7 @@ function buildNav(
         label: "Kit sales",
         items: [
           { to: "/admin/sales", label: "Purchases", icon: Receipt },
+          { to: "/admin/onboarding", label: "Clinic onboarding", icon: ClipboardCheck },
           { to: "/admin/invoices", label: "Invoices", icon: FileText },
           { to: "/admin/payments", label: "Payments", icon: Banknote },
           { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
