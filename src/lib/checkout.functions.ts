@@ -313,11 +313,36 @@ export const finalizeCheckoutSession = createServerFn({ method: "POST" })
     const session = await stripe.checkout.sessions.retrieve(data.sessionId, {
       expand: ["subscription"],
     });
+
+    // Belt and braces: the Stripe webhook normally issues the home-app access
+    // code, but issuing here too (idempotent on the session id) means the buyer
+    // still gets it if the webhook is delayed or not yet configured.
+    const buyerEmail =
+      session.customer_details?.email ?? (session.customer_email as string | null) ?? null;
+    let home: { codeEmail: string | null } = { codeEmail: null };
+    if (buyerEmail && session.payment_status !== "unpaid") {
+      try {
+        const { issueAccessCode } = await import("@/lib/home-access.server");
+        const issued = await issueAccessCode({
+          buyerEmail,
+          buyerName: session.customer_details?.name ?? null,
+          buyerPhone: session.customer_details?.phone ?? null,
+          packageKey: (session.metadata?.["package"] as string | undefined) ?? null,
+          source: "stripe",
+          sourceRef: session.id,
+        });
+        home = { codeEmail: issued.buyerEmail };
+      } catch (err) {
+        console.error("Failed to issue home access code on order success", err);
+      }
+    }
+
     if (session.mode !== "subscription") {
       const promoCodeId = session.metadata?.promo_code_id;
       if (session.payment_status !== "paid" || !promoCodeId) {
-        return { ok: true, skipped: "not-discounted-payment" };
+        return { ok: true, skipped: "not-discounted-payment", ...home };
       }
+
 
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { error: redemptionError } = await supabaseAdmin
@@ -346,16 +371,16 @@ export const finalizeCheckoutSession = createServerFn({ method: "POST" })
         }
       }
 
-      return { ok: true, promoRecorded: !redemptionError };
+      return { ok: true, promoRecorded: !redemptionError, ...home };
     }
     const sub = session.subscription;
-    if (!sub || typeof sub === "string") return { ok: true, skipped: "no-subscription" };
+    if (!sub || typeof sub === "string") return { ok: true, skipped: "no-subscription", ...home };
 
     const monthsRaw = sub.metadata?.cancel_after_months ?? sub.metadata?.months;
     const months = monthsRaw ? Number(monthsRaw) : NaN;
-    if (!Number.isFinite(months) || months <= 0) return { ok: true, skipped: "no-months" };
+    if (!Number.isFinite(months) || months <= 0) return { ok: true, skipped: "no-months", ...home };
 
-    if (sub.cancel_at) return { ok: true, alreadySet: true };
+    if (sub.cancel_at) return { ok: true, alreadySet: true, ...home };
 
     // Anchor to current_period_start + months (30d approximation to align with monthly cycles)
     const anchor = (sub as unknown as { current_period_start?: number }).current_period_start
@@ -364,7 +389,7 @@ export const finalizeCheckoutSession = createServerFn({ method: "POST" })
 
     const cancelAt = anchor + months * 30 * 24 * 60 * 60 + 24 * 60 * 60;
     await stripe.subscriptions.update(sub.id, { cancel_at: cancelAt });
-    return { ok: true, cancelAt };
+    return { ok: true, cancelAt, ...home };
   });
 
 export const finalizeInstallmentsPlan = finalizeCheckoutSession;
