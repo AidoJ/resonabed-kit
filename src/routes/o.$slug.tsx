@@ -468,24 +468,6 @@ function PublicOrgPage() {
             </h2>
           </div>
 
-          {services.length > 0 ? (
-            <div className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {services.map((s) => (
-                <div key={s.id} className="rounded-2xl border bg-background p-6">
-                  <h3 className="text-lg font-medium tracking-tight">{s.name}</h3>
-                  <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" /> {s.duration_minutes} min
-                  </p>
-                  {s.price !== null && s.price !== undefined ? (
-                    <p className="mt-4 text-2xl font-light tracking-tight">
-                      {money(Number(s.price))}
-                    </p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          ) : null}
-
           {bookable ? (
             <div id="request" className="mx-auto mt-12 max-w-2xl scroll-mt-8">
               <p className="mb-4 text-center text-sm text-muted-foreground">
