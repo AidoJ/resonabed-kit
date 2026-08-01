@@ -321,25 +321,26 @@ function FrequenciesAdmin() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Full description (shown on the recommended card)</Label>
                 <Textarea
                   id="description"
-                  rows={2}
+                  rows={6}
                   value={editing.description}
                   onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                   placeholder="A gentle tone commonly used to encourage…"
                 />
               </div>
               <div>
-                <Label htmlFor="benefits">Benefits</Label>
+                <Label htmlFor="benefits">Short description (shown in "Or choose another")</Label>
                 <Textarea
                   id="benefits"
-                  rows={2}
+                  rows={3}
                   value={editing.benefits}
                   onChange={(e) => setEditing({ ...editing, benefits: e.target.value })}
-                  placeholder="Supports rest and calm…"
+                  placeholder="Two-line summary…"
                 />
               </div>
+
 
               <ChipGroup
                 label="Goal tags (used as a tiebreak when frequencies are within 10 Hz of the target)"
