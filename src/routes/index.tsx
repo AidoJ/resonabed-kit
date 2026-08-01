@@ -253,7 +253,7 @@ function LandingPage() {
             </h2>
             <p className="mt-4 text-muted-foreground">
               No sourcing parts, no music licences, no app subscriptions. The Resonabed kit arrives
-              ready to install and and within 60 minutes you are ready to sell.
+              ready to install and within 60 minutes you are ready to sell.
             </p>
           </div>
 
