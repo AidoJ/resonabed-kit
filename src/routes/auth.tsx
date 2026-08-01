@@ -201,6 +201,14 @@ function AuthPage() {
               type="submit"
               disabled={loading}
               className="h-12 w-full rounded-[10px] text-[15px] font-medium"
+              style={
+                branded
+                  ? {
+                      backgroundColor: "var(--clinic-accent)",
+                      color: "var(--clinic-accent-fg)",
+                    }
+                  : undefined
+              }
             >
               {loading ? "Signing in…" : "Sign in"}
             </Button>
@@ -209,6 +217,7 @@ function AuthPage() {
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Accounts are created by administrators. Contact your organisation admin if you need
           access.
+          {branded ? " Powered by Resonabed." : null}
         </p>
       </div>
     </main>
