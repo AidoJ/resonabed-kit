@@ -48,10 +48,14 @@ export const Route = createFileRoute("/o/$slug")({
     }
     const { org } = loaderData;
     const url = `${SITE}/o/${params.slug}`;
-    const title = `${org.name} — Vibroacoustic relaxation sessions`;
+    const title = org.public_strapline
+      ? `${org.name} — ${org.public_strapline}`.slice(0, 70)
+      : `${org.name} — Vibroacoustic relaxation sessions`;
     const description =
-      org.public_blurb?.slice(0, 155) ??
-      `Book a Resonabed vibroacoustic relaxation session with ${org.name}. Sound you can feel, rest that goes deeper.`;
+      org.public_strapline
+        ? `${org.public_strapline}. ${org.public_blurb ?? `Book a Resonabed vibroacoustic relaxation session with ${org.name}.`}`.slice(0, 155)
+        : org.public_blurb?.slice(0, 155) ??
+      `Book a Resonabed vibroacoustic relaxation session with ${org.name}. Sound you can feel, where tension unwinds.`;
     return {
       meta: [
         { title },
@@ -72,6 +76,7 @@ export const Route = createFileRoute("/o/$slug")({
             "@context": "https://schema.org",
             "@type": "HealthAndBeautyBusiness",
             name: org.name,
+            ...(org.public_strapline ? { slogan: org.public_strapline } : {}),
             url,
             image: HERO_OG,
             description,
@@ -136,21 +141,34 @@ function PublicOrgPage() {
       {/* ---------------------------------------------------------------- LOGO BAND */}
       <header className="relative z-30 border-b border-black/8 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5 md:px-10 md:py-6">
-          {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt={`${org.name} logo`}
-              className="h-14 w-auto object-contain md:h-20"
-              draggable={false}
-            />
-          ) : (
-            <span
-              className="text-lg font-light tracking-tight"
-              style={{ color: "var(--clinic-ink)" }}
-            >
-              {org.name}
-            </span>
-          )}
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={`${org.name} logo`}
+                className="h-14 w-auto shrink-0 object-contain md:h-20"
+                draggable={false}
+              />
+            ) : (
+              <span
+                className="text-lg font-light tracking-tight"
+                style={{ color: "var(--clinic-ink)" }}
+              >
+                {org.name}
+              </span>
+            )}
+            {org.public_strapline ? (
+              <p
+                className="min-w-0 text-sm font-light leading-snug tracking-tight sm:border-l sm:pl-4 sm:text-base md:text-lg"
+                style={{
+                  color: "color-mix(in oklab, var(--clinic-ink) 75%, transparent)",
+                  borderColor: "color-mix(in oklab, var(--clinic-ink) 15%, transparent)",
+                }}
+              >
+                {org.public_strapline}
+              </p>
+            ) : null}
+          </div>
           {org.public_contact_phone ? (
             <a
               href={`tel:${org.public_contact_phone.replace(/\s+/g, "")}`}
@@ -198,7 +216,7 @@ function PublicOrgPage() {
             <h1 className="text-4xl font-light leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
               Sound you can feel.
               <br />
-              Rest that goes deeper.
+              Where tension unwinds.
             </h1>
 
             <p

@@ -8,6 +8,8 @@ export type PublicOrg = {
   brand_color: string | null;
   slug: string;
   public_blurb: string | null;
+  /** Optional short tagline shown beside the logo (max 50 chars). */
+  public_strapline: string | null;
   public_contact_email: string | null;
   public_contact_phone: string | null;
   public_suburb: string | null;

@@ -42,6 +42,7 @@ export type PublicPageOrg = {
   slug: string | null;
   published: boolean;
   public_blurb: string | null;
+  public_strapline: string | null;
   public_contact_email: string | null;
   public_contact_phone: string | null;
   public_show_email: boolean;
@@ -77,6 +78,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
 
   const [slug, setSlug] = useState("");
   const [blurb, setBlurb] = useState("");
+  const [strapline, setStrapline] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [showEmail, setShowEmail] = useState(false);
@@ -98,6 +100,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   useEffect(() => {
     setSlug(org.slug ?? "");
     setBlurb(org.public_blurb ?? "");
+    setStrapline(org.public_strapline ?? "");
     setEmail(org.public_contact_email ?? "");
     setPhone(org.public_contact_phone ?? "");
     setShowEmail(!!org.public_show_email);
@@ -118,6 +121,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   const dirty =
     slug !== (org.slug ?? "") ||
     blurb !== (org.public_blurb ?? "") ||
+    strapline !== (org.public_strapline ?? "") ||
     email !== (org.public_contact_email ?? "") ||
     phone !== (org.public_contact_phone ?? "") ||
     showEmail !== !!org.public_show_email ||
@@ -165,6 +169,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
         data: {
           slug: slug ? slug : null,
           public_blurb: blurb || null,
+          public_strapline: strapline.trim() || null,
           public_contact_email: email || null,
           public_contact_phone: phone || null,
           public_show_email: showEmail,
@@ -269,6 +274,32 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
             </div>
           </div>
         ) : null}
+
+        <div className="space-y-1.5">
+          <Label htmlFor="pub-strapline">Strapline (beside your logo)</Label>
+          <Input
+            id="pub-strapline"
+            value={strapline}
+            maxLength={50}
+            placeholder="Gentle sound, deep rest"
+            onChange={(e) => setStrapline(e.target.value.slice(0, 50))}
+          />
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              A short line about your clinic, shown next to your logo at the top of your public
+              page. Leave blank to show nothing.
+            </p>
+            <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+              {strapline.length}/50
+            </span>
+          </div>
+          <p className="text-xs font-medium leading-relaxed text-destructive">
+            Your words, your responsibility. Don&rsquo;t claim to treat, heal, cure or diagnose any
+            condition, and avoid guaranteed outcomes or medical language — this applies to
+            anything you say about your clinic, not just vibroacoustic therapy. Straplines that
+            make health claims may breach advertising and therapeutic-goods rules.
+          </p>
+        </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="pub-blurb">About your clinic</Label>
