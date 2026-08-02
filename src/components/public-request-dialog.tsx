@@ -436,7 +436,7 @@ export function PublicRequestDialog({
               firstTime={firstTime}
               onSent={onDone}
             />
-          ) : (
+          ) : mode === "decline" ? (
             /* ------------------------- decline flow ------------------------- */
             <div className="grid gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
 
