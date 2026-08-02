@@ -20,7 +20,10 @@ interface BookingConfirmedProps {
   isHomeBased?: boolean
   contactPhone?: string
   contactEmail?: string
+  practitionerName?: string
+  rescheduled?: boolean
 }
+
 
 /**
  * ADDRESS DISCLOSURE POINT.
