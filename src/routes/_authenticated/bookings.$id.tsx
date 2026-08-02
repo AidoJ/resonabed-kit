@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Play, Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Play, Pencil, Trash2, AlertTriangle, CalendarClock } from "lucide-react";
 import {
   getBooking,
   updateBookingStatus,
@@ -14,6 +14,7 @@ import {
 } from "@/lib/bookings.functions";
 import { BookingFormDialog } from "@/components/booking-form-dialog";
 import { BookingAuditTrail } from "@/components/booking-audit-trail";
+import { BookingRescheduleDialog } from "@/components/booking-reschedule-dialog";
 import {
   PublicRequestDialog,
   type PublicRequestSummary,
@@ -51,6 +52,7 @@ function BookingDetail() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const listPracs = useServerFn(listOrgPractitioners);
   const { data: practitioners = [] } = useQuery({
@@ -193,6 +195,16 @@ function BookingDetail() {
               </Link>
             </Button>
           )}
+          {status === "confirmed" && (
+            <Button
+              variant="secondary"
+              size="lg"
+              className="h-12"
+              onClick={() => setRescheduleOpen(true)}
+            >
+              <CalendarClock className="mr-2 h-4 w-4" /> Reschedule
+            </Button>
+          )}
           <Button
             variant="outline"
             size="lg"
@@ -202,6 +214,7 @@ function BookingDetail() {
           >
             <Pencil className="mr-2 h-4 w-4" /> Edit
           </Button>
+
           <Button variant="outline" size="lg" className="h-12" onClick={remove} disabled={busy}>
             <Trash2 className="mr-2 h-4 w-4" /> Delete
           </Button>
@@ -253,6 +266,13 @@ function BookingDetail() {
           setReviewOpen(false);
           refetch();
         }}
+      />
+
+      <BookingRescheduleDialog
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        bookingId={id}
+        onDone={() => refetch()}
       />
 
       <BookingFormDialog

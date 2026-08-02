@@ -8,7 +8,7 @@
 import { formatOrgAddress } from "./org-address";
 import { formatInTz, tzAbbrev, DEFAULT_TIMEZONE } from "./timezone";
 import { writeBookingEvent } from "./booking-safety.server";
-import { ORG_CONTACT_COLUMNS, publishedContact } from "./org-public-contact";
+import { ORG_CONTACT_COLUMNS, confirmedClientContact } from "./org-public-contact";
 import { formatPersonName } from "./person-name";
 
 type AnyClient = { from: (table: string) => any };
@@ -23,8 +23,11 @@ export interface ConfirmArgs {
   actorName?: string | null;
   /** Extra audit context, e.g. { offer_id, accepted_by: 'client' }. */
   detail?: Record<string, unknown>;
-  eventType?: "confirmed" | "alternates_accepted";
+  eventType?: "confirmed" | "alternates_accepted" | "rescheduled";
+  /** Wording switch for an already-confirmed booking that has been moved. */
+  rescheduled?: boolean;
 }
+
 
 export interface ConfirmResult {
   ok: boolean;
@@ -93,14 +96,20 @@ export async function confirmBookingAndNotify(
       const { data: org } = await client
         .from("organisations")
         .select(
-          `name, clinic_type, timezone, ${ORG_CONTACT_COLUMNS}, address_line1, address_line2, address_city, address_state, address_postcode, address_country`,
+          `name, clinic_type, timezone, contact_email, ${ORG_CONTACT_COLUMNS}, address_line1, address_line2, address_city, address_state, address_postcode, address_country`,
         )
         .eq("id", booking.org_id)
         .maybeSingle();
 
-      // Private contact details stay private here too, the page and the
-      // email must never disagree about what the client can see.
-      const contact = publishedContact(org);
+      const { data: practitioner } = await client
+        .from("profiles")
+        .select("display_name, phone")
+        .eq("id", args.practitionerId)
+        .maybeSingle();
+
+      // A confirmed client has been vetted and accepted, so they get a way to
+      // reach the clinic even when the details are withheld from the public page.
+      const contact = confirmedClientContact(org, practitioner);
 
       const tz = (org?.timezone as string) || DEFAULT_TIMEZONE;
       const when = args.startsAt ?? (booking.starts_at as string);
@@ -123,10 +132,13 @@ export async function confirmBookingAndNotify(
           isHomeBased: (org?.clinic_type ?? "home") === "home",
           contactPhone: contact.phone,
           contactEmail: contact.email,
+          practitionerName: (practitioner?.display_name as string | null) ?? "",
+          rescheduled: !!args.rescheduled,
         },
         replyTo: contact.replyTo,
-        idempotencyKey: `booking-confirmed-${args.bookingId}-${when}`,
+        idempotencyKey: `booking-${args.rescheduled ? "moved" : "confirmed"}-${args.bookingId}-${when}`,
       });
+
       emailed = result.sent;
     }
   } catch (err) {

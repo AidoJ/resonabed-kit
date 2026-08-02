@@ -20,7 +20,10 @@ interface BookingConfirmedProps {
   isHomeBased?: boolean
   contactPhone?: string
   contactEmail?: string
+  practitionerName?: string
+  rescheduled?: boolean
 }
+
 
 /**
  * ADDRESS DISCLOSURE POINT.
@@ -39,16 +42,27 @@ const BookingConfirmedEmail = ({
   isHomeBased = false,
   contactPhone = '',
   contactEmail = '',
+  practitionerName = '',
+  rescheduled = false,
 }: BookingConfirmedProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your booking with {orgName} is confirmed</Preview>
+    <Preview>
+      {rescheduled
+        ? `Your booking with ${orgName} has been moved`
+        : `Your booking with ${orgName} is confirmed`}
+    </Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Your booking is confirmed</Heading>
+        <Heading style={h1}>
+          {rescheduled ? 'Your booking has moved' : 'Your booking is confirmed'}
+        </Heading>
         <Text style={text}>Hi {clientName},</Text>
         <Text style={text}>
-          <strong>{orgName}</strong> has confirmed your booking. Here are the details.
+          <strong>{orgName}</strong>{' '}
+          {rescheduled
+            ? 'has rescheduled your booking. Here are the new details.'
+            : 'has confirmed your booking. Here are the details.'}
         </Text>
 
         <Section style={panel}>
@@ -60,9 +74,19 @@ const BookingConfirmedEmail = ({
               <strong>When:</strong> {whenLabel}
             </Text>
           ) : null}
+          {practitionerName ? (
+            <Text style={row}>
+              <strong>With:</strong> {practitionerName}
+            </Text>
+          ) : null}
           {address ? (
             <Text style={row}>
               <strong>Where:</strong> {address}
+            </Text>
+          ) : null}
+          {contactPhone ? (
+            <Text style={row}>
+              <strong>Phone:</strong> {contactPhone}
             </Text>
           ) : null}
         </Section>
@@ -82,11 +106,12 @@ const BookingConfirmedEmail = ({
 
         {contactPhone || contactEmail ? (
           <Text style={text}>
-            Need to change or cancel? Contact {orgName}
+            Running late, or need to change or cancel? Contact {orgName}
             {contactPhone ? ` on ${contactPhone}` : ''}
             {contactEmail ? ` or at ${contactEmail}` : ''}.
           </Text>
         ) : null}
+
 
         <Hr style={{ borderColor: '#eeeeee', margin: '24px 0' }} />
         <Text style={footer}>

@@ -324,6 +324,15 @@ export function BookingAlternatesPanel({
         </span>
       </label>
 
+      {verbal ? (
+        <p className="rounded-md border border-amber-300 bg-amber-50 p-2 text-[11px] leading-relaxed text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+          No email will be sent. These times are saved for your call only, come back here and press
+          &ldquo;They chose this&rdquo; once the client picks one. Untick the box above if you want
+          the client emailed a booking link instead.
+        </p>
+      ) : null}
+
+
       {!verbal ? (
         <div className="grid gap-1">
           <Label htmlFor="alt-note" className="text-xs">
