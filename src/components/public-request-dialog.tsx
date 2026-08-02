@@ -95,7 +95,7 @@ export function PublicRequestDialog({
   const [acknowledged, setAcknowledged] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [callNote, setCallNote] = useState("");
-  const [mode, setMode] = useState<"review" | "decline" | "alternates">("review");
+  const [mode, setMode] = useState<"review" | "schedule" | "decline" | "alternates">("review");
   const [reasonCode, setReasonCode] = useState<DeclineReasonCode>("unable_to_accommodate");
   const [notifyClient, setNotifyClient] = useState(true);
   const [alsoBlock, setAlsoBlock] = useState(false);
