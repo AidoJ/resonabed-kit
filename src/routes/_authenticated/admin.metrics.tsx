@@ -54,6 +54,35 @@ function PlatformMetricsPage() {
         <StatCard label="Expiring < 30d" value={data.licences.expiring_30d} />
       </div>
 
+      <div>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          Home (personal kit) users
+        </h2>
+        <div className="grid gap-4 md:grid-cols-4">
+          <StatCard
+            label="Home users"
+            value={data.home.users_total}
+            sub={`${data.home.users_30d} joined in the last 30 days`}
+          />
+          <StatCard
+            label="Safety signed"
+            value={data.home.signed_safety}
+            sub={`${Math.max(0, data.home.users_total - data.home.signed_safety)} yet to sign`}
+          />
+          <StatCard
+            label="Access codes"
+            value={data.home.codes_total}
+            sub={`${data.home.codes_30d} issued in the last 30 days`}
+          />
+          <StatCard
+            label="Codes redeemed"
+            value={data.home.codes_redeemed}
+            sub={`${data.home.codes_issued} unused · ${data.home.codes_revoked} revoked`}
+          />
+        </div>
+      </div>
+
+
       <Card>
         <CardHeader>
           <CardTitle>Per-organisation activity</CardTitle>
