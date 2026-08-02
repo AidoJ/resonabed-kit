@@ -251,21 +251,24 @@ export function BookingAlternatesPanel({
       ) : null}
 
       {/* ---------------- new offer ---------------- */}
-      <div className="grid gap-2">
-        <Label htmlFor="alt-prac">Practitioner these times are for</Label>
-        <Select value={practitionerId} onValueChange={setPractitionerId}>
-          <SelectTrigger id="alt-prac">
-            <SelectValue placeholder="Choose a practitioner" />
-          </SelectTrigger>
-          <SelectContent>
-            {practitioners.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.display_name ?? p.id.slice(0, 8)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {fixedPractitionerId ? null : (
+        <div className="grid gap-2">
+          <Label htmlFor="alt-prac">Practitioner these times are for</Label>
+          <Select value={practitionerId} onValueChange={setPractitionerId}>
+            <SelectTrigger id="alt-prac">
+              <SelectValue placeholder="Choose a practitioner" />
+            </SelectTrigger>
+            <SelectContent>
+              {practitioners.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.display_name ?? p.id.slice(0, 8)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
 
       {rows.map((row, i) => {
         const times = row.date ? slotsForDate(pattern, row.date, durationMinutes) : [];
