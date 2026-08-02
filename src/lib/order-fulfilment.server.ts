@@ -38,12 +38,21 @@ export async function fulfilCheckoutSession(
     return { buyerType, codeEmail: null, queuedForOnboarding: false };
   }
 
+  // Every paid card order belongs in the books, whichever branch it takes.
+  try {
+    const { recordStripeKitSale } = await import("@/lib/kit-invoicing.server");
+    await recordStripeKitSale(session);
+  } catch (err) {
+    console.error("Failed to record kit invoice for session", session.id, err);
+  }
+
   const addr = session.customer_details?.address;
   const shippingAddress = addr
     ? [addr.line1, addr.line2, `${addr.city ?? ""} ${addr.state ?? ""} ${addr.postal_code ?? ""}`.trim(), addr.country]
         .filter(Boolean)
         .join("\n")
     : null;
+
 
   if (buyerType === "business") {
     const { recordOnboardingOrder } = await import("@/lib/onboarding.server");
