@@ -27,6 +27,9 @@ import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
+import { ScienceSection } from "@/components/public-clinic/science-section";
+import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
+
 
 import {
   ArrowRight,
