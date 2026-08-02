@@ -558,3 +558,101 @@ export const respondToPublicRequest = createServerFn({ method: "POST" })
 
     return { ok: true as const, emailed: res.emailed };
   });
+
+/**
+ * Move a CONFIRMED booking to a new time and tell the client.
+ *
+ * Editing a booking in the form dialog changes the record silently, which is
+ * fine for internal tidy-ups but wrong when a real appointment moves. This is
+ * the deliberate, client-notifying path: same confirmation email, new time,
+ * and an audit-trail entry.
+ */
+export const rescheduleBooking = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        booking_id: uuid,
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        time: z.string().regex(/^\d{2}:\d{2}$/),
+        notify: z.boolean().default(true),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: booking } = await context.supabase
+      .from("bookings")
+      .select(
+        "id, org_id, status, practitioner_id, starts_at, ends_at, service:service_id(duration_minutes)",
+      )
+      .eq("id", data.booking_id)
+      .maybeSingle();
+    if (!booking) return { ok: false as const, error: "Booking not found" };
+    await assertPractitionerAction(context, booking.org_id, "manage_bookings");
+    if (booking.status !== "confirmed") {
+      return { ok: false as const, error: "Only a confirmed booking can be rescheduled." };
+    }
+    if (!booking.practitioner_id) {
+      return { ok: false as const, error: "Assign a practitioner before rescheduling." };
+    }
+
+    const { data: org } = await context.supabase
+      .from("organisations")
+      .select("timezone")
+      .eq("id", booking.org_id)
+      .maybeSingle();
+
+    const { DEFAULT_TIMEZONE, zonedWallTimeToUtc } = await import("@/lib/timezone");
+    const tz = org?.timezone || DEFAULT_TIMEZONE;
+    const startsAt = zonedWallTimeToUtc(data.date, data.time, tz);
+    if (startsAt.getTime() < Date.now()) {
+      return { ok: false as const, error: "Pick a time in the future." };
+    }
+    const duration =
+      (booking.service as unknown as { duration_minutes?: number } | null)?.duration_minutes ??
+      Math.max(
+        30,
+        Math.round(
+          (new Date(booking.ends_at as string).getTime() -
+            new Date(booking.starts_at as string).getTime()) /
+            60000,
+        ),
+      );
+    const endsAt = new Date(startsAt.getTime() + duration * 60_000);
+
+    const { confirmBookingAndNotify } = await import("@/lib/booking-confirm.server");
+    const { displayNameForUser } = await import("@/lib/booking-safety.server");
+
+    if (!data.notify) {
+      const { error } = await context.supabase
+        .from("bookings")
+        .update({ starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString() })
+        .eq("id", booking.id);
+      if (error) return { ok: false as const, error: error.message };
+      const { writeBookingEvent } = await import("@/lib/booking-safety.server");
+      await writeBookingEvent(context.supabase, {
+        orgId: booking.org_id,
+        bookingId: booking.id,
+        eventType: "rescheduled",
+        actorUserId: context.userId,
+        actorName: await displayNameForUser(context.supabase, context.userId),
+        detail: { starts_at: startsAt.toISOString(), notified: false },
+      });
+      return { ok: true as const, emailed: false };
+    }
+
+    const res = await confirmBookingAndNotify(context.supabase, {
+      bookingId: booking.id,
+      practitionerId: booking.practitioner_id as string,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      actorUserId: context.userId,
+      actorName: await displayNameForUser(context.supabase, context.userId),
+      eventType: "rescheduled",
+      rescheduled: true,
+      detail: { previous_starts_at: booking.starts_at },
+    });
+    return res.ok
+      ? { ok: true as const, emailed: res.emailed }
+      : { ok: false as const, error: res.error ?? "Couldn't move that booking." };
+  });
