@@ -26,6 +26,23 @@ export const Route = createFileRoute("/_authenticated/admin/sales")({
   component: SalesAdmin,
 });
 
+const BUYER_LABELS: Record<string, string> = {
+  clinic: "Clinic, retail premises",
+  home_business: "Home-based business",
+  business_pending: "Business, awaiting setup",
+  private: "Private user",
+};
+
+function BuyerBadge({ category }: { category: string }) {
+  const variant =
+    category === "private" ? "secondary" : category === "business_pending" ? "outline" : "default";
+  return (
+    <Badge variant={variant} className="whitespace-nowrap text-xs">
+      {BUYER_LABELS[category] ?? category}
+    </Badge>
+  );
+}
+
 const money = (cents: number, currency = "AUD") =>
   new Intl.NumberFormat("en-AU", { style: "currency", currency }).format(cents / 100);
 
@@ -87,6 +104,19 @@ function SalesAdmin() {
         <Stat label="GST collected" value={money(s?.gstCents ?? 0)} hint="On collected amounts" />
       </div>
 
+      {(s?.byBuyer.length ?? 0) > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground self-center">
+            Buyer type
+          </span>
+          {s!.byBuyer.map((b) => (
+            <Badge key={b.key} variant="outline" className="text-xs">
+              {b.label}: {b.count} · {money(b.collectedCents)}
+            </Badge>
+          ))}
+        </div>
+      )}
+
       {(s?.byPackage.length ?? 0) > 0 && (
         <div className="flex flex-wrap gap-2">
           {s!.byPackage.map((p) => (
@@ -106,6 +136,7 @@ function SalesAdmin() {
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Customer</TableHead>
+              <TableHead>Buyer type</TableHead>
               <TableHead>Package</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead className="text-right">List price</TableHead>
@@ -119,7 +150,7 @@ function SalesAdmin() {
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-sm text-muted-foreground">
+                <TableCell colSpan={11} className="text-sm text-muted-foreground">
                   No completed kit orders yet.
                 </TableCell>
               </TableRow>
@@ -137,7 +168,13 @@ function SalesAdmin() {
                     <div className="min-w-40">
                       <div>{r.customerName ?? "—"}</div>
                       <div className="text-xs text-muted-foreground">{r.customerEmail ?? ""}</div>
+                      {r.businessName ? (
+                        <div className="text-xs text-muted-foreground">{r.businessName}</div>
+                      ) : null}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <BuyerBadge category={r.buyerCategory} />
                   </TableCell>
                   <TableCell className="whitespace-nowrap">{r.packageLabel}</TableCell>
                   <TableCell className="whitespace-nowrap">
