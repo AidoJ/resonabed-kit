@@ -280,10 +280,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   ]);
 
   const handleSignOut = async () => {
+    // Clinic staff return to their clinic-branded sign-in page; platform
+    // (super admin) users return to the plain Resonabed sign-in page.
+    const clinicSlug =
+      !roles.includes("super_admin") && data?.org?.slug ? data.org.slug : null;
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({
+      to: "/auth",
+      search: clinicSlug ? { clinic: clinicSlug } : {},
+      replace: true,
+    });
   };
 
   const exitSupportFn = useServerFn(exitSupportMode);
