@@ -37,6 +37,16 @@ export interface PlatformMetrics {
     licence_status: "trial" | "active" | "expired";
     licence_expires_at: string | null;
   }>;
+  home: {
+    users_total: number;
+    users_30d: number;
+    signed_safety: number;
+    codes_total: number;
+    codes_issued: number;
+    codes_redeemed: number;
+    codes_revoked: number;
+    codes_30d: number;
+  };
   totals: {
     sessions_30d: number;
     sessions_total: number;
@@ -65,6 +75,9 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
       { count: bookingsTotal },
       { count: bookings30 },
       { count: newOrgs30 },
+      { data: homeUsers },
+      { data: accessCodes },
+      { data: safetyAcks },
     ] = await Promise.all([
       context.supabase
         .from("organisations")
@@ -82,7 +95,24 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
         .from("organisations")
         .select("*", { count: "exact", head: true })
         .gte("created_at", thirtyAgo),
+      context.supabase.from("home_accounts").select("user_id, created_at"),
+      context.supabase.from("kit_access_codes").select("status, issued_at"),
+      context.supabase.from("home_safety_acknowledgements").select("user_id"),
     ]);
+
+    const homeUserRows = homeUsers ?? [];
+    const codeRows = accessCodes ?? [];
+    const signedSafety = new Set((safetyAcks ?? []).map((a) => a.user_id as string)).size;
+    const home = {
+      users_total: homeUserRows.length,
+      users_30d: homeUserRows.filter((u) => (u.created_at as string) >= thirtyAgo).length,
+      signed_safety: signedSafety,
+      codes_total: codeRows.length,
+      codes_issued: codeRows.filter((c) => c.status === "issued").length,
+      codes_redeemed: codeRows.filter((c) => c.status === "redeemed").length,
+      codes_revoked: codeRows.filter((c) => c.status === "revoked").length,
+      codes_30d: codeRows.filter((c) => (c.issued_at as string) >= thirtyAgo).length,
+    };
 
     // Counts only. The platform can no longer read session rows across
     // clinics, this comes from a SECURITY DEFINER aggregate that returns
@@ -143,6 +173,7 @@ export const getPlatformMetrics = createServerFn({ method: "GET" })
       orgs: { total: (orgs ?? []).length, active: activeOrgs, suspended, configured, unconfigured },
       licences: { trial, active, expired, expiring_30d: expiring },
       perOrg,
+      home,
       totals: {
         sessions_30d: sessions30Count,
         sessions_total: sessionsTotalCount,
