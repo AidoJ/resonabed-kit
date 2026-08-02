@@ -27,6 +27,20 @@ export type KitSaleRow = {
   /** GST component of the collected amount. */
   gstCents: number;
   monthsRemainingPlan: number | null;
+  /** What the buyer told us at checkout. */
+  buyerType: "personal" | "business";
+  /** Refined once a business order is provisioned into an organisation. */
+  buyerCategory: BuyerCategory;
+  businessName: string | null;
+};
+
+export type BuyerCategory = "clinic" | "home_business" | "business_pending" | "private";
+
+export const BUYER_CATEGORY_LABELS: Record<BuyerCategory, string> = {
+  clinic: "Clinic, retail premises",
+  home_business: "Home-based business",
+  business_pending: "Business, awaiting setup",
+  private: "Private user",
 };
 
 export type KitSalesSummary = {
@@ -37,7 +51,41 @@ export type KitSalesSummary = {
   shippingCents: number;
   gstCents: number;
   byPackage: { key: string; label: string; count: number; collectedCents: number }[];
+  byBuyer: { key: BuyerCategory; label: string; count: number; collectedCents: number }[];
 };
+
+export type BuyerLookup = Record<string, { category: BuyerCategory; businessName: string | null }>;
+
+/**
+ * Business orders land in the onboarding queue keyed on the Stripe session id;
+ * once provisioned the linked organisation tells us retail vs home-based.
+ */
+export async function loadBuyerLookup(): Promise<BuyerLookup> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: orders } = await supabaseAdmin
+    .from("kit_onboarding_orders")
+    .select("source_ref, business_name, org_id");
+  const orgIds = [...new Set((orders ?? []).map((o) => o.org_id).filter(Boolean))] as string[];
+  const clinicTypes = new Map<string, string>();
+  if (orgIds.length > 0) {
+    const { data: orgs } = await supabaseAdmin
+      .from("organisations")
+      .select("id, clinic_type")
+      .in("id", orgIds);
+    for (const o of orgs ?? []) clinicTypes.set(o.id as string, String(o.clinic_type ?? ""));
+  }
+  const lookup: BuyerLookup = {};
+  for (const o of orders ?? []) {
+    const ref = o.source_ref as string | null;
+    if (!ref) continue;
+    const type = o.org_id ? clinicTypes.get(o.org_id as string) : null;
+    lookup[ref] = {
+      category: type === "home" ? "home_business" : type === "retail" ? "clinic" : "business_pending",
+      businessName: (o.business_name as string | null) ?? null,
+    };
+  }
+  return lookup;
+}
 
 const PACKAGE_LABELS: Record<string, string> = {
   pro: "Resonabed Pro Kit",
@@ -67,6 +115,7 @@ export async function loadShippingGstMap(): Promise<Record<string, boolean>> {
 function toRow(
   s: Stripe.Checkout.Session,
   shippingGstMap: Record<string, boolean>,
+  buyerLookup: BuyerLookup,
 ): KitSaleRow | null {
   const meta = s.metadata ?? {};
   const packageKey = meta.package;
@@ -78,6 +127,10 @@ function toRow(
   const shippingRegion = meta.shipping_region ?? null;
   const shippingGstInclusive = shippingRegion ? !!shippingGstMap[shippingRegion] : false;
   const listCents = LIST_PRICE_CENTS[packageKey] ?? 0;
+  const buyerType = meta.buyer_type === "business" ? "business" : "personal";
+  const matched = buyerLookup[s.id];
+  const buyerCategory: BuyerCategory =
+    buyerType === "business" ? (matched?.category ?? "business_pending") : "private";
 
   const collectedCents = s.amount_total ?? 0;
 
@@ -113,6 +166,9 @@ function toRow(
     contractCents,
     gstCents: gstOf(gstBase),
     monthsRemainingPlan: plan === "installments" && inst ? inst.months : null,
+    buyerType,
+    buyerCategory,
+    businessName: matched?.businessName ?? meta.business_name ?? null,
   };
 }
 
@@ -121,6 +177,7 @@ export async function fetchKitSales(secret: string): Promise<{
   summary: KitSalesSummary;
 }> {
   const stripe = new Stripe(secret);
+  const buyerLookup = await loadBuyerLookup();
   const rows: KitSaleRow[] = [];
   let startingAfter: string | undefined;
 
@@ -133,7 +190,7 @@ export async function fetchKitSales(secret: string): Promise<{
     const shippingGstMap = page === 0 ? await loadShippingGstMap() : cachedMap!;
     cachedMap = shippingGstMap;
     for (const s of res.data) {
-      const row = toRow(s, shippingGstMap);
+      const row = toRow(s, shippingGstMap, buyerLookup);
       if (row && row.status === "complete") rows.push(row);
     }
     if (!res.has_more || res.data.length === 0) break;
@@ -158,6 +215,17 @@ export async function fetchKitSales(secret: string): Promise<{
         {},
       ),
     ),
+    byBuyer: (Object.keys(BUYER_CATEGORY_LABELS) as BuyerCategory[])
+      .map((key) => {
+        const matching = rows.filter((r) => r.buyerCategory === key);
+        return {
+          key,
+          label: BUYER_CATEGORY_LABELS[key],
+          count: matching.length,
+          collectedCents: matching.reduce((a, r) => a + r.collectedCents, 0),
+        };
+      })
+      .filter((b) => b.count > 0),
   };
 
   return { rows, summary };
