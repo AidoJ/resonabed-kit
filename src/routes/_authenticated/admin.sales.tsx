@@ -31,11 +31,16 @@ const BUYER_LABELS: Record<string, string> = {
   home_business: "Home-based business",
   business_pending: "Business, awaiting setup",
   private: "Private user",
+  legacy_unclassified: "Unclassified legacy purchase",
 };
 
 function BuyerBadge({ category }: { category: string }) {
   const variant =
-    category === "private" ? "secondary" : category === "business_pending" ? "outline" : "default";
+    category === "private"
+      ? "secondary"
+      : category === "business_pending" || category === "legacy_unclassified"
+        ? "outline"
+        : "default";
   return (
     <Badge variant={variant} className="whitespace-nowrap text-xs">
       {BUYER_LABELS[category] ?? category}
