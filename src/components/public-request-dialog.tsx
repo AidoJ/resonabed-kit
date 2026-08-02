@@ -487,7 +487,7 @@ export function PublicRequestDialog({
                 </span>
               </label>
             </div>
-          )}
+          ) : null}
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
