@@ -389,9 +389,10 @@ function HomeUsersSection() {
                       onClick={() => {
                         setEditing(u);
                         setEmail(u.email);
+                        setDisplayName(u.displayName ?? "");
                       }}
                     >
-                      Change email
+                      Edit
                     </Button>
                   </td>
                 </tr>
@@ -404,20 +405,32 @@ function HomeUsersSection() {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change sign-in email</DialogTitle>
+            <DialogTitle>Edit home user</DialogTitle>
             <DialogDescription>
-              {editing?.displayName ?? editing?.email} will need to use the new address to sign in.
+              Update the display name, or change the address {editing?.displayName ?? editing?.email}{" "}
+              signs in with.
             </DialogDescription>
           </DialogHeader>
-          <div>
-            <Label htmlFor="hu-email">New email</Label>
-            <Input
-              id="hu-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1.5"
-            />
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="hu-name">Display name</Label>
+              <Input
+                id="hu-name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <Label htmlFor="hu-email">Sign-in email</Label>
+              <Input
+                id="hu-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEditing(null)}>
@@ -426,8 +439,9 @@ function HomeUsersSection() {
             <Button
               disabled={
                 !email.includes("@") ||
-                email.trim().toLowerCase() === editing?.email ||
-                save.isPending
+                save.isPending ||
+                (email.trim().toLowerCase() === editing?.email &&
+                  displayName.trim() === (editing?.displayName ?? ""))
               }
               onClick={() => save.mutate()}
             >
@@ -435,6 +449,7 @@ function HomeUsersSection() {
               Save
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </section>
