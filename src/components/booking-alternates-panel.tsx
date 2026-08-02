@@ -54,12 +54,15 @@ export function BookingAlternatesPanel({
   practitioners,
   durationMinutes,
   firstTime,
+  practitionerId: fixedPractitionerId,
   onSent,
 }: {
   bookingId: string;
   practitioners: { id: string; display_name: string | null }[];
   durationMinutes: number;
   firstTime: boolean;
+  /** Already chosen upstream, hides the picker when set. */
+  practitionerId?: string;
   onSent?: () => void;
 }) {
   const tz = useOrgTimezone();
@@ -69,11 +72,14 @@ export function BookingAlternatesPanel({
   const withdraw = useServerFn(withdrawOffer);
   const acceptForClient = useServerFn(acceptAlternateForClient);
 
-  const [practitionerId, setPractitionerId] = useState("");
+  const [ownPractitionerId, setOwnPractitionerId] = useState("");
+  const practitionerId = fixedPractitionerId ?? ownPractitionerId;
+  const setPractitionerId = setOwnPractitionerId;
   const [rows, setRows] = useState<Row[]>(emptyRows);
   const [verbal, setVerbal] = useState(firstTime);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+
 
   const { data: availability = [] } = useQuery({
     queryKey: ["availability", practitionerId],
