@@ -222,7 +222,41 @@ export function PublicRequestDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* ------- step tabs: review the person, then schedule them ------- */}
+        <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1 text-xs font-medium">
+          {(
+            [
+              { key: "review", label: "1. Review" },
+              { key: "schedule", label: "2. Schedule" },
+              { key: "alternates", label: "3. Other times" },
+            ] as const
+          ).map((t) => {
+            const active =
+              mode === t.key || (t.key === "review" && mode === "decline");
+            const disabled =
+              busy ||
+              (t.key === "alternates" && !practitionerId) ||
+              (t.key === "schedule" && mode === "decline");
+            return (
+              <button
+                key={t.key}
+                type="button"
+                disabled={disabled}
+                onClick={() => setMode(t.key)}
+                className={`rounded-md px-2 py-1.5 transition-colors disabled:opacity-40 ${
+                  active
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="grid gap-3 text-sm">
+
           <div>
             <p className="text-muted-foreground">Requested</p>
             <p className="font-medium">{when}</p>
