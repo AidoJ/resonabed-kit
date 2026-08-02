@@ -332,6 +332,8 @@ export function PublicRequestDialog({
               history records only that a note was added, never its contents.
             </p>
           </div>
+          </>
+          ) : null}
 
           {mode === "schedule" ? (
             <>
