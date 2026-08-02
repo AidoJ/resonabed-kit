@@ -365,7 +365,7 @@ export function BookingAlternatesPanel({
         ) : (
           <Send className="mr-2 h-4 w-4" />
         )}
-        {verbal ? "Save these times" : "Email these times"}
+        {verbal ? "Save these times for your call" : "Send proposed times to client"}
       </Button>
     </div>
   );
