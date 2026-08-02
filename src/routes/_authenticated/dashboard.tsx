@@ -406,7 +406,7 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
     queryFn: () => fetchMetrics(),
   });
   const money = (n: number) =>
-    new Intl.NumberFormat(undefined, { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
