@@ -397,6 +397,13 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* SCIENCE */}
+      <div style={clinicThemeVars(null, null)}>
+        <ScienceSection />
+      </div>
+
+
+
       {/* PACKAGES */}
       <section id="packages" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
