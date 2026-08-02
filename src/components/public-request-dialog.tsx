@@ -333,7 +333,7 @@ export function PublicRequestDialog({
             </p>
           </div>
 
-          {mode === "review" ? (
+          {mode === "schedule" ? (
             <>
               <div className="grid gap-2">
                 <Label htmlFor="pr-prac">Assign practitioner</Label>
