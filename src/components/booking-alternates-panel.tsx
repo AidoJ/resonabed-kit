@@ -54,12 +54,15 @@ export function BookingAlternatesPanel({
   practitioners,
   durationMinutes,
   firstTime,
+  practitionerId: fixedPractitionerId,
   onSent,
 }: {
   bookingId: string;
   practitioners: { id: string; display_name: string | null }[];
   durationMinutes: number;
   firstTime: boolean;
+  /** Already chosen upstream, hides the picker when set. */
+  practitionerId?: string;
   onSent?: () => void;
 }) {
   const tz = useOrgTimezone();
@@ -69,11 +72,14 @@ export function BookingAlternatesPanel({
   const withdraw = useServerFn(withdrawOffer);
   const acceptForClient = useServerFn(acceptAlternateForClient);
 
-  const [practitionerId, setPractitionerId] = useState("");
+  const [ownPractitionerId, setOwnPractitionerId] = useState("");
+  const practitionerId = fixedPractitionerId ?? ownPractitionerId;
+  const setPractitionerId = setOwnPractitionerId;
   const [rows, setRows] = useState<Row[]>(emptyRows);
   const [verbal, setVerbal] = useState(firstTime);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+
 
   const { data: availability = [] } = useQuery({
     queryKey: ["availability", practitionerId],
@@ -245,21 +251,24 @@ export function BookingAlternatesPanel({
       ) : null}
 
       {/* ---------------- new offer ---------------- */}
-      <div className="grid gap-2">
-        <Label htmlFor="alt-prac">Practitioner these times are for</Label>
-        <Select value={practitionerId} onValueChange={setPractitionerId}>
-          <SelectTrigger id="alt-prac">
-            <SelectValue placeholder="Choose a practitioner" />
-          </SelectTrigger>
-          <SelectContent>
-            {practitioners.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.display_name ?? p.id.slice(0, 8)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {fixedPractitionerId ? null : (
+        <div className="grid gap-2">
+          <Label htmlFor="alt-prac">Practitioner these times are for</Label>
+          <Select value={practitionerId} onValueChange={setPractitionerId}>
+            <SelectTrigger id="alt-prac">
+              <SelectValue placeholder="Choose a practitioner" />
+            </SelectTrigger>
+            <SelectContent>
+              {practitioners.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.display_name ?? p.id.slice(0, 8)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
 
       {rows.map((row, i) => {
         const times = row.date ? slotsForDate(pattern, row.date, durationMinutes) : [];
@@ -356,7 +365,7 @@ export function BookingAlternatesPanel({
         ) : (
           <Send className="mr-2 h-4 w-4" />
         )}
-        {verbal ? "Save these times" : "Email these times"}
+        {verbal ? "Save these times for your call" : "Send proposed times to client"}
       </Button>
     </div>
   );

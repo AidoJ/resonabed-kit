@@ -95,7 +95,7 @@ export function PublicRequestDialog({
   const [acknowledged, setAcknowledged] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [callNote, setCallNote] = useState("");
-  const [mode, setMode] = useState<"review" | "decline" | "alternates">("review");
+  const [mode, setMode] = useState<"review" | "schedule" | "decline" | "alternates">("review");
   const [reasonCode, setReasonCode] = useState<DeclineReasonCode>("unable_to_accommodate");
   const [notifyClient, setNotifyClient] = useState(true);
   const [alsoBlock, setAlsoBlock] = useState(false);
@@ -222,7 +222,41 @@ export function PublicRequestDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* ------- step tabs: review the person, then schedule them ------- */}
+        <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1 text-xs font-medium">
+          {(
+            [
+              { key: "review", label: "1. Review" },
+              { key: "schedule", label: "2. Schedule" },
+              { key: "alternates", label: "3. Other times" },
+            ] as const
+          ).map((t) => {
+            const active =
+              mode === t.key || (t.key === "review" && mode === "decline");
+            const disabled =
+              busy ||
+              (t.key === "alternates" && !practitionerId) ||
+              (t.key === "schedule" && mode === "decline");
+            return (
+              <button
+                key={t.key}
+                type="button"
+                disabled={disabled}
+                onClick={() => setMode(t.key)}
+                className={`rounded-md px-2 py-1.5 transition-colors disabled:opacity-40 ${
+                  active
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="grid gap-3 text-sm">
+
           <div>
             <p className="text-muted-foreground">Requested</p>
             <p className="font-medium">{when}</p>
@@ -259,6 +293,8 @@ export function PublicRequestDialog({
             </div>
           ) : null}
 
+          {mode === "review" ? (
+          <>
           {/* ---------------- first-time vetting call guide ---------------- */}
           {firstTime ? (
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
@@ -332,8 +368,10 @@ export function PublicRequestDialog({
               history records only that a note was added, never its contents.
             </p>
           </div>
+          </>
+          ) : null}
 
-          {mode === "review" ? (
+          {mode === "schedule" ? (
             <>
               <div className="grid gap-2">
                 <Label htmlFor="pr-prac">Assign practitioner</Label>
@@ -396,9 +434,10 @@ export function PublicRequestDialog({
                 )
               }
               firstTime={firstTime}
+              practitionerId={practitionerId}
               onSent={onDone}
             />
-          ) : (
+          ) : mode === "decline" ? (
             /* ------------------------- decline flow ------------------------- */
             <div className="grid gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
 
@@ -449,27 +488,50 @@ export function PublicRequestDialog({
                 </span>
               </label>
             </div>
-          )}
+          ) : null}
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
           {mode === "review" ? (
             <>
-              <div className="flex gap-2">
-                <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
-                  Decline
-                </Button>
-                <Button variant="outline" disabled={busy} onClick={() => setMode("alternates")}>
-                  <CalendarClock className="mr-2 h-4 w-4" /> Propose other times
-                </Button>
-              </div>
-              <Button disabled={busy} onClick={() => void run("confirm")}>
-                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                Confirm booking
+              <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
+                Decline request
+              </Button>
+              <Button disabled={busy} onClick={() => setMode("schedule")}>
+                Accept request, choose a time
               </Button>
             </>
+          ) : mode === "schedule" ? (
+            <>
+              <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
+                Back
+              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!practitionerId) {
+                      toast.error("Choose a practitioner first.");
+                      return;
+                    }
+                    setMode("alternates");
+                  }}
+                >
+                  <CalendarClock className="mr-2 h-4 w-4" /> Propose other times
+                </Button>
+                <Button disabled={busy} onClick={() => void run("confirm")}>
+                  {busy ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <UserPlus className="mr-2 h-4 w-4" />
+                  )}
+                  Confirm requested time
+                </Button>
+              </div>
+            </>
           ) : mode === "alternates" ? (
-            <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
+            <Button variant="ghost" disabled={busy} onClick={() => setMode("schedule")}>
               Back
             </Button>
           ) : (
@@ -484,6 +546,7 @@ export function PublicRequestDialog({
             </>
           )}
         </DialogFooter>
+
 
       </DialogContent>
     </Dialog>
