@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listKitSales } from "@/lib/sales.functions";
+import { Button } from "@/components/ui/button";
+import { listKitSales, syncKitSalesToLedger } from "@/lib/sales.functions";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -67,10 +69,19 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 
 function SalesAdmin() {
   const fetchSales = useServerFn(listKitSales);
+  const runSync = useServerFn(syncKitSalesToLedger);
+  const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["kit-sales"],
     queryFn: () => fetchSales(),
   });
+  const sync = useMutation({
+    mutationFn: () => runSync(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["kit-invoices"] });
+    },
+  });
+
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading sales…</p>;
   if (error)
@@ -85,13 +96,34 @@ function SalesAdmin() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Kit sales</h2>
-        <p className="text-sm text-muted-foreground">
-          Completed website checkouts. Amounts are GST-inclusive; GST is 1/11 of the taxable
-          portion (export shipping is GST-free).
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Kit sales</h2>
+          <p className="text-sm text-muted-foreground">
+            Completed website checkouts. Amounts are GST-inclusive; GST is 1/11 of the taxable
+            portion (export shipping is GST-free).
+          </p>
+        </div>
+        <div className="text-right">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={sync.isPending}
+            onClick={() => sync.mutate()}
+          >
+            {sync.isPending ? "Syncing…" : "Sync to invoices"}
+          </Button>
+          {sync.data ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {sync.data.created} invoice(s) created, {sync.data.skipped} already recorded.
+            </p>
+          ) : null}
+          {sync.error ? (
+            <p className="mt-1 text-xs text-destructive">{(sync.error as Error).message}</p>
+          ) : null}
+        </div>
       </div>
+
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Orders" value={String(s?.orders ?? 0)} />

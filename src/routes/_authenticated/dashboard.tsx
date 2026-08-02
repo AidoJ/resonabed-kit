@@ -406,7 +406,8 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
     queryFn: () => fetchMetrics(),
   });
   const money = (n: number) =>
-    new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 }).format(n);
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -463,9 +464,11 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
           hint={metrics ? `${metrics.licences.expired} expired` : undefined}
         />
         <MetricCard
-          label="Revenue (lifetime)"
+          label="Clinic session revenue (lifetime)"
           value={isLoading ? "—" : money(metrics?.totals.revenue_total ?? 0)}
+          hint="Client session payments, kit sales are on the Kit sales page"
         />
+
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
