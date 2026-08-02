@@ -316,6 +316,7 @@ function HomeUsersSection() {
   const updateFn = useServerFn(updateHomeUserEmail);
   const [editing, setEditing] = useState<HomeUserRow | null>(null);
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["home-users"],
@@ -324,14 +325,21 @@ function HomeUsersSection() {
 
   const save = useMutation({
     mutationFn: () =>
-      updateFn({ data: { user_id: editing!.userId, email: email.trim() } }),
-    onSuccess: (r) => {
-      toast.success(`Sign-in email changed to ${r.email}`);
+      updateFn({
+        data: {
+          user_id: editing!.userId,
+          email: email.trim(),
+          display_name: displayName.trim(),
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Home user updated");
       setEditing(null);
       qc.invalidateQueries({ queryKey: ["home-users"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not change that email"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save those details"),
   });
+
 
   return (
     <section className="space-y-4 border-t pt-6">
