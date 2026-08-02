@@ -8,7 +8,7 @@
 import { formatOrgAddress } from "./org-address";
 import { formatInTz, tzAbbrev, DEFAULT_TIMEZONE } from "./timezone";
 import { writeBookingEvent } from "./booking-safety.server";
-import { ORG_CONTACT_COLUMNS, publishedContact } from "./org-public-contact";
+import { ORG_CONTACT_COLUMNS, confirmedClientContact } from "./org-public-contact";
 import { formatPersonName } from "./person-name";
 
 type AnyClient = { from: (table: string) => any };
@@ -23,8 +23,11 @@ export interface ConfirmArgs {
   actorName?: string | null;
   /** Extra audit context, e.g. { offer_id, accepted_by: 'client' }. */
   detail?: Record<string, unknown>;
-  eventType?: "confirmed" | "alternates_accepted";
+  eventType?: "confirmed" | "alternates_accepted" | "rescheduled";
+  /** Wording switch for an already-confirmed booking that has been moved. */
+  rescheduled?: boolean;
 }
+
 
 export interface ConfirmResult {
   ok: boolean;
