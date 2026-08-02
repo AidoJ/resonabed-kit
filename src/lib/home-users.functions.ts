@@ -66,32 +66,36 @@ export const updateHomeUserEmail = createServerFn({ method: "POST" })
 
     const { data: account, error: accountError } = await supabaseAdmin
       .from("home_accounts")
-      .select("user_id")
+      .select("user_id, email")
       .eq("user_id", data.user_id)
       .maybeSingle();
     if (accountError) throw new Error(accountError.message);
     if (!account) throw new Error("That home user account no longer exists");
 
-    // Reject an address already in use by another login.
-    const { data: list, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-    if (listError) throw new Error(listError.message);
-    const clash = list.users.find(
-      (u) => (u.email ?? "").toLowerCase() === email && u.id !== data.user_id,
-    );
-    if (clash) throw new Error("Another account already uses that email address");
+    const emailChanged = (account.email as string | null)?.toLowerCase() !== email;
 
-    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
-      email,
-      email_confirm: true,
-    });
-    if (authError) throw new Error(authError.message);
+    if (emailChanged) {
+      // Reject an address already in use by another login.
+      const { data: list, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      });
+      if (listError) throw new Error(listError.message);
+      const clash = list.users.find(
+        (u) => (u.email ?? "").toLowerCase() === email && u.id !== data.user_id,
+      );
+      if (clash) throw new Error("Another account already uses that email address");
 
-    const patch: { email: string; display_name?: string } = { email };
-    if (data.display_name !== undefined && data.display_name.length > 0) {
-      patch.display_name = data.display_name;
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
+        email,
+        email_confirm: true,
+      });
+      if (authError) throw new Error(authError.message);
+    }
+
+    const patch: { email: string; display_name?: string | null } = { email };
+    if (data.display_name !== undefined) {
+      patch.display_name = data.display_name.length > 0 ? data.display_name : null;
     }
     const { error: mirrorError } = await supabaseAdmin
       .from("home_accounts")
@@ -101,3 +105,4 @@ export const updateHomeUserEmail = createServerFn({ method: "POST" })
 
     return { ok: true, email };
   });
+
