@@ -179,7 +179,7 @@ function HomeWizard({
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    window.location.assign("/home/login");
+    window.location.assign("/");
   };
 
   // End of a session returns to a clean start: nothing is carried over.
