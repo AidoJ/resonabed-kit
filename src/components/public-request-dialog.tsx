@@ -455,21 +455,44 @@ export function PublicRequestDialog({
         <DialogFooter className="gap-2 sm:justify-between">
           {mode === "review" ? (
             <>
-              <div className="flex gap-2">
-                <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
-                  Decline
-                </Button>
-                <Button variant="outline" disabled={busy} onClick={() => setMode("alternates")}>
-                  <CalendarClock className="mr-2 h-4 w-4" /> Propose other times
-                </Button>
-              </div>
-              <Button disabled={busy} onClick={() => void run("confirm")}>
-                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                Confirm booking
+              <Button variant="outline" disabled={busy} onClick={() => setMode("decline")}>
+                Decline request
+              </Button>
+              <Button disabled={busy} onClick={() => setMode("schedule")}>
+                Accept request, choose a time
               </Button>
             </>
+          ) : mode === "schedule" ? (
+            <>
+              <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
+                Back
+              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!practitionerId) {
+                      toast.error("Choose a practitioner first.");
+                      return;
+                    }
+                    setMode("alternates");
+                  }}
+                >
+                  <CalendarClock className="mr-2 h-4 w-4" /> Propose other times
+                </Button>
+                <Button disabled={busy} onClick={() => void run("confirm")}>
+                  {busy ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <UserPlus className="mr-2 h-4 w-4" />
+                  )}
+                  Confirm requested time
+                </Button>
+              </div>
+            </>
           ) : mode === "alternates" ? (
-            <Button variant="ghost" disabled={busy} onClick={() => setMode("review")}>
+            <Button variant="ghost" disabled={busy} onClick={() => setMode("schedule")}>
               Back
             </Button>
           ) : (
@@ -484,6 +507,7 @@ export function PublicRequestDialog({
             </>
           )}
         </DialogFooter>
+
 
       </DialogContent>
     </Dialog>
