@@ -464,9 +464,11 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
           hint={metrics ? `${metrics.licences.expired} expired` : undefined}
         />
         <MetricCard
-          label="Revenue (lifetime)"
+          label="Clinic session revenue (lifetime)"
           value={isLoading ? "—" : money(metrics?.totals.revenue_total ?? 0)}
+          hint="Client session payments, kit sales are on the Kit sales page"
         />
+
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
