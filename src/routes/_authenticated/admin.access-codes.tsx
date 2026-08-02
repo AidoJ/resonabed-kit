@@ -304,6 +304,131 @@ function AccessCodesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <HomeUsersSection />
     </div>
+  );
+}
+
+function HomeUsersSection() {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listHomeUsers);
+  const updateFn = useServerFn(updateHomeUserEmail);
+  const [editing, setEditing] = useState<HomeUserRow | null>(null);
+  const [email, setEmail] = useState("");
+
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["home-users"],
+    queryFn: () => listFn(),
+  });
+
+  const save = useMutation({
+    mutationFn: () =>
+      updateFn({ data: { user_id: editing!.userId, email: email.trim() } }),
+    onSuccess: (r) => {
+      toast.success(`Sign-in email changed to ${r.email}`);
+      setEditing(null);
+      qc.invalidateQueries({ queryKey: ["home-users"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not change that email"),
+  });
+
+  return (
+    <section className="space-y-4 border-t pt-6">
+      <div>
+        <h2 className="text-lg font-semibold">Home app users</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Accounts created from a redeemed access code. Changing the email here updates the
+          sign-in address itself, not just the record.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-3">Sign-in email</th>
+              <th className="px-4 py-3">Joined</th>
+              <th className="px-4 py-3" />
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                  <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                </td>
+              </tr>
+            ) : users.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-10 text-center text-muted-foreground">
+                  No home users yet.
+                </td>
+              </tr>
+            ) : (
+              users.map((u: HomeUserRow) => (
+                <tr key={u.userId} className="border-t">
+                  <td className="px-4 py-3">{u.displayName ?? "—"}</td>
+                  <td className="px-4 py-3">{u.email}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">
+                    {new Date(u.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditing(u);
+                        setEmail(u.email);
+                      }}
+                    >
+                      Change email
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change sign-in email</DialogTitle>
+            <DialogDescription>
+              {editing?.displayName ?? editing?.email} will need to use the new address to sign in.
+            </DialogDescription>
+          </DialogHeader>
+          <div>
+            <Label htmlFor="hu-email">New email</Label>
+            <Input
+              id="hu-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1.5"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditing(null)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={
+                !email.includes("@") ||
+                email.trim().toLowerCase() === editing?.email ||
+                save.isPending
+              }
+              onClick={() => save.mutate()}
+            >
+              {save.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </section>
   );
 }
