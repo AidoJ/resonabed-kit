@@ -34,13 +34,19 @@ export type KitSaleRow = {
   businessName: string | null;
 };
 
-export type BuyerCategory = "clinic" | "home_business" | "business_pending" | "private";
+export type BuyerCategory =
+  | "clinic"
+  | "home_business"
+  | "business_pending"
+  | "private"
+  | "legacy_unclassified";
 
 export const BUYER_CATEGORY_LABELS: Record<BuyerCategory, string> = {
   clinic: "Clinic, retail premises",
   home_business: "Home-based business",
   business_pending: "Business, awaiting setup",
   private: "Private user",
+  legacy_unclassified: "Unclassified legacy purchase",
 };
 
 export type KitSalesSummary = {
@@ -127,10 +133,15 @@ function toRow(
   const shippingRegion = meta.shipping_region ?? null;
   const shippingGstInclusive = shippingRegion ? !!shippingGstMap[shippingRegion] : false;
   const listCents = LIST_PRICE_CENTS[packageKey] ?? 0;
-  const buyerType = meta.buyer_type === "business" ? "business" : "personal";
   const matched = buyerLookup[s.id];
-  const buyerCategory: BuyerCategory =
-    buyerType === "business" ? (matched?.category ?? "business_pending") : "private";
+  const buyerType = meta.buyer_type === "business" ? "business" : "personal";
+  const buyerCategory: BuyerCategory = matched
+    ? matched.category
+    : meta.buyer_type === "business"
+      ? "business_pending"
+      : meta.buyer_type === "personal"
+        ? "private"
+        : "legacy_unclassified";
 
   const collectedCents = s.amount_total ?? 0;
 
