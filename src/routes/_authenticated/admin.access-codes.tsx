@@ -12,6 +12,11 @@ import {
   revokeAccessCode,
   type AccessCodeRow,
 } from "@/lib/home-codes.functions";
+import {
+  listHomeUsers,
+  updateHomeUserEmail,
+  type HomeUserRow,
+} from "@/lib/home-users.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
