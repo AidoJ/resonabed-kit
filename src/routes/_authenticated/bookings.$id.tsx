@@ -193,6 +193,16 @@ function BookingDetail() {
               </Link>
             </Button>
           )}
+          {status === "confirmed" && (
+            <Button
+              variant="secondary"
+              size="lg"
+              className="h-12"
+              onClick={() => setRescheduleOpen(true)}
+            >
+              <CalendarClock className="mr-2 h-4 w-4" /> Reschedule
+            </Button>
+          )}
           <Button
             variant="outline"
             size="lg"
@@ -202,6 +212,7 @@ function BookingDetail() {
           >
             <Pencil className="mr-2 h-4 w-4" /> Edit
           </Button>
+
           <Button variant="outline" size="lg" className="h-12" onClick={remove} disabled={busy}>
             <Trash2 className="mr-2 h-4 w-4" /> Delete
           </Button>
