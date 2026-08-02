@@ -28,7 +28,9 @@ export type BookingEventType =
   | "alternates_accepted"
   | "alternates_expired"
   | "alternates_withdrawn"
-  | "re_requested";
+  | "re_requested"
+  | "rescheduled";
+
 
 
 export interface BookingEventInput {
