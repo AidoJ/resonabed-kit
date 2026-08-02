@@ -259,6 +259,8 @@ export function PublicRequestDialog({
             </div>
           ) : null}
 
+          {mode === "review" ? (
+          <>
           {/* ---------------- first-time vetting call guide ---------------- */}
           {firstTime ? (
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
