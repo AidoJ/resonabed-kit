@@ -434,6 +434,7 @@ export function PublicRequestDialog({
                 )
               }
               firstTime={firstTime}
+              practitionerId={practitionerId}
               onSent={onDone}
             />
           ) : mode === "decline" ? (
