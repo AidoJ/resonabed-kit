@@ -35,6 +35,23 @@ export type PublicService = {
   show_price: boolean;
 };
 
+export type PublicPractitioner = {
+  id: string;
+  /** "Aidan L." - given name plus surname initial only. */
+  name: string;
+  bio: string | null;
+  avatarUrl: string | null;
+};
+
+/** Reduce a stored display name to a first name plus surname initial. */
+function publicPersonName(raw: string | null): string {
+  const parts = (raw ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "";
+  const first = parts[0];
+  const last = parts.length > 1 ? parts[parts.length - 1] : "";
+  return last ? `${first} ${last.charAt(0).toUpperCase()}.` : first;
+}
+
 export const getPublicOrgPage = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) =>
     z.object({ slug: z.string().min(1).max(64) }).parse(data),
