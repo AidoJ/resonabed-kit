@@ -147,6 +147,8 @@ export function BookingAlternatesPanel({
       // Phone handling keeps the panel open: the operator still has to mark
       // which time the client picked on the call.
       if (!verbal) onSent?.();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't send those times.");
     } finally {
       setBusy(false);
     }
