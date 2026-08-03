@@ -76,7 +76,9 @@ export function BookingAlternatesPanel({
   const practitionerId = fixedPractitionerId ?? ownPractitionerId;
   const setPractitionerId = setOwnPractitionerId;
   const [rows, setRows] = useState<Row[]>(emptyRows);
-  const [verbal, setVerbal] = useState(firstTime);
+  // Emailing a booking link is the default. Phone handling is an opt-in,
+  // even for first-timers, so the primary button always says "send".
+  const [verbal, setVerbal] = useState(false);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -142,7 +144,9 @@ export function BookingAlternatesPanel({
       setRows(emptyRows);
       setNote("");
       await refetchOffers();
-      onSent?.();
+      // Phone handling keeps the panel open: the operator still has to mark
+      // which time the client picked on the call.
+      if (!verbal) onSent?.();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't send those times.");
     } finally {
