@@ -60,25 +60,54 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
         services: [] as PublicService[],
         logoUrl: null,
         availability: [] as AvailabilityWindow[],
+        practitioners: [] as PublicPractitioner[],
       };
 
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: orgRow } = await supabaseAdmin
+      .from("organisations")
+      .select("id, logo_path")
+      .eq("slug", data.slug)
+      .eq("published", true)
+      .maybeSingle();
 
     // Logos live in a private bucket; sign a short-lived URL for the public page.
     let logoUrl: string | null = org.logo_url ?? null;
-    if (!logoUrl) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: orgRow } = await supabaseAdmin
-        .from("organisations")
-        .select("logo_path")
-        .eq("slug", data.slug)
-        .eq("published", true)
-        .maybeSingle();
-      if (orgRow?.logo_path) {
-        const signed = await supabaseAdmin.storage
-          .from("org-logos")
-          .createSignedUrl(orgRow.logo_path, 60 * 60 * 24 * 7);
-        logoUrl = signed.data?.signedUrl ?? null;
-      }
+    if (!logoUrl && orgRow?.logo_path) {
+      const signed = await supabaseAdmin.storage
+        .from("org-logos")
+        .createSignedUrl(orgRow.logo_path, 60 * 60 * 24 * 7);
+      logoUrl = signed.data?.signedUrl ?? null;
+    }
+
+    // Team members shown publicly: display name is reduced to "First L." and
+    // only the bio/headshot the clinic chose to store is exposed.
+    let practitioners: PublicPractitioner[] = [];
+    if (orgRow?.id) {
+      const { data: profiles } = await supabaseAdmin
+        .from("profiles")
+        .select("id, display_name, bio, avatar_path")
+        .eq("org_id", orgRow.id)
+        .eq("is_active", true)
+        .order("display_name", { ascending: true });
+      practitioners = await Promise.all(
+        (profiles ?? []).map(async (p) => {
+          let avatarUrl: string | null = null;
+          if (p.avatar_path) {
+            const signed = await supabaseAdmin.storage
+              .from("team-avatars")
+              .createSignedUrl(p.avatar_path, 60 * 60 * 24 * 7);
+            avatarUrl = signed.data?.signedUrl ?? null;
+          }
+          return {
+            id: p.id as string,
+            name: publicPersonName(p.display_name as string | null),
+            bio: (p.bio as string | null) ?? null,
+            avatarUrl,
+          };
+        }),
+      );
+      practitioners = practitioners.filter((p) => !!p.name);
     }
 
     return {
@@ -86,8 +115,10 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       services: (svcRes.data as PublicService[] | null) ?? [],
       logoUrl,
       availability: (availRes.data as AvailabilityWindow[] | null) ?? [],
+      practitioners,
     };
   });
+
 
 export type PublicOrgBranding = {
   name: string;
