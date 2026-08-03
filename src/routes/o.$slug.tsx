@@ -5,6 +5,7 @@ import {
   getPublicOrgPage,
   type PublicOrg,
   type PublicService,
+  type PublicPractitioner,
 } from "@/lib/public-org.functions";
 import { PublicBookingForm } from "@/components/public-booking-form";
 import type { AvailabilityWindow } from "@/lib/availability-pattern";
@@ -126,8 +127,9 @@ function PublicOrgPage() {
     services: PublicService[];
     logoUrl: string | null;
     availability: AvailabilityWindow[];
+    practitioners: PublicPractitioner[];
   };
-  const { org, services, logoUrl, availability } = data;
+  const { org, services, logoUrl, availability, practitioners } = data;
   const theme = clinicThemeVars(org.theme_sidebar, org.theme_primary);
   const tz = org.timezone || DEFAULT_TIMEZONE;
   const bookable = org.public_booking_enabled && services.length > 0;
@@ -449,6 +451,54 @@ function PublicOrgPage() {
             </h2>
             <div className="mt-6 max-w-[65ch] space-y-5 whitespace-pre-line text-lg font-light leading-relaxed text-muted-foreground">
               {org.public_blurb}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* --------------------------------------------------------- PRACTITIONERS */}
+      {practitioners.length > 0 ? (
+        <section className="border-t">
+          <div className="mx-auto max-w-5xl px-6 py-20 md:px-10 md:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <Eyebrow>Our practitioners</Eyebrow>
+              <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">
+                Who you&rsquo;ll see
+              </h2>
+            </div>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2">
+              {practitioners.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex gap-5 rounded-2xl border p-6"
+                  style={{ background: "var(--clinic-tint-soft)" }}
+                >
+                  {p.avatarUrl ? (
+                    <img
+                      src={p.avatarUrl}
+                      alt={`${p.name}, practitioner at ${org.name}`}
+                      loading="lazy"
+                      className="h-20 w-20 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-xl font-light"
+                      style={{ background: "var(--clinic-tint)" }}
+                      aria-hidden="true"
+                    >
+                      {p.name.charAt(0)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-light tracking-tight">{p.name}</h3>
+                    {p.bio ? (
+                      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                        {p.bio}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
