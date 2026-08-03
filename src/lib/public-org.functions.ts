@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { AvailabilityWindow } from "./availability-pattern";
+import { publicShortName } from "./person-name";
 
 export type PublicOrg = {
   name: string;
@@ -110,7 +111,7 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
           }
           return {
             id: p.id as string,
-            name: publicPersonName(p.display_name as string | null),
+            name: publicShortName(p.display_name as string | null),
             bio: (p.bio as string | null) ?? null,
             avatarUrl,
           };
