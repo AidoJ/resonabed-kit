@@ -36,6 +36,7 @@ import { listAvailability } from "@/lib/availability.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import {
+import { publicShortName } from "@/lib/person-name";
   addDaysToDate,
   dayOfWeekOfDate,
   dayStartUtc,
@@ -418,7 +419,7 @@ export function BookingFormDialog({ open, onOpenChange, booking, defaultStartsAt
               <SelectContent>
                 {visiblePractitioners.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.display_name ?? p.id.slice(0, 8)}
+                    {publicShortName(p.display_name) || p.id.slice(0, 8)}
                   </SelectItem>
                 ))}
               </SelectContent>

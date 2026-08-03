@@ -43,6 +43,7 @@ import { BookingAlternatesPanel } from "@/components/booking-alternates-panel";
 import { toast } from "sonner";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
+import { publicShortName } from "@/lib/person-name";
 
 
 export type PublicRequestSummary = {
@@ -382,7 +383,7 @@ export function PublicRequestDialog({
                   <SelectContent>
                     {practitioners.map((p) => (
                       <SelectItem key={p.id} value={p.id}>
-                        {p.display_name ?? p.id.slice(0, 8)}
+                        {publicShortName(p.display_name) || p.id.slice(0, 8)}
                       </SelectItem>
                     ))}
                   </SelectContent>
