@@ -126,8 +126,9 @@ function PublicOrgPage() {
     services: PublicService[];
     logoUrl: string | null;
     availability: AvailabilityWindow[];
+    practitioners: PublicPractitioner[];
   };
-  const { org, services, logoUrl, availability } = data;
+  const { org, services, logoUrl, availability, practitioners } = data;
   const theme = clinicThemeVars(org.theme_sidebar, org.theme_primary);
   const tz = org.timezone || DEFAULT_TIMEZONE;
   const bookable = org.public_booking_enabled && services.length > 0;
