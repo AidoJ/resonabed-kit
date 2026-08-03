@@ -76,7 +76,9 @@ export function BookingAlternatesPanel({
   const practitionerId = fixedPractitionerId ?? ownPractitionerId;
   const setPractitionerId = setOwnPractitionerId;
   const [rows, setRows] = useState<Row[]>(emptyRows);
-  const [verbal, setVerbal] = useState(firstTime);
+  // Emailing a booking link is the default. Phone handling is an opt-in,
+  // even for first-timers, so the primary button always says "send".
+  const [verbal, setVerbal] = useState(false);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
 
