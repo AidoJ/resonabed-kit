@@ -43,14 +43,6 @@ export type PublicPractitioner = {
   avatarUrl: string | null;
 };
 
-/** Reduce a stored display name to a first name plus surname initial. */
-function publicPersonName(raw: string | null): string {
-  const parts = (raw ?? "").trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "";
-  const first = parts[0];
-  const last = parts.length > 1 ? parts[parts.length - 1] : "";
-  return last ? `${first} ${last.charAt(0).toUpperCase()}.` : first;
-}
 
 export const getPublicOrgPage = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) =>
