@@ -33,6 +33,7 @@ import {
 import { slotsForDate, isWorkingDate, type AvailabilityWindow } from "@/lib/availability-pattern";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
+import { publicShortName } from "@/lib/person-name";
 
 type Row = { date: string; time: string };
 
@@ -265,7 +266,7 @@ export function BookingAlternatesPanel({
             <SelectContent>
               {practitioners.map((p) => (
                 <SelectItem key={p.id} value={p.id}>
-                  {p.display_name ?? p.id.slice(0, 8)}
+                  {publicShortName(p.display_name) || p.id.slice(0, 8)}
                 </SelectItem>
               ))}
             </SelectContent>
