@@ -1263,12 +1263,14 @@ export type Database = {
           practitioners_can_manage_clients: boolean
           practitioners_can_view_all_clients: boolean
           privacy_policy_text: string | null
+          public_allow_practitioner_choice: boolean
           public_blurb: string | null
           public_booking_enabled: boolean
           public_contact_email: string | null
           public_contact_phone: string | null
           public_show_email: boolean
           public_show_phone: boolean
+          public_show_practitioners: boolean
           public_strapline: string | null
           public_suburb: string | null
           published: boolean
@@ -1316,12 +1318,14 @@ export type Database = {
           practitioners_can_manage_clients?: boolean
           practitioners_can_view_all_clients?: boolean
           privacy_policy_text?: string | null
+          public_allow_practitioner_choice?: boolean
           public_blurb?: string | null
           public_booking_enabled?: boolean
           public_contact_email?: string | null
           public_contact_phone?: string | null
           public_show_email?: boolean
           public_show_phone?: boolean
+          public_show_practitioners?: boolean
           public_strapline?: string | null
           public_suburb?: string | null
           published?: boolean
@@ -1369,12 +1373,14 @@ export type Database = {
           practitioners_can_manage_clients?: boolean
           practitioners_can_view_all_clients?: boolean
           privacy_policy_text?: string | null
+          public_allow_practitioner_choice?: boolean
           public_blurb?: string | null
           public_booking_enabled?: boolean
           public_contact_email?: string | null
           public_contact_phone?: string | null
           public_show_email?: boolean
           public_show_phone?: boolean
+          public_show_practitioners?: boolean
           public_strapline?: string | null
           public_suburb?: string | null
           published?: boolean
@@ -1995,16 +2001,27 @@ export type Database = {
           logo_url: string
           name: string
           public_address: string
+          public_allow_practitioner_choice: boolean
           public_blurb: string
           public_booking_enabled: boolean
           public_contact_email: string
           public_contact_phone: string
+          public_show_practitioners: boolean
           public_strapline: string
           public_suburb: string
           slug: string
           theme_primary: string
           theme_sidebar: string
           timezone: string
+        }[]
+      }
+      get_public_practitioner_availability: {
+        Args: { p_slug: string }
+        Returns: {
+          day_of_week: number
+          end_time: string
+          practitioner_id: string
+          start_time: string
         }[]
       }
       get_public_services: {
