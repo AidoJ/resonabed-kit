@@ -10,7 +10,18 @@ import { cn } from "@/lib/utils";
 import { requestPublicBooking } from "@/lib/public-booking.functions";
 import { phoneValidationError, PHONE_HELP_TEXT } from "@/lib/phone";
 import { halfHourSlots, slotLabel, DEFAULT_TIMEZONE, minutesOfDayInTz } from "@/lib/timezone";
-import type { PublicService } from "@/lib/public-org.functions";
+import type {
+  PublicService,
+  PublicPractitioner,
+  PublicPractitionerAvailability,
+} from "@/lib/public-org.functions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   type AvailabilityWindow,
   describePattern,
@@ -55,11 +66,20 @@ export function PublicBookingForm({
   timezone,
   clinicName,
   availability = [],
+  practitioners = [],
+  practitionerAvailability = [],
 }: {
   slug: string;
   services: PublicService[];
   timezone: string;
   clinicName: string;
+  /**
+   * Only populated when the clinic has opted in to letting visitors name a
+   * preferred practitioner. Empty means the selector is never rendered.
+   */
+  practitioners?: PublicPractitioner[];
+  /** Per-practitioner working windows, used to narrow the offered times. */
+  practitionerAvailability?: PublicPractitionerAvailability[];
   /**
    * The clinic's merged working pattern. Days/hours only, never a live slot
    * map, never who is working, never what is already booked.
@@ -70,6 +90,7 @@ export function PublicBookingForm({
   const tz = timezone || DEFAULT_TIMEZONE;
 
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
+  const [practitionerId, setPractitionerId] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -86,15 +107,29 @@ export function PublicBookingForm({
   const phoneProblem = phone ? phoneValidationError(phone) : null;
 
   const duration = services.find((s) => s.id === serviceId)?.duration_minutes ?? 60;
-  const hasPattern = availability.length > 0;
-  const patternLines = hasPattern ? describePattern(availability) : [];
+
+  // Choosing a practitioner narrows the working pattern to that person's own
+  // hours. "Any practitioner" keeps the clinic's merged pattern.
+  const chosenWindows = practitionerId
+    ? practitionerAvailability
+        .filter((w) => w.practitioner_id === practitionerId)
+        .map((w) => ({
+          day_of_week: w.day_of_week,
+          start_time: w.start_time,
+          end_time: w.end_time,
+        }))
+    : availability;
+  const effectivePattern: AvailabilityWindow[] = chosenWindows;
+
+  const hasPattern = effectivePattern.length > 0;
+  const patternLines = hasPattern ? describePattern(effectivePattern) : [];
   const today = todayInTz(tz);
   const nowMinutes = minutesOfDayInTz(new Date(), tz);
 
-  const dateIsWorking = !date || !hasPattern || isWorkingDate(availability, date);
+  const dateIsWorking = !date || !hasPattern || isWorkingDate(effectivePattern, date);
   const slots = (() => {
     if (!date) return [] as string[];
-    const base = hasPattern ? slotsForDate(availability, date, duration) : OPEN_SLOTS;
+    const base = hasPattern ? slotsForDate(effectivePattern, date, duration) : OPEN_SLOTS;
     // An hour's lead time on same-day requests, matching the server rule.
     return date === today ? base.filter((s) => {
       const [h, m] = s.split(":").map(Number);
@@ -111,7 +146,7 @@ export function PublicBookingForm({
   const activeItems = groups.find((g) => g.label === activePeriod)?.items ?? [];
 
   // Keep the chosen time valid whenever the date or session type changes.
-  const slotKey = slots.join(",");
+  const slotKey = `${practitionerId}|${slots.join(",")}`;
   useEffect(() => {
     if (slots.length > 0 && !slots.includes(time)) setTime(slots[0]);
     setPeriod(null);
@@ -143,7 +178,7 @@ export function PublicBookingForm({
       setError("Please complete all required fields.");
       return;
     }
-    if (hasPattern && !isWorkingDate(availability, date)) {
+    if (hasPattern && !isWorkingDate(effectivePattern, date)) {
       setError("Please choose a date the clinic works.");
       return;
     }
@@ -169,6 +204,7 @@ export function PublicBookingForm({
           phone,
           preferred_date: date,
           preferred_time: time,
+          preferred_practitioner_id: practitionerId || null,
           note,
           // Captcha seam: token stays null until Turnstile is enabled.
           captcha_token: null,
@@ -219,6 +255,32 @@ export function PublicBookingForm({
               })}
             </div>
           </fieldset>
+
+          {practitioners.length > 0 ? (
+            <div className="grid gap-2">
+              <Label htmlFor="pb-prac">Preferred practitioner</Label>
+              <Select
+                value={practitionerId || "any"}
+                onValueChange={(v) => setPractitionerId(v === "any" ? "" : v)}
+              >
+                <SelectTrigger id="pb-prac">
+                  <SelectValue placeholder="Any practitioner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any practitioner</SelectItem>
+                  {practitioners.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Optional. Times below show that person&rsquo;s working hours. The clinic
+                confirms who you&rsquo;ll see.
+              </p>
+            </div>
+          ) : null}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
@@ -337,7 +399,8 @@ export function PublicBookingForm({
 
           {!dateIsWorking ? (
             <p className="-mt-1 text-xs text-destructive">
-              The clinic doesn&rsquo;t work on that day. Please choose one of their working
+              {practitionerId ? "That practitioner doesn't work on that day." : "The clinic doesn't work on that day."}
+              {" "} Please choose one of their working
               days below.
             </p>
           ) : date && slots.length === 0 ? (
