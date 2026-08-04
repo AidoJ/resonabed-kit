@@ -399,9 +399,10 @@ export function PublicBookingForm({
 
           {!dateIsWorking ? (
             <p className="-mt-1 text-xs text-destructive">
-              {practitionerId ? "That practitioner doesn't work on that day." : "The clinic doesn't work on that day."}
-              {" "} Please choose one of their working
-              days below.
+              {practitionerId
+                ? "That practitioner doesn't work on that day."
+                : "The clinic doesn't work on that day."}{" "}
+              Please choose one of the working days below.
             </p>
           ) : date && slots.length === 0 ? (
             <p className="-mt-1 text-xs text-destructive">
