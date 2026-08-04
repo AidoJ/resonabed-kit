@@ -25,6 +25,10 @@ export type PublicOrg = {
    * retail clinics that opt to show it; it is always null for home-based orgs.
    */
   public_address: string | null;
+  /** Clinic opt-in: render the "Our practitioners" profile section. */
+  public_show_practitioners: boolean;
+  /** Clinic opt-in: let a visitor name a preferred practitioner when requesting. */
+  public_allow_practitioner_choice: boolean;
 };
 
 export type PublicService = {
@@ -44,6 +48,14 @@ export type PublicPractitioner = {
   avatarUrl: string | null;
 };
 
+/** Working windows for one practitioner, published only with clinic opt-in. */
+export type PublicPractitionerAvailability = {
+  practitioner_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+};
+
 
 export const getPublicOrgPage = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) =>
@@ -57,10 +69,11 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
 
-    const [orgRes, svcRes, availRes] = await Promise.all([
+    const [orgRes, svcRes, availRes, pracAvailRes] = await Promise.all([
       supabase.rpc("get_public_org", { p_slug: data.slug }),
       supabase.rpc("get_public_services", { p_slug: data.slug }),
       supabase.rpc("get_public_availability", { p_slug: data.slug }),
+      (supabase as any).rpc("get_public_practitioner_availability", { p_slug: data.slug }),
     ]);
 
     const org = (orgRes.data as PublicOrg[] | null)?.[0] ?? null;
@@ -71,6 +84,7 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
         logoUrl: null,
         availability: [] as AvailabilityWindow[],
         practitioners: [] as PublicPractitioner[],
+        practitionerAvailability: [] as PublicPractitionerAvailability[],
       };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -92,8 +106,13 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
 
     // Team members shown publicly: display name is reduced to "First L." and
     // only the bio/headshot the clinic chose to store is exposed.
+    // Two independent opt-ins: one publishes the profile cards, the other
+    // publishes the names as a bookable preference. Either one needs the roster.
+    const showProfiles = org.public_show_practitioners === true;
+    const allowChoice = org.public_allow_practitioner_choice === true;
+
     let practitioners: PublicPractitioner[] = [];
-    if (orgRow?.id) {
+    if (orgRow?.id && (showProfiles || allowChoice)) {
       const { data: profiles } = await supabaseAdmin
         .from("profiles")
         .select("id, display_name, bio, avatar_path")
@@ -103,7 +122,7 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       practitioners = await Promise.all(
         (profiles ?? []).map(async (p) => {
           let avatarUrl: string | null = null;
-          if (p.avatar_path) {
+          if (showProfiles && p.avatar_path) {
             const signed = await supabaseAdmin.storage
               .from("team-avatars")
               .createSignedUrl(p.avatar_path, 60 * 60 * 24 * 7);
@@ -112,7 +131,7 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
           return {
             id: p.id as string,
             name: publicShortName(p.display_name as string | null),
-            bio: (p.bio as string | null) ?? null,
+            bio: showProfiles ? ((p.bio as string | null) ?? null) : null,
             avatarUrl,
           };
         }),
@@ -126,6 +145,8 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       logoUrl,
       availability: (availRes.data as AvailabilityWindow[] | null) ?? [],
       practitioners,
+      practitionerAvailability:
+        (pracAvailRes.data as PublicPractitionerAvailability[] | null) ?? [],
     };
   });
 

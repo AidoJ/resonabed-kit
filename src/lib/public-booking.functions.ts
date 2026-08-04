@@ -23,6 +23,11 @@ const requestSchema = z.object({
     }),
   preferred_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   preferred_time: z.string().regex(/^\d{2}:\d{2}$/),
+  /**
+   * Optional and advisory only. A public request is never assigned; the
+   * preference is recorded on the audit trail for the clinic to consider.
+   */
+  preferred_practitioner_id: z.string().uuid().nullable().optional(),
   note: z.string().trim().max(500).optional().or(z.literal("")),
   captcha_token: z.string().max(4000).optional().nullable(),
 });
@@ -62,7 +67,9 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
     // Resolve the organisation from the public slug. Published + active only.
     const { data: org } = await supabaseAdmin
       .from("organisations")
-      .select("id, name, timezone, public_booking_enabled, published, status, public_contact_email")
+      .select(
+        "id, name, timezone, public_booking_enabled, published, status, public_contact_email, public_allow_practitioner_choice",
+      )
       .eq("slug", data.slug)
       .maybeSingle();
 
@@ -99,6 +106,21 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
       return { ok: false, error: "That session type is no longer available." };
     }
 
+    // --- Preferred practitioner (advisory) -------------------------------
+    // Only honoured when the clinic published the choice, and only for an
+    // active member of this org. Anything else is silently ignored.
+    let preferredPractitionerId: string | null = null;
+    if (data.preferred_practitioner_id && org.public_allow_practitioner_choice) {
+      const { data: prac } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .eq("id", data.preferred_practitioner_id)
+        .eq("org_id", org.id)
+        .eq("is_active", true)
+        .maybeSingle();
+      preferredPractitionerId = prac?.id ?? null;
+    }
+
     // --- Time: interpret the chosen slot in the ORG's timezone ----------
     const tz = org.timezone || DEFAULT_TIMEZONE;
     const startsAt = zonedWallTimeToUtc(data.preferred_date, data.preferred_time, tz);
@@ -118,11 +140,15 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
     // boundary. When an org has published no hours at all we fall back to open
     // entry rather than silently killing their public page.
     {
-      const { data: windows } = await supabaseAdmin
+      let q = supabaseAdmin
         .from("practitioner_availability")
         .select("day_of_week, start_time, end_time, practitioner:practitioner_id(is_active)")
         .eq("org_id", org.id)
         .eq("is_active", true);
+      // When the visitor named a practitioner the request must fit THAT
+      // person's hours, not the clinic's merged pattern.
+      if (preferredPractitionerId) q = q.eq("practitioner_id", preferredPractitionerId);
+      const { data: windows } = await q;
       const pattern = (windows ?? [])
         .filter((w: any) => w.practitioner?.is_active !== false)
         .map((w: any) => ({
@@ -239,7 +265,13 @@ export const requestPublicBooking = createServerFn({ method: "POST" })
       requesterName: fullName,
       requesterEmail: email,
       requesterPhone: phone,
-      detail: { requested_for: startsAt.toISOString(), service_id: service.id },
+      detail: {
+        requested_for: startsAt.toISOString(),
+        service_id: service.id,
+        ...(preferredPractitionerId
+          ? { preferred_practitioner_id: preferredPractitionerId }
+          : {}),
+      },
     });
 
     await recordAttempt(supabaseAdmin, { orgId: org.id, ipHash, emailHash, accepted: true });

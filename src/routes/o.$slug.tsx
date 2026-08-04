@@ -6,6 +6,7 @@ import {
   type PublicOrg,
   type PublicService,
   type PublicPractitioner,
+  type PublicPractitionerAvailability,
 } from "@/lib/public-org.functions";
 import { PublicBookingForm } from "@/components/public-booking-form";
 import type { AvailabilityWindow } from "@/lib/availability-pattern";
@@ -128,8 +129,9 @@ function PublicOrgPage() {
     logoUrl: string | null;
     availability: AvailabilityWindow[];
     practitioners: PublicPractitioner[];
+    practitionerAvailability: PublicPractitionerAvailability[];
   };
-  const { org, services, logoUrl, availability, practitioners } = data;
+  const { org, services, logoUrl, availability, practitioners, practitionerAvailability } = data;
   const theme = clinicThemeVars(org.theme_sidebar, org.theme_primary);
   const tz = org.timezone || DEFAULT_TIMEZONE;
   const bookable = org.public_booking_enabled && services.length > 0;
@@ -457,7 +459,7 @@ function PublicOrgPage() {
       ) : null}
 
       {/* --------------------------------------------------------- PRACTITIONERS */}
-      {practitioners.length > 0 ? (
+      {org.public_show_practitioners && practitioners.length > 0 ? (
         <section className="border-t">
           <div className="mx-auto max-w-5xl px-6 py-20 md:px-10 md:py-24">
             <div className="mx-auto max-w-2xl text-center">
@@ -526,6 +528,10 @@ function PublicOrgPage() {
                 timezone={tz}
                 clinicName={org.name}
                 availability={availability}
+                practitioners={
+                  org.public_allow_practitioner_choice ? practitioners : []
+                }
+                practitionerAvailability={practitionerAvailability}
               />
             </div>
           ) : (

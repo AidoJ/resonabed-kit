@@ -48,6 +48,8 @@ export type PublicPageOrg = {
   public_contact_phone: string | null;
   public_show_email: boolean;
   public_show_phone: boolean;
+  public_show_practitioners: boolean;
+  public_allow_practitioner_choice: boolean;
   public_suburb: string | null;
   public_booking_enabled: boolean;
   timezone: string | null;
@@ -84,6 +86,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   const [phone, setPhone] = useState("");
   const [showEmail, setShowEmail] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
+  const [showPractitioners, setShowPractitioners] = useState(false);
+  const [allowPractitionerChoice, setAllowPractitionerChoice] = useState(false);
   const [suburb, setSuburb] = useState("");
   const [tz, setTz] = useState("Australia/Brisbane");
   const [published, setPublished] = useState(false);
@@ -106,6 +110,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     setPhone(org.public_contact_phone ?? "");
     setShowEmail(!!org.public_show_email);
     setShowPhone(!!org.public_show_phone);
+    setShowPractitioners(!!org.public_show_practitioners);
+    setAllowPractitionerChoice(!!org.public_allow_practitioner_choice);
     setSuburb(org.public_suburb ?? "");
     setTz(org.timezone ?? "Australia/Brisbane");
     setPublished(!!org.published);
@@ -127,6 +133,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     phone !== (org.public_contact_phone ?? "") ||
     showEmail !== !!org.public_show_email ||
     showPhone !== !!org.public_show_phone ||
+    showPractitioners !== !!org.public_show_practitioners ||
+    allowPractitionerChoice !== !!org.public_allow_practitioner_choice ||
     suburb !== (org.public_suburb ?? "") ||
     tz !== (org.timezone ?? "Australia/Brisbane") ||
     published !== !!org.published ||
@@ -175,6 +183,8 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           public_contact_phone: phone || null,
           public_show_email: showEmail,
           public_show_phone: showPhone,
+          public_show_practitioners: showPractitioners,
+          public_allow_practitioner_choice: allowPractitionerChoice,
           public_suburb: suburb || null,
           timezone: tz,
           published,
@@ -369,6 +379,35 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
               </p>
             </div>
             <Switch checked={showPhone} onCheckedChange={setShowPhone} />
+          </div>
+
+          <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+            <div>
+              <p className="text-sm font-medium">Show practitioner profiles on my page</p>
+              <p className="text-xs text-muted-foreground">
+                Adds an &ldquo;Our practitioners&rdquo; section with each active team
+                member&rsquo;s headshot, short bio and first name plus surname initial, for
+                example Aidan L. Nothing else is published.
+              </p>
+            </div>
+            <Switch checked={showPractitioners} onCheckedChange={setShowPractitioners} />
+          </div>
+
+          <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+            <div>
+              <p className="text-sm font-medium">
+                Let visitors choose a practitioner when requesting
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Adds an optional &ldquo;Preferred practitioner&rdquo; list to the booking
+                form and narrows the offered times to that person&rsquo;s working hours. It
+                stays a request, you still confirm who takes it.
+              </p>
+            </div>
+            <Switch
+              checked={allowPractitionerChoice}
+              onCheckedChange={setAllowPractitionerChoice}
+            />
           </div>
 
           {!showEmail && !showPhone ? (

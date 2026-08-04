@@ -67,6 +67,8 @@ type RequestDetail = {
   } | null;
   public_note?: string | null;
   service?: { name: string; duration_minutes?: number } | null;
+  preferred_practitioner_id?: string | null;
+  preferred_practitioner_name?: string | null;
 };
 
 
@@ -119,6 +121,10 @@ export function PublicRequestDialog({
         if (!cancelled) {
           const detailData = d as unknown as RequestDetail;
           setDetail(detailData);
+          // Honour the visitor's stated preference as the default assignment.
+          if (detailData.preferred_practitioner_id) {
+            setPractitionerId(detailData.preferred_practitioner_id);
+          }
           setShowGuide(detailData.is_first_time === true);
         }
       })
@@ -376,6 +382,12 @@ export function PublicRequestDialog({
             <>
               <div className="grid gap-2">
                 <Label htmlFor="pr-prac">Assign practitioner</Label>
+                {detail?.preferred_practitioner_name ? (
+                  <p className="text-xs text-muted-foreground">
+                    Client asked for {detail.preferred_practitioner_name}. You can assign
+                    anyone.
+                  </p>
+                ) : null}
                 <Select value={practitionerId} onValueChange={setPractitionerId}>
                   <SelectTrigger id="pr-prac">
                     <SelectValue placeholder="Choose a practitioner" />

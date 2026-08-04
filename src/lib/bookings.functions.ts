@@ -430,8 +430,42 @@ export const getPublicRequestDetail = createServerFn({ method: "POST" })
       excludeBookingId: row.id,
     });
 
+    // The public form may record an advisory practitioner preference on the
+    // append-only trail. Surface it so the operator can honour it if they wish.
+    let preferred_practitioner_id: string | null = null;
+    let preferred_practitioner_name: string | null = null;
+    {
+      const { data: ev } = await context.supabase
+        .from("booking_events")
+        .select("detail")
+        .eq("booking_id", row.id)
+        .eq("event_type", "request_received")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const pref = (ev?.detail as Record<string, unknown> | null)?.[
+        "preferred_practitioner_id"
+      ];
+      if (typeof pref === "string") {
+        const { data: prac } = await context.supabase
+          .from("profiles")
+          .select("id, display_name")
+          .eq("id", pref)
+          .maybeSingle();
+        if (prac) {
+          preferred_practitioner_id = prac.id as string;
+          const { publicShortName } = await import("@/lib/person-name");
+          preferred_practitioner_name = publicShortName(
+            prac.display_name as string | null,
+          );
+        }
+      }
+    }
+
     return {
       ...row,
+      preferred_practitioner_id,
+      preferred_practitioner_name,
       clinic_type: ((org?.clinic_type as string) ?? "home") as "retail" | "home",
       public_suburb: (org?.public_suburb as string | null) ?? null,
       is_first_time: !returning,
