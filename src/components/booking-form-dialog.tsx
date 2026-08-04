@@ -35,8 +35,8 @@ import {
 import { listAvailability } from "@/lib/availability.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { useOrgTimezone } from "@/hooks/use-org-timezone";
-import {
 import { publicShortName } from "@/lib/person-name";
+import {
   addDaysToDate,
   dayOfWeekOfDate,
   dayStartUtc,
