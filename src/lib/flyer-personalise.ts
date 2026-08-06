@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import QRCode from "qrcode";
 import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
 
 /**
@@ -12,14 +13,20 @@ export interface FlyerClinicDetails {
   website?: string;
   /** Object URL / http URL for the clinic logo. Any raster or SVG source. */
   logoUrl?: string;
+  /** Booking page URL encoded into the QR code printed beside the details. */
+  bookingUrl?: string;
 }
 
 /** Blank panel on page 1, measured from the artwork (PDF points). */
 const PANEL = { x: 24, y: 32, width: 236, height: 108 };
 /** Matches the flyer's paper tint so the placeholder box is covered cleanly. */
 const PAPER = rgb(247 / 255, 241 / 255, 253 / 255);
+const WHITE = rgb(1, 1, 1);
 const INK = rgb(0.15, 0.06, 0.42);
 const MUTED = rgb(0.32, 0.28, 0.42);
+/** Size of the printed QR square, plus its white surround. */
+const QR = { size: 62, pad: 4, gap: 10 };
+
 
 /** Rasterises any image (incl. SVG) to PNG bytes via a same-origin blob. */
 async function toPngBytes(url: string, maxPx = 320): Promise<Uint8Array | null> {
