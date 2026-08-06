@@ -9,6 +9,8 @@ interface Props {
   onPlayingChange?: (playing: boolean) => void;
   /** Hide play/pause/stop so the session timer is the single start control. */
   hideTransport?: boolean;
+  /** Repeat the track so it fills the whole booked session length. */
+  loop?: boolean;
 }
 
 
@@ -27,7 +29,7 @@ function fmt(sec: number): string {
 }
 
 export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPlayer(
-  { src, title, onPlayingChange, hideTransport = false },
+  { src, title, onPlayingChange, hideTransport = false, loop = false },
   ref,
 ) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -66,6 +68,8 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   const doPlay = () => {
     const el = audioRef.current;
     if (!el) return;
+    el.loop = loop;
+    el.volume = vol;
     void el.play().catch(() => {});
   };
   const doPause = () => {
@@ -95,6 +99,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
       audioRef.current.volume = Math.max(0, next);
       if (i >= steps) {
         clearFade();
+        audioRef.current.loop = false;
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
         audioRef.current.volume = startVol;
@@ -109,6 +114,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     clearFade();
     const el = audioRef.current;
     if (!el) return;
+    el.loop = false;
     el.pause();
     el.currentTime = 0;
     setTime(0);
@@ -137,7 +143,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
           {fmt(time)} / {fmt(dur)}
         </span>
       </div>
-      <audio ref={audioRef} src={src} preload="metadata" />
+      <audio ref={audioRef} src={src} preload="metadata" loop={loop} />
       <Slider
         min={0}
         max={dur || 1}
