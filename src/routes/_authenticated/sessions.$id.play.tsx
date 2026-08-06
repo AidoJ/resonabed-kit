@@ -212,6 +212,7 @@ function PlaySession() {
               title={audio.title}
               onPlayingChange={setAmbient}
               hideTransport
+              loop
             />
 
           ) : licence && !licence.is_ok ? (

@@ -479,6 +479,7 @@ function HomePlayer({
                 src={signed.url}
                 title={trackTitle}
                 hideTransport
+                loop
               />
 
             ) : (
