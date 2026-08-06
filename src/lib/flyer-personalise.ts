@@ -96,8 +96,48 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     if (bytes) logoImage = await pdf.embedPng(bytes);
   }
 
+  // QR code block, printed on white at the right of the panel.
+  let qrBlockWidth = 0;
+  if (details.bookingUrl) {
+    const dataUrl = await QRCode.toDataURL(details.bookingUrl, {
+      margin: 0,
+      scale: 8,
+      color: { dark: "#26106cff", light: "#ffffffff" },
+    });
+    const qrBytes = Uint8Array.from(atob(dataUrl.split(",")[1]!), (c) => c.charCodeAt(0));
+    const qrImage = await pdf.embedPng(qrBytes);
+
+    const box = QR.size + QR.pad * 2;
+    const labelSize = 8;
+    const boxX = PANEL.x + PANEL.width - 6 - box;
+    const boxY = PANEL.y + PANEL.height - 6 - box;
+    page.drawRectangle({
+      x: boxX,
+      y: boxY - (labelSize + 5),
+      width: box,
+      height: box + labelSize + 5,
+      color: WHITE,
+    });
+    page.drawImage(qrImage, {
+      x: boxX + QR.pad,
+      y: boxY + QR.pad,
+      width: QR.size,
+      height: QR.size,
+    });
+    const label = "Book Now";
+    const labelWidth = bold.widthOfTextAtSize(label, labelSize);
+    page.drawText(label, {
+      x: boxX + (box - labelWidth) / 2,
+      y: boxY - labelSize - 1,
+      size: labelSize,
+      font: bold,
+      color: INK,
+    });
+    qrBlockWidth = box + QR.gap;
+  }
+
   const left = PANEL.x + 6;
-  const maxWidth = PANEL.width - 12;
+  const maxWidth = PANEL.width - 12 - qrBlockWidth;
   let cursor = PANEL.y + PANEL.height;
 
   if (logoImage) {
@@ -135,6 +175,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     });
     cursor -= 3;
   }
+
 
   const bytes = await pdf.save();
   return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
