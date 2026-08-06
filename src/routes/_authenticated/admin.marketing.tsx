@@ -253,6 +253,21 @@ function MarketingPage() {
                     : "Include your clinic logo (upload one in Settings first)"}
                 </Label>
               </div>
+
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="f-qr"
+                  checked={include.qr}
+                  onCheckedChange={toggle("qr")}
+                  disabled={!bookingUrl}
+                />
+                <Label htmlFor="f-qr" className="font-normal">
+                  {bookingUrl
+                    ? "Include a Book Now QR code to your booking page"
+                    : "Include a Book Now QR code (publish your clinic page first)"}
+                </Label>
+              </div>
+
             </div>
 
             <div className="space-y-2 border-t pt-5">
