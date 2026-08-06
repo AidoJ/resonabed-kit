@@ -19,6 +19,7 @@ import {
   Banknote,
   KeyRound,
   ClipboardCheck,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,7 @@ const ORG_ADMIN_TABS: Tab[] = [
   { to: "/admin/services", label: "Services", icon: Wrench },
   { to: "/admin/clients", label: "Clients", icon: Users },
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
+  { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

@@ -29,6 +29,7 @@ import {
   ShieldPlus,
   KeyRound,
   ClipboardCheck,
+  Megaphone,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -130,6 +131,7 @@ function buildNav(
           { to: "/admin/services", label: "Services", icon: Wrench },
           { to: "/audio", label: "Audio library", icon: Music },
           { to: "/admin/reports", label: "Reports", icon: ClipboardList },
+          { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
           { to: "/admin/settings", label: "Settings", icon: Settings },
         ],
       });
@@ -156,6 +158,7 @@ function buildNav(
           { to: "/admin/services", label: "Services", icon: Wrench },
           { to: "/audio", label: "Audio library", icon: Music },
           { to: "/admin/reports", label: "Reports", icon: ClipboardList },
+          { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
           { to: "/admin/settings", label: "Settings", icon: Settings },
         ],
       },
