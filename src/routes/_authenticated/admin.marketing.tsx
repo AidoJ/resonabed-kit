@@ -295,30 +295,41 @@ function MarketingPage() {
             />
             {/* Live preview of the stamped panel, positioned over the artwork. */}
             <div
-              className="absolute flex flex-col justify-end overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
+              className="absolute flex items-end gap-[3%] overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
               style={{ left: "2.6%", right: "69.6%", bottom: "5.3%", top: "76.1%" }}
             >
-              {details.logoUrl ? (
-                <img
-                  src={details.logoUrl}
-                  alt=""
-                  className="mb-[4%] max-h-[34%] w-auto self-start object-contain"
-                />
+              <div className="flex min-w-0 flex-1 flex-col justify-end">
+                {details.logoUrl ? (
+                  <img
+                    src={details.logoUrl}
+                    alt=""
+                    className="mb-[4%] max-h-[34%] w-auto self-start object-contain"
+                  />
+                ) : null}
+                {details.name ? (
+                  <p className="truncate text-[clamp(7px,1.1vw,13px)] font-semibold leading-tight text-brand-indigo">
+                    {details.name}
+                  </p>
+                ) : null}
+                {[details.phone, details.email, details.website].filter(Boolean).map((line) => (
+                  <p
+                    key={line}
+                    className="truncate text-[clamp(6px,0.85vw,10px)] leading-snug text-muted-foreground"
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+              {qrPreview ? (
+                <div className="flex shrink-0 flex-col items-center bg-white p-[2%]">
+                  <img src={qrPreview} alt="Booking QR code" className="h-auto w-[54px] max-w-full" />
+                  <span className="text-[clamp(6px,0.8vw,9px)] font-semibold leading-none text-brand-indigo">
+                    Book Now
+                  </span>
+                </div>
               ) : null}
-              {details.name ? (
-                <p className="truncate text-[clamp(7px,1.1vw,13px)] font-semibold leading-tight text-brand-indigo">
-                  {details.name}
-                </p>
-              ) : null}
-              {[details.phone, details.email, details.website].filter(Boolean).map((line) => (
-                <p
-                  key={line}
-                  className="truncate text-[clamp(6px,0.85vw,10px)] leading-snug text-muted-foreground"
-                >
-                  {line}
-                </p>
-              ))}
             </div>
+
           </div>
           <div className="overflow-hidden rounded-xl border bg-card">
             <img
