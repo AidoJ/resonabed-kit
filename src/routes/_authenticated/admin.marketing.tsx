@@ -261,7 +261,7 @@ function MarketingPage() {
             {/* Live preview of the stamped panel, positioned over the artwork. */}
             <div
               className="absolute flex flex-col justify-end overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
-              style={{ left: "2.6%", right: "72.2%", bottom: "5.3%", top: "76.1%" }}
+              style={{ left: "2.6%", right: "69.6%", bottom: "5.3%", top: "76.1%" }}
             >
               {details.logoUrl ? (
                 <img
