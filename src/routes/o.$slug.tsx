@@ -168,21 +168,33 @@ function PublicOrgPage() {
               </p>
             ) : null}
           </div>
-          {org.public_contact_phone ? (
-            <a
-              href={`tel:${org.public_contact_phone.replace(/\s+/g, "")}`}
-              className="inline-flex h-10 items-center gap-2 rounded-full border px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-              style={{
-                borderColor: "color-mix(in oklab, var(--clinic-ink) 18%, transparent)",
-                color: "var(--clinic-ink)",
-              }}
+          <div className="flex items-center gap-2">
+            {org.public_contact_phone ? (
+              <a
+                href={`tel:${org.public_contact_phone.replace(/\s+/g, "")}`}
+                className="inline-flex h-10 items-center gap-2 rounded-full border px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                style={{
+                  borderColor: "color-mix(in oklab, var(--clinic-ink) 18%, transparent)",
+                  color: "var(--clinic-ink)",
+                }}
+              >
+                <Phone className="h-4 w-4" />
+                {org.public_contact_phone}
+              </a>
+            ) : null}
+            <Link
+              to="/auth"
+              search={{ clinic: org.slug }}
+              className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              style={{ color: "var(--clinic-ink)" }}
             >
-              <Phone className="h-4 w-4" />
-              {org.public_contact_phone}
-            </a>
-          ) : null}
+              <LogIn className="h-4 w-4" />
+              <span className="hidden sm:inline">Therapist login</span>
+            </Link>
+          </div>
         </div>
       </header>
+
 
       {/* ---------------------------------------------------------------- HERO */}
       <section
@@ -663,14 +675,6 @@ function PublicOrgPage() {
             pacemaker, please speak with your doctor before booking.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4">
-            <Link
-              to="/auth"
-              search={{ clinic: org.slug }}
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-current/25 px-5 text-sm font-medium opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
-            >
-              <LogIn className="h-4 w-4" />
-              Therapist login
-            </Link>
             <p
               className="text-xs uppercase tracking-[0.18em]"
               style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 45%, transparent)" }}
@@ -678,6 +682,7 @@ function PublicOrgPage() {
               Powered by Resonabed
             </p>
           </div>
+
 
         </div>
       </footer>
