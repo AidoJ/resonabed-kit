@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
+import QRCode from "qrcode";
+
 import { getOrgSettings, getSignedLogoUrl } from "@/lib/admin.functions";
 import { buildPersonalisedFlyer } from "@/lib/flyer-personalise";
 import { Button } from "@/components/ui/button";
@@ -20,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/admin/marketing")({
   component: MarketingPage,
 });
 
-type FieldKey = "name" | "phone" | "email" | "website" | "logo";
+type FieldKey = "name" | "phone" | "email" | "website" | "logo" | "qr";
 
 function MarketingPage() {
   const fetchSettings = useServerFn(getOrgSettings);
@@ -43,12 +45,14 @@ function MarketingPage() {
     email: true,
     website: false,
     logo: false,
+    qr: true,
   });
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
+  const [qrPreview, setQrPreview] = useState("");
 
   // Prefill from clinic settings once loaded, still editable per print run.
   useEffect(() => {
@@ -62,8 +66,32 @@ function MarketingPage() {
       phone: !!org.public_contact_phone,
       email: !!org.public_contact_email,
       website: !!org.slug,
+      qr: !!org.slug,
     }));
   }, [org]);
+
+  const bookingUrl = org?.slug ? `https://resonabed.com/o/${org.slug}` : "";
+
+  // Live preview of the printed QR code.
+  useEffect(() => {
+    if (!include.qr || !bookingUrl) {
+      setQrPreview("");
+      return;
+    }
+    let cancelled = false;
+    QRCode.toDataURL(bookingUrl, {
+      margin: 0,
+      scale: 6,
+      color: { dark: "#26106cff", light: "#ffffffff" },
+    })
+      .then((url) => {
+        if (!cancelled) setQrPreview(url);
+      })
+      .catch(() => setQrPreview(""));
+    return () => {
+      cancelled = true;
+    };
+  }, [include.qr, bookingUrl]);
 
   const details = useMemo(
     () => ({
@@ -72,13 +100,20 @@ function MarketingPage() {
       email: include.email ? email.trim() : "",
       website: include.website ? website.trim() : "",
       logoUrl: include.logo ? (logo?.url ?? "") : "",
+      bookingUrl: include.qr ? bookingUrl : "",
     }),
-    [include, name, phone, email, website, logo],
+    [include, name, phone, email, website, logo, bookingUrl],
   );
 
   const anything = Boolean(
-    details.name || details.phone || details.email || details.website || details.logoUrl,
+    details.name ||
+      details.phone ||
+      details.email ||
+      details.website ||
+      details.logoUrl ||
+      details.bookingUrl,
   );
+
 
   const download = async (personalised: boolean) => {
     if (!personalised) {
@@ -218,6 +253,21 @@ function MarketingPage() {
                     : "Include your clinic logo (upload one in Settings first)"}
                 </Label>
               </div>
+
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="f-qr"
+                  checked={include.qr}
+                  onCheckedChange={toggle("qr")}
+                  disabled={!bookingUrl}
+                />
+                <Label htmlFor="f-qr" className="font-normal">
+                  {bookingUrl
+                    ? "Include a Book Now QR code to your booking page"
+                    : "Include a Book Now QR code (publish your clinic page first)"}
+                </Label>
+              </div>
+
             </div>
 
             <div className="space-y-2 border-t pt-5">
@@ -260,30 +310,41 @@ function MarketingPage() {
             />
             {/* Live preview of the stamped panel, positioned over the artwork. */}
             <div
-              className="absolute flex flex-col justify-end overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
+              className="absolute flex items-end gap-[3%] overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
               style={{ left: "2.6%", right: "69.6%", bottom: "5.3%", top: "76.1%" }}
             >
-              {details.logoUrl ? (
-                <img
-                  src={details.logoUrl}
-                  alt=""
-                  className="mb-[4%] max-h-[34%] w-auto self-start object-contain"
-                />
+              <div className="flex min-w-0 flex-1 flex-col justify-end">
+                {details.logoUrl ? (
+                  <img
+                    src={details.logoUrl}
+                    alt=""
+                    className="mb-[4%] max-h-[34%] w-auto self-start object-contain"
+                  />
+                ) : null}
+                {details.name ? (
+                  <p className="truncate text-[clamp(7px,1.1vw,13px)] font-semibold leading-tight text-brand-indigo">
+                    {details.name}
+                  </p>
+                ) : null}
+                {[details.phone, details.email, details.website].filter(Boolean).map((line) => (
+                  <p
+                    key={line}
+                    className="truncate text-[clamp(6px,0.85vw,10px)] leading-snug text-muted-foreground"
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+              {qrPreview ? (
+                <div className="flex shrink-0 flex-col items-center bg-white p-[2%]">
+                  <img src={qrPreview} alt="Booking QR code" className="h-auto w-[54px] max-w-full" />
+                  <span className="text-[clamp(6px,0.8vw,9px)] font-semibold leading-none text-brand-indigo">
+                    Book Now
+                  </span>
+                </div>
               ) : null}
-              {details.name ? (
-                <p className="truncate text-[clamp(7px,1.1vw,13px)] font-semibold leading-tight text-brand-indigo">
-                  {details.name}
-                </p>
-              ) : null}
-              {[details.phone, details.email, details.website].filter(Boolean).map((line) => (
-                <p
-                  key={line}
-                  className="truncate text-[clamp(6px,0.85vw,10px)] leading-snug text-muted-foreground"
-                >
-                  {line}
-                </p>
-              ))}
             </div>
+
           </div>
           <div className="overflow-hidden rounded-xl border bg-card">
             <img

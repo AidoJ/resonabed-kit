@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import QRCode from "qrcode";
 import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
 
 /**
@@ -12,14 +13,20 @@ export interface FlyerClinicDetails {
   website?: string;
   /** Object URL / http URL for the clinic logo. Any raster or SVG source. */
   logoUrl?: string;
+  /** Booking page URL encoded into the QR code printed beside the details. */
+  bookingUrl?: string;
 }
 
 /** Blank panel on page 1, measured from the artwork (PDF points). */
 const PANEL = { x: 24, y: 32, width: 236, height: 108 };
 /** Matches the flyer's paper tint so the placeholder box is covered cleanly. */
 const PAPER = rgb(247 / 255, 241 / 255, 253 / 255);
+const WHITE = rgb(1, 1, 1);
 const INK = rgb(0.15, 0.06, 0.42);
 const MUTED = rgb(0.32, 0.28, 0.42);
+/** Size of the printed QR square, plus its white surround. */
+const QR = { size: 62, pad: 4, gap: 10 };
+
 
 /** Rasterises any image (incl. SVG) to PNG bytes via a same-origin blob. */
 async function toPngBytes(url: string, maxPx = 320): Promise<Uint8Array | null> {
@@ -89,8 +96,48 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     if (bytes) logoImage = await pdf.embedPng(bytes);
   }
 
+  // QR code block, printed on white at the right of the panel.
+  let qrBlockWidth = 0;
+  if (details.bookingUrl) {
+    const dataUrl = await QRCode.toDataURL(details.bookingUrl, {
+      margin: 0,
+      scale: 8,
+      color: { dark: "#26106cff", light: "#ffffffff" },
+    });
+    const qrBytes = Uint8Array.from(atob(dataUrl.split(",")[1]!), (c) => c.charCodeAt(0));
+    const qrImage = await pdf.embedPng(qrBytes);
+
+    const box = QR.size + QR.pad * 2;
+    const labelSize = 8;
+    const boxX = PANEL.x + PANEL.width - 6 - box;
+    const boxY = PANEL.y + PANEL.height - 6 - box;
+    page.drawRectangle({
+      x: boxX,
+      y: boxY - (labelSize + 5),
+      width: box,
+      height: box + labelSize + 5,
+      color: WHITE,
+    });
+    page.drawImage(qrImage, {
+      x: boxX + QR.pad,
+      y: boxY + QR.pad,
+      width: QR.size,
+      height: QR.size,
+    });
+    const label = "Book Now";
+    const labelWidth = bold.widthOfTextAtSize(label, labelSize);
+    page.drawText(label, {
+      x: boxX + (box - labelWidth) / 2,
+      y: boxY - labelSize - 1,
+      size: labelSize,
+      font: bold,
+      color: INK,
+    });
+    qrBlockWidth = box + QR.gap;
+  }
+
   const left = PANEL.x + 6;
-  const maxWidth = PANEL.width - 12;
+  const maxWidth = PANEL.width - 12 - qrBlockWidth;
   let cursor = PANEL.y + PANEL.height;
 
   if (logoImage) {
@@ -128,6 +175,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     });
     cursor -= 3;
   }
+
 
   const bytes = await pdf.save();
   return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
