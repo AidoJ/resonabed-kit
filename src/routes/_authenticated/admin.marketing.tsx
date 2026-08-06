@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/admin/marketing")({
   component: MarketingPage,
 });
 
-type FieldKey = "name" | "phone" | "email" | "website" | "logo";
+type FieldKey = "name" | "phone" | "email" | "website" | "logo" | "qr";
 
 function MarketingPage() {
   const fetchSettings = useServerFn(getOrgSettings);
@@ -43,12 +43,14 @@ function MarketingPage() {
     email: true,
     website: false,
     logo: false,
+    qr: true,
   });
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
+  const [qrPreview, setQrPreview] = useState("");
 
   // Prefill from clinic settings once loaded, still editable per print run.
   useEffect(() => {
@@ -62,8 +64,32 @@ function MarketingPage() {
       phone: !!org.public_contact_phone,
       email: !!org.public_contact_email,
       website: !!org.slug,
+      qr: !!org.slug,
     }));
   }, [org]);
+
+  const bookingUrl = org?.slug ? `https://resonabed.com/o/${org.slug}` : "";
+
+  // Live preview of the printed QR code.
+  useEffect(() => {
+    if (!include.qr || !bookingUrl) {
+      setQrPreview("");
+      return;
+    }
+    let cancelled = false;
+    QRCode.toDataURL(bookingUrl, {
+      margin: 0,
+      scale: 6,
+      color: { dark: "#26106cff", light: "#ffffffff" },
+    })
+      .then((url) => {
+        if (!cancelled) setQrPreview(url);
+      })
+      .catch(() => setQrPreview(""));
+    return () => {
+      cancelled = true;
+    };
+  }, [include.qr, bookingUrl]);
 
   const details = useMemo(
     () => ({
@@ -72,13 +98,20 @@ function MarketingPage() {
       email: include.email ? email.trim() : "",
       website: include.website ? website.trim() : "",
       logoUrl: include.logo ? (logo?.url ?? "") : "",
+      bookingUrl: include.qr ? bookingUrl : "",
     }),
-    [include, name, phone, email, website, logo],
+    [include, name, phone, email, website, logo, bookingUrl],
   );
 
   const anything = Boolean(
-    details.name || details.phone || details.email || details.website || details.logoUrl,
+    details.name ||
+      details.phone ||
+      details.email ||
+      details.website ||
+      details.logoUrl ||
+      details.bookingUrl,
   );
+
 
   const download = async (personalised: boolean) => {
     if (!personalised) {
