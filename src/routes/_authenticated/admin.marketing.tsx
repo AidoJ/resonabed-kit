@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
+import QRCode from "qrcode";
+
 import { getOrgSettings, getSignedLogoUrl } from "@/lib/admin.functions";
 import { buildPersonalisedFlyer } from "@/lib/flyer-personalise";
 import { Button } from "@/components/ui/button";
