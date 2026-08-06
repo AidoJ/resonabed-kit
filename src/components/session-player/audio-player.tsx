@@ -69,7 +69,6 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     const el = audioRef.current;
     if (!el) return;
     el.loop = loop;
-    el.volume = vol;
     void el.play().catch(() => {});
   };
   const doPause = () => {
@@ -123,7 +122,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   useImperativeHandle(
     ref,
     () => ({ play: doPlay, pause: doPause, stop: doStop, fadeOut: doFadeOut }),
-    [],
+    [loop],
   );
 
   const toggle = () => (playing ? doPause() : doPlay());
