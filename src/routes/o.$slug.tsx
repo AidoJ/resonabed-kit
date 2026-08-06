@@ -168,21 +168,33 @@ function PublicOrgPage() {
               </p>
             ) : null}
           </div>
-          {org.public_contact_phone ? (
-            <a
-              href={`tel:${org.public_contact_phone.replace(/\s+/g, "")}`}
-              className="inline-flex h-10 items-center gap-2 rounded-full border px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-              style={{
-                borderColor: "color-mix(in oklab, var(--clinic-ink) 18%, transparent)",
-                color: "var(--clinic-ink)",
-              }}
+          <div className="flex items-center gap-2">
+            {org.public_contact_phone ? (
+              <a
+                href={`tel:${org.public_contact_phone.replace(/\s+/g, "")}`}
+                className="inline-flex h-10 items-center gap-2 rounded-full border px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                style={{
+                  borderColor: "color-mix(in oklab, var(--clinic-ink) 18%, transparent)",
+                  color: "var(--clinic-ink)",
+                }}
+              >
+                <Phone className="h-4 w-4" />
+                {org.public_contact_phone}
+              </a>
+            ) : null}
+            <Link
+              to="/auth"
+              search={{ clinic: org.slug }}
+              className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              style={{ color: "var(--clinic-ink)" }}
             >
-              <Phone className="h-4 w-4" />
-              {org.public_contact_phone}
-            </a>
-          ) : null}
+              <LogIn className="h-4 w-4" />
+              <span className="hidden sm:inline">Therapist login</span>
+            </Link>
+          </div>
         </div>
       </header>
+
 
       {/* ---------------------------------------------------------------- HERO */}
       <section
