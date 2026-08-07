@@ -69,16 +69,46 @@ function FlyerPage() {
 
       <section className="mx-auto max-w-6xl space-y-10 px-6 pb-24 md:px-10 md:pb-28">
         <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
-          <img
-            src={flyerOutside.url}
-            alt="Outside of the Resonabed client flyer: cover panel, common questions, and what to expect in a session"
-            className="h-auto w-full"
-            loading="lazy"
-          />
+          <div className="relative">
+            <img
+              src={flyerOutside.url}
+              alt="Outside of the Resonabed client flyer: cover panel, common questions, and what to expect in a session"
+              className="h-auto w-full"
+              loading="lazy"
+            />
+            {/* Sample of the personalised clinic details panel, for illustration only. */}
+            <div
+              className="absolute flex items-end gap-[3%] overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
+              style={{ left: "2.6%", right: "69.6%", bottom: "5.3%", top: "76.1%" }}
+            >
+              <div className="flex min-w-0 flex-1 flex-col justify-end">
+                <p className="truncate text-[clamp(7px,1.1vw,13px)] font-semibold leading-tight text-brand-indigo">
+                  {SAMPLE.name}
+                </p>
+                {[SAMPLE.phone, SAMPLE.email, SAMPLE.website].map((line) => (
+                  <p
+                    key={line}
+                    className="truncate text-[clamp(6px,0.85vw,10px)] leading-snug text-muted-foreground"
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+              {qr ? (
+                <div className="flex shrink-0 flex-col items-center bg-white p-[2%]">
+                  <img src={qr} alt="Sample booking QR code" className="h-auto w-[54px] max-w-full" />
+                  <span className="text-[clamp(6px,0.8vw,9px)] font-semibold leading-none text-brand-indigo">
+                    Book Now
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          </div>
           <figcaption className="border-t border-border px-6 py-4 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            Outside, cover, common questions, what to expect
+            Outside, cover, common questions, what to expect. Clinic details shown are a sample
           </figcaption>
         </figure>
+
 
         <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
           <img
