@@ -4,7 +4,7 @@ import { ArrowLeft, Download } from "lucide-react";
 import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
-import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
+
 import flyerOutside from "@/assets/resonabed-flyer-outside.jpg.asset.json";
 import flyerInside from "@/assets/resonabed-flyer-inside.jpg.asset.json";
 
