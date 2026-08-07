@@ -85,15 +85,15 @@ function FlyerPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to Resonabed
           </Link>
-          <a href={flyerPdf.url} download target="_blank" rel="noreferrer">
-            <Button
-              variant="outline"
-              className="h-10 rounded-full border-white/25 bg-white/10 px-5 text-sm font-medium text-white hover:bg-white/20 hover:text-white"
-            >
-              <Download className="mr-1.5 h-4 w-4" />
-              Download print-ready PDF
-            </Button>
-          </a>
+          <Button
+            onClick={downloadSample}
+            disabled={building}
+            variant="outline"
+            className="h-10 rounded-full border-white/25 bg-white/10 px-5 text-sm font-medium text-white hover:bg-white/20 hover:text-white"
+          >
+            <Download className="mr-1.5 h-4 w-4" />
+            {building ? "Preparing PDF…" : "Download print-ready PDF"}
+          </Button>
         </div>
       </header>
 
