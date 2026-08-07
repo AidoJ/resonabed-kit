@@ -1,4 +1,13 @@
-import { PDFDocument, PDFPage, rgb } from "pdf-lib";
+import {
+  PDFArray,
+  PDFDict,
+  PDFDocument,
+  PDFName,
+  PDFPage,
+  PDFRawStream,
+  decodePDFRawStream,
+  rgb,
+} from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import QRCode from "qrcode";
 import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
