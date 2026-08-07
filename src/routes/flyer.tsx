@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Download } from "lucide-react";
+import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
