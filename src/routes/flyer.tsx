@@ -42,6 +42,24 @@ const SAMPLE = {
 
 function FlyerPage() {
   const [qr, setQr] = useState("");
+  const [building, setBuilding] = useState(false);
+
+  const downloadSample = async () => {
+    if (building) return;
+    setBuilding(true);
+    try {
+      const { buildPersonalisedFlyer } = await import("@/lib/flyer-personalise");
+      const blob = await buildPersonalisedFlyer(SAMPLE);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "resonabed-flyer-sample.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setBuilding(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
