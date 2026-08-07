@@ -14,7 +14,8 @@ async function main() {
   const source = await PDFDocument.load(fs.readFileSync('/tmp/flyer.pdf'));
   const sourceBytes = await source.save();
   const out = await PDFDocument.create();
-  const embedded = await out.embedPdf(sourceBytes);
+  const embedded = await out.embedPdf(sourceBytes, source.getPageIndices());
+  console.log('embedded pages', embedded.length);
   for (const ep of embedded) {
     const page = out.addPage([SHEET_W, SHEET_H]);
     page.drawPage(ep, { x: 0, y: 0, width: SHEET_W, height: SHEET_H });
