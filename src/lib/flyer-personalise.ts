@@ -255,6 +255,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   }
 
 
-  const bytes = await pdf.save();
+  const bleedPdf = await addPrintBleed(pdf);
+  const bytes = await bleedPdf.save();
   return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
 }
