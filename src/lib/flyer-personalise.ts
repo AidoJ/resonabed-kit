@@ -155,6 +155,41 @@ function fit(
 }
 
 /**
+ * The source artwork stamps its intro block and clinic-details placeholder with
+ * a non-embedded base font (Helvetica). Printers reject that at pre-flight, so
+ * we delete those operators and the font resource, then redraw the same text
+ * with a properly embedded font.
+ */
+function stripBaseFontText(pdf: PDFDocument, page: PDFPage) {
+  const ctx = pdf.context;
+  const contents = page.node.Contents();
+  const refs =
+    contents instanceof PDFArray ? contents.asArray() : [page.node.get(PDFName.of("Contents"))];
+
+  const startMarker = "BT\n/F1 12 Tf";
+  const endMarker = "26 35.91998 229 86 re\nS";
+
+  for (const ref of refs) {
+    if (!ref) continue;
+    const stream = ctx.lookup(ref);
+    if (!(stream instanceof PDFRawStream)) continue;
+    const bytes = decodePDFRawStream(stream).decode();
+    let text = new TextDecoder("latin1").decode(bytes);
+    const start = text.indexOf(startMarker);
+    const end = text.indexOf(endMarker);
+    if (start < 0 || end <= start) continue;
+    text = text.slice(0, start) + text.slice(end + endMarker.length);
+    ctx.assign(
+      ref as never,
+      ctx.flateStream(Uint8Array.from(text, (c) => c.charCodeAt(0))),
+    );
+  }
+
+  const fonts = page.node.Resources()?.lookup(PDFName.of("Font")) as PDFDict | undefined;
+  fonts?.delete(PDFName.of("F1"));
+}
+
+/**
  * Returns the flyer PDF with the supplied clinic details printed into the
  * reserved panel. Empty fields are simply left out.
  */
@@ -173,8 +208,9 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   const bold = await pdf.embedFont(boldBytes, { subset: true });
   const regular = await pdf.embedFont(regularBytes, { subset: true });
 
-  // The source artwork's intro block was set in a non-embedded base font.
-  // Cover it and redraw with the embedded font so nothing is left unembedded.
+  stripBaseFontText(pdf, page);
+
+  // Redraw the intro block with the embedded font.
   page.drawRectangle({ x: 0, y: 17.9, width: 280, height: 187, color: PAPER });
   page.drawText("Resonabed", {
     x: 26,
