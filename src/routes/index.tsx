@@ -304,7 +304,7 @@ function LandingPage() {
               {
                 icon: FileText,
                 title: "100 marketing flyers",
-                body: "Professionally designed DL flyers ready to print and display. Start promoting your new session from the day the kit arrives.",
+                body: "Professionally designed DL flyers, customisable with your clinic details and a booking QR code, ready to print and display. Start promoting your new service from the day the kit arrives.",
                 cta: "Ready-to-print promotion",
                 linkTo: "/flyer" as const,
                 linkLabel: "View the flyer",
