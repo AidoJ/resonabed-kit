@@ -58,7 +58,7 @@ const STATUS_STYLES: Record<BookingStatus, string> = {
 
 function BookingsPage() {
   const search = Route.useSearch();
-  const navigate = useNavigate({ from: "/bookings" });
+  const navigate = useNavigate({ from: "/bookings/" });
   const queryClient = useQueryClient();
   const listFn = useServerFn(listBookings);
   const listPracs = useServerFn(listOrgPractitioners);
