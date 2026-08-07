@@ -31,7 +31,34 @@ export const Route = createFileRoute("/flyer")({
   component: FlyerPage,
 });
 
+/** Illustrative clinic details, not a real clinic. */
+const SAMPLE = {
+  name: "Test Wellness Clinic",
+  phone: "07 5555 0100",
+  email: "hello@testwellness.com.au",
+  website: "resonabed.com/o/test-clinic",
+  bookingUrl: "https://resonabed.com/o/test-clinic",
+};
+
 function FlyerPage() {
+  const [qr, setQr] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(SAMPLE.bookingUrl, {
+      margin: 0,
+      scale: 6,
+      color: { dark: "#26106cff", light: "#ffffffff" },
+    })
+      .then((url) => {
+        if (!cancelled) setQr(url);
+      })
+      .catch(() => setQr(""));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-brand-ink text-white">
