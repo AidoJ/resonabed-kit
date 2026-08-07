@@ -41,7 +41,7 @@ const BLACK = rgb(0, 0, 0);
 async function addPrintBleed(source: PDFDocument): Promise<PDFDocument> {
   const sourceBytes = await source.save();
   const out = await PDFDocument.create();
-  const embeddedPages = await out.embedPdf(sourceBytes);
+  const embeddedPages = await out.embedPdf(sourceBytes, source.getPageIndices());
 
   for (const embeddedPage of embeddedPages) {
     const page = out.addPage([SHEET_W, SHEET_H]);
