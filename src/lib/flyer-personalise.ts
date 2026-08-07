@@ -163,8 +163,40 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   const pdf = await PDFDocument.load(src);
   const page = pdf.getPages()[0]!;
 
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const regular = await pdf.embedFont(StandardFonts.Helvetica);
+  // Embed real font files (subset) so the output has no unembedded fonts,
+  // which commercial printers reject.
+  pdf.registerFontkit(fontkit);
+  const [boldBytes, regularBytes] = await Promise.all([
+    fetch("/fonts/LiberationSans-Bold.ttf").then((r) => r.arrayBuffer()),
+    fetch("/fonts/LiberationSans-Regular.ttf").then((r) => r.arrayBuffer()),
+  ]);
+  const bold = await pdf.embedFont(boldBytes, { subset: true });
+  const regular = await pdf.embedFont(regularBytes, { subset: true });
+
+  // The source artwork's intro block was set in a non-embedded base font.
+  // Cover it and redraw with the embedded font so nothing is left unembedded.
+  page.drawRectangle({ x: 0, y: 17.9, width: 280, height: 187, color: PAPER });
+  page.drawText("Resonabed", {
+    x: 26,
+    y: 191.92,
+    size: 13,
+    font: regular,
+    color: rgb(0.149, 0.0627, 0.4235),
+  });
+  page.drawText("Ask your practitioner about adding a", {
+    x: 26,
+    y: 169.92,
+    size: 8.6,
+    font: regular,
+    color: rgb(0.4196, 0.3961, 0.502),
+  });
+  page.drawText("vibroacoustic session to your visit.", {
+    x: 26,
+    y: 156.92,
+    size: 8.6,
+    font: regular,
+    color: rgb(0.4196, 0.3961, 0.502),
+  });
 
   // Cover the printed placeholder ("Clinic details:" + dashed box).
   page.drawRectangle({ ...PANEL, color: PAPER });
