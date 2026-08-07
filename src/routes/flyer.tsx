@@ -4,7 +4,7 @@ import { ArrowLeft, Download } from "lucide-react";
 import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
-import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
+
 import flyerOutside from "@/assets/resonabed-flyer-outside.jpg.asset.json";
 import flyerInside from "@/assets/resonabed-flyer-inside.jpg.asset.json";
 
@@ -42,6 +42,24 @@ const SAMPLE = {
 
 function FlyerPage() {
   const [qr, setQr] = useState("");
+  const [building, setBuilding] = useState(false);
+
+  const downloadSample = async () => {
+    if (building) return;
+    setBuilding(true);
+    try {
+      const { buildPersonalisedFlyer } = await import("@/lib/flyer-personalise");
+      const blob = await buildPersonalisedFlyer(SAMPLE);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "resonabed-flyer-sample.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setBuilding(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -67,15 +85,15 @@ function FlyerPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to Resonabed
           </Link>
-          <a href={flyerPdf.url} download target="_blank" rel="noreferrer">
-            <Button
-              variant="outline"
-              className="h-10 rounded-full border-white/25 bg-white/10 px-5 text-sm font-medium text-white hover:bg-white/20 hover:text-white"
-            >
-              <Download className="mr-1.5 h-4 w-4" />
-              Download print-ready PDF
-            </Button>
-          </a>
+          <Button
+            onClick={downloadSample}
+            disabled={building}
+            variant="outline"
+            className="h-10 rounded-full border-white/25 bg-white/10 px-5 text-sm font-medium text-white hover:bg-white/20 hover:text-white"
+          >
+            <Download className="mr-1.5 h-4 w-4" />
+            {building ? "Preparing PDF…" : "Download print-ready PDF"}
+          </Button>
         </div>
       </header>
 
@@ -150,12 +168,14 @@ function FlyerPage() {
         </figure>
 
         <div className="flex flex-col items-center justify-center gap-3 text-center sm:flex-row">
-          <a href={flyerPdf.url} download target="_blank" rel="noreferrer">
-            <Button className="h-12 rounded-full px-7 text-[15px] font-medium">
-              <Download className="mr-1.5 h-4 w-4" />
-              Download the flyer PDF
-            </Button>
-          </a>
+          <Button
+            onClick={downloadSample}
+            disabled={building}
+            className="h-12 rounded-full px-7 text-[15px] font-medium"
+          >
+            <Download className="mr-1.5 h-4 w-4" />
+            {building ? "Preparing PDF…" : "Download the flyer PDF"}
+          </Button>
           <Link to="/" hash="packages">
             <Button
               variant="outline"
