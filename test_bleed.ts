@@ -1,4 +1,4 @@
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, rgb } from 'pdf-lib';
 import fs from 'fs';
 
 const MM_TO_PT = 72 / 25.4;
@@ -30,8 +30,8 @@ async function main() {
     for (const c of corners) {
       const dx = c.x === BLEED_PT ? -1 : 1;
       const dy = c.y === BLEED_PT ? -1 : 1;
-      page.drawLine({ start: { x: c.x, y: c.y }, end: { x: c.x + dx * CROP_MARK_LEN, y: c.y }, thickness: 0.5, color: { r: 0, g: 0, b: 0 } });
-      page.drawLine({ start: { x: c.x, y: c.y }, end: { x: c.x, y: c.y + dy * CROP_MARK_LEN }, thickness: 0.5, color: { r: 0, g: 0, b: 0 } });
+      page.drawLine({ start: { x: c.x, y: c.y }, end: { x: c.x + dx * CROP_MARK_LEN, y: c.y }, thickness: 0.5, color: rgb(0,0,0) });
+      page.drawLine({ start: { x: c.x, y: c.y }, end: { x: c.x, y: c.y + dy * CROP_MARK_LEN }, thickness: 0.5, color: rgb(0,0,0) });
     }
   }
   fs.writeFileSync('/tmp/flyer_with_bleed.pdf', await out.save());
