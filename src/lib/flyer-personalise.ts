@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFPage, StandardFonts, rgb } from "pdf-lib";
 import QRCode from "qrcode";
 import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
 
@@ -26,6 +26,84 @@ const INK = rgb(0.15, 0.06, 0.42);
 const MUTED = rgb(0.32, 0.28, 0.42);
 /** Size of the printed QR square, plus its white surround. */
 const QR = { size: 62, pad: 4, gap: 10 };
+
+const MM_TO_PT = 72 / 25.4;
+const BLEED_MM = 3;
+const BLEED_PT = BLEED_MM * MM_TO_PT;
+const TRIM_W = 841.92;
+const TRIM_H = 595.92;
+const SHEET_W = TRIM_W + BLEED_PT * 2;
+const SHEET_H = TRIM_H + BLEED_PT * 2;
+const CROP_MARK_LEN = 5 * MM_TO_PT; // 5mm registration marks
+const BLACK = rgb(0, 0, 0);
+
+/** Wraps each source page in a 3mm bleed and draws crop marks. */
+async function addPrintBleed(source: PDFDocument): Promise<PDFDocument> {
+  const sourceBytes = await source.save();
+  const out = await PDFDocument.create();
+  const embeddedPages = await out.embedPdf(sourceBytes, source.getPageIndices());
+
+  for (const embeddedPage of embeddedPages) {
+    const page = out.addPage([SHEET_W, SHEET_H]);
+
+    // Fill the whole sheet with a scaled copy of the page so the artwork
+    // extends 3mm past the trim. The original-size copy on top covers the
+    // centre, leaving only the bleed edge visible around it.
+    page.drawPage(embeddedPage, {
+      x: 0,
+      y: 0,
+      width: SHEET_W,
+      height: SHEET_H,
+    });
+    page.drawPage(embeddedPage, {
+      x: BLEED_PT,
+      y: BLEED_PT,
+      width: TRIM_W,
+      height: TRIM_H,
+    });
+
+    // Declare the bleed/trim boxes so professional print workflows see them.
+    page.setTrimBox(BLEED_PT, BLEED_PT, TRIM_W, TRIM_H);
+    page.setBleedBox(0, 0, SHEET_W, SHEET_H);
+
+    drawCropMarks(page, BLEED_PT, BLEED_PT, TRIM_W, TRIM_H);
+  }
+
+  return out;
+}
+
+function drawCropMarks(
+  page: PDFPage,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const corners = [
+    { x, y: y + height }, // bottom-left (in PDF coords: top-left visually)
+    { x: x + width, y: y + height }, // bottom-right
+    { x, y }, // top-left
+    { x: x + width, y }, // top-right
+  ];
+
+  for (const c of corners) {
+    const dx = c.x === x ? -1 : 1;
+    const dy = c.y === y ? -1 : 1;
+
+    page.drawLine({
+      start: { x: c.x, y: c.y },
+      end: { x: c.x + dx * CROP_MARK_LEN, y: c.y },
+      thickness: 0.5,
+      color: BLACK,
+    });
+    page.drawLine({
+      start: { x: c.x, y: c.y },
+      end: { x: c.x, y: c.y + dy * CROP_MARK_LEN },
+      thickness: 0.5,
+      color: BLACK,
+    });
+  }
+}
 
 
 /** Rasterises any image (incl. SVG) to PNG bytes via a same-origin blob. */
@@ -177,6 +255,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   }
 
 
-  const bytes = await pdf.save();
+  const bleedPdf = await addPrintBleed(pdf);
+  const bytes = await bleedPdf.save();
   return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
 }
