@@ -168,12 +168,14 @@ function FlyerPage() {
         </figure>
 
         <div className="flex flex-col items-center justify-center gap-3 text-center sm:flex-row">
-          <a href={flyerPdf.url} download target="_blank" rel="noreferrer">
-            <Button className="h-12 rounded-full px-7 text-[15px] font-medium">
-              <Download className="mr-1.5 h-4 w-4" />
-              Download the flyer PDF
-            </Button>
-          </a>
+          <Button
+            onClick={downloadSample}
+            disabled={building}
+            className="h-12 rounded-full px-7 text-[15px] font-medium"
+          >
+            <Download className="mr-1.5 h-4 w-4" />
+            {building ? "Preparing PDF…" : "Download the flyer PDF"}
+          </Button>
           <Link to="/" hash="packages">
             <Button
               variant="outline"
