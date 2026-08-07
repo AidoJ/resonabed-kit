@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Download } from "lucide-react";
+import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
@@ -29,7 +31,34 @@ export const Route = createFileRoute("/flyer")({
   component: FlyerPage,
 });
 
+/** Illustrative clinic details, not a real clinic. */
+const SAMPLE = {
+  name: "Test Wellness Clinic",
+  phone: "07 5555 0100",
+  email: "hello@testwellness.com.au",
+  website: "resonabed.com/o/test-clinic",
+  bookingUrl: "https://resonabed.com/o/test-clinic",
+};
+
 function FlyerPage() {
+  const [qr, setQr] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(SAMPLE.bookingUrl, {
+      margin: 0,
+      scale: 6,
+      color: { dark: "#26106cff", light: "#ffffffff" },
+    })
+      .then((url) => {
+        if (!cancelled) setQr(url);
+      })
+      .catch(() => setQr(""));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-brand-ink text-white">
@@ -67,16 +96,46 @@ function FlyerPage() {
 
       <section className="mx-auto max-w-6xl space-y-10 px-6 pb-24 md:px-10 md:pb-28">
         <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
-          <img
-            src={flyerOutside.url}
-            alt="Outside of the Resonabed client flyer: cover panel, common questions, and what to expect in a session"
-            className="h-auto w-full"
-            loading="lazy"
-          />
+          <div className="relative">
+            <img
+              src={flyerOutside.url}
+              alt="Outside of the Resonabed client flyer: cover panel, common questions, and what to expect in a session"
+              className="h-auto w-full"
+              loading="lazy"
+            />
+            {/* Sample of the personalised clinic details panel, for illustration only. */}
+            <div
+              className="absolute flex items-end gap-[3%] overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
+              style={{ left: "2.6%", right: "69.6%", bottom: "5.3%", top: "76.1%" }}
+            >
+              <div className="flex min-w-0 flex-1 flex-col justify-end">
+                <p className="truncate text-[clamp(7px,1.1vw,13px)] font-semibold leading-tight text-brand-indigo">
+                  {SAMPLE.name}
+                </p>
+                {[SAMPLE.phone, SAMPLE.email, SAMPLE.website].map((line) => (
+                  <p
+                    key={line}
+                    className="truncate text-[clamp(6px,0.85vw,10px)] leading-snug text-muted-foreground"
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+              {qr ? (
+                <div className="flex shrink-0 flex-col items-center bg-white p-[2%]">
+                  <img src={qr} alt="Sample booking QR code" className="h-auto w-[54px] max-w-full" />
+                  <span className="text-[clamp(6px,0.8vw,9px)] font-semibold leading-none text-brand-indigo">
+                    Book Now
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          </div>
           <figcaption className="border-t border-border px-6 py-4 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            Outside, cover, common questions, what to expect
+            Outside, cover, common questions, what to expect. Clinic details shown are a sample
           </figcaption>
         </figure>
+
 
         <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
           <img
