@@ -171,7 +171,7 @@ function fit(
  */
 function stripBaseFontText(pdf: PDFDocument, page: PDFPage) {
   const ctx = pdf.context;
-  const contents = page.node.Contents();
+  const contents: unknown = page.node.Contents();
   const refs =
     contents instanceof PDFArray ? contents.asArray() : [page.node.get(PDFName.of("Contents"))];
 
