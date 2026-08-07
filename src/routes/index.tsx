@@ -54,17 +54,23 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Resonabed, Vibroacoustic upgrade kits for clinics" },
+      { title: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
       {
         name: "description",
         content:
-          "Turn a therapy table* you already own into a new revenue stream. The Resonabed kit can potentially convert your existing massage, chiropractic, osteopathic or any therapeutic treatment table into a vibroacoustic therapy table, kit, app, and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
       },
-      { property: "og:title", content: "Resonabed, Sound you can feel. Where tension unwinds." },
+      { property: "og:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
       {
         property: "og:description",
         content:
-          "A passive, high-margin add-on for massage, chiropractic, osteopathic and any therapeutic treatment clinics. Fit the kit. Open the app. Add a revenue stream to the room you already work in.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+      },
+      { name: "twitter:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
+      {
+        name: "twitter:description",
+        content:
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
