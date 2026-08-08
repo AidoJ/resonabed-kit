@@ -4,8 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 import { createKitCheckoutSession, requestKitEftInvoice } from "@/lib/checkout.functions";
+import { sendContactFormEmail } from "@/lib/emails.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import { PromoStepDialog } from "@/components/promo-step-dialog";
 import {
@@ -45,9 +49,11 @@ import {
   Speaker,
   Volume2,
   FileText,
-  Heart,
-  Zap,
   Package,
+  MapPin,
+  Mail,
+  Phone,
+  Send,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
