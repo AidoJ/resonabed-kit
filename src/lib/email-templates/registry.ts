@@ -7,6 +7,7 @@ import { template as bookingAlternatesOfferedTemplate } from './booking-alternat
 import { template as bookingAlternatesReminderTemplate } from './booking-alternates-reminder'
 import { template as homeAccessCodeTemplate } from './home-access-code'
 import { template as clinicOrderReceivedTemplate } from './clinic-order-received'
+import { template as contactFormTemplate } from './contact-form'
 
 
 
@@ -28,7 +29,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'booking-alternates-reminder': bookingAlternatesReminderTemplate,
   'home-access-code': homeAccessCodeTemplate,
   'clinic-order-received': clinicOrderReceivedTemplate,
-
+  'contact-form': contactFormTemplate,
 }
 
 

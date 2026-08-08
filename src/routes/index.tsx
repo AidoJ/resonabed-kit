@@ -4,8 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 import { createKitCheckoutSession, requestKitEftInvoice } from "@/lib/checkout.functions";
+import { sendContactFormEmail } from "@/lib/emails.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import { PromoStepDialog } from "@/components/promo-step-dialog";
 import {
@@ -45,9 +49,11 @@ import {
   Speaker,
   Volume2,
   FileText,
-  Heart,
-  Zap,
   Package,
+  MapPin,
+  Mail,
+  Phone,
+  Send,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -122,15 +128,27 @@ function LandingPage() {
             <div className="flex items-center gap-3 md:gap-6">
               <a
                 href="#packages"
-                className="hidden text-sm font-medium text-white/80 hover:text-white md:inline"
+                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
               >
                 Packages
               </a>
               <a
                 href="#how"
-                className="hidden text-sm font-medium text-white/80 hover:text-white md:inline"
+                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
               >
                 How it works
+              </a>
+              <a
+                href="#about"
+                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
+              >
+                About
+              </a>
+              <a
+                href="#contact"
+                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
+              >
+                Contact
               </a>
               <Link to={loginHref}>
                 <Button
@@ -601,6 +619,99 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* ABOUT */}
+      <section id="about" className="bg-secondary/40 py-24 md:py-28">
+        <div className="mx-auto max-w-7xl px-6 md:px-10">
+          <div className="grid gap-12 md:grid-cols-2 md:items-center">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+                About us
+              </p>
+              <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+                Making vibroacoustic therapy simple to offer, easy to feel.
+              </h2>
+            </div>
+            <div className="space-y-5 text-muted-foreground">
+              <p>
+                Resonabed exists to make vibroacoustic therapy simple for practitioners to offer and
+                easy for clients to feel. We pair a purpose-built kit that upgrades a treatment table
+                you already own with a platform that handles bookings, clients and your own branded
+                page, so you can add a genuinely different service without adding complexity.
+              </p>
+              <p>
+                And if you would rather start fresh, our Platinum package is a complete business in a
+                box: a fully fitted-out new therapy table, the full platform, and everything you need
+                to start offering sessions from day one.
+              </p>
+              <p>
+                Based in Scarborough, Queensland, we are focused on one thing: helping wellness
+                professionals bring the calming power of sound and vibration to the people they care
+                for.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
+        <div className="grid gap-12 lg:grid-cols-2">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              Get in touch
+            </p>
+            <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+              Have a question about packages, setup, or running sessions?
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Send us a message and we will get back to you, usually within one business day.
+            </p>
+            <ul className="mt-8 space-y-4">
+              <li className="flex items-start gap-4">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
+                  <MapPin className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-medium text-brand-indigo">Resonabed</p>
+                  <p className="text-sm text-muted-foreground">Scarborough, Queensland</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
+                  <Mail className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-medium text-brand-indigo">Email</p>
+                  <a
+                    href="mailto:info@resonabed.com"
+                    className="text-sm text-muted-foreground hover:text-brand-indigo"
+                  >
+                    info@resonabed.com
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
+                  <Phone className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-medium text-brand-indigo">Phone</p>
+                  <a
+                    href="tel:+61494825281"
+                    className="text-sm text-muted-foreground hover:text-brand-indigo"
+                  >
+                    0494 825 281
+                  </a>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-soft md:p-10">
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="border-t border-border bg-background">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 py-10 md:flex-row md:px-10">
@@ -616,6 +727,152 @@ function LandingPage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function ContactForm() {
+  const send = useServerFn(sendContactFormEmail);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const update = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting) return;
+
+    const nextErrors: Record<string, string> = {};
+    if (!form.name.trim()) nextErrors.name = "Please enter your name";
+    if (!form.email.trim()) {
+      nextErrors.email = "Please enter your email";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      nextErrors.email = "Please enter a valid email";
+    }
+    if (!form.message.trim()) nextErrors.message = "Please enter a message";
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await send({ data: form });
+      setSent(true);
+      setForm({ name: "", email: "", phone: "", message: "" });
+      toast.success("Message sent. We will be in touch soon.");
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not send your message. Please try again or email us directly.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+          <CheckCircle2 className="h-8 w-8" />
+        </div>
+        <h3 className="mt-6 text-xl font-medium text-brand-indigo">Message sent</h3>
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          Thanks for reaching out. We have received your message and will reply as soon as we can.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-6 rounded-full"
+          onClick={() => setSent(false)}
+        >
+          Send another message
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="contact-name">Name</Label>
+          <Input
+            id="contact-name"
+            type="text"
+            placeholder="Your name"
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            aria-invalid={!!errors.name}
+            className="rounded-xl"
+          />
+          {errors.name ? <p className="text-xs text-destructive">{errors.name}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="contact-email">Email</Label>
+          <Input
+            id="contact-email"
+            type="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+            aria-invalid={!!errors.email}
+            className="rounded-xl"
+          />
+          {errors.email ? <p className="text-xs text-destructive">{errors.email}</p> : null}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-phone">Phone <span className="text-muted-foreground">(optional)</span></Label>
+        <Input
+          id="contact-phone"
+          type="tel"
+          placeholder="0494 825 281"
+          value={form.phone}
+          onChange={(e) => update("phone", e.target.value)}
+          className="rounded-xl"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-message">Message</Label>
+        <Textarea
+          id="contact-message"
+          placeholder="Tell us what you would like to know..."
+          value={form.message}
+          onChange={(e) => update("message", e.target.value)}
+          aria-invalid={!!errors.message}
+          rows={5}
+          className="rounded-xl"
+        />
+        {errors.message ? <p className="text-xs text-destructive">{errors.message}</p> : null}
+      </div>
+      <Button
+        type="submit"
+        disabled={submitting}
+        className="h-12 w-full rounded-full text-[15px] font-medium"
+      >
+        {submitting ? "Sending..." : "Send message"}
+        <Send className="ml-1.5 h-4 w-4" />
+      </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Or email us directly at{" "}
+        <a href="mailto:info@resonabed.com" className="text-brand-indigo hover:underline">
+          info@resonabed.com
+        </a>
+      </p>
+    </form>
   );
 }
 
