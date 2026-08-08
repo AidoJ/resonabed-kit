@@ -81,8 +81,12 @@ export function CountdownTimer({
 
   useEffect(() => {
     if (!running) return;
+    // Interval + wall-clock end timestamp: requestAnimationFrame is paused in
+    // background tabs / locked screens, which meant long sessions never fired
+    // the fade or the chime. Timers still fire (throttled) when hidden, and the
+    // remaining time is always derived from the end timestamp, so no drift.
     const tick = () => {
-      const now = performance.now();
+      const now = Date.now();
       const end = endTsRef.current ?? now;
       const rem = Math.max(0, (end - now) / 1000);
       setRemaining(rem);
@@ -91,22 +95,34 @@ export function CountdownTimer({
         onFadeStart?.(rem);
       }
       if (rem <= 0) {
-        setRunning(false);
         if (!completedRef.current) {
           completedRef.current = true;
+          // A throttled tick can jump straight past the fade window, still
+          // fade rather than cutting the music dead.
+          if (!fadeStartedRef.current) {
+            fadeStartedRef.current = true;
+            onFadeStart?.(2);
+          }
           setCompleted(true);
           playChime();
           onComplete?.();
         }
+        setRunning(false);
         return;
       }
-      rafRef.current = requestAnimationFrame(tick);
     };
-    rafRef.current = requestAnimationFrame(tick);
+    const id = setInterval(tick, 250);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    tick();
     return () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [running, onComplete, onFadeStart, fadeLeadSeconds]);
+
 
   const start = () => {
     if (remaining <= 0) return;
