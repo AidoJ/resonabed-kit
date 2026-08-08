@@ -619,6 +619,99 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* ABOUT */}
+      <section id="about" className="bg-secondary/40 py-24 md:py-28">
+        <div className="mx-auto max-w-7xl px-6 md:px-10">
+          <div className="grid gap-12 md:grid-cols-2 md:items-center">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+                About us
+              </p>
+              <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+                Making vibroacoustic therapy simple to offer, easy to feel.
+              </h2>
+            </div>
+            <div className="space-y-5 text-muted-foreground">
+              <p>
+                Resonabed exists to make vibroacoustic therapy simple for practitioners to offer and
+                easy for clients to feel. We pair a purpose-built kit that upgrades a treatment table
+                you already own with a platform that handles bookings, clients and your own branded
+                page, so you can add a genuinely different service without adding complexity.
+              </p>
+              <p>
+                And if you would rather start fresh, our Platinum package is a complete business in a
+                box: a fully fitted-out new therapy table, the full platform, and everything you need
+                to start offering sessions from day one.
+              </p>
+              <p>
+                Based in Scarborough, Queensland, we are focused on one thing: helping wellness
+                professionals bring the calming power of sound and vibration to the people they care
+                for.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
+        <div className="grid gap-12 lg:grid-cols-2">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              Get in touch
+            </p>
+            <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+              Have a question about packages, setup, or running sessions?
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Send us a message and we will get back to you, usually within one business day.
+            </p>
+            <ul className="mt-8 space-y-4">
+              <li className="flex items-start gap-4">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
+                  <MapPin className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-medium text-brand-indigo">Resonabed</p>
+                  <p className="text-sm text-muted-foreground">Scarborough, Queensland</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
+                  <Mail className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-medium text-brand-indigo">Email</p>
+                  <a
+                    href="mailto:info@resonabed.com"
+                    className="text-sm text-muted-foreground hover:text-brand-indigo"
+                  >
+                    info@resonabed.com
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
+                  <Phone className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-medium text-brand-indigo">Phone</p>
+                  <a
+                    href="tel:+61494825281"
+                    className="text-sm text-muted-foreground hover:text-brand-indigo"
+                  >
+                    0494 825 281
+                  </a>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-soft md:p-10">
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="border-t border-border bg-background">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 py-10 md:flex-row md:px-10">
