@@ -68,14 +68,33 @@ export const sendAdminInviteEmail = createServerFn({ method: "POST" })
     return { sent: result.sent, reason: "reason" in result ? result.reason : null };
   });
 
+/** Public: issues a short-lived, signed captcha challenge for the contact form. */
+export const getContactCaptcha = createServerFn({ method: "GET" }).handler(async () => {
+  const { issueChallenge } = await import("@/lib/contact-captcha.server");
+  return issueChallenge();
+});
+
 /**
  * Public: sends a contact form submission to the Resonabed inbox.
- * No authentication required.
+ * No authentication required, but guarded by a signed captcha and honeypot.
  */
 export const sendContactFormEmail = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => contactFormSchema.parse(input))
   .handler(async ({ data }) => {
+    if (data.website) throw new Error("Could not send your message.");
+
+    const { verifyChallenge } = await import("@/lib/contact-captcha.server");
+    const verdict = verifyChallenge(data.captchaToken, data.captchaAnswer);
+    if (!verdict.ok) {
+      throw new Error(
+        verdict.reason === "expired"
+          ? "The security check expired. Please try again."
+          : "The security check answer was incorrect. Please try again.",
+      );
+    }
+
     const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+
     const result = await sendTemplateEmail("contact-form", "info@resonabed.com", {
       templateData: {
         name: data.name,
