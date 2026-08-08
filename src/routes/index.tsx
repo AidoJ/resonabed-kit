@@ -417,13 +417,13 @@ function LandingPage() {
       <section id="packages" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-            Two ways to start
+            Three ways to start
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
             Choose the package that fits your clinic.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Both packages include the complete kit: tactile speakers, amplifier, Resonabed player
+            Every package includes the complete kit: tactile speakers, amplifier, Resonabed player
             and booking app, 9 therapeutic Solfeggio frequencies, and 100 professionally designed{" "}
             <Link
               to="/flyer"
@@ -435,9 +435,9 @@ function LandingPage() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
+        <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <PackageCard
-            name="Pro"
+            name="Basic"
             packageKey="pro"
             price="$1,199"
             tagline="The complete upgrade kit."
@@ -452,22 +452,38 @@ function LandingPage() {
             ]}
           />
           <PackageCard
-            name="Premium"
+            name="Pro"
             packageKey="premium"
             price="$1,399"
             highlighted
-            tagline="Pro, plus a dedicated device."
+            tagline="Basic, plus a dedicated device."
             description={
-              'Everything in Pro, plus a 9" Android tablet set up and ready to run the app, so nothing breaks the stillness of a session.'
+              'Everything in Basic, plus a 10" Android tablet set up and ready to run the app, so nothing breaks the stillness of a session.'
             }
             features={[
-              "Everything included in Pro",
-              '9" Android tablet, pre-configured',
+              "Everything included in Basic",
+              '10" Android tablet, pre-configured',
               "Kept for sessions only, no notifications, no chimes",
               "Ready to run out of the box",
             ]}
           />
+          <ContactPackageCard
+            name="Platinum"
+            priceLine="From $1699 - $1949 AUD · incl. GST"
+            tagline="Business in a box."
+            description={
+              'Everything in Pro, plus a 10" Android tablet set up and ready to run the app, so nothing breaks the stillness of a session.'
+            }
+            features={[
+              "Everything included in Pro",
+              '10" Android tablet, pre-configured',
+              "Kept for sessions only, no notifications, no chimes",
+              "A new massage table with the system fully installed (Choice of three).",
+              "Ready to run, your complete Business in a Box",
+            ]}
+          />
         </div>
+
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
           *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment bed.
