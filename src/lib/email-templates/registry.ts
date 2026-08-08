@@ -29,7 +29,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'booking-alternates-reminder': bookingAlternatesReminderTemplate,
   'home-access-code': homeAccessCodeTemplate,
   'clinic-order-received': clinicOrderReceivedTemplate,
-
+  'contact-form': contactFormTemplate,
 }
 
 
