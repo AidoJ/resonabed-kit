@@ -303,8 +303,8 @@ function LandingPage() {
               },
               {
                 icon: FileText,
-                title: "100 marketing flyers",
-                body: "Professionally designed DL flyers, customisable with your clinic details and a booking QR code, ready to print and display. Start promoting your new service from the day the kit arrives.",
+                title: "Marketing made easy",
+                body: "Your own customisable webpage where clients discover your service and book online, plus 100 professionally designed DL flyers carrying your clinic details and a QR code that links straight to your page. Ready to promote from the day your kit arrives.",
                 cta: "Ready-to-print promotion",
                 linkTo: "/flyer" as const,
                 linkLabel: "View the flyer",
