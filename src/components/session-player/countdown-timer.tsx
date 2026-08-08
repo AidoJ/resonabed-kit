@@ -35,7 +35,7 @@ export function CountdownTimer({
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState(false);
   const endTsRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
+  
   const completedRef = useRef(false);
   const fadeStartedRef = useRef(false);
   const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
