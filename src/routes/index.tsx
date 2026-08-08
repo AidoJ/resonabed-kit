@@ -730,6 +730,152 @@ function LandingPage() {
   );
 }
 
+function ContactForm() {
+  const send = useServerFn(sendContactFormEmail);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const update = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting) return;
+
+    const nextErrors: Record<string, string> = {};
+    if (!form.name.trim()) nextErrors.name = "Please enter your name";
+    if (!form.email.trim()) {
+      nextErrors.email = "Please enter your email";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      nextErrors.email = "Please enter a valid email";
+    }
+    if (!form.message.trim()) nextErrors.message = "Please enter a message";
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await send({ data: form });
+      setSent(true);
+      setForm({ name: "", email: "", phone: "", message: "" });
+      toast.success("Message sent. We will be in touch soon.");
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not send your message. Please try again or email us directly.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+          <CheckCircle2 className="h-8 w-8" />
+        </div>
+        <h3 className="mt-6 text-xl font-medium text-brand-indigo">Message sent</h3>
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          Thanks for reaching out. We have received your message and will reply as soon as we can.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-6 rounded-full"
+          onClick={() => setSent(false)}
+        >
+          Send another message
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="contact-name">Name</Label>
+          <Input
+            id="contact-name"
+            type="text"
+            placeholder="Your name"
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            aria-invalid={!!errors.name}
+            className="rounded-xl"
+          />
+          {errors.name ? <p className="text-xs text-destructive">{errors.name}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="contact-email">Email</Label>
+          <Input
+            id="contact-email"
+            type="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+            aria-invalid={!!errors.email}
+            className="rounded-xl"
+          />
+          {errors.email ? <p className="text-xs text-destructive">{errors.email}</p> : null}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-phone">Phone <span className="text-muted-foreground">(optional)</span></Label>
+        <Input
+          id="contact-phone"
+          type="tel"
+          placeholder="0494 825 281"
+          value={form.phone}
+          onChange={(e) => update("phone", e.target.value)}
+          className="rounded-xl"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-message">Message</Label>
+        <Textarea
+          id="contact-message"
+          placeholder="Tell us what you would like to know..."
+          value={form.message}
+          onChange={(e) => update("message", e.target.value)}
+          aria-invalid={!!errors.message}
+          rows={5}
+          className="rounded-xl"
+        />
+        {errors.message ? <p className="text-xs text-destructive">{errors.message}</p> : null}
+      </div>
+      <Button
+        type="submit"
+        disabled={submitting}
+        className="h-12 w-full rounded-full text-[15px] font-medium"
+      >
+        {submitting ? "Sending..." : "Send message"}
+        <Send className="ml-1.5 h-4 w-4" />
+      </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Or email us directly at{" "}
+        <a href="mailto:info@resonabed.com" className="text-brand-indigo hover:underline">
+          info@resonabed.com
+        </a>
+      </p>
+    </form>
+  );
+}
+
 function ContactPackageCard({
   name,
   priceLine,
