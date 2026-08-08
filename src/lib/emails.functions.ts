@@ -11,6 +11,13 @@ const inviteSchema = z.object({
   isReset: z.boolean().optional().default(false),
 });
 
+const contactFormSchema = z.object({
+  name: z.string().trim().min(1, { message: "Name is required" }).max(100),
+  email: z.string().trim().email({ message: "Please enter a valid email" }).max(255),
+  phone: z.string().trim().max(50).optional().or(z.literal("")),
+  message: z.string().trim().min(1, { message: "Message is required" }).max(2000),
+});
+
 /**
  * Sends the admin/practitioner invite or password-reset email with the
  * temporary password. Callable by super_admin, or by an org_admin of the
@@ -52,6 +59,26 @@ export const sendAdminInviteEmail = createServerFn({ method: "POST" })
       },
       replyTo: "info@resonabed.com",
       idempotencyKey: `admin-invite-${data.email}-${data.tempPassword.slice(0, 8)}`,
+    });
+    return { sent: result.sent, reason: "reason" in result ? result.reason : null };
+  });
+
+/**
+ * Public: sends a contact form submission to the Resonabed inbox.
+ * No authentication required.
+ */
+export const sendContactFormEmail = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => contactFormSchema.parse(input))
+  .handler(async ({ data }) => {
+    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+    const result = await sendTemplateEmail("contact-form", "info@resonabed.com", {
+      templateData: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone || undefined,
+        message: data.message,
+      },
+      replyTo: data.email,
     });
     return { sent: result.sent, reason: "reason" in result ? result.reason : null };
   });
