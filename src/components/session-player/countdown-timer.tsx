@@ -243,6 +243,8 @@ function playChime() {
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AC) return;
     const ctx = new AC();
+    // Safari/Chrome can hand back a suspended context after a long session.
+    void ctx.resume?.().catch(() => {});
     const now = ctx.currentTime;
     const play = (freq: number, start: number, dur: number) => {
       const osc = ctx.createOscillator();
