@@ -505,7 +505,7 @@ function LandingPage() {
             <p className="mt-5 max-w-xl text-white/70">
               A phone can ring mid-session. A laptop can chime with an email or reminder, and those
               sounds carry straight through the table to your client. We recommend running Resonabed
-              on a device kept just for sessions. The Premium package includes one ready to go, so
+              on a device kept just for sessions. The Pro and Platinum packages include one ready to go, so
               nothing breaks the stillness.
             </p>
             <ul className="mt-8 grid gap-3 text-sm text-white/80 sm:grid-cols-2">
