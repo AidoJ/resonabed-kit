@@ -14,9 +14,14 @@ const inviteSchema = z.object({
 const contactFormSchema = z.object({
   name: z.string().trim().min(1, { message: "Name is required" }).max(100),
   email: z.string().trim().email({ message: "Please enter a valid email" }).max(255),
-  phone: z.string().trim().max(50).optional().or(z.literal("")),
+  phone: z.string().trim().min(6, { message: "Phone is required" }).max(50),
   message: z.string().trim().min(1, { message: "Message is required" }).max(2000),
+  captchaToken: z.string().min(1),
+  captchaAnswer: z.string().trim().min(1),
+  // Honeypot: must stay empty; real users never see this field.
+  website: z.string().max(0).optional().or(z.literal("")),
 });
+
 
 /**
  * Sends the admin/practitioner invite or password-reset email with the
