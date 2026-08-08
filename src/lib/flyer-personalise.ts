@@ -10,7 +10,9 @@ import {
 } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import QRCode from "qrcode";
-import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
+
+/** Print artwork, served from /public so wording fixes ship with the app. */
+const FLYER_PDF_URL = "/resonabed-flyer.pdf";
 
 /**
  * Details the clinic can stamp into the blank "Clinic details" panel on the
@@ -203,7 +205,7 @@ function stripBaseFontText(pdf: PDFDocument, page: PDFPage) {
  * reserved panel. Empty fields are simply left out.
  */
 export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promise<Blob> {
-  const src = await fetch(flyerPdf.url).then((r) => r.arrayBuffer());
+  const src = await fetch(FLYER_PDF_URL).then((r) => r.arrayBuffer());
   const pdf = await PDFDocument.load(src);
   const page = pdf.getPages()[0]!;
 
