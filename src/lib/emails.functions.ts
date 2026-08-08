@@ -99,7 +99,8 @@ export const sendContactFormEmail = createServerFn({ method: "POST" })
       templateData: {
         name: data.name,
         email: data.email,
-        phone: data.phone || undefined,
+        phone: data.phone,
+
         message: data.message,
       },
       replyTo: data.email,
