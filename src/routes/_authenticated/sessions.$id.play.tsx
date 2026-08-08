@@ -179,7 +179,9 @@ function PlaySession() {
         <CountdownTimer
           durationSeconds={durationSeconds}
           onComplete={() => {
-            audioHandleRef.current?.stop();
+            // The fade stops playback itself, this is only a safety net so a
+            // looping track can never run past the end of the session.
+            window.setTimeout(() => audioHandleRef.current?.stop(), 2600);
           }}
           onFadeStart={(secs) => {
             audioHandleRef.current?.fadeOut(secs);
