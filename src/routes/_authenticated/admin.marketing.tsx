@@ -13,9 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
-import flyerOutside from "@/assets/resonabed-flyer-outside.jpg.asset.json";
-import flyerInside from "@/assets/resonabed-flyer-inside.jpg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/admin/marketing")({
   head: () => ({ meta: [{ title: "Marketing, ResonaBed" }] }),
@@ -117,7 +114,7 @@ function MarketingPage() {
 
   const download = async (personalised: boolean) => {
     if (!personalised) {
-      window.open(flyerPdf.url, "_blank", "noreferrer");
+      window.open("/resonabed-flyer.pdf", "_blank", "noreferrer");
       return;
     }
     setBusy(true);
@@ -303,7 +300,7 @@ function MarketingPage() {
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-xl border bg-card">
             <img
-              src={flyerOutside.url}
+              src={"/resonabed-flyer-outside.jpg"}
               alt="Outside of the Resonabed client flyer, showing the panel reserved for clinic details"
               className="h-auto w-full"
               loading="lazy"
@@ -348,7 +345,7 @@ function MarketingPage() {
           </div>
           <div className="overflow-hidden rounded-xl border bg-card">
             <img
-              src={flyerInside.url}
+              src={"/resonabed-flyer-inside.jpg"}
               alt="Inside of the Resonabed client flyer"
               className="h-auto w-full"
               loading="lazy"

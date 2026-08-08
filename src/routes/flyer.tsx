@@ -5,8 +5,6 @@ import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
-import flyerOutside from "@/assets/resonabed-flyer-outside.jpg.asset.json";
-import flyerInside from "@/assets/resonabed-flyer-inside.jpg.asset.json";
 
 export const Route = createFileRoute("/flyer")({
   ssr: false,
@@ -116,7 +114,7 @@ function FlyerPage() {
         <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
           <div className="relative">
             <img
-              src={flyerOutside.url}
+              src={"/resonabed-flyer-outside.jpg"}
               alt="Outside of the Resonabed client flyer: cover panel, common questions, and what to expect in a session"
               className="h-auto w-full"
               loading="lazy"
@@ -157,7 +155,7 @@ function FlyerPage() {
 
         <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
           <img
-            src={flyerInside.url}
+            src={"/resonabed-flyer-inside.jpg"}
             alt="Inside of the Resonabed client flyer: what vibroacoustic therapy is, why people come back, and the nine Solfeggio frequencies"
             className="h-auto w-full"
             loading="lazy"
