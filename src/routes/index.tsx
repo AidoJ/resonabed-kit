@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 import { createKitCheckoutSession, requestKitEftInvoice } from "@/lib/checkout.functions";
-import { sendContactFormEmail } from "@/lib/emails.functions";
+import { sendContactFormEmail, getContactCaptcha } from "@/lib/emails.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import { PromoStepDialog } from "@/components/promo-step-dialog";
 import {
