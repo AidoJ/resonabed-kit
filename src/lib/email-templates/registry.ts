@@ -7,6 +7,7 @@ import { template as bookingAlternatesOfferedTemplate } from './booking-alternat
 import { template as bookingAlternatesReminderTemplate } from './booking-alternates-reminder'
 import { template as homeAccessCodeTemplate } from './home-access-code'
 import { template as clinicOrderReceivedTemplate } from './clinic-order-received'
+import { template as contactFormTemplate } from './contact-form'
 
 
 
