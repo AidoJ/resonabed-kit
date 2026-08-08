@@ -128,15 +128,27 @@ function LandingPage() {
             <div className="flex items-center gap-3 md:gap-6">
               <a
                 href="#packages"
-                className="hidden text-sm font-medium text-white/80 hover:text-white md:inline"
+                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
               >
                 Packages
               </a>
               <a
                 href="#how"
-                className="hidden text-sm font-medium text-white/80 hover:text-white md:inline"
+                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
               >
                 How it works
+              </a>
+              <a
+                href="#about"
+                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
+              >
+                About
+              </a>
+              <a
+                href="#contact"
+                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
+              >
+                Contact
               </a>
               <Link to={loginHref}>
                 <Button
