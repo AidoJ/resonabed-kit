@@ -927,8 +927,12 @@ function ContactForm() {
             }
           }}
           aria-invalid={!!errors.captcha}
+          aria-describedby="captcha-info"
           className="rounded-xl"
         />
+        <p id="captcha-info" className="text-xs text-muted-foreground">
+          This quick check helps us stop automated spam so your message reaches a real person.
+        </p>
         {errors.captcha ? <p className="text-xs text-destructive">{errors.captcha}</p> : null}
       </div>
 
