@@ -14,9 +14,14 @@ const inviteSchema = z.object({
 const contactFormSchema = z.object({
   name: z.string().trim().min(1, { message: "Name is required" }).max(100),
   email: z.string().trim().email({ message: "Please enter a valid email" }).max(255),
-  phone: z.string().trim().max(50).optional().or(z.literal("")),
+  phone: z.string().trim().min(6, { message: "Phone is required" }).max(50),
   message: z.string().trim().min(1, { message: "Message is required" }).max(2000),
+  captchaToken: z.string().min(1),
+  captchaAnswer: z.string().trim().min(1),
+  // Honeypot: must stay empty; real users never see this field.
+  website: z.string().max(0).optional().or(z.literal("")),
 });
+
 
 /**
  * Sends the admin/practitioner invite or password-reset email with the
@@ -63,20 +68,40 @@ export const sendAdminInviteEmail = createServerFn({ method: "POST" })
     return { sent: result.sent, reason: "reason" in result ? result.reason : null };
   });
 
+/** Public: issues a short-lived, signed captcha challenge for the contact form. */
+export const getContactCaptcha = createServerFn({ method: "GET" }).handler(async () => {
+  const { issueChallenge } = await import("@/lib/contact-captcha.server");
+  return issueChallenge();
+});
+
 /**
  * Public: sends a contact form submission to the Resonabed inbox.
- * No authentication required.
+ * No authentication required, but guarded by a signed captcha and honeypot.
  */
 export const sendContactFormEmail = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => contactFormSchema.parse(input))
   .handler(async ({ data }) => {
+    if (data.website) throw new Error("Could not send your message.");
+
+    const { verifyChallenge } = await import("@/lib/contact-captcha.server");
+    const verdict = verifyChallenge(data.captchaToken, data.captchaAnswer);
+    if (!verdict.ok) {
+      throw new Error(
+        verdict.reason === "expired"
+          ? "The security check expired. Please try again."
+          : "The security check answer was incorrect. Please try again.",
+      );
+    }
+
     const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+
     const result = await sendTemplateEmail("contact-form", "info@resonabed.com", {
       templateData: {
         name: data.name,
         email: data.email,
-        phone: data.phone || undefined,
+        phone: data.phone,
         message: data.message,
+
       },
       replyTo: data.email,
     });

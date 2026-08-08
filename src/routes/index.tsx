@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 import { createKitCheckoutSession, requestKitEftInvoice } from "@/lib/checkout.functions";
-import { sendContactFormEmail } from "@/lib/emails.functions";
+import { sendContactFormEmail, getContactCaptcha } from "@/lib/emails.functions";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
 import { PromoStepDialog } from "@/components/promo-step-dialog";
 import {
@@ -732,10 +732,29 @@ function LandingPage() {
 
 function ContactForm() {
   const send = useServerFn(sendContactFormEmail);
+  const loadCaptcha = useServerFn(getContactCaptcha);
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [captcha, setCaptcha] = useState<{ question: string; token: string } | null>(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+
+  const refreshCaptcha = async () => {
+    try {
+      const next = await loadCaptcha();
+      setCaptcha(next);
+      setCaptchaAnswer("");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    void refreshCaptcha();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const update = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -759,7 +778,9 @@ function ContactForm() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       nextErrors.email = "Please enter a valid email";
     }
+    if (form.phone.trim().length < 6) nextErrors.phone = "Please enter your phone number";
     if (!form.message.trim()) nextErrors.message = "Please enter a message";
+    if (!captchaAnswer.trim()) nextErrors.captcha = "Please answer the security check";
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
@@ -767,12 +788,21 @@ function ContactForm() {
 
     setSubmitting(true);
     try {
-      await send({ data: form });
+      await send({
+        data: {
+          ...form,
+          captchaToken: captcha?.token ?? "",
+          captchaAnswer,
+          website: honeypot,
+        },
+      });
       setSent(true);
       setForm({ name: "", email: "", phone: "", message: "" });
+      void refreshCaptcha();
       toast.success("Message sent. We will be in touch soon.");
     } catch (err) {
       console.error(err);
+      void refreshCaptcha();
       toast.error(
         err instanceof Error
           ? err.message
@@ -835,15 +865,17 @@ function ContactForm() {
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="contact-phone">Phone <span className="text-muted-foreground">(optional)</span></Label>
+        <Label htmlFor="contact-phone">Phone</Label>
         <Input
           id="contact-phone"
           type="tel"
           placeholder="0494 825 281"
           value={form.phone}
           onChange={(e) => update("phone", e.target.value)}
+          aria-invalid={!!errors.phone}
           className="rounded-xl"
         />
+        {errors.phone ? <p className="text-xs text-destructive">{errors.phone}</p> : null}
       </div>
       <div className="space-y-2">
         <Label htmlFor="contact-message">Message</Label>
@@ -858,9 +890,51 @@ function ContactForm() {
         />
         {errors.message ? <p className="text-xs text-destructive">{errors.message}</p> : null}
       </div>
+
+      {/* Honeypot, hidden from real users */}
+      <div className="hidden" aria-hidden>
+        <label htmlFor="contact-website">Website</label>
+        <input
+          id="contact-website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="contact-captcha">
+          Security check{captcha ? ` · ${captcha.question}` : ""}
+        </Label>
+        <Input
+          id="contact-captcha"
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          placeholder={captcha ? "Type the answer" : "Loading security check..."}
+          disabled={!captcha}
+          value={captchaAnswer}
+          onChange={(e) => {
+            setCaptchaAnswer(e.target.value);
+            if (errors.captcha) {
+              setErrors((prev) => {
+                const next = { ...prev };
+                delete next.captcha;
+                return next;
+              });
+            }
+          }}
+          aria-invalid={!!errors.captcha}
+          className="rounded-xl"
+        />
+        {errors.captcha ? <p className="text-xs text-destructive">{errors.captcha}</p> : null}
+      </div>
+
       <Button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !captcha}
         className="h-12 w-full rounded-full text-[15px] font-medium"
       >
         {submitting ? "Sending..." : "Send message"}
@@ -875,6 +949,7 @@ function ContactForm() {
     </form>
   );
 }
+
 
 function ContactPackageCard({
   name,
