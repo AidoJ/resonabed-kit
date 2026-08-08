@@ -100,8 +100,8 @@ export const sendContactFormEmail = createServerFn({ method: "POST" })
         name: data.name,
         email: data.email,
         phone: data.phone,
-
         message: data.message,
+
       },
       replyTo: data.email,
     });
