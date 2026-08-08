@@ -126,7 +126,7 @@ export function CountdownTimer({
 
   const start = () => {
     if (remaining <= 0) return;
-    endTsRef.current = performance.now() + remaining * 1000;
+    endTsRef.current = Date.now() + remaining * 1000;
     setRunning(true);
     onStart?.();
   };
