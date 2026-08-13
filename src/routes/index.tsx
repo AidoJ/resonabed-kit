@@ -49,6 +49,8 @@ import {
   Tablet,
   ClipboardList,
   Speaker,
+  Headphones,
+
   Volume2,
   FileText,
   Package,
