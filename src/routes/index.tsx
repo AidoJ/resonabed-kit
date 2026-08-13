@@ -408,6 +408,8 @@ function LandingPage() {
                 title: "Marketing made easy",
                 body: "Your own customisable webpage where clients discover your service and book online, plus 100 professionally designed DL flyers carrying your clinic details and a QR code that links straight to your page. Ready to promote from the day your kit arrives.",
                 cta: "Ready-to-print promotion",
+                image: kitImages.brochure,
+                imageAlt: "Personalised Resonabed clinic brochure with booking QR code",
                 linkTo: "/flyer" as const,
                 linkLabel: "View the flyer",
               },
