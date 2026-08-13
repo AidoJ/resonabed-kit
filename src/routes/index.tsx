@@ -236,6 +236,17 @@ function LandingPage() {
                 Resonabed works for personal use too, see home use below.
               </a>
             </p>
+            <p className="mt-2 text-sm text-white/60">
+              Looking for a{" "}
+              <Link
+                to="/vibroacoustic-sound-bed"
+                className="underline underline-offset-4 hover:text-white/85"
+              >
+                vibroacoustic sound bed
+              </Link>
+              ? See how the kit converts your table into one.
+            </p>
+
             <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
                 { k: "Tactile transducers", v: "Your table becomes the instrument" },
