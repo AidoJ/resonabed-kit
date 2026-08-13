@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Building2, Copy, Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  createOnboardingOrderManually,
   listOnboardingOrders,
   markOnboardingOrderProvisioned,
   updateOnboardingOrder,
