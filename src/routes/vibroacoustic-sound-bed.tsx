@@ -4,6 +4,7 @@ import logoWhite from "@/assets/resonabed-logo-white.svg";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
 import { ScienceSection } from "@/components/public-clinic/science-section";
+import { KitCard, kitImages } from "@/components/kit-card";
 import {
   ArrowRight,
   CheckCircle2,
@@ -13,7 +14,9 @@ import {
   Music,
   Package,
   Waves,
+  Headphones as HeadphonesIcon,
 } from "lucide-react";
+
 
 const TITLE = "Vibroacoustic Sound Bed Kit | Resonabed";
 const DESCRIPTION =
