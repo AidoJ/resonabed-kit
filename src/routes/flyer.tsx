@@ -14,7 +14,7 @@ export const Route = createFileRoute("/flyer")({
       {
         name: "description",
         content:
-          "Preview and download the Resonabed DL client flyer included with every kit: what vibroacoustic therapy is, what to expect in a session, and the nine Solfeggio tones.",
+          "Preview and download the Resonabed DL client flyer included with every kit: what to expect in a session and the nine Solfeggio tones.",
       },
       { property: "og:title", content: "Resonabed marketing flyer" },
       {
