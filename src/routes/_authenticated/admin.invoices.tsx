@@ -86,9 +86,21 @@ function InvoicesAdmin() {
   });
   const statusMut = useMutation({
     mutationFn: (input: Parameters<typeof setStatus>[0]) => setStatus(input),
-    onSuccess: invalidate,
+    onSuccess: (res: unknown) => {
+      const f = (res as { fulfilment?: { buyerType: string; codeEmail: string | null } })
+        ?.fulfilment;
+      if (f?.buyerType === "personal") {
+        toast.success(
+          f.codeEmail ? `Access code emailed to ${f.codeEmail}` : "Marked paid, access code issued",
+        );
+      } else if (f?.buyerType === "business") {
+        toast.success("Marked paid, order sent to clinic onboarding");
+      }
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
+
   const deleteMut = useMutation({
     mutationFn: (input: Parameters<typeof removeInvoice>[0]) => removeInvoice(input),
     onSuccess: () => { toast.success("Invoice deleted"); invalidate(); },
