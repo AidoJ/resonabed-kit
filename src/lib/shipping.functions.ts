@@ -9,6 +9,9 @@ export interface ShippingRateRow {
   amount_cents: number;
   gst_inclusive: boolean;
   allowed_countries: string[];
+  allowed_states: string[];
+  /** 'kit' | 'table' | 'any'. Table bands cover the fitted home table freight. */
+  applies_to: string;
   active: boolean;
   sort_order: number;
 }
@@ -22,7 +25,7 @@ export const getShippingRates = createServerFn({ method: "GET" }).handler(
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("shipping_rates")
-      .select("id, region, label, amount_cents, gst_inclusive, allowed_countries, active, sort_order")
+      .select("id, region, label, amount_cents, gst_inclusive, allowed_countries, allowed_states, applies_to, active, sort_order")
       .eq("active", true)
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
@@ -51,7 +54,7 @@ export const listShippingRatesAdmin = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("shipping_rates")
-      .select("id, region, label, amount_cents, gst_inclusive, allowed_countries, active, sort_order")
+      .select("id, region, label, amount_cents, gst_inclusive, allowed_countries, allowed_states, applies_to, active, sort_order")
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as ShippingRateRow[];

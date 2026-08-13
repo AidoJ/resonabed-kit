@@ -28,7 +28,7 @@ const PACKAGES = {
     amount: 159900,
     exGst: 145364,
     gst: 14536,
-    installments: { deposit: 59900, monthly: 10000, months: 10 }, // 599 + 10*100 = 1599
+    installments: { deposit: 79900, monthly: 10000, months: 8 }, // 799 + 8*100 = 1599
   },
 } as const;
 
@@ -78,21 +78,54 @@ const InputSchema = z
     path: ["business"],
   });
 
-async function loadShippingRateForCountry(country: string) {
+/**
+ * Resolves the shipping rate for a destination.
+ *
+ * `scope` matters: the home package ships a fitted therapy table, so it must
+ * price against the table-freight bands, never the kit-carton rates.
+ */
+async function loadShippingRateForCountry(
+  country: string,
+  scope: "kit" | "table",
+  state?: string | null,
+) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("shipping_rates")
-    .select("region, label, amount_cents, gst_inclusive, allowed_countries, active, sort_order")
+    .select(
+      "region, label, amount_cents, gst_inclusive, allowed_countries, allowed_states, applies_to, active, sort_order",
+    )
     .eq("active", true)
     .gt("amount_cents", 0)
     .order("sort_order", { ascending: true });
   if (error) throw new Error("Could not load shipping rates");
   const iso = country.toUpperCase();
-  const match = (data ?? []).find((r) =>
-    Array.isArray(r.allowed_countries) &&
-    (r.allowed_countries as string[]).map((c) => c.toUpperCase()).includes(iso),
+  const st = (state ?? "").trim().toUpperCase();
+  const candidates = (data ?? []).filter(
+    (r) =>
+      (r.applies_to === scope || r.applies_to === "any") &&
+      Array.isArray(r.allowed_countries) &&
+      (r.allowed_countries as string[]).map((c) => c.toUpperCase()).includes(iso),
   );
-  if (!match) throw new Error("We don't ship to that country yet.");
+  // A state-specific band wins over the catch-all band for the same country.
+  const match =
+    candidates.find(
+      (r) =>
+        Array.isArray(r.allowed_states) &&
+        (r.allowed_states as string[]).length > 0 &&
+        !!st &&
+        (r.allowed_states as string[]).map((c) => c.toUpperCase()).includes(st),
+    ) ??
+    candidates.find(
+      (r) => !Array.isArray(r.allowed_states) || (r.allowed_states as string[]).length === 0,
+    );
+  if (!match) {
+    throw new Error(
+      scope === "table"
+        ? "We can't freight the fitted table to that destination yet. Please contact us."
+        : "We don't ship to that country yet.",
+    );
+  }
   return {
     region: match.region,
     label: match.label,
@@ -120,7 +153,11 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
     // Resolve region + amount from country server-side. Never trust client amounts.
     const shipping = isPickup
       ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
-      : await loadShippingRateForCountry(addr!.country);
+      : await loadShippingRateForCountry(
+          addr!.country,
+          data.package === "home" ? "table" : "kit",
+          addr!.state,
+        );
 
     const shippingGstNote = shipping.gstInclusive ? "incl. GST" : "GST-free export";
     const shippingLineName = `Shipping, ${shipping.label}`;
@@ -500,7 +537,11 @@ export const requestKitEftInvoice = createServerFn({ method: "POST" })
 
     const shipping = data.pickup
       ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
-      : await loadShippingRateForCountry(addr!.country);
+      : await loadShippingRateForCountry(
+          addr!.country,
+          data.package === "home" ? "table" : "kit",
+          addr!.state,
+        );
 
     const shippingAddressText = addr
       ? [addr.line1, addr.line2, `${addr.city} ${addr.state ?? ""} ${addr.postalCode}`.trim(), addr.country]
