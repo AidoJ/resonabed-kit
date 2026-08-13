@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VibroacousticSoundBedRouteImport } from './routes/vibroacoustic-sound-bed'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as HomeRouteImport } from './routes/home'
@@ -66,6 +67,11 @@ import { Route as ApiPublicHooksStripeRouteImport } from './routes/api/public/ho
 import { Route as ApiPublicHooksOfferTickRouteImport } from './routes/api/public/hooks/offer-tick'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
 
+const VibroacousticSoundBedRoute = VibroacousticSoundBedRouteImport.update({
+  id: '/vibroacoustic-sound-bed',
+  path: '/vibroacoustic-sound-bed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -379,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof HomeRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/audio': typeof AuthenticatedAudioRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
@@ -435,6 +442,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
   '/audio': typeof AuthenticatedAudioRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
   '/change-password': typeof AuthenticatedChangePasswordRoute
@@ -492,6 +500,7 @@ export interface FileRoutesById {
   '/home': typeof HomeRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/audio': typeof AuthenticatedAudioRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
@@ -551,6 +560,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/vibroacoustic-sound-bed'
     | '/admin'
     | '/audio'
     | '/availability'
@@ -607,6 +617,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/vibroacoustic-sound-bed'
     | '/audio'
     | '/availability'
     | '/change-password'
@@ -663,6 +674,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/vibroacoustic-sound-bed'
     | '/_authenticated/admin'
     | '/_authenticated/audio'
     | '/_authenticated/availability'
@@ -722,6 +734,7 @@ export interface RootRouteChildren {
   HomeRoute: typeof HomeRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  VibroacousticSoundBedRoute: typeof VibroacousticSoundBedRoute
   OSlugRoute: typeof OSlugRoute
   OfferTokenRoute: typeof OfferTokenRoute
   OrderCancelledRoute: typeof OrderCancelledRoute
@@ -736,6 +749,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vibroacoustic-sound-bed': {
+      id: '/vibroacoustic-sound-bed'
+      path: '/vibroacoustic-sound-bed'
+      fullPath: '/vibroacoustic-sound-bed'
+      preLoaderRoute: typeof VibroacousticSoundBedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1254,6 +1274,7 @@ const rootRouteChildren: RootRouteChildren = {
   HomeRoute: HomeRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  VibroacousticSoundBedRoute: VibroacousticSoundBedRoute,
   OSlugRoute: OSlugRoute,
   OfferTokenRoute: OfferTokenRoute,
   OrderCancelledRoute: OrderCancelledRoute,
