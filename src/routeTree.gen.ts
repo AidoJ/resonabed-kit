@@ -15,6 +15,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ForHomeRouteImport } from './routes/for-home'
 import { Route as FlyerRouteImport } from './routes/flyer'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -96,6 +97,11 @@ const HomeRoute = HomeRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForHomeRoute = ForHomeRouteImport.update({
+  id: '/for-home',
+  path: '/for-home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FlyerRoute = FlyerRouteImport.update({
@@ -387,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/flyer': typeof FlyerRoute
+  '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/home': typeof HomeRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
@@ -446,6 +453,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/flyer': typeof FlyerRoute
+  '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -504,6 +512,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/flyer': typeof FlyerRoute
+  '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/home': typeof HomeRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
@@ -565,6 +574,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/flyer'
+    | '/for-home'
     | '/forgot-password'
     | '/home'
     | '/reset-password'
@@ -624,6 +634,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/flyer'
+    | '/for-home'
     | '/forgot-password'
     | '/reset-password'
     | '/sitemap.xml'
@@ -681,6 +692,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/flyer'
+    | '/for-home'
     | '/forgot-password'
     | '/home'
     | '/reset-password'
@@ -742,6 +754,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   FlyerRoute: typeof FlyerRoute
+  ForHomeRoute: typeof ForHomeRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HomeRoute: typeof HomeRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -802,6 +815,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-home': {
+      id: '/for-home'
+      path: '/for-home'
+      fullPath: '/for-home'
+      preLoaderRoute: typeof ForHomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/flyer': {
@@ -1290,6 +1310,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   FlyerRoute: FlyerRoute,
+  ForHomeRoute: ForHomeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HomeRoute: HomeRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,

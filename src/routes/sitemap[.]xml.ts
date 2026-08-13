@@ -18,6 +18,8 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/vibroacoustic-sound-bed", changefreq: "monthly", priority: "0.8" },
           { path: "/vibroacoustic-therapy-bed", changefreq: "monthly", priority: "0.8" },
 
+          { path: "/for-home", changefreq: "monthly", priority: "0.9" },
+
           { path: "/home", changefreq: "monthly", priority: "0.6" },
 
         ];

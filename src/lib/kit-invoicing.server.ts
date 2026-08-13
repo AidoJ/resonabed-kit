@@ -11,8 +11,9 @@ import type Stripe from "stripe";
 const PACKAGE_LABELS: Record<string, string> = {
   pro: "Resonabed Pro Kit",
   premium: "Resonabed Premium Kit",
+  home: "Resonabed for Home",
 };
-const LIST_PRICE_CENTS: Record<string, number> = { pro: 119900, premium: 139900 };
+const LIST_PRICE_CENTS: Record<string, number> = { pro: 119900, premium: 139900, home: 159900 };
 
 const gstOf = (inclusiveCents: number) => Math.round(inclusiveCents / 11);
 
@@ -118,6 +119,9 @@ export async function recordStripeKitSale(
       status: "paid",
       notes: [
         "Website card order, paid through Stripe checkout.",
+        packageKey === "home"
+          ? "Home package: ships a fitted therapy table plus kit and headphones."
+          : null,
         plan === "installments" ? "Deposit collected; monthly instalments follow." : null,
         meta(session, "promo_code") ? `Promo: ${meta(session, "promo_code")}.` : null,
       ]

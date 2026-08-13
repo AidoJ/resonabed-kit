@@ -22,7 +22,7 @@ export function PromoStepDialog({
   onContinue,
 }: {
   open: boolean;
-  packageKey: "pro" | "premium" | null;
+  packageKey: "pro" | "premium" | "home" | null;
   packagePrice: string;
   onCancel: () => void;
   onContinue: (promoCode: string) => void;
