@@ -100,8 +100,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
       },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f05acb5b-2ba8-44c9-9e4e-b69018e1cca0/id-preview-63390ecb--2fed58e3-4d88-4192-9c63-c4ffbc643340.lovable.app-1784085788050.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f05acb5b-2ba8-44c9-9e4e-b69018e1cca0/id-preview-63390ecb--2fed58e3-4d88-4192-9c63-c4ffbc643340.lovable.app-1784085788050.png" },
+      { property: "og:image", content: "https://resonabed.com/__l5e/assets-v1/4c98a945-1707-458f-9997-2172e42adacc/resonabed-og.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:image", content: "https://resonabed.com/__l5e/assets-v1/4c98a945-1707-458f-9997-2172e42adacc/resonabed-og.png" },
+
     ],
     links: [
       {
