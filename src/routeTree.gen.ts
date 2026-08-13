@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -65,6 +66,11 @@ import { Route as ApiPublicHooksStripeRouteImport } from './routes/api/public/ho
 import { Route as ApiPublicHooksOfferTickRouteImport } from './routes/api/public/hooks/offer-tick'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -372,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/home': typeof HomeRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/audio': typeof AuthenticatedAudioRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
@@ -427,6 +434,7 @@ export interface FileRoutesByTo {
   '/flyer': typeof FlyerRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/audio': typeof AuthenticatedAudioRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
   '/change-password': typeof AuthenticatedChangePasswordRoute
@@ -483,6 +491,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/home': typeof HomeRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/audio': typeof AuthenticatedAudioRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
@@ -541,6 +550,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/home'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/admin'
     | '/audio'
     | '/availability'
@@ -596,6 +606,7 @@ export interface FileRouteTypes {
     | '/flyer'
     | '/forgot-password'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/audio'
     | '/availability'
     | '/change-password'
@@ -651,6 +662,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/home'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/audio'
     | '/_authenticated/availability'
@@ -709,6 +721,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HomeRoute: typeof HomeRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   OSlugRoute: typeof OSlugRoute
   OfferTokenRoute: typeof OfferTokenRoute
   OrderCancelledRoute: typeof OrderCancelledRoute
@@ -723,6 +736,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -1233,6 +1253,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   HomeRoute: HomeRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   OSlugRoute: OSlugRoute,
   OfferTokenRoute: OfferTokenRoute,
   OrderCancelledRoute: OrderCancelledRoute,
