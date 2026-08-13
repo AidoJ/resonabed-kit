@@ -21,6 +21,10 @@ const REFERENCES = [
   "Kantor J, Campbell EA, Kantorova L, et al. Exploring Vibroacoustic Therapy in Adults Experiencing Pain: A Scoping Review. BMJ Open. 2022;12.",
   "Punkanen M, Ala-Ruona E. Contemporary Vibroacoustic Therapy. Music and Medicine. 2012;4(3):128\u2013135.",
   "Campbell EA, Hynynen J, Burger B, et al. Exploring the Use of Vibroacoustic Treatment for Managing Chronic Pain and Comorbid Mood Disorders. Nordic Journal of Music Therapy. 2019;28(4):291\u2013314.",
+  "Kantor J, et al. Effect of low-frequency sound vibration on heart rate variability and subjective stress: a pilot randomized controlled trial. 2022.",
+  "Zabrecky G, et al. Vibroacoustic stimulation in patients with insomnia: effects on sleep and brain functional connectivity. 2020.",
+  "Sandler H, et al. Relaxation effects of vibroacoustic stimulation via a Body Monochord. 2017.",
+  "Naghdi L, et al. The effect of low-frequency sound stimulation on patients with fibromyalgia: pain and sleep outcomes. 2015.",
 ];
 
 export function ScienceSection() {
@@ -116,6 +120,10 @@ export function ScienceSection() {
         <div className="mx-auto mt-12 max-w-3xl border-t pt-6">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
             Selected clinical references
+          </p>
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            Vibroacoustic therapy has been the subject of peer-reviewed research for over three
+            decades. A selection of that work is listed below.
           </p>
           <ul className="mt-3 space-y-1.5">
             {REFERENCES.map((r) => (
