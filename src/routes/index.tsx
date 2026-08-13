@@ -64,19 +64,19 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { property: "og:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
       {
         property: "og:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { name: "twitter:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
       {
         name: "twitter:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -179,7 +179,7 @@ function LandingPage() {
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
               Turn a therapy table you already own into a new source of income. The Resonabed kit
               can potentially convert your existing massage, chiropractic, osteopathic or any
-              therapeutic treatment bed into a vibroacoustic therapy table, a calm, high-margin
+              therapeutic treatment table into a vibroacoustic therapy table, a calm, high-margin
               session your clients will book again and again.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -203,7 +203,7 @@ function LandingPage() {
             </p>
             <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
-                { k: "Tactile transducers", v: "Your bed becomes the instrument" },
+                { k: "Tactile transducers", v: "Your table becomes the instrument" },
                 { k: "Bluetooth amplifier", v: "Professional power, zero audio stress" },
                 { k: "Player + bookings", v: "One calm app for every session" },
                 { k: "9 Solfeggio frequencies", v: "Therapeutic tones ready to play" },
@@ -230,7 +230,7 @@ function LandingPage() {
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-2xl">
               <img
                 src={hero.url}
-                alt="Client resting on a Resonabed vibroacoustic therapy bed"
+                alt="Client resting on a Resonabed vibroacoustic therapy table"
                 className="h-auto w-full"
                 draggable={false}
               />
