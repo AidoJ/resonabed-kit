@@ -356,31 +356,48 @@ function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 icon: Speaker,
                 title: "Tactile transducers",
                 body: "Two premium speakers that send low-frequency sound as gentle vibration through your existing table. Your clients don't just hear the music, they feel it moving through them.",
                 cta: "Your table becomes the instrument",
+                image: kitImages.transducer,
+                imageAlt: "Two tactile transducers included in the Resonabed kit",
+                pair: true,
               },
               {
                 icon: Volume2,
                 title: "Bluetooth amplifier",
                 body: "Compact, wireless amp with clean, professional power. Pair, place, and play. No audio engineering degree and no tangled wiring required.",
                 cta: "Plug-and-play power",
+                image: kitImages.amplifier,
+                imageAlt: "Bluetooth HiFi amplifier included in the Resonabed kit",
+              },
+              {
+                icon: Headphones,
+                title: "Audio-Technica ATH-M30x professional headphones",
+                body: "To complete the experience, every kit includes a pair of Audio-Technica ATH-M30x professional monitor headphones. Where the table delivers sound you feel, these deliver sound you hear in full studio-quality detail, sealing out distraction so your client is held entirely within the session. The same headphones professionals rely on, now part of yours.",
+                cta: "Studio-quality listening",
+                image: kitImages.headphones,
+                imageAlt: "Audio-Technica ATH-M30x professional monitor headphones",
               },
               {
                 icon: Tablet,
                 title: "Session player + booking app",
                 body: "One calm app for intake, frequency selection, playback, timer, session records and diary booking. Your practitioners can pick it up in minutes.",
                 cta: "Your session command centre",
+                image: kitImages.tablet,
+                imageAlt: "Resonabed session player app running on a tablet",
               },
               {
                 icon: Music,
                 title: "9 Solfeggio frequencies",
                 body: "Nine therapeutic, wellbeing-focused tones matched to feelings your clients will ask for by name. No separate music licence to negotiate.",
                 cta: "A library of therapeutic sound",
+                image: kitImages.solfeggio,
+                imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
               },
               {
                 icon: FileText,
@@ -396,31 +413,11 @@ function LandingPage() {
                 body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or any therapeutic treatment table you already own.",
                 cta: "Everything in the box",
               },
-            ].map(({ icon: Icon, title, body, cta, linkTo, linkLabel }) => (
-              <div
-                key={title}
-                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition hover:-translate-y-0.5 hover:shadow-lift"
-              >
-                <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-medium text-brand-indigo">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
-                {linkTo ? (
-                  <Link
-                    to={linkTo}
-                    className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
-                  >
-                    {linkLabel}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                ) : null}
-                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-violet-strong">
-                  {cta}
-                </p>
-              </div>
+            ].map((item) => (
+              <KitCard key={item.title} {...item} />
             ))}
           </div>
+
 
           <div className="mt-14 flex flex-col items-center justify-center gap-4 text-center sm:flex-row">
             <p className="text-sm text-muted-foreground">
