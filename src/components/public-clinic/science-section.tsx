@@ -121,6 +121,10 @@ export function ScienceSection() {
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
             Selected clinical references
           </p>
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            Vibroacoustic therapy has been the subject of peer-reviewed research for over three
+            decades. A selection of that work is listed below.
+          </p>
           <ul className="mt-3 space-y-1.5">
             {REFERENCES.map((r) => (
               <li key={r} className="text-xs leading-relaxed text-muted-foreground">
