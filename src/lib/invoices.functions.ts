@@ -149,13 +149,29 @@ export const setKitInvoiceStatus = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertSuper(context);
     const sb = context.supabase as any;
-    const { error } = await sb
+    const { data: invoice, error } = await sb
       .from("kit_invoices")
       .update({ status: data.status })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .select("*")
+      .single();
     if (error) throw new Error(error.message);
+
+    // Marking an invoice paid by hand fulfils the order exactly like a card
+    // payment does: personal buyers get their access code emailed, business
+    // buyers land in the onboarding queue. Idempotent, so it is safe if a
+    // payment was already recorded against this invoice.
+    if (data.status === "paid" && invoice) {
+      try {
+        const { fulfilPaidInvoice } = await import("@/lib/invoice-fulfilment.server");
+        return { ok: true, fulfilment: await fulfilPaidInvoice(invoice) };
+      } catch (err) {
+        console.error("fulfilPaidInvoice (status change) failed", err);
+      }
+    }
     return { ok: true };
   });
+
 
 export const deleteKitInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
