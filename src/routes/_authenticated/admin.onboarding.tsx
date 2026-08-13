@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Building2, Copy, Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  createOnboardingOrderManually,
   listOnboardingOrders,
   markOnboardingOrderProvisioned,
   updateOnboardingOrder,
@@ -72,6 +73,7 @@ function OnboardingPage() {
   const listFn = useServerFn(listOnboardingOrders);
   const updateFn = useServerFn(updateOnboardingOrder);
   const [active, setActive] = useState<OnboardingOrderRow | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["kit-onboarding-orders"],
@@ -94,13 +96,18 @@ function OnboardingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Clinic onboarding</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Paid business orders waiting to become clinics. Slug, ABN and clinic type are set by hand
-          here, never guessed, because clinic type controls whether a practitioner's street address
-          can ever appear publicly.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Clinic onboarding</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Paid business orders waiting to become clinics. Slug, ABN and clinic type are set by
+            hand here, never guessed, because clinic type controls whether a practitioner's street
+            address can ever appear publicly.
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => setAddOpen(true)}>
+          Add order by hand
+        </Button>
       </div>
 
       {isLoading ? (
@@ -152,7 +159,141 @@ function OnboardingPage() {
           refresh();
         }}
       />
+
+      <AddOrderDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onDone={() => {
+          setAddOpen(false);
+          refresh();
+        }}
+      />
     </div>
+  );
+}
+
+/**
+ * Wrong-choice remedy: a buyer who paid as personal but actually runs a clinic
+ * is queued here by hand, no refund and rebuy.
+ */
+function AddOrderDialog({
+  open,
+  onOpenChange,
+  onDone,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onDone: () => void;
+}) {
+  const createFn = useServerFn(createOnboardingOrderManually);
+  const [form, setForm] = useState({
+    businessName: "",
+    contactName: "",
+    contactEmail: "",
+    contactPhone: "",
+    abn: "",
+    reference: "",
+    notes: "",
+  });
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const create = useMutation({
+    mutationFn: () =>
+      createFn({
+        data: {
+          businessName: form.businessName.trim() || undefined,
+          contactName: form.contactName.trim() || undefined,
+          contactEmail: form.contactEmail.trim(),
+          contactPhone: form.contactPhone.trim() || undefined,
+          abn: form.abn.trim() || undefined,
+          reference: form.reference.trim() || undefined,
+          notes: form.notes.trim() || undefined,
+        },
+      }),
+    onSuccess: (res) => {
+      toast.success(
+        (res as { alreadyExisted?: boolean }).alreadyExisted
+          ? "That reference is already in the queue"
+          : "Order queued for clinic onboarding",
+      );
+      setForm({
+        businessName: "",
+        contactName: "",
+        contactEmail: "",
+        contactPhone: "",
+        abn: "",
+        reference: "",
+        notes: "",
+      });
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const valid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.contactEmail.trim());
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add a clinic order by hand</DialogTitle>
+          <DialogDescription>
+            For a buyer who paid as personal but is really a clinic, or a phone or bank-transfer
+            order. It queues them for provisioning and emails the "being set up" note.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Clinic or business name</Label>
+            <Input value={form.businessName} onChange={set("businessName")} maxLength={160} />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Contact name</Label>
+              <Input value={form.contactName} onChange={set("contactName")} maxLength={120} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Contact email</Label>
+              <Input
+                type="email"
+                value={form.contactEmail}
+                onChange={set("contactEmail")}
+                maxLength={200}
+              />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Phone</Label>
+              <Input value={form.contactPhone} onChange={set("contactPhone")} maxLength={40} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ABN</Label>
+              <Input value={form.abn} onChange={set("abn")} maxLength={20} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Reference (Stripe session id or invoice number)</Label>
+            <Input value={form.reference} onChange={set("reference")} maxLength={120} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Notes</Label>
+            <Input value={form.notes} onChange={set("notes")} maxLength={300} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button disabled={!valid || create.isPending} onClick={() => create.mutate()}>
+            {create.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Queue for onboarding
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -80,9 +80,12 @@ export function BuyerTypeStepDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>How will you use the {packageName}?</DialogTitle>
+          <DialogTitle className="text-xl">
+            Before you pay, who is this {packageName} for?
+          </DialogTitle>
           <DialogDescription>
-            This sets up the right account for you after payment. It doesn't change the price.
+            Pick one. It decides how your account is set up after payment, and it does not change
+            the price.
           </DialogDescription>
         </DialogHeader>
 
@@ -98,9 +101,11 @@ export function BuyerTypeStepDialog({
             }
           >
             <User className="h-5 w-5 text-brand-violet-strong" />
-            <div className="mt-2 font-medium">Personal use</div>
+            <div className="mt-2 text-base font-semibold">For my own use at home</div>
             <p className="mt-1 text-xs text-muted-foreground">
-              For your own home. You get a one-time code to set up the personal app straight away.
+              You are buying it for yourself, family or friends, not to charge clients. We email a
+              one-time code the moment you pay, and you set up the personal app yourself in
+              minutes. No clinic details needed.
             </p>
           </button>
 
@@ -115,13 +120,19 @@ export function BuyerTypeStepDialog({
             }
           >
             <Building2 className="h-5 w-5 text-brand-violet-strong" />
-            <div className="mt-2 font-medium">Business or clinic</div>
+            <div className="mt-2 text-base font-semibold">For my clinic or practice</div>
             <p className="mt-1 text-xs text-muted-foreground">
-              For paying clients. We set up your clinic account and public page, then email your
-              login.
+              You will offer sessions to paying clients. We set up your clinic account, bookings
+              and public page by hand, then email your login within one business day.
             </p>
           </button>
         </div>
+
+        {!choice ? (
+          <p className="text-center text-xs text-muted-foreground">
+            Choose one to continue to payment.
+          </p>
+        ) : null}
 
         {choice === "business" ? (
           <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
