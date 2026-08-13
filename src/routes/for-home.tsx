@@ -49,7 +49,7 @@ const NAV_LINKS = [
   { href: "#what-it-is", label: "What it is" },
   { href: "#feeling", label: "How it feels" },
   { href: "#app", label: "The app" },
-  { href: "#box", label: "What arrives" },
+  { href: "#box", label: "What's in the box" },
   { href: "#price", label: "Price" },
   { href: "#faq", label: "Questions" },
 ];
@@ -89,7 +89,7 @@ const FAQ = [
   },
   {
     q: "How does it arrive?",
-    a: "The table comes already fitted with the transducers, amplifier and wiring, so it is close to ready when it lands. Delivery is calculated at checkout by destination.",
+    a: "The table comes already fitted with the transducers, amplifier and wiring, so it is close to ready when it lands. Shipping is charged on top of the $1,599 and is calculated at checkout by your location, typically $80 to $150.",
   },
 ];
 
@@ -193,7 +193,8 @@ function ForHomePage() {
             </a>
           </div>
           <p className="mt-6 text-xs text-white/55">
-            Complete package, delivered Australia wide. Payment plan available.
+            Complete package, shipped Australia wide. Shipping is calculated at checkout based on
+            your location, typically $80 to $150. Payment plan available.
           </p>
         </div>
       </section>
@@ -371,11 +372,10 @@ function ForHomePage() {
       <section id="box" className="bg-brand-tint/40 py-20 md:py-24">
         <div className="mx-auto max-w-6xl px-5">
           <h2 className="text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            What arrives at your door
+            What&rsquo;s in the box
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            Everything, in one delivery. The table comes already fitted, so there is no building to
-            do.
+            Everything, together. The table comes already fitted, so there is no building to do.
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             <KitCard
@@ -420,6 +420,11 @@ function ForHomePage() {
               body="A proper therapy table, fitted, tested and packed. Unbox it, plug it in, pair your device and you are ready."
             />
           </div>
+          <p className="mt-10 text-base font-medium text-brand-indigo">
+            Ready to enjoy. Set it up, lie down, and begin.
+          </p>
+          <div className="hidden">
+          </div>
         </div>
       </section>
 
@@ -431,13 +436,14 @@ function ForHomePage() {
               One price, everything included
             </h2>
             <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-              $1,599 AUD including GST, delivered. That is the fitted table, the transducers and
+              $1,599 AUD, everything above included. Shipping is calculated at checkout based on
+              your location (typically $80 to $150). That is the fitted table, the transducers and
               amplifier, the headphones, the personal app with a perpetual licence and all nine
               frequencies. There is nothing else to buy afterwards.
             </p>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              Pay in full by card, spread it over a deposit and ten monthly payments, or ask for a
-              bank transfer invoice at checkout. However you pay, your access code is emailed to
+              Pay in full by card, spread it over a $799 deposit and eight monthly payments of
+               $100, or ask for a bank transfer invoice at checkout. However you pay, your access code is emailed to
               you as soon as the first payment lands, so you can set the app up while the table is
               on its way.
             </p>
@@ -445,7 +451,10 @@ function ForHomePage() {
               {[
                 { icon: Sparkles, text: "Perpetual licence, no subscription and no renewals" },
                 { icon: Heart, text: "For you, your family and your friends at home" },
-                { icon: Package, text: "Delivered Australia wide, calculated at checkout" },
+                {
+                  icon: Package,
+                  text: "Shipped Australia wide, freight calculated at checkout by location",
+                },
               ].map((r) => (
                 <div key={r.text} className="flex items-start gap-3 text-sm text-muted-foreground">
                   <r.icon className="mt-0.5 h-4 w-4 shrink-0 text-brand-violet-strong" />
