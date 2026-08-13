@@ -59,7 +59,7 @@ export function ScienceSection() {
             <p>
               Research indicates low-frequency vibration may help regulate the autonomic nervous
               system, encouraging a shift from the body&rsquo;s fight-or-flight response toward the
-              restorative rest-and-digest state &mdash; associated with reduced muscle tension,
+              restorative rest-and-digest state, which is associated with reduced muscle tension,
               slower breathing, lower perceived stress, and improved relaxation.
             </p>
             <div
