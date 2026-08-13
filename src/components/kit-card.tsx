@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import transducerAsset from "@/assets/kit-transducer.png.asset.json";
 import amplifierAsset from "@/assets/kit-amplifier.png.asset.json";
 import tabletAsset from "@/assets/kit-tablet.png.asset.json";
-import solfeggioAsset from "@/assets/kit-solfeggio.png.asset.json";
+import solfeggioAsset from "@/assets/kit-solfeggio.jpg.asset.json";
 import headphonesAsset from "@/assets/kit-headphones.png.asset.json";
 import brochureAsset from "@/assets/kit-brochure.png.asset.json";
 
