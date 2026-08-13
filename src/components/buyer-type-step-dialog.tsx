@@ -80,9 +80,12 @@ export function BuyerTypeStepDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>How will you use the {packageName}?</DialogTitle>
+          <DialogTitle className="text-xl">
+            Before you pay, who is this {packageName} for?
+          </DialogTitle>
           <DialogDescription>
-            This sets up the right account for you after payment. It doesn't change the price.
+            Pick one. It decides how your account is set up after payment, and it does not change
+            the price.
           </DialogDescription>
         </DialogHeader>
 
