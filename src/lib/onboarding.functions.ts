@@ -100,3 +100,44 @@ export const updateOnboardingOrder = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/**
+ * Manual remedy for a wrong choice at checkout: a buyer who paid as personal
+ * but actually runs a clinic can be moved into the onboarding queue by hand,
+ * without a refund and rebuy. Idempotent on (source, source_ref).
+ */
+export const createOnboardingOrderManually = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        businessName: z.string().trim().max(160).optional(),
+        contactName: z.string().trim().max(120).optional(),
+        contactEmail: z.string().trim().email().max(200),
+        contactPhone: z.string().trim().max(40).optional(),
+        abn: z.string().trim().max(20).optional(),
+        packageKey: z.string().trim().max(40).optional(),
+        reference: z.string().trim().max(120).optional(),
+        notes: z.string().trim().max(2000).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await requireSuperAdmin(context);
+    const { recordOnboardingOrder } = await import("@/lib/onboarding.server");
+    const result = await recordOnboardingOrder({
+      source: "manual",
+      sourceRef: data.reference || null,
+      businessName: data.businessName ?? null,
+      abn: data.abn ?? null,
+      contactName: data.contactName ?? null,
+      contactEmail: data.contactEmail,
+      contactPhone: data.contactPhone ?? null,
+      packageKey: data.packageKey ?? null,
+      plan: null,
+      shippingAddress: null,
+      amountCents: null,
+      notes: data.notes ?? "Added by hand after a wrong choice at checkout.",
+    });
+    return result;
+  });
