@@ -120,13 +120,19 @@ export function BuyerTypeStepDialog({
             }
           >
             <Building2 className="h-5 w-5 text-brand-violet-strong" />
-            <div className="mt-2 font-medium">Business or clinic</div>
+            <div className="mt-2 text-base font-semibold">For my clinic or practice</div>
             <p className="mt-1 text-xs text-muted-foreground">
-              For paying clients. We set up your clinic account and public page, then email your
-              login.
+              You will offer sessions to paying clients. We set up your clinic account, bookings
+              and public page by hand, then email your login within one business day.
             </p>
           </button>
         </div>
+
+        {!choice ? (
+          <p className="text-center text-xs text-muted-foreground">
+            Choose one to continue to payment.
+          </p>
+        ) : null}
 
         {choice === "business" ? (
           <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
