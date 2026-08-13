@@ -192,6 +192,15 @@ function LandingPage() {
                 </Button>
               </a>
             </div>
+            <p className="mt-4 text-sm text-white/60">
+              Buying for your own home?{" "}
+              <a
+                href="#home-use"
+                className="underline underline-offset-4 hover:text-white/85"
+              >
+                Resonabed works for personal use too, see home use below.
+              </a>
+            </p>
             <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
                 { k: "Tactile transducers", v: "Your bed becomes the instrument" },
@@ -450,6 +459,11 @@ function LandingPage() {
               marketing flyers
             </Link>
             .
+          </p>
+          <p className="mt-3 text-muted-foreground">
+            Buying for home use? The same kits apply. Just choose &ldquo;for home use&rdquo; at
+            checkout and you&rsquo;ll get the personal Resonabed app instead of the clinic
+            platform.
           </p>
         </div>
 
