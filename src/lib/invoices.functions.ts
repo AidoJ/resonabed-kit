@@ -240,42 +240,16 @@ export const recordKitPayment = createServerFn({ method: "POST" })
     );
     if (sum >= (invoice?.total_cents ?? 0) && invoice?.status !== "void") {
       await sb.from("kit_invoices").update({ status: "paid" }).eq("id", data.invoiceId);
-      // A fully paid kit invoice follows the same fork as a card order:
-      // business buyers go to the clinic onboarding queue, personal buyers get
-      // their home-app access code.
-      if (invoice?.customer_email) {
-        if ((invoice.buyer_type as string | null) === "business") {
-          const { recordOnboardingOrder } = await import("@/lib/onboarding.server");
-          await recordOnboardingOrder({
-            source: "eft",
-            sourceRef: invoice.invoice_number as string,
-            businessName: (invoice.business_name as string | null) ?? null,
-            abn: (invoice.abn as string | null) ?? null,
-            contactName: (invoice.customer_name as string | null) ?? null,
-            contactEmail: invoice.customer_email as string,
-            contactPhone: (invoice.customer_phone as string | null) ?? null,
-            packageKey: (invoice.package_key as string | null) ?? null,
-            plan: (invoice.plan as string | null) ?? null,
-            shippingAddress: (invoice.shipping_address as string | null) ?? null,
-            amountCents: (invoice.total_cents as number | null) ?? null,
-            notes: `Invoice ${invoice.invoice_number} paid in full.`,
-          }).catch((err) => console.error("recordOnboardingOrder (invoice) failed", err));
-        } else {
-          const { issueAccessCode } = await import("@/lib/home-access.server");
-          await issueAccessCode({
-            buyerEmail: invoice.customer_email as string,
-            buyerName: (invoice.customer_name as string | null) ?? null,
-            buyerPhone: (invoice.customer_phone as string | null) ?? null,
-            packageKey: (invoice.package_key as string | null) ?? null,
-            source: "eft",
-            sourceRef: invoice.invoice_number as string,
-            buyerType: "personal",
-          }).catch((err) => console.error("issueAccessCode (invoice) failed", err));
-        }
+      try {
+        const { fulfilPaidInvoice } = await import("@/lib/invoice-fulfilment.server");
+        await fulfilPaidInvoice(invoice);
+      } catch (err) {
+        console.error("fulfilPaidInvoice (payment) failed", err);
       }
     } else if (invoice?.status === "draft") {
       await sb.from("kit_invoices").update({ status: "sent" }).eq("id", data.invoiceId);
     }
+
 
     return row as KitPayment;
   });
