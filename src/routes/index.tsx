@@ -97,6 +97,8 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   const [signedIn, setSignedIn] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
   }, []);
