@@ -30,7 +30,7 @@ export const Route = createFileRoute("/for-home")({
       {
         name: "description",
         content:
-          "A fully fitted vibroacoustic therapy table for your own home. Lie down, choose a frequency, and feel the music. $1,599 AUD complete, delivered Australia wide.",
+          "A fully fitted vibroacoustic therapy table for your own home. Lie down, choose a frequency, and feel the music. $1,599 AUD, plus shipping calculated at checkout. Shipped Australia wide.",
       },
       { property: "og:title", content: "Resonabed for Home | Vibroacoustic Therapy at Home" },
       {

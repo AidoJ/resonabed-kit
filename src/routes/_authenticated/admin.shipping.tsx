@@ -100,7 +100,7 @@ function ShippingRatesPage() {
       <div>
         <h2 className="text-xl font-medium">Shipping rates</h2>
         <p className="text-sm text-muted-foreground">
-          Flat-rate shipping charges applied to Resonabed kit orders, per destination region.
+          Flat-rate shipping charges per destination region. Kit bands cover the practitioner kit cartons, table bands cover the fitted Resonabed for Home table freight.
           Country groupings are managed in the database.
         </p>
       </div>
@@ -135,7 +135,16 @@ function ShippingRatesPage() {
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">
-                        <div className="text-brand-indigo">{r.label}</div>
+                        <div className="text-brand-indigo">
+                          {r.label}
+                          <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                            {r.applies_to === "table"
+                              ? "Table freight"
+                              : r.applies_to === "any"
+                                ? "All orders"
+                                : "Kit"}
+                          </span>
+                        </div>
                         <div className="text-xs uppercase tracking-wider text-muted-foreground">
                           {r.region}
                         </div>
