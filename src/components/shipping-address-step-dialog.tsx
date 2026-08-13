@@ -131,11 +131,14 @@ function parseGoogleAddress(components: GoogleAddressComponent[], fallbackLine1:
 export function ShippingAddressStepDialog({
   open,
   packagePriceCents,
+  shippingScope = "kit",
   onCancel,
   onContinue,
 }: {
   open: boolean;
   packagePriceCents: number;
+  /** 'table' prices against the fitted-table freight bands, 'kit' against carton rates. */
+  shippingScope?: "kit" | "table";
   onCancel: () => void;
   onContinue: (payload: ShippingContinuePayload) => void;
 }) {
@@ -188,8 +191,12 @@ export function ShippingAddressStepDialog({
 
   // Shippable rows only (excludes pickup / $0). Pickup is handled by the toggle.
   const shippableRates = useMemo<ShippingRateRow[]>(
-    () => (rates ?? []).filter((r) => r.amount_cents > 0),
-    [rates],
+    () =>
+      (rates ?? []).filter(
+        (r) =>
+          r.amount_cents > 0 && (r.applies_to === shippingScope || r.applies_to === "any"),
+      ),
+    [rates, shippingScope],
   );
 
   const countryOptions = useMemo(() => {
@@ -269,11 +276,20 @@ export function ShippingAddressStepDialog({
   // Match country → rate by lowest sort_order tiebreaker (rates already sorted).
   const matchedRate = useMemo<ShippingRateRow | null>(() => {
     if (!form.country) return null;
+    const inCountry = shippableRates.filter((r) =>
+      r.allowed_countries.map((c) => c.toUpperCase()).includes(form.country),
+    );
+    const st = (form.state ?? "").trim().toUpperCase();
+    // A state-specific freight band beats the catch-all band for that country.
     return (
-      shippableRates.find((r) => r.allowed_countries.map((c) => c.toUpperCase()).includes(form.country)) ??
+      inCountry.find(
+        (r) => (r.allowed_states ?? []).length > 0 && !!st &&
+          (r.allowed_states ?? []).map((c) => c.toUpperCase()).includes(st),
+      ) ??
+      inCountry.find((r) => (r.allowed_states ?? []).length === 0) ??
       null
     );
-  }, [shippableRates, form.country]);
+  }, [shippableRates, form.country, form.state]);
 
   const fmt = (cents: number) => `$${(cents / 100).toFixed(2)} AUD`;
 

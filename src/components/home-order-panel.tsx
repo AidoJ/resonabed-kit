@@ -21,7 +21,7 @@ import {
 
 const PRICE_CENTS = 159900;
 const PRICE = "$1,599";
-const PLAN = { deposit: 599, monthly: 100, months: 10 };
+const PLAN = { deposit: 799, monthly: 100, months: 8 };
 
 const INCLUDES = [
   "Therapy table, fully fitted and ready to lie on",
@@ -152,6 +152,9 @@ export function HomeOrderPanel() {
         <span className="text-sm text-muted-foreground">AUD · incl. GST</span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">$1,454 + $145 GST = $1,599</p>
+      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+        Shipping is calculated at checkout based on your location (typically $80 to $150).
+      </p>
 
       <ul className="mt-7 space-y-3">
         {INCLUDES.map((f) => (
@@ -182,7 +185,7 @@ export function HomeOrderPanel() {
             : `Deposit $${PLAN.deposit} + ${PLAN.months} × $${PLAN.monthly}/mo`}
         </Button>
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-          + delivery, calculated by destination · payment plan total $
+          Shipping calculated at checkout by location, typically $80 to $150 · payment plan total $
           {PLAN.deposit + PLAN.monthly * PLAN.months} incl. GST, billed monthly and stopping
           automatically after the final payment · you can also pay by bank transfer · secure
           checkout by Stripe
@@ -205,6 +208,7 @@ export function HomeOrderPanel() {
       <ShippingAddressStepDialog
         open={shippingOpen}
         packagePriceCents={PRICE_CENTS}
+        shippingScope="table"
         onCancel={() => {
           setShippingOpen(false);
           setPendingPlan(null);

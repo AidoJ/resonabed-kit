@@ -1810,7 +1810,9 @@ export type Database = {
         Row: {
           active: boolean
           allowed_countries: string[]
+          allowed_states: string[]
           amount_cents: number
+          applies_to: string
           created_at: string
           gst_inclusive: boolean
           id: string
@@ -1822,7 +1824,9 @@ export type Database = {
         Insert: {
           active?: boolean
           allowed_countries?: string[]
+          allowed_states?: string[]
           amount_cents: number
+          applies_to?: string
           created_at?: string
           gst_inclusive?: boolean
           id?: string
@@ -1834,7 +1838,9 @@ export type Database = {
         Update: {
           active?: boolean
           allowed_countries?: string[]
+          allowed_states?: string[]
           amount_cents?: number
+          applies_to?: string
           created_at?: string
           gst_inclusive?: boolean
           id?: string
