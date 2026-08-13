@@ -603,17 +603,27 @@ function LandingPage() {
               Choose the package that fits your clinic, complete checkout, and start offering
               vibroacoustic sessions in the room you already use.
             </p>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-              Buying a kit for your own home? Every purchase includes the personal Resonabed app. We
-              email you an access code, and you set it up at{" "}
-              <Link
-                to="/home/signup"
-                className="text-brand-indigo underline-offset-4 hover:underline"
-              >
-                resonabed.com/home/signup
-              </Link>
-              .
-            </p>
+            <div
+              id="home-use"
+              className="mx-auto mt-8 max-w-xl scroll-mt-24 rounded-2xl border border-border bg-muted/30 p-6 text-left"
+            >
+              <h3 className="text-lg font-medium text-brand-indigo">
+                Buying for your own home?
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Resonabed isn&rsquo;t just for clinics. Every kit includes the personal Resonabed
+                app for home use, no bookings, no clients, just you and your sessions. Choose
+                &ldquo;for home use&rdquo; at checkout and we&rsquo;ll email you an access code to
+                set up at{" "}
+                <Link
+                  to="/home/signup"
+                  className="text-brand-indigo underline-offset-4 hover:underline"
+                >
+                  resonabed.com/home/signup
+                </Link>
+                . Same kit, same therapeutic frequencies, ready in minutes.
+              </p>
+            </div>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <a href="#packages">
                 <Button className="h-12 rounded-full px-7 text-[15px] font-medium">
