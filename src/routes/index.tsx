@@ -54,7 +54,17 @@ import {
   Mail,
   Phone,
   Send,
+  Menu,
+  X,
 } from "lucide-react";
+
+const NAV_LINKS: { href: string; label: string }[] = [
+  { href: "#packages", label: "Packages" },
+  { href: "#how", label: "How it works" },
+  { href: "#about", label: "About" },
+  { href: "#contact", label: "Contact" },
+];
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
