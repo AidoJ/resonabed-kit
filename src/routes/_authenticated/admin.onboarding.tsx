@@ -73,6 +73,7 @@ function OnboardingPage() {
   const listFn = useServerFn(listOnboardingOrders);
   const updateFn = useServerFn(updateOnboardingOrder);
   const [active, setActive] = useState<OnboardingOrderRow | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["kit-onboarding-orders"],
