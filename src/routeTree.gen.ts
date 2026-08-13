@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VibroacousticTherapyBedRouteImport } from './routes/vibroacoustic-therapy-bed'
 import { Route as VibroacousticSoundBedRouteImport } from './routes/vibroacoustic-sound-bed'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -67,6 +68,11 @@ import { Route as ApiPublicHooksStripeRouteImport } from './routes/api/public/ho
 import { Route as ApiPublicHooksOfferTickRouteImport } from './routes/api/public/hooks/offer-tick'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
 
+const VibroacousticTherapyBedRoute = VibroacousticTherapyBedRouteImport.update({
+  id: '/vibroacoustic-therapy-bed',
+  path: '/vibroacoustic-therapy-bed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VibroacousticSoundBedRoute = VibroacousticSoundBedRouteImport.update({
   id: '/vibroacoustic-sound-bed',
   path: '/vibroacoustic-sound-bed',
@@ -386,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
+  '/vibroacoustic-therapy-bed': typeof VibroacousticTherapyBedRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/audio': typeof AuthenticatedAudioRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
@@ -443,6 +450,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
+  '/vibroacoustic-therapy-bed': typeof VibroacousticTherapyBedRoute
   '/audio': typeof AuthenticatedAudioRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
   '/change-password': typeof AuthenticatedChangePasswordRoute
@@ -501,6 +509,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
+  '/vibroacoustic-therapy-bed': typeof VibroacousticTherapyBedRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/audio': typeof AuthenticatedAudioRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
@@ -561,6 +570,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/vibroacoustic-sound-bed'
+    | '/vibroacoustic-therapy-bed'
     | '/admin'
     | '/audio'
     | '/availability'
@@ -618,6 +628,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/vibroacoustic-sound-bed'
+    | '/vibroacoustic-therapy-bed'
     | '/audio'
     | '/availability'
     | '/change-password'
@@ -675,6 +686,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/vibroacoustic-sound-bed'
+    | '/vibroacoustic-therapy-bed'
     | '/_authenticated/admin'
     | '/_authenticated/audio'
     | '/_authenticated/availability'
@@ -735,6 +747,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VibroacousticSoundBedRoute: typeof VibroacousticSoundBedRoute
+  VibroacousticTherapyBedRoute: typeof VibroacousticTherapyBedRoute
   OSlugRoute: typeof OSlugRoute
   OfferTokenRoute: typeof OfferTokenRoute
   OrderCancelledRoute: typeof OrderCancelledRoute
@@ -749,6 +762,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vibroacoustic-therapy-bed': {
+      id: '/vibroacoustic-therapy-bed'
+      path: '/vibroacoustic-therapy-bed'
+      fullPath: '/vibroacoustic-therapy-bed'
+      preLoaderRoute: typeof VibroacousticTherapyBedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vibroacoustic-sound-bed': {
       id: '/vibroacoustic-sound-bed'
       path: '/vibroacoustic-sound-bed'
@@ -1275,6 +1295,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VibroacousticSoundBedRoute: VibroacousticSoundBedRoute,
+  VibroacousticTherapyBedRoute: VibroacousticTherapyBedRoute,
   OSlugRoute: OSlugRoute,
   OfferTokenRoute: OfferTokenRoute,
   OrderCancelledRoute: OrderCancelledRoute,

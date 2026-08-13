@@ -243,9 +243,17 @@ function LandingPage() {
                 className="underline underline-offset-4 hover:text-white/85"
               >
                 vibroacoustic sound bed
+              </Link>{" "}
+              or a{" "}
+              <Link
+                to="/vibroacoustic-therapy-bed"
+                className="underline underline-offset-4 hover:text-white/85"
+              >
+                vibroacoustic therapy bed
               </Link>
               ? See how the kit converts your table into one.
             </p>
+
 
             <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
