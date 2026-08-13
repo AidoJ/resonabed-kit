@@ -279,7 +279,7 @@ export function ShippingAddressStepDialog({
     const inCountry = shippableRates.filter((r) =>
       r.allowed_countries.map((c) => c.toUpperCase()).includes(form.country),
     );
-    const st = form.state.trim().toUpperCase();
+    const st = (form.state ?? "").trim().toUpperCase();
     // A state-specific freight band beats the catch-all band for that country.
     return (
       inCountry.find(
