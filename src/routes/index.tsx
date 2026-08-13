@@ -501,10 +501,10 @@ function LandingPage() {
           />
           <ContactPackageCard
             name="Platinum"
-            priceLine="From $1699 - $1949 AUD · incl. GST"
+            priceLine="From $1,699 to $1,949 AUD · incl. GST"
             tagline="Business in a box."
             description={
-              'Everything in Pro, plus a 10" Android tablet set up and ready to run the app, so nothing breaks the stillness of a session.'
+              "Everything in Pro, plus a new therapy table with the system fully installed, your complete business in a box, ready to run from the moment it arrives."
             }
             features={[
               "Everything included in Pro",
@@ -518,7 +518,8 @@ function LandingPage() {
 
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment bed.
+          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment
+          table.
           The kit is designed to upgrade the table you already use and must have a solid timber base
           to attach the equipment.
         </p>
