@@ -423,8 +423,10 @@ function ForHomePage() {
           <p className="mt-10 text-base font-medium text-brand-indigo">
             Ready to enjoy. Set it up, lie down, and begin.
           </p>
-          <div className="hidden">
-          </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Shipping is calculated at checkout based on your location (typically $80 to $150).
+          </p>
+
         </div>
       </section>
 
