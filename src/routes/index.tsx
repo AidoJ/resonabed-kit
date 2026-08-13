@@ -54,7 +54,17 @@ import {
   Mail,
   Phone,
   Send,
+  Menu,
+  X,
 } from "lucide-react";
+
+const NAV_LINKS: { href: string; label: string }[] = [
+  { href: "#packages", label: "Packages" },
+  { href: "#how", label: "How it works" },
+  { href: "#about", label: "About" },
+  { href: "#contact", label: "Contact" },
+];
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -87,6 +97,8 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   const [signedIn, setSignedIn] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
   }, []);
@@ -118,44 +130,29 @@ function LandingPage() {
 
         {/* NAV */}
         <header className="relative z-20">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-6 md:px-10 md:py-8">
-            <div className="flex flex-col items-center">
+          <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-6 md:px-10 md:py-8">
+            <div className="flex min-w-0 flex-col items-start md:items-center">
               <img
                 src={logoWhite}
                 alt="Resonabed"
-                className="h-32 w-auto md:h-44 lg:h-52 drop-shadow-[0_6px_28px_rgba(136,75,199,0.55)]"
+                className="h-20 w-auto sm:h-28 md:h-44 lg:h-52 drop-shadow-[0_6px_28px_rgba(136,75,199,0.55)]"
                 draggable={false}
               />
-              <p className="-mt-2 text-xs font-medium uppercase tracking-[0.35em] text-white/70 md:-mt-4 md:text-sm">
+              <p className="-mt-1 text-[10px] font-medium uppercase tracking-[0.3em] text-white/70 sm:text-xs md:-mt-4 md:tracking-[0.35em] md:text-sm">
                 Feel. Rest. Restore.
               </p>
             </div>
-            <div className="flex items-center gap-3 md:gap-6">
-              <a
-                href="#packages"
-                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
-              >
-                Packages
-              </a>
-              <a
-                href="#how"
-                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
-              >
-                How it works
-              </a>
-              <a
-                href="#about"
-                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
-              >
-                About
-              </a>
-              <a
-                href="#contact"
-                className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
-              >
-                Contact
-              </a>
-              <Link to={loginHref}>
+            <div className="flex shrink-0 items-center gap-3 md:gap-6">
+              {NAV_LINKS.map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
+                >
+                  {l.label}
+                </a>
+              ))}
+              <Link to={loginHref} className="hidden sm:block">
                 <Button
                   variant="outline"
                   className="h-10 rounded-full border-white/30 bg-white/10 px-5 text-sm font-medium text-white backdrop-blur hover:bg-white/20 hover:text-white"
@@ -164,9 +161,42 @@ function LandingPage() {
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
               </Link>
+              <button
+                type="button"
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((o) => !o)}
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur lg:hidden"
+              >
+                {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
             </div>
           </div>
+          {menuOpen && (
+            <div className="mx-6 mb-4 rounded-2xl border border-white/15 bg-brand-ink/95 p-2 backdrop-blur lg:hidden md:mx-10">
+              <nav className="flex flex-col">
+                {NAV_LINKS.map((l) => (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="rounded-xl px-4 py-3 text-[15px] font-medium text-white/85 hover:bg-white/10 hover:text-white"
+                  >
+                    {l.label}
+                  </a>
+                ))}
+                <Link
+                  to={loginHref}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-xl px-4 py-3 text-[15px] font-medium text-white/85 hover:bg-white/10 hover:text-white sm:hidden"
+                >
+                  {loginLabel}
+                </Link>
+              </nav>
+            </div>
+          )}
         </header>
+
 
         <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-8 md:grid-cols-2 md:gap-8 md:px-10 md:pb-28 md:pt-12">
           <div className="flex flex-col justify-center">
