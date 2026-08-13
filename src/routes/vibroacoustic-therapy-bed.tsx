@@ -4,6 +4,7 @@ import logoWhite from "@/assets/resonabed-logo-white.svg";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
 import { ScienceSection } from "@/components/public-clinic/science-section";
+import { KitCard, kitImages } from "@/components/kit-card";
 import {
   ArrowRight,
   CheckCircle2,
@@ -13,7 +14,9 @@ import {
   Music,
   Package,
   Waves,
+  Headphones as HeadphonesIcon,
 } from "lucide-react";
+
 
 const TITLE = "Vibroacoustic Therapy Bed for Clinics | Resonabed";
 const DESCRIPTION =
@@ -248,27 +251,43 @@ function TherapyBedPage() {
             ))}
           </div>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 icon: Speaker,
                 title: "Two 80W tactile transducers",
                 body: "Premium transducers that send low-frequency sound as gentle vibration through your existing table, so clients do not just hear the music, they feel it moving through them.",
+                image: kitImages.transducer,
+                imageAlt: "Two tactile transducers included in the Resonabed kit",
+                pair: true,
               },
               {
                 icon: Volume2,
                 title: "Bluetooth amplifier",
                 body: "Compact wireless amp with clean, professional power. Pair, place and play. No audio engineering and no tangled wiring required.",
+                image: kitImages.amplifier,
+                imageAlt: "Bluetooth HiFi amplifier included in the Resonabed kit",
+              },
+              {
+                icon: HeadphonesIcon,
+                title: "Audio-Technica ATH-M30x professional headphones",
+                body: "To complete the experience, every kit includes a pair of Audio-Technica ATH-M30x professional monitor headphones. Where the table delivers sound you feel, these deliver sound you hear in full studio-quality detail, sealing out distraction so your client is held entirely within the session. The same headphones professionals rely on, now part of yours.",
+                image: kitImages.headphones,
+                imageAlt: "Audio-Technica ATH-M30x professional monitor headphones",
               },
               {
                 icon: Tablet,
                 title: "Session player and booking app",
                 body: "One calm app for client intake, frequency selection, playback, timer, session records and diary bookings. Practitioners pick it up in minutes.",
+                image: kitImages.tablet,
+                imageAlt: "Resonabed session player app running on a tablet",
               },
               {
                 icon: Music,
                 title: "9 Solfeggio frequencies",
                 body: "Nine therapeutic, wellbeing-focused tones matched to how clients describe what they want. Licensed and ready to play, with no separate music agreement.",
+                image: kitImages.solfeggio,
+                imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
               },
               {
                 icon: Package,
@@ -280,19 +299,11 @@ function TherapyBedPage() {
                 title: "Marketing pack",
                 body: "Your own customisable booking page plus 100 professionally designed DL flyers carrying your clinic details and a QR code that links straight to it.",
               },
-            ].map(({ icon: Icon, title, body }) => (
-              <div
-                key={title}
-                className="rounded-2xl border border-border bg-card p-8 transition hover:-translate-y-0.5 hover:shadow-lift"
-              >
-                <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand-violet-strong">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-medium text-brand-indigo">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
-              </div>
+            ].map((item) => (
+              <KitCard key={item.title} {...item} />
             ))}
           </div>
+
         </div>
       </section>
 
