@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /auth
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /offer/
+Disallow: /order/
+Disallow: /api/
+Disallow: /lovable/
+
+Sitemap: https://resonabed.com/sitemap.xml
