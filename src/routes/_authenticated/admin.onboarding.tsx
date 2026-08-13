@@ -96,13 +96,18 @@ function OnboardingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Clinic onboarding</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Paid business orders waiting to become clinics. Slug, ABN and clinic type are set by hand
-          here, never guessed, because clinic type controls whether a practitioner's street address
-          can ever appear publicly.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Clinic onboarding</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Paid business orders waiting to become clinics. Slug, ABN and clinic type are set by
+            hand here, never guessed, because clinic type controls whether a practitioner's street
+            address can ever appear publicly.
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => setAddOpen(true)}>
+          Add order by hand
+        </Button>
       </div>
 
       {isLoading ? (
