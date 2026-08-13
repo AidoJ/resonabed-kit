@@ -51,7 +51,7 @@ export const Route = createFileRoute("/o/$slug")({
     const { org } = loaderData;
     const url = `${SITE}/o/${params.slug}`;
     const title = org.public_strapline
-      ? `${org.name}, ${org.public_strapline}`.slice(0, 70)
+      ? `${org.name}, ${org.public_strapline}`.slice(0, 60)
       : `${org.name}, Vibroacoustic relaxation sessions`;
     const description =
       org.public_strapline
