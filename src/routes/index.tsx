@@ -233,12 +233,12 @@ function LandingPage() {
             </div>
             <p className="mt-4 text-sm text-white/60">
               Buying for your own home?{" "}
-              <a
-                href="#home-use"
+              <Link
+                to="/for-home"
                 className="underline underline-offset-4 hover:text-white/85"
               >
-                Resonabed works for personal use too, see home use below.
-              </a>
+                See Resonabed for Home, a complete fitted table for $1,599.
+              </Link>
             </p>
             <p className="mt-2 text-sm text-white/60">
               Looking for a{" "}
@@ -518,9 +518,14 @@ function LandingPage() {
             .
           </p>
           <p className="mt-3 text-muted-foreground">
-            Buying for home use? The same kits apply. Just choose &ldquo;for home use&rdquo; at
-            checkout and you&rsquo;ll get the personal Resonabed app instead of the clinic
-            platform.
+            Buying for your own home instead? There is a separate product for that,{" "}
+            <Link
+              to="/for-home"
+              className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
+            >
+              Resonabed for Home
+            </Link>
+            , a fully fitted table with headphones and the personal app for $1,599.
           </p>
         </div>
 
@@ -668,10 +673,16 @@ function LandingPage() {
                 Buying for your own home?
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Resonabed isn&rsquo;t just for clinics. Every kit includes the personal Resonabed
-                app for home use, no bookings, no clients, just you and your sessions. Choose
-                &ldquo;for home use&rdquo; at checkout and we&rsquo;ll email you an access code to
-                set up at{" "}
+                Resonabed isn&rsquo;t just for clinics.{" "}
+                <Link
+                  to="/for-home"
+                  className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
+                >
+                  Resonabed for Home
+                </Link>{" "}
+                is a complete package for $1,599: a fully fitted table, headphones and the personal
+                app, no bookings and no clients, just you and your sessions. We email an access code
+                the moment you pay, and you set up at{" "}
                 <Link
                   to="/home/signup"
                   className="text-brand-indigo underline-offset-4 hover:underline"
