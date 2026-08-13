@@ -64,19 +64,19 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { property: "og:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
       {
         property: "og:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { name: "twitter:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
       {
         name: "twitter:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -179,7 +179,7 @@ function LandingPage() {
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
               Turn a therapy table you already own into a new source of income. The Resonabed kit
               can potentially convert your existing massage, chiropractic, osteopathic or any
-              therapeutic treatment bed into a vibroacoustic therapy table, a calm, high-margin
+              therapeutic treatment table into a vibroacoustic therapy table, a calm, high-margin
               session your clients will book again and again.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -192,9 +192,18 @@ function LandingPage() {
                 </Button>
               </a>
             </div>
+            <p className="mt-4 text-sm text-white/60">
+              Buying for your own home?{" "}
+              <a
+                href="#home-use"
+                className="underline underline-offset-4 hover:text-white/85"
+              >
+                Resonabed works for personal use too, see home use below.
+              </a>
+            </p>
             <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
               {[
-                { k: "Tactile transducers", v: "Your bed becomes the instrument" },
+                { k: "Tactile transducers", v: "Your table becomes the instrument" },
                 { k: "Bluetooth amplifier", v: "Professional power, zero audio stress" },
                 { k: "Player + bookings", v: "One calm app for every session" },
                 { k: "9 Solfeggio frequencies", v: "Therapeutic tones ready to play" },
@@ -221,7 +230,7 @@ function LandingPage() {
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-2xl">
               <img
                 src={hero.url}
-                alt="Client resting on a Resonabed vibroacoustic therapy bed"
+                alt="Client resting on a Resonabed vibroacoustic therapy table"
                 className="h-auto w-full"
                 draggable={false}
               />
@@ -451,6 +460,11 @@ function LandingPage() {
             </Link>
             .
           </p>
+          <p className="mt-3 text-muted-foreground">
+            Buying for home use? The same kits apply. Just choose &ldquo;for home use&rdquo; at
+            checkout and you&rsquo;ll get the personal Resonabed app instead of the clinic
+            platform.
+          </p>
         </div>
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -487,10 +501,10 @@ function LandingPage() {
           />
           <ContactPackageCard
             name="Platinum"
-            priceLine="From $1699 - $1949 AUD · incl. GST"
+            priceLine="From $1,699 to $1,949 AUD · incl. GST"
             tagline="Business in a box."
             description={
-              'Everything in Pro, plus a 10" Android tablet set up and ready to run the app, so nothing breaks the stillness of a session.'
+              "Everything in Pro, plus a new therapy table with the system fully installed, your complete business in a box, ready to run from the moment it arrives."
             }
             features={[
               "Everything included in Pro",
@@ -504,7 +518,8 @@ function LandingPage() {
 
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment bed.
+          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment
+          table.
           The kit is designed to upgrade the table you already use and must have a solid timber base
           to attach the equipment.
         </p>
@@ -588,17 +603,27 @@ function LandingPage() {
               Choose the package that fits your clinic, complete checkout, and start offering
               vibroacoustic sessions in the room you already use.
             </p>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-              Buying a kit for your own home? Every purchase includes the personal Resonabed app. We
-              email you an access code, and you set it up at{" "}
-              <Link
-                to="/home/signup"
-                className="text-brand-indigo underline-offset-4 hover:underline"
-              >
-                resonabed.com/home/signup
-              </Link>
-              .
-            </p>
+            <div
+              id="home-use"
+              className="mx-auto mt-8 max-w-xl scroll-mt-24 rounded-2xl border border-border bg-muted/30 p-6 text-left"
+            >
+              <h3 className="text-lg font-medium text-brand-indigo">
+                Buying for your own home?
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Resonabed isn&rsquo;t just for clinics. Every kit includes the personal Resonabed
+                app for home use, no bookings, no clients, just you and your sessions. Choose
+                &ldquo;for home use&rdquo; at checkout and we&rsquo;ll email you an access code to
+                set up at{" "}
+                <Link
+                  to="/home/signup"
+                  className="text-brand-indigo underline-offset-4 hover:underline"
+                >
+                  resonabed.com/home/signup
+                </Link>
+                . Same kit, same therapeutic frequencies, ready in minutes.
+              </p>
+            </div>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <a href="#packages">
                 <Button className="h-12 rounded-full px-7 text-[15px] font-medium">

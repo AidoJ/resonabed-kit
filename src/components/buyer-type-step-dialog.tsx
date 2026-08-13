@@ -101,7 +101,7 @@ export function BuyerTypeStepDialog({
             }
           >
             <User className="h-5 w-5 text-brand-violet-strong" />
-            <div className="mt-2 text-base font-semibold">For my own use at home</div>
+            <div className="mt-2 text-base font-semibold">For home use</div>
             <p className="mt-1 text-xs text-muted-foreground">
               You are buying it for yourself, family or friends, not to charge clients. We email a
               one-time code the moment you pay, and you set up the personal app yourself in
