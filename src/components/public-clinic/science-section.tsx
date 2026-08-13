@@ -17,15 +17,34 @@ const BENEFITS = [
   "Promising outcomes in neurological rehabilitation, including Parkinson\u2019s disease and cerebral palsy",
 ];
 
-const REFERENCES = [
-  "Kantor J, Campbell EA, Kantorova L, et al. Exploring Vibroacoustic Therapy in Adults Experiencing Pain: A Scoping Review. BMJ Open. 2022;12.",
-  "Punkanen M, Ala-Ruona E. Contemporary Vibroacoustic Therapy. Music and Medicine. 2012;4(3):128\u2013135.",
-  "Campbell EA, Hynynen J, Burger B, et al. Exploring the Use of Vibroacoustic Treatment for Managing Chronic Pain and Comorbid Mood Disorders. Nordic Journal of Music Therapy. 2019;28(4):291\u2013314.",
-  "Kantor J, et al. Effect of low-frequency sound vibration on heart rate variability and subjective stress: a pilot randomized controlled trial. 2022.",
-  "Zabrecky G, et al. Vibroacoustic stimulation in patients with insomnia: effects on sleep and brain functional connectivity. 2020.",
-  "Sandler H, et al. Relaxation effects of vibroacoustic stimulation via a Body Monochord. 2017.",
-  "Naghdi L, et al. The effect of low-frequency sound stimulation on patients with fibromyalgia: pain and sleep outcomes. 2015.",
+const REFERENCES: { text: string; url?: string }[] = [
+  {
+    text: "Kantor J, Campbell EA, Kantorova L, et al. Exploring Vibroacoustic Therapy in Adults Experiencing Pain: A Scoping Review. BMJ Open. 2022;12.",
+  },
+  {
+    text: "Punkanen M, Ala-Ruona E. Contemporary Vibroacoustic Therapy. Music and Medicine. 2012;4(3):128-135.",
+  },
+  {
+    text: "Campbell EA, Hynynen J, Burger B, et al. Exploring the Use of Vibroacoustic Treatment for Managing Chronic Pain and Comorbid Mood Disorders. Nordic Journal of Music Therapy. 2019;28(4):291-314.",
+  },
+  {
+    text: "Kantor J, et al. Low-frequency vibration increased heart rate variability (parasympathetic activity) and reduced subjective stress and muscle tension: a pilot randomized controlled trial. 2022.",
+    url: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9606670/",
+  },
+  {
+    text: "Zabrecky G, et al. Vibroacoustic stimulation improved sleep metrics and altered brain functional connectivity in patients with insomnia. 2020.",
+    url: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7024098/",
+  },
+  {
+    text: "Sandler H, et al. Vibroacoustic stimulation via a Body Monochord produced measurable physiological and subjective relaxation effects. 2017.",
+    url: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5256965/",
+  },
+  {
+    text: "Naghdi L, et al. Low-frequency sound stimulation improved pain and sleep measures in fibromyalgia, with no adverse effects reported. 2015.",
+    url: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4325896/",
+  },
 ];
+
 
 export function ScienceSection() {
   return (
