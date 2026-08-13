@@ -119,12 +119,17 @@ function LandingPage() {
         {/* NAV */}
         <header className="relative z-20">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-6 md:px-10 md:py-8">
-            <img
-              src={logoWhite}
-              alt="Resonabed"
-              className="h-32 w-auto md:h-44 lg:h-52 drop-shadow-[0_6px_28px_rgba(136,75,199,0.55)]"
-              draggable={false}
-            />
+            <div className="flex flex-col items-center">
+              <img
+                src={logoWhite}
+                alt="Resonabed"
+                className="h-32 w-auto md:h-44 lg:h-52 drop-shadow-[0_6px_28px_rgba(136,75,199,0.55)]"
+                draggable={false}
+              />
+              <p className="-mt-2 text-xs font-medium uppercase tracking-[0.35em] text-white/70 md:-mt-4 md:text-sm">
+                Feel. Rest. Restore.
+              </p>
+            </div>
             <div className="flex items-center gap-3 md:gap-6">
               <a
                 href="#packages"
