@@ -6,6 +6,7 @@ import amplifierAsset from "@/assets/kit-amplifier.png.asset.json";
 import tabletAsset from "@/assets/kit-tablet.png.asset.json";
 import solfeggioAsset from "@/assets/kit-solfeggio.png.asset.json";
 import headphonesAsset from "@/assets/kit-headphones.png.asset.json";
+import brochureAsset from "@/assets/kit-brochure.png.asset.json";
 
 export const kitImages = {
   transducer: transducerAsset.url,
@@ -13,6 +14,7 @@ export const kitImages = {
   tablet: tabletAsset.url,
   solfeggio: solfeggioAsset.url,
   headphones: headphonesAsset.url,
+  brochure: brochureAsset.url,
 };
 
 export type KitItem = {
