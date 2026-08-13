@@ -129,28 +129,34 @@ function LandingPage() {
         />
 
         {/* NAV */}
-        <header className="relative z-20 border-b bg-white text-foreground">
-          <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-4 md:px-10 md:py-5">
-            <div className="flex min-w-0 items-center">
+        <header className="relative z-20">
+          <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-6 md:px-10 md:py-8">
+            <div className="flex min-w-0 flex-col items-start">
               <img
-                src={logoFull.url}
-                alt="Resonabed — Feel. Rest. Restore."
-                className="h-16 w-auto sm:h-20 md:h-28 lg:h-32"
+                src={logoWhite}
+                alt="Resonabed"
+                className="h-20 w-auto sm:h-28 md:h-44 lg:h-52 drop-shadow-[0_6px_28px_rgba(136,75,199,0.55)]"
                 draggable={false}
               />
+              <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.3em] text-white/70 sm:text-xs md:tracking-[0.35em] md:text-sm">
+                Feel. Rest. Restore.
+              </p>
             </div>
             <div className="flex shrink-0 items-center gap-3 md:gap-6">
               {NAV_LINKS.map((l) => (
                 <a
                   key={l.href}
                   href={l.href}
-                  className="hidden text-sm font-medium text-foreground/70 hover:text-primary lg:inline"
+                  className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
                 >
                   {l.label}
                 </a>
               ))}
               <Link to={loginHref} className="hidden sm:block">
-                <Button className="h-10 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-brand-violet-strong">
+                <Button
+                  variant="outline"
+                  className="h-10 rounded-full border-white/30 bg-white/10 px-5 text-sm font-medium text-white backdrop-blur hover:bg-white/20 hover:text-white"
+                >
                   {loginLabel}
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
@@ -160,21 +166,21 @@ function LandingPage() {
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen((o) => !o)}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/40 bg-primary/5 text-primary lg:hidden"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur lg:hidden"
               >
                 {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </div>
           {menuOpen && (
-            <div className="mx-6 mb-4 rounded-2xl border bg-card p-2 shadow-soft lg:hidden md:mx-10">
+            <div className="mx-6 mb-4 rounded-2xl border border-white/15 bg-brand-ink/95 p-2 backdrop-blur lg:hidden md:mx-10">
               <nav className="flex flex-col">
                 {NAV_LINKS.map((l) => (
                   <a
                     key={l.href}
                     href={l.href}
                     onClick={() => setMenuOpen(false)}
-                    className="rounded-xl px-4 py-3 text-[15px] font-medium text-foreground/80 hover:bg-secondary hover:text-primary"
+                    className="rounded-xl px-4 py-3 text-[15px] font-medium text-white/85 hover:bg-white/10 hover:text-white"
                   >
                     {l.label}
                   </a>
@@ -182,7 +188,7 @@ function LandingPage() {
                 <Link
                   to={loginHref}
                   onClick={() => setMenuOpen(false)}
-                  className="rounded-xl px-4 py-3 text-[15px] font-medium text-foreground/80 hover:bg-secondary hover:text-primary sm:hidden"
+                  className="rounded-xl px-4 py-3 text-[15px] font-medium text-white/85 hover:bg-white/10 hover:text-white sm:hidden"
                 >
                   {loginLabel}
                 </Link>
