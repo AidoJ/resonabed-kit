@@ -21,6 +21,15 @@ const PACKAGES = {
     gst: 12700,
     installments: { deposit: 59900, monthly: 10000, months: 8 }, // 599 + 8*100 = 1399
   },
+  home: {
+    name: "Resonabed for Home",
+    description:
+      "Complete home package: therapy table fully fitted with 2x 50W tactile transducers, Bluetooth amplifier, wiring & fittings, Audio-Technica ATH-M30x headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies. Price incl. GST, $1,454 + $145 GST = $1,599 AUD.",
+    amount: 159900,
+    exGst: 145364,
+    gst: 14536,
+    installments: { deposit: 59900, monthly: 10000, months: 10 }, // 599 + 10*100 = 1599
+  },
 } as const;
 
 type PackageKey = keyof typeof PACKAGES;
@@ -51,7 +60,7 @@ export type BusinessDetails = z.infer<typeof BusinessDetailsSchema>;
 
 const InputSchema = z
   .object({
-    package: z.enum(["pro", "premium"]),
+    package: z.enum(["pro", "premium", "home"]),
     buyerType: z.enum(["personal", "business"]).default("personal"),
     business: BusinessDetailsSchema.optional(),
     plan: z.enum(["full", "installments"]).default("full"),
@@ -64,7 +73,7 @@ const InputSchema = z
     message: "Shipping address is required unless pickup is selected",
     path: ["shippingAddress"],
   })
-  .refine((v) => v.buyerType !== "business" || !!v.business, {
+  .refine((v) => v.package === "home" || v.buyerType !== "business" || !!v.business, {
     message: "Clinic details are required for a business purchase",
     path: ["business"],
   });
@@ -132,8 +141,15 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
 
     // Buyer type is chosen explicitly at purchase and decides the whole
     // post-payment path: personal -> access code, business -> onboarding queue.
-    const buyerMetadata: Record<string, string> = { buyer_type: data.buyerType };
-    if (data.buyerType === "business" && data.business) {
+    // The home package is a consumer product: it always takes the personal
+    // path (access code by email), never the clinic onboarding queue.
+    const effectiveBuyerType = data.package === "home" ? "personal" : data.buyerType;
+    const buyerMetadata: Record<string, string> = { buyer_type: effectiveBuyerType };
+    if (data.package === "home") {
+      // Physical fulfilment flag: this package ships a fitted table plus kit.
+      buyerMetadata["fulfilment"] = "table_and_kit";
+    }
+    if (effectiveBuyerType === "business" && data.business) {
       buyerMetadata["business_name"] = data.business.businessName;
       buyerMetadata["contact_name"] = data.business.contactName;
       buyerMetadata["contact_email"] = data.business.contactEmail;
@@ -428,7 +444,7 @@ export const getStripePublishableKey = createServerFn({ method: "GET" }).handler
 });
 
 const ValidatePromoSchema = z.object({
-  package: z.enum(["pro", "premium"]),
+  package: z.enum(["pro", "premium", "home"]),
   promoCode: z.string().trim().min(1).max(40),
 });
 
@@ -461,7 +477,7 @@ export const validatePromoCode = createServerFn({ method: "POST" })
   });
 
 const EftOrderSchema = z.object({
-  package: z.enum(["pro", "premium"]),
+  package: z.enum(["pro", "premium", "home"]),
   buyerType: z.enum(["personal", "business"]).default("personal"),
   business: BusinessDetailsSchema.optional(),
   promoCode: z.string().trim().max(40).optional().or(z.literal("")),
@@ -503,8 +519,8 @@ export const requestKitEftInvoice = createServerFn({ method: "POST" })
       shippingAddress: shippingAddressText,
       promoCode: data.promoCode || null,
       shipping,
-      buyerType: data.buyerType,
-      businessName: data.business?.businessName ?? null,
-      abn: data.business?.abn || null,
+      buyerType: data.package === "home" ? "personal" : data.buyerType,
+      businessName: data.package === "home" ? null : (data.business?.businessName ?? null),
+      abn: data.package === "home" ? null : (data.business?.abn || null),
     });
   });
