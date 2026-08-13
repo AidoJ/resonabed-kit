@@ -146,10 +146,24 @@ export function ScienceSection() {
           </p>
           <ul className="mt-3 space-y-1.5">
             {REFERENCES.map((r) => (
-              <li key={r} className="text-xs leading-relaxed text-muted-foreground">
-                {r}
+              <li key={r.text} className="text-xs leading-relaxed text-muted-foreground">
+                {r.text}
+                {r.url ? (
+                  <>
+                    {" "}
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2 hover:text-foreground"
+                    >
+                      source
+                    </a>
+                  </>
+                ) : null}
               </li>
             ))}
+
           </ul>
         </div>
       </div>
