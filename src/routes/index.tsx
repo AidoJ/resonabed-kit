@@ -90,8 +90,8 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
-    q: "What is the difference between Essentials, Pro and Platinum?",
-    a: "Essentials is the system fitted to your existing table, running on a device you already own. Pro adds a dedicated 10 inch tablet, headphones and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. The app, the clinic webpage and the marketing material are identical across all three.",
+    q: "What is the difference between Basic, Pro and Platinum?",
+    a: "Basic is the system fitted to your existing table, running on a device you already own. Pro adds a dedicated 10 inch tablet, headphones and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. The app, the clinic webpage and the marketing material are identical across all three.",
 
   },
   {
@@ -104,7 +104,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "Do I need my own device or table?",
-    a: "It depends on the package. Essentials runs on a phone, tablet or laptop you already own, and fits to the treatment table you already use. Pro includes a dedicated 10 inch tablet, pre-configured to run sessions and nothing else, and also fits your existing table. Platinum and Home include both the tablet and a fully fitted out table, so nothing else is needed.",
+    a: "It depends on the package. Basic runs on a phone, tablet or laptop you already own, and fits to the treatment table you already use. Pro includes a dedicated 10 inch tablet, pre-configured to run sessions and nothing else, and also fits your existing table. Platinum and Home include both the tablet and a fully fitted out table, so nothing else is needed.",
   },
 
 ];
@@ -557,7 +557,7 @@ function LandingPage() {
             <h3 className="text-lg font-medium text-brand-indigo">Fit your existing table</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               Keep the massage, chiropractic or osteopathic table you already work on. The speakers
-              and amplifier mount underneath in an afternoon. This is Essentials and Pro.
+              and amplifier mount underneath in an afternoon. This is Basic and Pro.
             </p>
           </div>
         </div>
@@ -570,7 +570,7 @@ function LandingPage() {
             Three business packages
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            Essentials, Pro and Platinum.
+            Basic, Pro and Platinum.
           </h2>
           <p className="mt-4 text-muted-foreground">
             Every business package includes the tactile speakers, the amplifier, 100 professionally
@@ -584,14 +584,14 @@ function LandingPage() {
             , the full business app and your own bookable clinic webpage.
           </p>
           <p className="mt-4 rounded-2xl bg-secondary/60 px-5 py-4 text-sm leading-relaxed text-foreground/90">
-            The Resonabed app runs on any phone, tablet or laptop. Essentials uses a device you
+            The Resonabed app runs on any phone, tablet or laptop. Basic uses a device you
             already own. Pro and Platinum include a dedicated 10 inch tablet.
           </p>
         </div>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-3">
           <PackageCard
-            name="Essentials"
+            name="Basic"
             packageKey="essentials"
             price="$1,199"
             tagline="The lean way to start."
@@ -611,9 +611,9 @@ function LandingPage() {
             price="$1,399"
             highlighted
             tagline="For clinics with a table already."
-            description="Everything in Essentials, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room."
+            description="Everything in Basic, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room."
             features={[
-              "Everything included in Essentials",
+              "Everything included in Basic",
               '10" tablet, pre-configured for sessions',
               "Audio-Technica ATH-M30x headphones",
               "100 disposable headphone covers",
@@ -634,7 +634,7 @@ function LandingPage() {
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          Essentials and Pro fit the table you already use. It must have a solid timber base so the
+          Basic and Pro fit the table you already use. It must have a solid timber base so the
           equipment can be mounted securely. Shipping is calculated at checkout by destination.
         </p>
       </section>
@@ -681,7 +681,7 @@ function LandingPage() {
               <thead>
                 <tr className="border-b border-border text-left">
                   <th className="px-5 py-4 font-medium text-brand-indigo">Included</th>
-                  {["Essentials", "Pro", "Platinum", "Home"].map((h) => (
+                  {["Basic", "Pro", "Platinum", "Home"].map((h) => (
                     <th key={h} className="px-5 py-4 text-center font-medium text-brand-indigo">
                       {h}
                     </th>

@@ -4,7 +4,7 @@ import Stripe from "stripe";
 
 const PACKAGES = {
   essentials: {
-    name: "Resonabed Essentials",
+    name: "Resonabed Basic",
     description:
       "Lean business system: 2x tactile speakers, Bluetooth amplifier, wiring & fittings, the full Resonabed business app and clinic webpage, 100 marketing flyers. Runs on a phone, tablet or laptop you already own. Price incl. GST, $1,090 + $109 GST = $1,199 AUD.",
     amount: 119900,
@@ -15,7 +15,7 @@ const PACKAGES = {
   pro: {
     name: "Resonabed Pro",
     description:
-      'Everything in Essentials, plus a dedicated 10" tablet pre-configured for sessions, Audio-Technica ATH-M30x headphones and 100 disposable headphone covers. Price incl. GST, $1,272 + $127 GST = $1,399 AUD.',
+      'Everything in Basic, plus a dedicated 10" tablet pre-configured for sessions, Audio-Technica ATH-M30x headphones and 100 disposable headphone covers. Price incl. GST, $1,272 + $127 GST = $1,399 AUD.',
     amount: 139900,
     exGst: 127200,
     gst: 12700,
