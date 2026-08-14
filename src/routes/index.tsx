@@ -563,65 +563,78 @@ function LandingPage() {
       <section id="packages" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-            Three packages
+            Three business packages
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            Pro, Platinum and Home.
+            Essentials, Pro and Platinum.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every package includes the tactile speakers, the amplifier, a 10 inch tablet and
-            headphones. Business packages add the consumables, 100 professionally designed{" "}
+            Every business package includes the tactile speakers, the amplifier, 100 professionally
+            designed{" "}
             <Link
               to="/flyer"
               className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
             >
               marketing flyers
-            </Link>{" "}
-            and the software that runs a clinic.
+            </Link>
+            , the full business app and your own bookable clinic webpage.
+          </p>
+          <p className="mt-4 rounded-2xl bg-secondary/60 px-5 py-4 text-sm leading-relaxed text-foreground/90">
+            The Resonabed app runs on any phone, tablet or laptop. Essentials uses a device you
+            already own. Pro and Platinum include a dedicated 10 inch tablet.
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
+        <div className="mt-14 grid gap-6 lg:grid-cols-3">
           <PackageCard
-            name="Pro"
-            packageKey="premium"
-            price="$1,399"
-            highlighted
-            tagline="For clinics with a table already."
-            description="The full business system fitted to the treatment table in your room. Everything needed to run, book and market vibroacoustic sessions from day one."
+            name="Essentials"
+            packageKey="essentials"
+            price="$1,199"
+            tagline="The lean way to start."
+            description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
             features={[
               "Two 50W tactile speakers",
               "Bluetooth amplifier, wiring and fittings",
-              '10" tablet, pre-configured for sessions',
-              "Audio-Technica ATH-M30x headphones",
-              "100 disposable headphone covers",
               "100 marketing flyers, professionally designed",
               "Full business app: intake, screening, sessions, payments",
               "Your own bookable Resonabed clinic webpage",
+              "Runs on your own phone, tablet or laptop",
             ]}
           />
-          <ContactPackageCard
+          <PackageCard
+            name="Pro"
+            packageKey="pro"
+            price="$1,399"
+            highlighted
+            tagline="For clinics with a table already."
+            description="Everything in Essentials, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room."
+            features={[
+              "Everything included in Essentials",
+              '10" tablet, pre-configured for sessions',
+              "Audio-Technica ATH-M30x headphones",
+              "100 disposable headphone covers",
+            ]}
+          />
+          <PackageCard
             name="Platinum"
-            priceLine="From $1,799 AUD · incl. GST"
+            packageKey="platinum"
+            price="$1,799"
             tagline="The whole thing, table included."
-            description={
-              "Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete vibroacoustic service, ready to run from the moment it arrives."
-            }
+            description="Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives."
             features={[
               "Everything included in Pro",
               "New therapy table, fully fitted out",
-              "Choice of three table finishes",
               "Tested as a complete system before dispatch",
-              "Full business app and clinic webpage",
             ]}
           />
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          Pro fits the table you already use. It must have a solid timber base so the equipment can
-          be mounted securely. Shipping is calculated at checkout by destination.
+          Essentials and Pro fit the table you already use. It must have a solid timber base so the
+          equipment can be mounted securely. Shipping is calculated at checkout by destination.
         </p>
       </section>
+
 
       {/* HOME PACKAGE */}
       <section
