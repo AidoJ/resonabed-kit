@@ -1280,7 +1280,7 @@ function PackageCard({
       const shippingBlurb = shipping
         ? shipping.amount === 0
           ? `Pickup, no shipping charge.`
-          : `Shipping to ${shipping.label}: $${(shipping.amount / 100).toFixed(2)} AUD${shipping.gstInclusive ? " (incl. GST)" : " (GST-free export)"}.`
+          : `Shipping to ${shipping.label}: $${(shipping.amount / 100).toFixed(2)} AUD${shipping.gstInclusive ? " (incl. GST)" : " (GST-free export)"}, locked in and charged with your balance, not today.`
         : null;
       const promoBlurb = appliedPromo
         ? `${appliedPromo.code} applied, ${appliedPromo.percentOff}% off, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
@@ -1470,7 +1470,8 @@ function PackageCard({
             <p className="mt-1">
               Pay {money(pkgDef.balanceCents)} in full, or {money(pkgDef.plan.depositBalanceCents)}{" "}
               now and {pkgDef.plan.months} monthly payments of {money(pkgDef.plan.monthlyCents)}{" "}
-              (plan total {money(planTotal)}).
+              (plan total {money(planTotal)}). Your shipping quote is added to that balance
+              payment.
             </p>
           </div>
 
@@ -1480,9 +1481,10 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            $100 deposit plus shipping is charged once, now, and holds your order for 30 days,
-            refundable if you do not go ahead. Nothing ships until the balance clears. Promo codes
-            apply to the balance. Secure checkout by Stripe.
+            Today you pay the $100 deposit only, which holds your order for 30 days and is
+            refundable if you do not go ahead. Shipping is quoted upfront and charged with your
+            balance. Nothing ships until the balance clears. Promo codes apply to the balance.
+            Secure checkout by Stripe.
           </p>
 
         </div>
@@ -1507,6 +1509,8 @@ function PackageCard({
       <ShippingAddressStepDialog
         open={shippingOpen}
         packagePriceCents={packagePriceCents}
+        packageKey={packageKey}
+        shippingScope={pkgDef.shippingScope}
         onCancel={() => {
           setShippingOpen(false);
           setPendingPlan(null);
