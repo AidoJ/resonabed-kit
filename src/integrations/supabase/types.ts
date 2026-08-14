@@ -897,6 +897,7 @@ export type Database = {
       }
       kit_access_codes: {
         Row: {
+          access_level: string
           buyer_email: string
           buyer_name: string | null
           buyer_phone: string | null
@@ -917,6 +918,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_level?: string
           buyer_email: string
           buyer_name?: string | null
           buyer_phone?: string | null
@@ -937,6 +939,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_level?: string
           buyer_email?: string
           buyer_name?: string | null
           buyer_phone?: string | null
@@ -1194,29 +1197,40 @@ export type Database = {
       kit_orders: {
         Row: {
           abn: string | null
+          access_applied_at: string | null
+          access_level: string
+          arrears_entered_at: string | null
           arrears_since: string | null
           balance_cents: number
           balance_paid_at: string | null
           business_name: string | null
           buyer_type: string
           cancelled_at: string | null
+          card_expiry_warned_at: string | null
           collected_cents: number
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
           contract_cents: number
           created_at: string
+          defaulted_at: string | null
           deposit_cents: number
           deposit_paid_at: string | null
           discount_cents: number
+          dunning_paused_until: string | null
+          dunning_stage: number
           expired_at: string | null
           expires_at: string | null
+          failure_count: number
+          first_failure_at: string | null
           fulfilled_at: string | null
           gst_cents: number
           id: string
+          last_dunning_at: string | null
           list_cents: number
           notes: string | null
           order_number: string
+          owed_cents: number
           package_key: string
           package_label: string
           path: string | null
@@ -1229,6 +1243,7 @@ export type Database = {
           plan_monthly_cents: number | null
           plan_months: number | null
           plan_started_at: string | null
+          prior_failure_count: number
           promo_code: string | null
           promo_code_id: string | null
           promo_percent: number | null
@@ -1253,32 +1268,46 @@ export type Database = {
           stripe_subscription_id: string | null
           token_hash: string
           updated_at: string
+          wind_down_at: string | null
+          write_off_cents: number | null
+          written_off_at: string | null
         }
         Insert: {
           abn?: string | null
+          access_applied_at?: string | null
+          access_level?: string
+          arrears_entered_at?: string | null
           arrears_since?: string | null
           balance_cents?: number
           balance_paid_at?: string | null
           business_name?: string | null
           buyer_type?: string
           cancelled_at?: string | null
+          card_expiry_warned_at?: string | null
           collected_cents?: number
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           contract_cents?: number
           created_at?: string
+          defaulted_at?: string | null
           deposit_cents?: number
           deposit_paid_at?: string | null
           discount_cents?: number
+          dunning_paused_until?: string | null
+          dunning_stage?: number
           expired_at?: string | null
           expires_at?: string | null
+          failure_count?: number
+          first_failure_at?: string | null
           fulfilled_at?: string | null
           gst_cents?: number
           id?: string
+          last_dunning_at?: string | null
           list_cents: number
           notes?: string | null
           order_number: string
+          owed_cents?: number
           package_key: string
           package_label: string
           path?: string | null
@@ -1291,6 +1320,7 @@ export type Database = {
           plan_monthly_cents?: number | null
           plan_months?: number | null
           plan_started_at?: string | null
+          prior_failure_count?: number
           promo_code?: string | null
           promo_code_id?: string | null
           promo_percent?: number | null
@@ -1315,32 +1345,46 @@ export type Database = {
           stripe_subscription_id?: string | null
           token_hash: string
           updated_at?: string
+          wind_down_at?: string | null
+          write_off_cents?: number | null
+          written_off_at?: string | null
         }
         Update: {
           abn?: string | null
+          access_applied_at?: string | null
+          access_level?: string
+          arrears_entered_at?: string | null
           arrears_since?: string | null
           balance_cents?: number
           balance_paid_at?: string | null
           business_name?: string | null
           buyer_type?: string
           cancelled_at?: string | null
+          card_expiry_warned_at?: string | null
           collected_cents?: number
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           contract_cents?: number
           created_at?: string
+          defaulted_at?: string | null
           deposit_cents?: number
           deposit_paid_at?: string | null
           discount_cents?: number
+          dunning_paused_until?: string | null
+          dunning_stage?: number
           expired_at?: string | null
           expires_at?: string | null
+          failure_count?: number
+          first_failure_at?: string | null
           fulfilled_at?: string | null
           gst_cents?: number
           id?: string
+          last_dunning_at?: string | null
           list_cents?: number
           notes?: string | null
           order_number?: string
+          owed_cents?: number
           package_key?: string
           package_label?: string
           path?: string | null
@@ -1353,6 +1397,7 @@ export type Database = {
           plan_monthly_cents?: number | null
           plan_months?: number | null
           plan_started_at?: string | null
+          prior_failure_count?: number
           promo_code?: string | null
           promo_code_id?: string | null
           promo_percent?: number | null
@@ -1377,6 +1422,9 @@ export type Database = {
           stripe_subscription_id?: string | null
           token_hash?: string
           updated_at?: string
+          wind_down_at?: string | null
+          write_off_cents?: number | null
+          written_off_at?: string | null
         }
         Relationships: []
       }
@@ -1502,6 +1550,7 @@ export type Database = {
           music_licence_plan: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status: Database["public"]["Enums"]["music_licence_status"]
           name: string
+          plan_access_level: string
           practitioners_can_complete_unpaid: boolean
           practitioners_can_manage_bookings: boolean
           practitioners_can_manage_clients: boolean
@@ -1521,6 +1570,7 @@ export type Database = {
           retail_show_address: boolean
           slug: string | null
           status: Database["public"]["Enums"]["org_status"]
+          suspended_by_order_id: string | null
           theme_accent: string | null
           theme_primary: string | null
           theme_sidebar: string | null
@@ -1557,6 +1607,7 @@ export type Database = {
           music_licence_plan?: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status?: Database["public"]["Enums"]["music_licence_status"]
           name: string
+          plan_access_level?: string
           practitioners_can_complete_unpaid?: boolean
           practitioners_can_manage_bookings?: boolean
           practitioners_can_manage_clients?: boolean
@@ -1576,6 +1627,7 @@ export type Database = {
           retail_show_address?: boolean
           slug?: string | null
           status?: Database["public"]["Enums"]["org_status"]
+          suspended_by_order_id?: string | null
           theme_accent?: string | null
           theme_primary?: string | null
           theme_sidebar?: string | null
@@ -1612,6 +1664,7 @@ export type Database = {
           music_licence_plan?: Database["public"]["Enums"]["music_licence_plan"]
           music_licence_status?: Database["public"]["Enums"]["music_licence_status"]
           name?: string
+          plan_access_level?: string
           practitioners_can_complete_unpaid?: boolean
           practitioners_can_manage_bookings?: boolean
           practitioners_can_manage_clients?: boolean
@@ -1631,6 +1684,7 @@ export type Database = {
           retail_show_address?: boolean
           slug?: string | null
           status?: Database["public"]["Enums"]["org_status"]
+          suspended_by_order_id?: string | null
           theme_accent?: string | null
           theme_primary?: string | null
           theme_sidebar?: string | null
@@ -2291,6 +2345,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      home_plan_access_level: { Args: { _user_id: string }; Returns: string }
       is_home_user: { Args: { _user_id: string }; Returns: boolean }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
@@ -2306,6 +2361,7 @@ export type Database = {
         Returns: boolean
       }
       org_music_licence_ok: { Args: { _org_id: string }; Returns: boolean }
+      org_plan_access_ok: { Args: { _org_id: string }; Returns: boolean }
       org_practitioner_permission: {
         Args: { _flag: string; _org_id: string }
         Returns: boolean
