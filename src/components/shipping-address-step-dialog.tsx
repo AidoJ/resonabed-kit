@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getShippingRates, type ShippingRateRow } from "@/lib/shipping.functions";
 import { getGoogleMapsBrowserConfig } from "@/lib/google-maps.functions";
+import { ORDER_DEPOSIT_CENTS, PACKAGES, money, type PackageKey } from "@/lib/packages";
 import { CheckCircle2, Loader2, MapPin, PackageCheck, Search, Truck } from "lucide-react";
 
 export type EnteredShippingAddress = {
