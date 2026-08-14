@@ -1209,16 +1209,6 @@ function ContactForm() {
 
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
 
-const INSTALLMENTS: Record<
-  BusinessPackageKey,
-  { deposit: number; monthly: number; months: number } | null
-> = {
-  essentials: { deposit: 399, monthly: 100, months: 8 },
-  pro: { deposit: 599, monthly: 100, months: 8 },
-  // Phase 2 will set the Platinum plan numbers.
-  platinum: null,
-};
-
 const PACKAGE_META: Record<BusinessPackageKey, { cents: number; gstLine: string }> = {
   essentials: { cents: 119900, gstLine: "$1,090 + $109 GST = $1,199" },
   pro: { cents: 139900, gstLine: "$1,272 + $127 GST = $1,399" },
@@ -1246,7 +1236,6 @@ function PackageCard({
   const requestInvoice = useServerFn(requestKitEftInvoice);
   const [loading, setLoading] = useState<null | "full" | "installments">(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
   const [shippingOpen, setShippingOpen] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<"full" | "installments" | null>(null);
   const [shippingChoice, setShippingChoice] = useState<ShippingContinuePayload | null>(null);
@@ -1507,11 +1496,7 @@ function PackageCard({
           setCheckoutNote(null);
         }}
         subtitle={checkoutNote}
-        title={
-          activePlan === "installments"
-            ? `${name}, Deposit + monthly plan`
-            : `Complete your ${name} order`
-        }
+        title={`${name}, order deposit`}
       />
       <BuyerTypeStepDialog
         open={buyerOpen}
