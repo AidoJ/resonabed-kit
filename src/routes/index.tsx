@@ -585,7 +585,7 @@ function LandingPage() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-6 md:grid-cols-2">
           <PackageCard
             name="Pro"
             packageKey="premium"
@@ -619,9 +619,6 @@ function LandingPage() {
               "Full business app and clinic webpage",
             ]}
           />
-          <div id="home-package" className="scroll-mt-24">
-            <HomeOrderPanel />
-          </div>
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
@@ -629,6 +626,31 @@ function LandingPage() {
           be mounted securely. Shipping is calculated at checkout by destination.
         </p>
       </section>
+
+      {/* HOME PACKAGE */}
+      <section
+        id="home-package"
+        className="scroll-mt-24 border-y border-border bg-secondary/40 py-24 md:py-28"
+      >
+        <div className="mx-auto max-w-5xl px-6 md:px-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              For in home use
+            </p>
+            <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+              The Home package.
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              A complete fitted table for personal use, with the home app for running your own
+              sessions. No bookings, no client records and no clinic webpage.
+            </p>
+          </div>
+          <div className="mx-auto mt-12 max-w-md">
+            <HomeOrderPanel />
+          </div>
+        </div>
+      </section>
+
 
       {/* COMPARE */}
       <section id="compare" className="bg-secondary/40 py-24 md:py-28">
