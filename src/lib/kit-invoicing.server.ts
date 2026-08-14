@@ -289,7 +289,7 @@ export async function recordOrderInvoice(order: {
     method: order.payment_channel === "eft" ? "eft" : "card",
     paid_at: today,
     reference: order.order_number,
-    notes: "Order deposit plus shipping and cleared balance.",
+    notes: "Order deposit, then cleared balance including shipping.",
   });
   if (payErr) throw new Error(payErr.message);
 
