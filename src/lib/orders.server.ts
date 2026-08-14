@@ -272,8 +272,9 @@ export async function updateOrder(id: string, patch: Record<string, unknown>) {
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
- * The $100 deposit (plus shipping) has cleared. This secures the order for 30
- * days and fulfils NOTHING.
+ * The $100 deposit has cleared. Shipping is quoted and locked at this point but
+ * charged with the balance. This secures the order for 30 days and fulfils
+ * NOTHING.
  */
 export async function markDepositPaid(
   order: KitOrderRow,
@@ -297,7 +298,6 @@ export async function markDepositPaid(
     state: "deposit_paid",
     deposit_paid_at: now.toISOString(),
     expires_at: new Date(now.getTime() + THIRTY_DAYS_MS).toISOString(),
-    shipping_charged_at: now.toISOString(),
     collected_cents: opts.amountCents,
     stripe_deposit_session_id: opts.stripeSessionId ?? order.stripe_deposit_session_id,
     stripe_deposit_payment_intent: opts.paymentIntent ?? order.stripe_deposit_payment_intent,
@@ -329,6 +329,8 @@ export async function markBalancePaid(
     state: "balance_paid",
     path: "full",
     balance_paid_at: new Date().toISOString(),
+    // Shipping was quoted at deposit time and is collected with this payment.
+    shipping_charged_at: order.shipping_charged_at ?? new Date().toISOString(),
     collected_cents: order.collected_cents + opts.amountCents,
     contract_cents: order.deposit_cents + order.shipping_cents + order.balance_cents,
     stripe_balance_session_id: opts.stripeSessionId ?? order.stripe_balance_session_id,
@@ -359,6 +361,8 @@ export async function markPlanActive(
     state: "plan_active",
     path: "plan",
     plan_started_at: new Date().toISOString(),
+    // Shipping is collected in full with the deposit balance, not spread.
+    shipping_charged_at: order.shipping_charged_at ?? new Date().toISOString(),
     collected_cents: order.collected_cents + opts.amountCents,
     contract_cents:
       order.deposit_cents +
@@ -564,8 +568,9 @@ export async function markRefunded(order: KitOrderRow, amountCents: number, reas
 }
 
 /**
- * Refunds the order deposit AND the shipping charged with it. Never available
- * once the order has been fulfilled.
+ * Refunds the order deposit. Shipping is never charged at deposit stage, so a
+ * deposit-stage refund has no shipping component. Never available once the
+ * order has been fulfilled.
  */
 export async function refundOrderDeposit(
   orderId: string,
@@ -578,7 +583,7 @@ export async function refundOrderDeposit(
   }
   if (order.state === "refunded") return { refundedCents: order.deposit_cents };
 
-  const amount = order.deposit_cents + order.shipping_cents;
+  const amount = order.deposit_cents + (order.shipping_charged_at ? order.shipping_cents : 0);
 
   if (order.payment_channel === "card" && order.stripe_deposit_payment_intent) {
     const secret = process.env["STRIPE_SECRET_KEY"];
@@ -697,6 +702,7 @@ async function sendOrderEmail(
         planMonthly: order.plan_monthly_cents,
         planMonths: order.plan_months,
         expiresAt: order.expires_at,
+        shippingAmount: order.shipping_charged_at ? 0 : order.shipping_cents,
         ...extra,
       },
       idempotencyKey: `${template}:${order.order_number}:${extra["stage"] ?? "initial"}`,
@@ -719,7 +725,8 @@ export async function sendBalanceReminderEmail(order: KitOrderRow, stage: number
 /* ------------------------------------------------------------------ pricing */
 
 export function orderGstCents(order: KitOrderRow) {
-  const taxable = order.collected_cents - (order.shipping_gst_inclusive ? 0 : order.shipping_cents);
+  const collectedShipping = order.shipping_charged_at ? order.shipping_cents : 0;
+  const taxable = order.collected_cents - (order.shipping_gst_inclusive ? 0 : collectedShipping);
   return gstOf(Math.max(0, taxable));
 }
 

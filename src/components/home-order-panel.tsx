@@ -76,7 +76,7 @@ export function HomeOrderPanel() {
       const shippingBlurb = shipping
         ? shipping.amount === 0
           ? "Pickup, no shipping charge."
-          : `Shipping to ${shipping.label}: $${(shipping.amount / 100).toFixed(2)} AUD${shipping.gstInclusive ? " (incl. GST)" : " (GST-free export)"}.`
+          : `Shipping to ${shipping.label}: $${(shipping.amount / 100).toFixed(2)} AUD${shipping.gstInclusive ? " (incl. GST)" : " (GST-free export)"}, locked in and charged with your balance, not today.`
         : null;
       const promoBlurb = appliedPromo
         ? `${appliedPromo.code} applied, ${appliedPromo.percentOff}% off, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
@@ -177,13 +177,14 @@ export function HomeOrderPanel() {
           <p className="mt-1">
             Pay {money(HOME.balanceCents)} in full, or {money(HOME.plan.depositBalanceCents)} now
             and {HOME.plan.months} monthly payments of {money(HOME.plan.monthlyCents)} (plan total{" "}
-            {money(planTotalCents(HOME))}).
+            {money(planTotalCents(HOME))}). Your shipping quote is added to that balance payment.
           </p>
         </div>
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-          $100 deposit plus shipping is charged once, now, and holds your order for 30 days,
-          refundable if you do not go ahead. Nothing ships until the balance clears. You can also
-          pay by bank transfer. Secure checkout by Stripe.
+          Today you pay the $100 deposit only, which holds your order for 30 days and is refundable
+          if you do not go ahead. Shipping is quoted upfront and charged with your balance. Nothing
+          ships until the balance clears. You can also pay by bank transfer. Secure checkout by
+          Stripe.
         </p>
       </div>
 
@@ -199,6 +200,7 @@ export function HomeOrderPanel() {
       <ShippingAddressStepDialog
         open={shippingOpen}
         packagePriceCents={PRICE_CENTS}
+        packageKey="home"
         shippingScope="table"
         onCancel={() => {
           setShippingOpen(false);

@@ -271,29 +271,14 @@ export async function createDepositCheckout(data: z.infer<typeof DepositCheckout
           currency: "aud",
           product_data: {
             name: `${pkg.label}, order deposit`,
-            description: `Order deposit of ${money(ORDER_DEPOSIT_CENTS)} incl. GST for ${pkg.label}. Secures your order for 30 days. The balance is paid separately and nothing ships until it clears.`,
+            description: `Order deposit of ${money(ORDER_DEPOSIT_CENTS)} incl. GST for ${pkg.label}. Secures your order for 30 days. Shipping${
+              shipping.amount > 0 ? ` of ${money(shipping.amount)}` : ""
+            } and the balance are paid at the next step, and nothing ships until that clears.`,
           },
           unit_amount: ORDER_DEPOSIT_CENTS,
         },
         quantity: 1,
       },
-      ...(data.pickup
-        ? []
-        : [
-            {
-              price_data: {
-                currency: "aud" as const,
-                product_data: {
-                  name: `Shipping, ${shipping.label}`,
-                  description: `Flat-rate shipping to ${shipping.label} (${
-                    shipping.gstInclusive ? "incl. GST" : "GST-free export"
-                  }). Charged once, with the deposit.`,
-                },
-                unit_amount: shipping.amount,
-              },
-              quantity: 1,
-            },
-          ]),
     ],
     allow_promotion_codes: false,
     metadata: {
@@ -444,7 +429,28 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
   };
   const returnUrl = `${data.origin}/order/success?session_id={CHECKOUT_SESSION_ID}`;
 
-  // Shipping was charged with the deposit. It is never added here.
+  // Shipping was quoted and locked at deposit time, and is charged here, once.
+  // The stored figure is used as-is; rates are never recalculated at this step.
+  const shippingDue = order.shipping_charged_at ? 0 : order.shipping_cents;
+  const shippingLineItem =
+    shippingDue > 0
+      ? [
+          {
+            price_data: {
+              currency: "aud" as const,
+              product_data: {
+                name: `Shipping, ${order.shipping_label ?? order.shipping_region ?? "as quoted"}`,
+                description: `Flat-rate shipping quoted with your deposit (${
+                  order.shipping_gst_inclusive ? "incl. GST" : "GST-free export"
+                }). Charged once, here.`,
+              },
+              unit_amount: shippingDue,
+            },
+            quantity: 1,
+          },
+        ]
+      : [];
+
   if (data.path === "full") {
     const session = await stripe.checkout.sessions.create({
       ui_mode: "embedded",
@@ -460,14 +466,15 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
               name: `${pkg.label}, balance`,
               description: `Remaining balance for order ${order.order_number}. Deposit of ${money(
                 order.deposit_cents,
-              )} and shipping already paid.${
-                order.promo_code ? ` Promo ${order.promo_code} applied.` : ""
-              }`,
+              )} already paid.${
+                shippingDue > 0 ? " Shipping is charged with this payment." : ""
+              }${order.promo_code ? ` Promo ${order.promo_code} applied.` : ""}`,
             },
             unit_amount: order.balance_cents,
           },
           quantity: 1,
         },
+        ...shippingLineItem,
       ],
       allow_promotion_codes: false,
       metadata: { ...baseMetadata, stage: "balance_full" },
@@ -476,7 +483,7 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
     await updateOrder(order.id, { stripe_balance_session_id: session.id });
     await logOrderEvent(order.id, "balance_checkout_opened", {
       stripeRef: session.id,
-      detail: { path: "full", amount_cents: order.balance_cents },
+      detail: { path: "full", amount_cents: order.balance_cents, shipping_cents: shippingDue },
     });
     return { clientSecret: session.client_secret, path: "full" as const };
   }
@@ -500,12 +507,13 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
             name: `${pkg.label}, deposit balance`,
             description: `Deposit balance for order ${order.order_number}, followed by ${pkg.plan.months} monthly payments of ${money(
               pkg.plan.monthlyCents,
-            )}.`,
+            )}.${shippingDue > 0 ? " Shipping is charged in full with this payment." : ""}`,
           },
           unit_amount: order.plan_deposit_balance_cents ?? pkg.plan.depositBalanceCents,
         },
         quantity: 1,
       },
+      ...shippingLineItem,
       { price: priceId, quantity: 1 },
     ],
     subscription_data: {
@@ -520,7 +528,7 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
   await updateOrder(order.id, { stripe_balance_session_id: session.id });
   await logOrderEvent(order.id, "balance_checkout_opened", {
     stripeRef: session.id,
-    detail: { path: "plan", months: pkg.plan.months },
+    detail: { path: "plan", months: pkg.plan.months, shipping_cents: shippingDue },
   });
   return { clientSecret: session.client_secret, path: "plan" as const };
 }

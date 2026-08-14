@@ -103,7 +103,7 @@ export async function fulfilCheckoutSession(
       stripeSessionId: session.id,
       paymentIntent: typeof session.payment_intent === "string" ? session.payment_intent : null,
       customerId: typeof session.customer === "string" ? session.customer : null,
-      amountCents: session.amount_total ?? order.deposit_cents + order.shipping_cents,
+      amountCents: session.amount_total ?? order.deposit_cents,
       contact: {
         name: order.contact_name ?? details?.name ?? null,
         email: order.contact_email ?? details?.email ?? null,
@@ -123,7 +123,7 @@ export async function fulfilCheckoutSession(
     const updated = await markBalancePaid(order, {
       stripeSessionId: session.id,
       paymentIntent: typeof session.payment_intent === "string" ? session.payment_intent : null,
-      amountCents: session.amount_total ?? order.balance_cents,
+      amountCents: session.amount_total ?? order.balance_cents + order.shipping_cents,
     });
     await recordPromoRedemption(updated, session.id);
     const fulfilment = await fulfilOrder(updated.id);
@@ -143,7 +143,8 @@ export async function fulfilCheckoutSession(
     const updated = await markPlanActive(order, {
       stripeSessionId: session.id,
       subscriptionId,
-      amountCents: session.amount_total ?? order.plan_deposit_balance_cents ?? 0,
+      amountCents:
+        session.amount_total ?? (order.plan_deposit_balance_cents ?? 0) + order.shipping_cents,
     });
     const fulfilment = await fulfilOrder(updated.id);
     return {

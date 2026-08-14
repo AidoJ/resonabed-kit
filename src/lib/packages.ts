@@ -3,7 +3,8 @@
  * money model. Browser-safe: pure data, no server imports.
  *
  * Every order, whichever package and whichever path, starts with a $100 order
- * deposit plus shipping. The balance is then paid either in full, or as a
+ * deposit. Shipping is quoted at deposit time and charged with the balance,
+ * which is then paid either in full, or as a
  * "deposit balance" followed by exactly 10 monthly payments.
  */
 

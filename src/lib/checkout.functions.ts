@@ -14,7 +14,7 @@ import {
 
 export type { BusinessDetails } from "@/lib/checkout.server";
 
-/** Step 1: $100 order deposit plus shipping. Creates the order record. */
+/** Step 1: $100 order deposit only. Creates the order record and locks the freight quote. */
 export const createKitCheckoutSession = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => DepositCheckoutSchema.parse(input))
   .handler(async ({ data }) => {
