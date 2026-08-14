@@ -138,11 +138,9 @@ function ShippingRatesPage() {
                         <div className="text-brand-indigo">
                           {r.label}
                           <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {r.applies_to === "table"
-                              ? "Table freight"
-                              : r.applies_to === "any"
-                                ? "All orders"
-                                : "Kit"}
+                            {r.applies_to === "any"
+                              ? "All orders"
+                              : (PACKAGE_LABELS[r.applies_to] ?? r.applies_to)}
                           </span>
                         </div>
                         <div className="text-xs uppercase tracking-wider text-muted-foreground">
