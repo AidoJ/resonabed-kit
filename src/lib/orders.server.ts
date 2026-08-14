@@ -272,8 +272,9 @@ export async function updateOrder(id: string, patch: Record<string, unknown>) {
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
- * The $100 deposit (plus shipping) has cleared. This secures the order for 30
- * days and fulfils NOTHING.
+ * The $100 deposit has cleared. Shipping is quoted and locked at this point but
+ * charged with the balance. This secures the order for 30 days and fulfils
+ * NOTHING.
  */
 export async function markDepositPaid(
   order: KitOrderRow,
@@ -701,6 +702,7 @@ async function sendOrderEmail(
         planMonthly: order.plan_monthly_cents,
         planMonths: order.plan_months,
         expiresAt: order.expires_at,
+        shippingAmount: order.shipping_charged_at ? 0 : order.shipping_cents,
         ...extra,
       },
       idempotencyKey: `${template}:${order.order_number}:${extra["stage"] ?? "initial"}`,

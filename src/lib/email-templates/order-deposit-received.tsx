@@ -21,6 +21,8 @@ interface Props {
   planMonthly?: number | null;
   planMonths?: number | null;
   expiresAt?: string | null;
+  /** Locked freight quote, charged with the balance rather than the deposit. */
+  shippingAmount?: number | null;
 }
 
 const money = (cents?: number | null) =>
@@ -36,6 +38,7 @@ const Email = ({
   planMonthly,
   planMonths,
   expiresAt,
+  shippingAmount,
 }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
@@ -45,21 +48,31 @@ const Email = ({
         <Heading style={h1}>Your order is secured</Heading>
         <Text style={text}>{recipientName ? `Hi ${recipientName},` : "Hi there,"}</Text>
         <Text style={text}>
-          Thank you. We have received your $100 order deposit and shipping for order{" "}
+          Thank you. We have received your $100 order deposit for order{" "}
           <strong>{orderNumber}</strong>, {packageLabel}. Your order is now held for you.
         </Text>
+        {shippingAmount ? (
+          <Text style={text}>
+            Your shipping quote of {money(shippingAmount)} is locked in and is charged once, with
+            whichever balance option you choose below. It was not charged with your deposit.
+          </Text>
+        ) : null}
         <Text style={text}>
           Nothing ships yet. Your kit is built and dispatched once the balance is settled, and you
           can choose either way below.
         </Text>
         <Section style={box}>
           <Text style={boxLine}>
-            <strong>Pay the balance in full:</strong> {money(balanceAmount)}
+            <strong>Pay the balance in full:</strong>{" "}
+            {money((balanceAmount ?? 0) + (shippingAmount ?? 0))}
+            {shippingAmount ? " (includes shipping)" : ""}
           </Text>
           {planMonthly ? (
             <Text style={boxLine}>
-              <strong>Or start a payment plan:</strong> {money(planDepositBalance)} now, then{" "}
-              {planMonths ?? 10} monthly payments of {money(planMonthly)}
+              <strong>Or start a payment plan:</strong>{" "}
+              {money((planDepositBalance ?? 0) + (shippingAmount ?? 0))} now
+              {shippingAmount ? " (includes shipping)" : ""}, then {planMonths ?? 10} monthly
+              payments of {money(planMonthly)}
             </Text>
           ) : null}
         </Section>
@@ -72,7 +85,7 @@ const Email = ({
           This link is private to your order, please do not forward it. Your deposit holds your
           order until {expiresAt ? new Date(expiresAt).toLocaleDateString("en-AU") : "30 days"}. If
           you decide not to go ahead before then, reply to this email and we will refund your
-          deposit and shipping in full.
+          deposit in full.
         </Text>
       </Container>
     </Body>

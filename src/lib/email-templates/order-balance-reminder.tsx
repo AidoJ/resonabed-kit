@@ -68,10 +68,10 @@ const Email = ({
         </Section>
         <Text style={muted}>
           {stage === 25
-            ? "Your 30 day hold is almost up. If you would rather not go ahead, reply to this email and we will refund your deposit and shipping in full."
+            ? "Your 30 day hold is almost up. If you would rather not go ahead, reply to this email and we will refund your deposit in full."
             : `Your deposit holds this order until ${
                 expiresAt ? new Date(expiresAt).toLocaleDateString("en-AU") : "the end of the hold"
-              }. Not going ahead? Reply and we will refund your deposit and shipping.`}
+              }. Not going ahead? Reply and we will refund your deposit.`}
         </Text>
       </Container>
     </Body>
