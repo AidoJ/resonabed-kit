@@ -93,7 +93,7 @@ function BalancePage() {
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
           <Link to="/">
-            <img src={logo.src} alt="Resonabed" className="h-7 w-auto" />
+            <img src={logo.url} alt="Resonabed" className="h-7 w-auto" />
           </Link>
           <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
             Complete your order
