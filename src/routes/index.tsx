@@ -34,6 +34,7 @@ import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { KitCard, kitImages } from "@/components/kit-card";
 import { HomeOrderPanel } from "@/components/home-order-panel";
+import { PACKAGES, planTotalCents, money } from "@/lib/packages";
 
 
 import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
@@ -1258,8 +1259,8 @@ function PackageCard({
   const [buyerOpen, setBuyerOpen] = useState(false);
   const [buyer, setBuyer] = useState<BuyerTypeContinuePayload | null>(null);
 
-  const plan = INSTALLMENTS[packageKey];
-  const totalInstallments = plan ? plan.deposit + plan.monthly * plan.months : 0;
+  const pkgDef = PACKAGES[packageKey];
+  const planTotal = planTotalCents(pkgDef);
   const packagePriceCents = PACKAGE_META[packageKey].cents;
 
 
@@ -1280,9 +1281,8 @@ function PackageCard({
       } = await startCheckout({
         data: {
           package: packageKey,
-          plan: which,
           origin: window.location.origin,
-          promoCode: which === "full" ? promoCode : "",
+          promoCode,
           pickup: ship.pickup,
           shippingAddress: address,
           buyerType: who?.buyerType ?? "personal",
@@ -1466,27 +1466,25 @@ function PackageCard({
                 : "bg-brand-indigo text-white hover:bg-brand-indigo/90")
             }
           >
-            {loading === "full" ? "Preparing checkout…" : `Pay in full, ${price}`}
+            {loading ? "Preparing checkout…" : "Secure your order, $100 deposit"}
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
 
-          {plan ? (
-            <Button
-              onClick={() => handleOrder("installments")}
-              disabled={loading !== null}
-              variant="outline"
-              className={
-                "h-11 w-full rounded-full text-[13px] font-medium " +
-                (highlighted
-                  ? "border-white/30 bg-white/5 text-white hover:bg-white/15"
-                  : "border-brand-indigo/25 bg-transparent text-brand-indigo hover:bg-brand-tint")
-              }
-            >
-              {loading === "installments"
-                ? "Preparing checkout…"
-                : `Deposit $${plan.deposit} + ${plan.months} × $${plan.monthly}/mo`}
-            </Button>
-          ) : null}
+          <div
+            className={
+              "rounded-2xl border px-4 py-3 text-[12px] leading-relaxed " +
+              (highlighted
+                ? "border-white/20 bg-white/5 text-white/80"
+                : "border-border bg-brand-tint/50 text-foreground/80")
+            }
+          >
+            <p className="font-medium">Then choose how to pay the balance:</p>
+            <p className="mt-1">
+              Pay {money(pkgDef.balanceCents)} in full, or {money(pkgDef.plan.depositBalanceCents)}{" "}
+              now and {pkgDef.plan.months} monthly payments of {money(pkgDef.plan.monthlyCents)}{" "}
+              (plan total {money(planTotal)}).
+            </p>
+          </div>
 
           <p
             className={
@@ -1494,11 +1492,9 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            + shipping, calculated by destination
-            {plan
-              ? ` · repayment plan total $${totalInstallments} incl. GST · billed monthly, auto-stops after the final payment`
-              : ""}{" "}
-            · promo codes only apply to pay-in-full · secure checkout by Stripe
+            $100 deposit plus shipping is charged once, now, and holds your order for 30 days,
+            refundable if you do not go ahead. Nothing ships until the balance clears. Promo codes
+            apply to the balance. Secure checkout by Stripe.
           </p>
 
         </div>
