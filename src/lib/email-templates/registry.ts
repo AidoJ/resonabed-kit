@@ -10,6 +10,15 @@ import { template as clinicOrderReceivedTemplate } from './clinic-order-received
 import { template as contactFormTemplate } from './contact-form'
 import { template as orderDepositReceivedTemplate } from './order-deposit-received'
 import { template as orderBalanceReminderTemplate } from './order-balance-reminder'
+import {
+  planPaymentFailed,
+  planPaymentRetry,
+  planPaymentFinalNotice,
+  planFinalWarning,
+  planAccessSuspended,
+  planRestored,
+  planCardExpiring,
+} from './plan-dunning'
 
 
 
