@@ -18,10 +18,11 @@ import {
   type ShippingContinuePayload,
   type EnteredShippingAddress,
 } from "@/components/shipping-address-step-dialog";
+import { PACKAGES, planTotalCents, money } from "@/lib/packages";
 
 const PRICE_CENTS = 149900;
 const PRICE = "$1,499";
-const PLAN = { deposit: 499, monthly: 110, months: 10 };
+const HOME = PACKAGES.home;
 
 const INCLUDES = [
   "Therapy table, fully fitted and ready to lie on",
@@ -43,7 +44,6 @@ export function HomeOrderPanel() {
   const requestInvoice = useServerFn(requestKitEftInvoice);
 
   const [loading, setLoading] = useState<"full" | "installments" | null>(null);
-  const [activePlan, setActivePlan] = useState<"full" | "installments">("full");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
   const [pendingPlan, setPendingPlan] = useState<"full" | "installments" | null>(null);
@@ -61,15 +61,13 @@ export function HomeOrderPanel() {
     ship: ShippingContinuePayload,
   ) => {
     setLoading(which);
-    setActivePlan(which);
     try {
       const address: EnteredShippingAddress | undefined = ship.pickup ? undefined : ship.address;
       const { clientSecret: cs, appliedPromo, shipping } = await startCheckout({
         data: {
           package: "home",
-          plan: which,
           origin: window.location.origin,
-          promoCode: which === "full" ? promoCode : "",
+          promoCode,
           pickup: ship.pickup,
           shippingAddress: address,
           buyerType: "personal",
@@ -171,24 +169,21 @@ export function HomeOrderPanel() {
           disabled={loading !== null}
           className="h-11 w-full rounded-full bg-brand-indigo text-[14px] font-medium text-white hover:bg-brand-indigo/90"
         >
-          {loading === "full" ? "Preparing checkout…" : `Order yours, ${PRICE}`}
+          {loading ? "Preparing checkout…" : "Secure your order, $100 deposit"}
           <ArrowRight className="ml-1.5 h-4 w-4" />
         </Button>
-        <Button
-          onClick={() => handleOrder("installments")}
-          disabled={loading !== null}
-          variant="outline"
-          className="h-11 w-full rounded-full border-brand-indigo/25 bg-transparent text-[13px] font-medium text-brand-indigo hover:bg-brand-tint"
-        >
-          {loading === "installments"
-            ? "Preparing checkout…"
-            : `Deposit $${PLAN.deposit} + ${PLAN.months} × $${PLAN.monthly}/mo`}
-        </Button>
+        <div className="rounded-2xl border border-border bg-brand-tint/50 px-4 py-3 text-[12px] leading-relaxed text-foreground/80">
+          <p className="font-medium">Then choose how to pay the balance:</p>
+          <p className="mt-1">
+            Pay {money(HOME.balanceCents)} in full, or {money(HOME.plan.depositBalanceCents)} now
+            and {HOME.plan.months} monthly payments of {money(HOME.plan.monthlyCents)} (plan total{" "}
+            {money(planTotalCents(HOME))}).
+          </p>
+        </div>
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-          Shipping calculated at checkout by location, typically $80 to $150 · payment plan total $
-          {PLAN.deposit + PLAN.monthly * PLAN.months} incl. GST, billed monthly and stopping
-          automatically after the final payment · you can also pay by bank transfer · secure
-          checkout by Stripe
+          $100 deposit plus shipping is charged once, now, and holds your order for 30 days,
+          refundable if you do not go ahead. Nothing ships until the balance clears. You can also
+          pay by bank transfer. Secure checkout by Stripe.
         </p>
       </div>
 
@@ -199,11 +194,7 @@ export function HomeOrderPanel() {
           setCheckoutNote(null);
         }}
         subtitle={checkoutNote}
-        title={
-          activePlan === "installments"
-            ? "Resonabed for Home, deposit + monthly plan"
-            : "Complete your Resonabed for Home order"
-        }
+        title="Resonabed for Home, order deposit"
       />
       <ShippingAddressStepDialog
         open={shippingOpen}
