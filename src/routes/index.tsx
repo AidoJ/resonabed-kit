@@ -1448,7 +1448,7 @@ function PackageCard({
           </span>
         </div>
         <p className={"mt-1 text-xs " + (highlighted ? "text-white/55" : "text-muted-foreground")}>
-          {packageKey === "pro" ? "$1,090 + $109 GST = $1,199" : "$1,272 + $127 GST = $1,399"}
+          {PACKAGE_META[packageKey].gstLine}
         </p>
         <p
           className={
