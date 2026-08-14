@@ -33,6 +33,8 @@ import hero from "@/assets/resonabed-hero.png.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { KitCard, kitImages } from "@/components/kit-card";
+import { HomeOrderPanel } from "@/components/home-order-panel";
+
 
 import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
 
@@ -64,10 +66,45 @@ import {
 
 const NAV_LINKS: { href: string; label: string }[] = [
   { href: "#packages", label: "Packages" },
+  { href: "#compare", label: "Compare" },
   { href: "#how", label: "How it works" },
+  { href: "#faq", label: "FAQ" },
   { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
+
+const COMPARE_ROWS: [string, boolean, boolean, boolean][] = [
+  ["Tactile speakers", true, true, true],
+  ["Amplifier", true, true, true],
+  ['10" tablet', true, true, true],
+  ["Headphones", true, true, true],
+  ["100 disposable headphone covers", true, true, false],
+  ["100 marketing flyers", true, true, false],
+  ["Full business app", true, true, false],
+  ["Full business webpage", true, true, false],
+  ["Home use app", false, false, true],
+  ["Fully fitted out table", false, true, true],
+];
+
+const FAQ_ITEMS: { q: string; a: string }[] = [
+  {
+    q: "What is the difference between Pro and Platinum?",
+    a: "Only the table. Pro fits your existing treatment table, Platinum arrives as a new table with the system already fitted. The hardware, the app and the marketing material are identical.",
+  },
+  {
+    q: "Can I run a clinic on the Home package?",
+    a: "No. Home includes the personal app only. It has no bookings, no client records and no clinic webpage, and it does not include the consumables or flyers a practice needs.",
+  },
+  {
+    q: "Is shipping included?",
+    a: "No. Shipping is always calculated at checkout based on your location, and is charged on top of the package price.",
+  },
+  {
+    q: "Do I need my own device?",
+    a: "No. Every package includes a 10 inch tablet, pre-configured to run sessions and nothing else, so notifications never interrupt.",
+  },
+];
+
 
 
 export const Route = createFileRoute("/")({
@@ -233,13 +270,11 @@ function LandingPage() {
             </div>
             <p className="mt-4 text-sm text-white/60">
               Buying for your own home?{" "}
-              <Link
-                to="/for-home"
-                className="underline underline-offset-4 hover:text-white/85"
-              >
-                See Resonabed for Home, a complete fitted table for $1,499.
-              </Link>
+              <a href="#home-package" className="underline underline-offset-4 hover:text-white/85">
+                See the Home package, a complete fitted table for $1,499.
+              </a>
             </p>
+
             <p className="mt-2 text-sm text-white/60">
               Looking for a{" "}
               <Link
@@ -497,95 +532,179 @@ function LandingPage() {
 
 
 
+      {/* TWO WAYS IN */}
+      <section className="mx-auto max-w-7xl px-6 pt-24 md:px-10 md:pt-28">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+            Two ways in
+          </p>
+          <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+            Start complete, or fit it to the room you already have.
+          </h2>
+          <p className="mt-4 text-muted-foreground">
+            The system is the same either way. The only question is whether a table comes with it.
+          </p>
+        </div>
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-card p-8 shadow-soft">
+            <h3 className="text-lg font-medium text-brand-indigo">Complete setup</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              A new therapy table arrives with the system already installed and tested. Nothing to
+              mount, nothing to wire. This is Platinum for clinics, and Home for personal use.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-8 shadow-soft">
+            <h3 className="text-lg font-medium text-brand-indigo">Fit your existing table</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Keep the massage, chiropractic or osteopathic table you already work on. The speakers
+              and amplifier mount underneath in an afternoon. This is Pro.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* PACKAGES */}
       <section id="packages" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-            Three ways to start
+            Three packages
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            Choose the package that fits your clinic.
+            Pro, Platinum and Home.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every package includes the complete kit: tactile speakers, amplifier, Resonabed player
-            and booking app, 9 therapeutic Solfeggio frequencies, and 100 professionally designed{" "}
+            Every package includes the tactile speakers, the amplifier, a 10 inch tablet and
+            headphones. Business packages add the consumables, 100 professionally designed{" "}
             <Link
               to="/flyer"
               className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
             >
               marketing flyers
-            </Link>
-            .
-          </p>
-          <p className="mt-3 text-muted-foreground">
-            Buying for your own home instead? There is a separate product for that,{" "}
-            <Link
-              to="/for-home"
-              className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
-            >
-              Resonabed for Home
-            </Link>
-            , a fully fitted table with headphones and the personal app for $1,499.
+            </Link>{" "}
+            and the software that runs a clinic.
           </p>
         </div>
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <PackageCard
-            name="Basic"
-            packageKey="pro"
-            price="$1,199"
-            tagline="The complete upgrade kit."
-            description="Everything you need to convert an existing table. Runs on a tablet, laptop or iPad you already have."
-            features={[
-              "Two 80W tactile transducers",
-              "Bluetooth amplifier with audio jack",
-              "Wiring, fittings and setup guide",
-              "Resonabed session player + booking app",
-              "Custom created therapeutic Solfeggio frequencies",
-              "100 DL marketing flyers, professionally designed",
-            ]}
-          />
-          <PackageCard
             name="Pro"
             packageKey="premium"
             price="$1,399"
             highlighted
-            tagline="Basic, plus a dedicated device."
-            description={
-              'Everything in Basic, plus a 10" Android tablet set up and ready to run the app, so nothing breaks the stillness of a session.'
-            }
+            tagline="For clinics with a table already."
+            description="The full business system fitted to the treatment table in your room. Everything needed to run, book and market vibroacoustic sessions from day one."
             features={[
-              "Everything included in Basic",
-              '10" Android tablet, pre-configured',
-              "Kept for sessions only, no notifications, no chimes",
-              "Ready to run out of the box",
+              "Two 50W tactile speakers",
+              "Bluetooth amplifier, wiring and fittings",
+              '10" tablet, pre-configured for sessions',
+              "Audio-Technica ATH-M30x headphones",
+              "100 disposable headphone covers",
+              "100 marketing flyers, professionally designed",
+              "Full business app: intake, screening, sessions, payments",
+              "Your own bookable Resonabed clinic webpage",
             ]}
           />
           <ContactPackageCard
             name="Platinum"
-            priceLine="From $1,699 to $1,949 AUD · incl. GST"
-            tagline="Business in a box."
+            priceLine="From $1,799 AUD · incl. GST"
+            tagline="The whole thing, table included."
             description={
-              "Everything in Pro, plus a new therapy table with the system fully installed, your complete business in a box, ready to run from the moment it arrives."
+              "Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete vibroacoustic service, ready to run from the moment it arrives."
             }
             features={[
               "Everything included in Pro",
-              '10" Android tablet, pre-configured',
-              "Kept for sessions only, no notifications, no chimes",
-              "A new massage table with the system fully installed (Choice of three).",
-              "Ready to run, your complete Business in a Box",
+              "New therapy table, fully fitted out",
+              "Choice of three table finishes",
+              "Tested as a complete system before dispatch",
+              "Full business app and clinic webpage",
             ]}
           />
+          <div id="home-package" className="scroll-mt-24">
+            <HomeOrderPanel />
+          </div>
         </div>
 
-
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          *You supply your own massage, chiropractic, osteopathic or any therapeutic treatment
-          table.
-          The kit is designed to upgrade the table you already use and must have a solid timber base
-          to attach the equipment.
+          Pro fits the table you already use. It must have a solid timber base so the equipment can
+          be mounted securely. Shipping is calculated at checkout by destination.
         </p>
       </section>
+
+      {/* COMPARE */}
+      <section id="compare" className="bg-secondary/40 py-24 md:py-28">
+        <div className="mx-auto max-w-5xl px-6 md:px-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              Side by side
+            </p>
+            <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+              What is in each package.
+            </h2>
+          </div>
+          <div className="mt-12 overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+            <table className="w-full min-w-[520px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="px-5 py-4 font-medium text-brand-indigo">Included</th>
+                  {["Pro", "Platinum", "Home"].map((h) => (
+                    <th key={h} className="px-5 py-4 text-center font-medium text-brand-indigo">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARE_ROWS.map(([label, pro, plat, home]) => (
+                  <tr key={label as string} className="border-b border-border/60 last:border-0">
+                    <td className="px-5 py-3.5 text-foreground/90">{label}</td>
+                    {[pro, plat, home].map((v, i) => (
+                      <td
+                        key={i}
+                        className={`px-5 py-3.5 text-center ${
+                          v ? "text-brand-violet-strong" : "text-muted-foreground/60"
+                        }`}
+                      >
+                        {v ? "Yes" : "No"}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="mx-auto max-w-3xl px-6 py-24 md:px-10 md:py-28">
+        <div className="text-center">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+            Questions
+          </p>
+          <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+            Before you choose.
+          </h2>
+        </div>
+        <div className="mt-10 space-y-3">
+          {FAQ_ITEMS.map((f) => (
+            <details
+              key={f.q}
+              className="group rounded-2xl border border-border bg-card p-6 shadow-soft"
+            >
+              <summary className="cursor-pointer list-none text-base font-medium text-brand-indigo">
+                {f.q}
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
+            </details>
+          ))}
+        </div>
+        <p className="mt-10 text-center text-xs leading-relaxed text-muted-foreground">
+          Resonabed is a wellbeing product. It is not a medical device and it is not intended to
+          diagnose, treat, cure or prevent any disease. If you have a health condition, speak with a
+          qualified health professional before use.
+        </p>
+      </section>
+
 
       {/* WHY DEDICATED DEVICE */}
       <section className="bg-brand-ink py-24 text-white md:py-28">
@@ -673,13 +792,14 @@ function LandingPage() {
                 Buying for your own home?
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Resonabed isn&rsquo;t just for clinics.{" "}
-                <Link
-                  to="/for-home"
+                Resonabed isn&rsquo;t just for clinics. The{" "}
+                <a
+                  href="#home-package"
                   className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
                 >
-                  Resonabed for Home
-                </Link>{" "}
+                  Home package
+                </a>{" "}
+
                 is a complete package for $1,499: a fully fitted table, headphones and the personal
                 app, no bookings and no clients, just you and your sessions. We email an access code
                 the moment you pay, and you set up at{" "}
