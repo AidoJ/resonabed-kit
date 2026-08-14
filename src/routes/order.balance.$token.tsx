@@ -80,7 +80,10 @@ function BalancePage() {
     setBusy("eft");
     try {
       const result = await requestEft({ data: { token } });
-      setEftResult({ ...result, shippingLabel: "Already paid with your deposit" });
+      setEftResult({
+        ...result,
+        shippingLabel: order?.shippingCents ? "Included in this invoice" : "Pickup, no charge",
+      });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't raise your invoice.");
     } finally {
@@ -136,23 +139,28 @@ function BalancePage() {
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
               Order {order.orderNumber}, {order.packageLabel}. Your ${order.depositCents / 100}{" "}
-              deposit
-              {order.shippingCents > 0 ? " and shipping" : ""} is paid. Choose how to settle the
-              balance and we will start building your kit.
+              deposit is paid.
+              {order.shippingCents > 0
+                ? ` Shipping of ${money(order.shippingCents)}, quoted with your deposit, is added to whichever option you choose below.`
+                : " Pickup, so there is no shipping charge."}{" "}
+              Choose how to settle the balance and we will start building your kit.
             </p>
 
             <div className="mt-9 grid gap-5 md:grid-cols-2">
               <div className="rounded-3xl border border-border bg-card p-7 shadow-soft">
                 <h2 className="text-lg font-medium text-brand-indigo">Pay the balance in full</h2>
                 <p className="mt-4 text-3xl font-light text-brand-indigo">
-                  {money(order.balanceCents)}
+                  {money(order.balanceCents + order.shippingCents)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   AUD incl. GST
                   {order.promoCode ? `, promo ${order.promoCode} applied` : ""}
                 </p>
                 <p className="mt-4 text-sm text-muted-foreground">
-                  One payment, nothing further to pay. Shipping is already covered.
+                  One payment, nothing further to pay.
+                  {order.shippingCents > 0
+                    ? ` Balance ${money(order.balanceCents)} plus ${money(order.shippingCents)} shipping.`
+                    : ""}
                 </p>
                 <Button
                   onClick={() => void choose("full")}
@@ -175,15 +183,18 @@ function BalancePage() {
               <div className="rounded-3xl border border-transparent bg-brand-ink p-7 text-white shadow-lift">
                 <h2 className="text-lg font-medium">Start a payment plan</h2>
                 <p className="mt-4 text-3xl font-light">
-                  {money(order.plan.depositBalanceCents)}
+                  {money(order.plan.depositBalanceCents + order.shippingCents)}
                   <span className="text-base font-light text-white/60"> now</span>
                 </p>
                 <p className="mt-1 text-xs text-white/60">
                   then {order.plan.months} monthly payments of {money(order.plan.monthlyCents)}
                 </p>
                 <p className="mt-4 text-sm text-white/75">
-                  Plan total {money(order.plan.totalCents)} incl. GST including your deposit.
-                  Billing stops automatically after the final payment.
+                  Plan total {money(order.plan.totalCents + order.shippingCents)} incl. GST,
+                  including your deposit
+                  {order.shippingCents > 0 ? " and shipping" : ""}. Shipping is collected in full
+                  now, never spread across the monthlies. Billing stops automatically after the
+                  final payment.
                 </p>
                 <Button
                   onClick={() => void choose("plan")}
@@ -204,7 +215,7 @@ function BalancePage() {
               This link is private to your order. Your deposit holds it until{" "}
               {order.expiresAt ? new Date(order.expiresAt).toLocaleDateString("en-AU") : "30 days"}.
               If you decide not to go ahead before then, email info@resonabed.com and we will refund
-              your deposit and shipping in full.
+              your deposit in full. Shipping is only charged when you settle the balance.
             </p>
           </>
         )}
