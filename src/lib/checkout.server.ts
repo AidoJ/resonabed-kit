@@ -429,7 +429,28 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
   };
   const returnUrl = `${data.origin}/order/success?session_id={CHECKOUT_SESSION_ID}`;
 
-  // Shipping was charged with the deposit. It is never added here.
+  // Shipping was quoted and locked at deposit time, and is charged here, once.
+  // The stored figure is used as-is; rates are never recalculated at this step.
+  const shippingDue = order.shipping_charged_at ? 0 : order.shipping_cents;
+  const shippingLineItem =
+    shippingDue > 0
+      ? [
+          {
+            price_data: {
+              currency: "aud" as const,
+              product_data: {
+                name: `Shipping, ${order.shipping_label ?? order.shipping_region ?? "as quoted"}`,
+                description: `Flat-rate shipping quoted with your deposit (${
+                  order.shipping_gst_inclusive ? "incl. GST" : "GST-free export"
+                }). Charged once, here.`,
+              },
+              unit_amount: shippingDue,
+            },
+            quantity: 1,
+          },
+        ]
+      : [];
+
   if (data.path === "full") {
     const session = await stripe.checkout.sessions.create({
       ui_mode: "embedded",
