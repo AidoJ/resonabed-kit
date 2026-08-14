@@ -4,6 +4,9 @@
  *   - deletes abandoned drafts (checkout opened, deposit never paid)
  *   - expires orders still unpaid on the balance after the 30 day hold
  *   - sends the day 7 and day 25 balance nudges
+ *   - runs the payment-plan arrears sweep: dunning ladder, arrears at day 10,
+ *     the proportionate default gate at day 24, clinic wind-downs, and the
+ *     card-expiry pre-warning
  *
  * Idempotent, safe to call as often as you like.
  */
@@ -23,8 +26,10 @@ export const Route = createFileRoute("/api/public/hooks/order-tick")({
         }
 
         const { tickOrders } = await import("@/lib/orders.server");
+        const { tickPlanArrears } = await import("@/lib/plan-arrears.server");
         const result = await tickOrders();
-        return Response.json({ ok: true, ...result });
+        const arrears = await tickPlanArrears();
+        return Response.json({ ok: true, ...result, arrears });
       },
     },
   },

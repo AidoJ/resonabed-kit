@@ -30,6 +30,7 @@ export type OrderState =
   | "expired"
   | "cancelled"
   | "refunded"
+  | "arrears"
   | "defaulted";
 
 /** States in which the physical kit and app access may be released. */
@@ -80,6 +81,22 @@ export type KitOrderRow = {
   payments_made: number;
   payments_due: number;
   arrears_since: string | null;
+  /* Phase 3: arrears, dunning and the proportionate default gate. */
+  first_failure_at: string | null;
+  failure_count: number;
+  prior_failure_count: number;
+  dunning_stage: number;
+  last_dunning_at: string | null;
+  dunning_paused_until: string | null;
+  arrears_entered_at: string | null;
+  defaulted_at: string | null;
+  wind_down_at: string | null;
+  access_level: "full" | "limited" | "suspended";
+  access_applied_at: string | null;
+  owed_cents: number;
+  write_off_cents: number | null;
+  written_off_at: string | null;
+  card_expiry_warned_at: string | null;
   deposit_paid_at: string | null;
   balance_paid_at: string | null;
   plan_started_at: string | null;
@@ -498,33 +515,45 @@ export async function fulfilOrder(orderId: string): Promise<OrderFulfilmentResul
 
 /* -------------------------------------------------------------- plan cycles */
 
-/** A monthly plan invoice cleared. Stops the plan dead on the 10th. */
+/**
+ * A monthly plan invoice cleared. Stops the plan dead on the 10th, and — the
+ * Phase 3 rule that matters most — a paying customer is restored to full access
+ * in the same path, instantly, before anything else happens.
+ */
 export async function recordPlanPayment(
   order: KitOrderRow,
   opts: { invoiceId: string; amountCents: number; stripeSecret: string },
-): Promise<{ paymentsMade: number; completed: boolean }> {
+): Promise<{ paymentsMade: number; completed: boolean; restored: boolean }> {
   const months = order.plan_months ?? 10;
   const paymentsMade = Math.min(months, order.payments_made + 1);
 
-  await updateOrder(order.id, {
+  let current = await updateOrder(order.id, {
     payments_made: paymentsMade,
     collected_cents: order.collected_cents + opts.amountCents,
-    arrears_since: null,
   });
   await logOrderEvent(order.id, "plan_payment", {
     stripeRef: opts.invoiceId,
     detail: { payment: paymentsMade, of: months, amount_cents: opts.amountCents },
   });
 
-  if (paymentsMade < months) return { paymentsMade, completed: false };
+  // Recovery first: a successful payment always clears arrears and returns
+  // access, whether it came from a retry, a catch-up or the normal cycle.
+  const wasBehind =
+    !!order.arrears_since || order.state === "arrears" || order.state === "defaulted";
+  if (wasBehind) {
+    const { restorePlanAfterPayment } = await import("@/lib/plan-arrears.server");
+    current = await restorePlanAfterPayment(current);
+  }
+
+  if (paymentsMade < months) return { paymentsMade, completed: false, restored: wasBehind };
 
   // Exactly `months` cycle payments taken: end the subscription now, by count,
   // never by a date approximation.
-  if (order.stripe_subscription_id) {
+  if (current.stripe_subscription_id) {
     const Stripe = (await import("stripe")).default;
     const stripe = new Stripe(opts.stripeSecret);
     try {
-      await stripe.subscriptions.cancel(order.stripe_subscription_id);
+      await stripe.subscriptions.cancel(current.stripe_subscription_id);
     } catch (err) {
       console.error("Could not cancel completed plan subscription", err);
     }
@@ -534,22 +563,21 @@ export async function recordPlanPayment(
     plan_completed_at: new Date().toISOString(),
   });
   await logOrderEvent(order.id, "plan_completed", {
-    fromState: order.state,
+    fromState: current.state,
     toState: "plan_completed",
     detail: { payments: paymentsMade },
   });
-  return { paymentsMade, completed: true };
+  return { paymentsMade, completed: true, restored: wasBehind };
 }
 
-/** Phase 3 hook: recorded only, no dunning, no access changes. */
-export async function recordPlanPaymentFailure(order: KitOrderRow, invoiceId: string) {
-  await updateOrder(order.id, {
-    arrears_since: order.arrears_since ?? new Date().toISOString(),
-  });
-  await logOrderEvent(order.id, "plan_payment_failed", {
-    stripeRef: invoiceId,
-    detail: { phase: "logged_only" },
-  });
+/** A failed monthly. Delegates to the arrears engine; no access change here. */
+export async function recordPlanPaymentFailure(
+  order: KitOrderRow,
+  invoiceId: string,
+  amountDueCents = 0,
+) {
+  const { recordPlanPaymentFailure: handle } = await import("@/lib/plan-arrears.server");
+  return handle(order, invoiceId, amountDueCents);
 }
 
 /* ------------------------------------------------------ expiry and refunds */

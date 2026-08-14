@@ -10,6 +10,15 @@ import { template as clinicOrderReceivedTemplate } from './clinic-order-received
 import { template as contactFormTemplate } from './contact-form'
 import { template as orderDepositReceivedTemplate } from './order-deposit-received'
 import { template as orderBalanceReminderTemplate } from './order-balance-reminder'
+import {
+  planPaymentFailed,
+  planPaymentRetry,
+  planPaymentFinalNotice,
+  planFinalWarning,
+  planAccessSuspended,
+  planRestored,
+  planCardExpiring,
+} from './plan-dunning'
 
 
 
@@ -34,6 +43,13 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-form': contactFormTemplate,
   'order-deposit-received': orderDepositReceivedTemplate,
   'order-balance-reminder': orderBalanceReminderTemplate,
+  'plan-payment-failed': planPaymentFailed,
+  'plan-payment-retry': planPaymentRetry,
+  'plan-payment-final-notice': planPaymentFinalNotice,
+  'plan-final-warning': planFinalWarning,
+  'plan-access-suspended': planAccessSuspended,
+  'plan-restored': planRestored,
+  'plan-card-expiring': planCardExpiring,
 }
 
 

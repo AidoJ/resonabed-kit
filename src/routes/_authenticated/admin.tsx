@@ -20,6 +20,7 @@ import {
   KeyRound,
   ClipboardCheck,
   Megaphone,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ const SUPER_TABS: Tab[] = [
   { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
   { to: "/admin/shipping", label: "Shipping rates", icon: Truck },
   { to: "/admin/sales", label: "Kit purchases", icon: Receipt },
+  { to: "/admin/arrears", label: "Payment plans", icon: AlertTriangle },
   { to: "/admin/onboarding", label: "Clinic onboarding", icon: ClipboardCheck },
   { to: "/admin/access-codes", label: "Home access codes", icon: KeyRound },
   { to: "/admin/invoices", label: "Invoices", icon: FileText },

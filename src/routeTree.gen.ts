@@ -40,6 +40,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as OrderCardTokenRouteImport } from './routes/order.card.$token'
 import { Route as OrderBalanceTokenRouteImport } from './routes/order.balance.$token'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
@@ -61,6 +62,7 @@ import { Route as AuthenticatedAdminMarketingRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated/admin.clients'
+import { Route as AuthenticatedAdminArrearsRouteImport } from './routes/_authenticated/admin.arrears'
 import { Route as AuthenticatedAdminAccessCodesRouteImport } from './routes/_authenticated/admin.access-codes'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -230,6 +232,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const OrderCardTokenRoute = OrderCardTokenRouteImport.update({
+  id: '/order/card/$token',
+  path: '/order/card/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrderBalanceTokenRoute = OrderBalanceTokenRouteImport.update({
   id: '/order/balance/$token',
   path: '/order/balance/$token',
@@ -351,6 +358,12 @@ const AuthenticatedAdminClientsRoute =
     path: '/clients',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminArrearsRoute =
+  AuthenticatedAdminArrearsRouteImport.update({
+    id: '/arrears',
+    path: '/arrears',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAccessCodesRoute =
   AuthenticatedAdminAccessCodesRouteImport.update({
     id: '/access-codes',
@@ -430,6 +443,7 @@ export interface FileRoutesByFullPath {
   '/order/success': typeof OrderSuccessRoute
   '/home/': typeof HomeIndexRoute
   '/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
+  '/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -451,6 +465,7 @@ export interface FileRoutesByFullPath {
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
+  '/order/card/$token': typeof OrderCardTokenRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
@@ -489,6 +504,7 @@ export interface FileRoutesByTo {
   '/order/success': typeof OrderSuccessRoute
   '/home': typeof HomeIndexRoute
   '/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
+  '/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -510,6 +526,7 @@ export interface FileRoutesByTo {
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
+  '/order/card/$token': typeof OrderCardTokenRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/sessions': typeof AuthenticatedSessionsIndexRoute
@@ -553,6 +570,7 @@ export interface FileRoutesById {
   '/order/success': typeof OrderSuccessRoute
   '/home/': typeof HomeIndexRoute
   '/_authenticated/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
+  '/_authenticated/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -574,6 +592,7 @@ export interface FileRoutesById {
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
+  '/order/card/$token': typeof OrderCardTokenRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
@@ -617,6 +636,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/home/'
     | '/admin/access-codes'
+    | '/admin/arrears'
     | '/admin/clients'
     | '/admin/global-services'
     | '/admin/invoices'
@@ -638,6 +658,7 @@ export interface FileRouteTypes {
     | '/sessions/new'
     | '/lovable/email/events'
     | '/order/balance/$token'
+    | '/order/card/$token'
     | '/admin/'
     | '/bookings/'
     | '/sessions/'
@@ -676,6 +697,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/home'
     | '/admin/access-codes'
+    | '/admin/arrears'
     | '/admin/clients'
     | '/admin/global-services'
     | '/admin/invoices'
@@ -697,6 +719,7 @@ export interface FileRouteTypes {
     | '/sessions/new'
     | '/lovable/email/events'
     | '/order/balance/$token'
+    | '/order/card/$token'
     | '/admin'
     | '/bookings'
     | '/sessions'
@@ -739,6 +762,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/home/'
     | '/_authenticated/admin/access-codes'
+    | '/_authenticated/admin/arrears'
     | '/_authenticated/admin/clients'
     | '/_authenticated/admin/global-services'
     | '/_authenticated/admin/invoices'
@@ -760,6 +784,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sessions/new'
     | '/lovable/email/events'
     | '/order/balance/$token'
+    | '/order/card/$token'
     | '/_authenticated/admin/'
     | '/_authenticated/bookings/'
     | '/_authenticated/sessions/'
@@ -791,6 +816,7 @@ export interface RootRouteChildren {
   OrderSuccessRoute: typeof OrderSuccessRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   OrderBalanceTokenRoute: typeof OrderBalanceTokenRoute
+  OrderCardTokenRoute: typeof OrderCardTokenRoute
   ApiPublicHooksOfferTickRoute: typeof ApiPublicHooksOfferTickRoute
   ApiPublicHooksOrderTickRoute: typeof ApiPublicHooksOrderTickRoute
   ApiPublicHooksStripeRoute: typeof ApiPublicHooksStripeRoute
@@ -1018,6 +1044,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/order/card/$token': {
+      id: '/order/card/$token'
+      path: '/order/card/$token'
+      fullPath: '/order/card/$token'
+      preLoaderRoute: typeof OrderCardTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/order/balance/$token': {
       id: '/order/balance/$token'
       path: '/order/balance/$token'
@@ -1165,6 +1198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClientsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/arrears': {
+      id: '/_authenticated/admin/arrears'
+      path: '/arrears'
+      fullPath: '/admin/arrears'
+      preLoaderRoute: typeof AuthenticatedAdminArrearsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/access-codes': {
       id: '/_authenticated/admin/access-codes'
       path: '/access-codes'
@@ -1233,6 +1273,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAccessCodesRoute: typeof AuthenticatedAdminAccessCodesRoute
+  AuthenticatedAdminArrearsRoute: typeof AuthenticatedAdminArrearsRoute
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRoute
   AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
@@ -1255,6 +1296,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAccessCodesRoute: AuthenticatedAdminAccessCodesRoute,
+  AuthenticatedAdminArrearsRoute: AuthenticatedAdminArrearsRoute,
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRoute,
   AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
@@ -1363,6 +1405,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderSuccessRoute: OrderSuccessRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   OrderBalanceTokenRoute: OrderBalanceTokenRoute,
+  OrderCardTokenRoute: OrderCardTokenRoute,
   ApiPublicHooksOfferTickRoute: ApiPublicHooksOfferTickRoute,
   ApiPublicHooksOrderTickRoute: ApiPublicHooksOrderTickRoute,
   ApiPublicHooksStripeRoute: ApiPublicHooksStripeRoute,

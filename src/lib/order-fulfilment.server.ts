@@ -187,7 +187,10 @@ export async function handlePlanInvoicePaid(invoice: Stripe.Invoice, stripeSecre
   return { handled: true, ...result };
 }
 
-/** Phase 3 hook: failures are logged against the order, nothing is cut off. */
+/**
+ * invoice.payment_failed. Flags arrears and starts dunning immediately; no
+ * access consequence here — that only ever comes from the day-24 gate.
+ */
 export async function handlePlanInvoiceFailed(invoice: Stripe.Invoice) {
   const subscriptionId =
     typeof (invoice as unknown as { subscription?: unknown }).subscription === "string"
@@ -196,7 +199,11 @@ export async function handlePlanInvoiceFailed(invoice: Stripe.Invoice) {
   if (!subscriptionId) return { handled: false };
   const order = await getOrderByStripeRef("stripe_subscription_id", subscriptionId);
   if (!order) return { handled: false };
-  await recordPlanPaymentFailure(order, invoice.id ?? subscriptionId);
+  await recordPlanPaymentFailure(
+    order,
+    invoice.id ?? subscriptionId,
+    invoice.amount_due ?? invoice.amount_remaining ?? 0,
+  );
   return { handled: true };
 }
 
