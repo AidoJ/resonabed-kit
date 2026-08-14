@@ -299,6 +299,54 @@ export function ShippingAddressStepDialog({
 
   const shippingCents = pickup ? 0 : matchedRate?.amount_cents ?? 0;
   const totalCents = packagePriceCents + shippingCents;
+  const pkg = packageKey ? PACKAGES[packageKey] : null;
+
+  /**
+   * Deposit-first summary: $100 secures the order today, and the freight quote
+   * is locked now but collected with the balance, so nothing to refund if the
+   * hold lapses.
+   */
+  const Breakdown = ({ shippingLine }: { shippingLine: React.ReactNode }) => (
+    <div className="rounded-2xl border border-brand-indigo/15 bg-white p-3 text-sm">
+      <div className="flex justify-between text-muted-foreground">
+        <span>Kit</span>
+        <span>{fmt(packagePriceCents)}</span>
+      </div>
+      <div className="flex justify-between text-muted-foreground">
+        <span>{shippingLine}</span>
+        <span>{shippingCents === 0 ? "Free" : fmt(shippingCents)}</span>
+      </div>
+      <div className="mt-1 flex justify-between border-t border-brand-indigo/10 pt-2 font-medium text-brand-indigo">
+        <span>Order total</span>
+        <span>{fmt(totalCents)}</span>
+      </div>
+      <div className="mt-3 space-y-1 border-t border-brand-indigo/10 pt-3">
+        <div className="flex justify-between font-medium text-brand-indigo">
+          <span>Pay today, order deposit</span>
+          <span>{fmt(ORDER_DEPOSIT_CENTS)}</span>
+        </div>
+        {shippingCents > 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Shipping of {fmt(shippingCents)} is quoted and locked now, and added to your balance.
+            It is not charged today.
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Pickup, so there is no shipping charge at any stage.
+          </p>
+        )}
+        {pkg ? (
+          <p className="text-xs text-muted-foreground">
+            Balance after the deposit: {money(pkg.balanceCents + shippingCents)} in full, or{" "}
+            {money(pkg.plan.depositBalanceCents + shippingCents)} then {pkg.plan.months} monthly
+            payments of {money(pkg.plan.monthlyCents)}. Shipping is collected once, with that
+            balance payment.
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+
 
   const handleContinue = () => {
     if (pickup) {
