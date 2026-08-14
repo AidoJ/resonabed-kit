@@ -60,9 +60,23 @@ export const listShippingRatesAdmin = createServerFn({ method: "GET" })
     return (data ?? []) as ShippingRateRow[];
   });
 
+const APPLIES_TO = ["any", "essentials", "pro", "platinum", "home"] as const;
+
+const csvList = z
+  .array(z.string().trim().min(1).max(8))
+  .max(60)
+  .transform((v) => v.map((s) => s.toUpperCase()));
+
 const UpdateSchema = z.object({
   id: z.string().uuid(),
+  region: z.string().trim().min(2).max(60).optional(),
+  label: z.string().trim().min(2).max(120).optional(),
   amount_cents: z.number().int().min(0).max(1_000_000).optional(),
+  gst_inclusive: z.boolean().optional(),
+  allowed_countries: csvList.optional(),
+  allowed_states: csvList.optional(),
+  applies_to: z.enum(APPLIES_TO).optional(),
+  sort_order: z.number().int().min(0).max(9999).optional(),
   active: z.boolean().optional(),
 });
 
@@ -71,15 +85,45 @@ export const updateShippingRate = createServerFn({ method: "POST" })
   .inputValidator((d) => UpdateSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requireSuperAdmin(context);
-    const patch: { amount_cents?: number; active?: boolean } = {};
-    if (data.amount_cents !== undefined) patch.amount_cents = data.amount_cents;
-    if (data.active !== undefined) patch.active = data.active;
+    const { id, ...patch } = data;
     if (Object.keys(patch).length === 0) return { ok: true };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("shipping_rates")
-      .update(patch)
-      .eq("id", data.id);
+    const { error } = await supabaseAdmin.from("shipping_rates").update(patch).eq("id", id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+const CreateSchema = z.object({
+  region: z.string().trim().min(2).max(60),
+  label: z.string().trim().min(2).max(120),
+  amount_cents: z.number().int().min(0).max(1_000_000),
+  gst_inclusive: z.boolean(),
+  allowed_countries: csvList.refine((v) => v.length > 0, "Add at least one country"),
+  allowed_states: csvList,
+  applies_to: z.enum(APPLIES_TO),
+  sort_order: z.number().int().min(0).max(9999),
+  active: z.boolean(),
+});
+
+export const createShippingRate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => CreateSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await requireSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("shipping_rates").insert(data);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteShippingRate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("shipping_rates").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
