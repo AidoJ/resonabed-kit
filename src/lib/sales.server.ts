@@ -7,7 +7,7 @@ export type KitSaleRow = {
   paid: boolean;
   customerName: string | null;
   customerEmail: string | null;
-  packageKey: "pro" | "premium" | string;
+  packageKey: "essentials" | "pro" | "platinum" | "home" | string;
   packageLabel: string;
   plan: "full" | "installments";
   currency: string;
