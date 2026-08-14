@@ -594,7 +594,7 @@ function LandingPage() {
             name="Basic"
             packageKey="essentials"
             price="$1,199"
-            tagline="The lean way to start."
+            tagline="The Essential Starter Kit"
             description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
             features={[
               "Two 50W tactile speakers",
@@ -610,7 +610,7 @@ function LandingPage() {
             packageKey="pro"
             price="$1,399"
             highlighted
-            tagline="For clinics with a table already."
+            tagline="The Complete Upgrade Kit"
             description="Everything in Basic, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room."
             features={[
               "Everything included in Basic",
@@ -623,7 +623,7 @@ function LandingPage() {
             name="Platinum"
             packageKey="platinum"
             price="$1,799"
-            tagline="The whole thing, table included."
+            tagline="The Total Business in a Box"
             description="Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives."
             features={[
               "Everything included in Pro",
