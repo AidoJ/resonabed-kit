@@ -271,29 +271,14 @@ export async function createDepositCheckout(data: z.infer<typeof DepositCheckout
           currency: "aud",
           product_data: {
             name: `${pkg.label}, order deposit`,
-            description: `Order deposit of ${money(ORDER_DEPOSIT_CENTS)} incl. GST for ${pkg.label}. Secures your order for 30 days. The balance is paid separately and nothing ships until it clears.`,
+            description: `Order deposit of ${money(ORDER_DEPOSIT_CENTS)} incl. GST for ${pkg.label}. Secures your order for 30 days. Shipping${
+              shipping.amount > 0 ? ` of ${money(shipping.amount)}` : ""
+            } and the balance are paid at the next step, and nothing ships until that clears.`,
           },
           unit_amount: ORDER_DEPOSIT_CENTS,
         },
         quantity: 1,
       },
-      ...(data.pickup
-        ? []
-        : [
-            {
-              price_data: {
-                currency: "aud" as const,
-                product_data: {
-                  name: `Shipping, ${shipping.label}`,
-                  description: `Flat-rate shipping to ${shipping.label} (${
-                    shipping.gstInclusive ? "incl. GST" : "GST-free export"
-                  }). Charged once, with the deposit.`,
-                },
-                unit_amount: shipping.amount,
-              },
-              quantity: 1,
-            },
-          ]),
     ],
     allow_promotion_codes: false,
     metadata: {
