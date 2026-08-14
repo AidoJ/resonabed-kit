@@ -792,13 +792,14 @@ function LandingPage() {
                 Buying for your own home?
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Resonabed isn&rsquo;t just for clinics.{" "}
-                <Link
-                  to="/for-home"
+                Resonabed isn&rsquo;t just for clinics. The{" "}
+                <a
+                  href="#home-package"
                   className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
                 >
-                  Resonabed for Home
-                </Link>{" "}
+                  Home package
+                </a>{" "}
+
                 is a complete package for $1,499: a fully fitted table, headphones and the personal
                 app, no bookings and no clients, just you and your sessions. We email an access code
                 the moment you pay, and you set up at{" "}
