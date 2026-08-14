@@ -160,9 +160,10 @@ export async function createEftDepositInvoice(
 ) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  const totalCents = order.deposit_cents + order.shipping_cents;
-  const taxable = totalCents - (order.shipping_gst_inclusive ? 0 : order.shipping_cents);
-  const gstCents = gstOf(Math.max(0, taxable));
+  // Deposit stage is a clean $100. Shipping is quoted and locked on the order,
+  // then invoiced with the balance.
+  const totalCents = order.deposit_cents;
+  const gstCents = gstOf(Math.max(0, totalCents));
 
   const { data: numberRow, error: numErr } = await supabaseAdmin.rpc("next_kit_invoice_number");
   if (numErr) throw new Error(numErr.message);
@@ -188,7 +189,7 @@ export async function createEftDepositInvoice(
       plan: "full",
       list_cents: order.list_cents,
       discount_cents: 0,
-      shipping_cents: order.shipping_cents,
+      shipping_cents: 0,
       shipping_region: order.shipping_region,
       shipping_gst_inclusive: order.shipping_gst_inclusive,
       total_cents: totalCents,
@@ -197,9 +198,9 @@ export async function createEftDepositInvoice(
       due_date: due.toISOString().slice(0, 10),
       status: "sent",
       notes: [
-        `Order ${order.order_number}, order deposit and shipping.`,
+        `Order ${order.order_number}, order deposit.`,
         "Nothing ships on the deposit. A balance invoice follows once this clears.",
-        `Shipping: ${order.shipping_label ?? "as quoted"}.`,
+        `Shipping quoted and locked: ${order.shipping_label ?? "as quoted"}, charged with the balance.`,
         order.promo_code ? `Promo ${order.promo_code} applies to the balance.` : null,
       ]
         .filter(Boolean)

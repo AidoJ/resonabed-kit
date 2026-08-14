@@ -723,8 +723,8 @@ export async function sendBalanceReminderEmail(order: KitOrderRow, stage: number
 /* ------------------------------------------------------------------ pricing */
 
 export function orderGstCents(order: KitOrderRow) {
-  const uncollectedShipping = order.shipping_charged_at ? order.shipping_cents : 0;
-  const taxable = order.collected_cents - (order.shipping_gst_inclusive ? 0 : uncollectedShipping);
+  const collectedShipping = order.shipping_charged_at ? order.shipping_cents : 0;
+  const taxable = order.collected_cents - (order.shipping_gst_inclusive ? 0 : collectedShipping);
   return gstOf(Math.max(0, taxable));
 }
 
