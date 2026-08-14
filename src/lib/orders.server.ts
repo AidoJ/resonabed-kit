@@ -289,8 +289,8 @@ export async function markDepositPaid(
       address?: string | null;
     };
   },
-): Promise<KitOrderRow> {
-  if (order.state !== "draft") return order; // idempotent
+): Promise<{ order: KitOrderRow; balanceToken: string | null }> {
+  if (order.state !== "draft") return { order, balanceToken: null }; // idempotent
 
   const now = new Date();
   const updated = await updateOrder(order.id, {
@@ -315,8 +315,8 @@ export async function markDepositPaid(
     detail: { amount_cents: opts.amountCents },
   });
 
-  await sendDepositReceivedEmail(updated);
-  return updated;
+  const balanceToken = await sendDepositReceivedEmail(updated);
+  return { order: updated, balanceToken };
 }
 
 /** Balance cleared in full. Fulfilment follows. */
@@ -681,8 +681,8 @@ async function sendOrderEmail(
   template: "order-deposit-received" | "order-balance-reminder",
   order: KitOrderRow,
   extra: Record<string, unknown>,
-) {
-  if (!order.contact_email) return false;
+): Promise<string | null> {
+  if (!order.contact_email) return null;
   try {
     const token = await mintNewOrderToken(order.id);
     const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
@@ -701,10 +701,10 @@ async function sendOrderEmail(
       },
       idempotencyKey: `${template}:${order.order_number}:${extra["stage"] ?? "initial"}`,
     });
-    return true;
+    return token;
   } catch (err) {
     console.error("Order email failed", template, order.order_number, err);
-    return false;
+    return null;
   }
 }
 
