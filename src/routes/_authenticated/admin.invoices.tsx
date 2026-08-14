@@ -40,9 +40,12 @@ const money = (cents: number, currency = "AUD") =>
   new Intl.NumberFormat("en-AU", { style: "currency", currency }).format(cents / 100);
 
 const PACKAGES = [
-  { key: "pro", label: "Resonabed Pro Kit", cents: 119900 },
-  { key: "premium", label: "Resonabed Premium Kit", cents: 139900 },
+  { key: "essentials", label: "Resonabed Essentials", cents: 119900 },
+  { key: "pro", label: "Resonabed Pro", cents: 139900 },
+  { key: "platinum", label: "Resonabed Platinum", cents: 179900 },
+  { key: "home", label: "Resonabed for Home", cents: 149900 },
 ];
+
 
 const STATUS_VARIANT: Record<string, "secondary" | "outline" | "default" | "destructive"> = {
   draft: "outline",

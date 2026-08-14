@@ -9,11 +9,18 @@
 import type Stripe from "stripe";
 
 const PACKAGE_LABELS: Record<string, string> = {
-  pro: "Resonabed Pro Kit",
-  premium: "Resonabed Premium Kit",
+  essentials: "Resonabed Essentials",
+  pro: "Resonabed Pro",
+  platinum: "Resonabed Platinum",
   home: "Resonabed for Home",
 };
-const LIST_PRICE_CENTS: Record<string, number> = { pro: 119900, premium: 139900, home: 149900 };
+const LIST_PRICE_CENTS: Record<string, number> = {
+  essentials: 119900,
+  pro: 139900,
+  platinum: 179900,
+  home: 149900,
+};
+
 
 const gstOf = (inclusiveCents: number) => Math.round(inclusiveCents / 11);
 

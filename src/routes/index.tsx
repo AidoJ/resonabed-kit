@@ -73,23 +73,26 @@ const NAV_LINKS: { href: string; label: string }[] = [
   { href: "#contact", label: "Contact" },
 ];
 
-const COMPARE_ROWS: [string, boolean, boolean, boolean][] = [
-  ["Tactile speakers", true, true, true],
-  ["Amplifier", true, true, true],
-  ['10" tablet', true, true, true],
-  ["Headphones", true, true, true],
-  ["100 disposable headphone covers", true, true, false],
-  ["100 marketing flyers", true, true, false],
-  ["Full business app", true, true, false],
-  ["Full business webpage", true, true, false],
-  ["Home use app", false, false, true],
-  ["Fully fitted out table", false, true, true],
+const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
+  ["Tactile speakers", true, true, true, true],
+  ["Amplifier", true, true, true, true],
+  ['10" tablet', false, true, true, true],
+  ["Headphones", false, true, true, true],
+  ["100 disposable headphone covers", false, true, true, false],
+  ["100 marketing flyers", true, true, true, false],
+  ["Full business app", true, true, true, false],
+  ["Full business webpage", true, true, true, false],
+  ["Home use app", false, false, false, true],
+  ["9 Solfeggio frequencies", false, false, false, true],
+  ["Fully fitted out table", false, false, true, true],
 ];
+
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
-    q: "What is the difference between Pro and Platinum?",
-    a: "Only the table. Pro fits your existing treatment table, Platinum arrives as a new table with the system already fitted. The hardware, the app and the marketing material are identical.",
+    q: "What is the difference between Essentials, Pro and Platinum?",
+    a: "Essentials is the system fitted to your existing table, running on a device you already own. Pro adds a dedicated 10 inch tablet, headphones and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. The app, the clinic webpage and the marketing material are identical across all three.",
+
   },
   {
     q: "Can I run a clinic on the Home package?",
@@ -553,7 +556,7 @@ function LandingPage() {
             <h3 className="text-lg font-medium text-brand-indigo">Fit your existing table</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               Keep the massage, chiropractic or osteopathic table you already work on. The speakers
-              and amplifier mount underneath in an afternoon. This is Pro.
+              and amplifier mount underneath in an afternoon. This is Essentials and Pro.
             </p>
           </div>
         </div>
@@ -563,65 +566,78 @@ function LandingPage() {
       <section id="packages" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-            Three packages
+            Three business packages
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            Pro, Platinum and Home.
+            Essentials, Pro and Platinum.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every package includes the tactile speakers, the amplifier, a 10 inch tablet and
-            headphones. Business packages add the consumables, 100 professionally designed{" "}
+            Every business package includes the tactile speakers, the amplifier, 100 professionally
+            designed{" "}
             <Link
               to="/flyer"
               className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
             >
               marketing flyers
-            </Link>{" "}
-            and the software that runs a clinic.
+            </Link>
+            , the full business app and your own bookable clinic webpage.
+          </p>
+          <p className="mt-4 rounded-2xl bg-secondary/60 px-5 py-4 text-sm leading-relaxed text-foreground/90">
+            The Resonabed app runs on any phone, tablet or laptop. Essentials uses a device you
+            already own. Pro and Platinum include a dedicated 10 inch tablet.
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
+        <div className="mt-14 grid gap-6 lg:grid-cols-3">
           <PackageCard
-            name="Pro"
-            packageKey="premium"
-            price="$1,399"
-            highlighted
-            tagline="For clinics with a table already."
-            description="The full business system fitted to the treatment table in your room. Everything needed to run, book and market vibroacoustic sessions from day one."
+            name="Essentials"
+            packageKey="essentials"
+            price="$1,199"
+            tagline="The lean way to start."
+            description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
             features={[
               "Two 50W tactile speakers",
               "Bluetooth amplifier, wiring and fittings",
-              '10" tablet, pre-configured for sessions',
-              "Audio-Technica ATH-M30x headphones",
-              "100 disposable headphone covers",
               "100 marketing flyers, professionally designed",
               "Full business app: intake, screening, sessions, payments",
               "Your own bookable Resonabed clinic webpage",
+              "Runs on your own phone, tablet or laptop",
             ]}
           />
-          <ContactPackageCard
+          <PackageCard
+            name="Pro"
+            packageKey="pro"
+            price="$1,399"
+            highlighted
+            tagline="For clinics with a table already."
+            description="Everything in Essentials, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room."
+            features={[
+              "Everything included in Essentials",
+              '10" tablet, pre-configured for sessions',
+              "Audio-Technica ATH-M30x headphones",
+              "100 disposable headphone covers",
+            ]}
+          />
+          <PackageCard
             name="Platinum"
-            priceLine="From $1,799 AUD · incl. GST"
+            packageKey="platinum"
+            price="$1,799"
             tagline="The whole thing, table included."
-            description={
-              "Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete vibroacoustic service, ready to run from the moment it arrives."
-            }
+            description="Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives."
             features={[
               "Everything included in Pro",
               "New therapy table, fully fitted out",
-              "Choice of three table finishes",
               "Tested as a complete system before dispatch",
-              "Full business app and clinic webpage",
             ]}
           />
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          Pro fits the table you already use. It must have a solid timber base so the equipment can
-          be mounted securely. Shipping is calculated at checkout by destination.
+          Essentials and Pro fit the table you already use. It must have a solid timber base so the
+          equipment can be mounted securely. Shipping is calculated at checkout by destination.
         </p>
       </section>
+
 
       {/* HOME PACKAGE */}
       <section
@@ -664,7 +680,7 @@ function LandingPage() {
               <thead>
                 <tr className="border-b border-border text-left">
                   <th className="px-5 py-4 font-medium text-brand-indigo">Included</th>
-                  {["Pro", "Platinum", "Home"].map((h) => (
+                  {["Essentials", "Pro", "Platinum", "Home"].map((h) => (
                     <th key={h} className="px-5 py-4 text-center font-medium text-brand-indigo">
                       {h}
                     </th>
@@ -672,10 +688,11 @@ function LandingPage() {
                 </tr>
               </thead>
               <tbody>
-                {COMPARE_ROWS.map(([label, pro, plat, home]) => (
+                {COMPARE_ROWS.map(([label, ess, pro, plat, home]) => (
                   <tr key={label as string} className="border-b border-border/60 last:border-0">
                     <td className="px-5 py-3.5 text-foreground/90">{label}</td>
-                    {[pro, plat, home].map((v, i) => (
+                    {[ess, pro, plat, home].map((v, i) => (
+
                       <td
                         key={i}
                         className={`px-5 py-3.5 text-center ${
@@ -1186,61 +1203,25 @@ function ContactForm() {
 }
 
 
-function ContactPackageCard({
-  name,
-  priceLine,
-  tagline,
-  description,
-  features,
-}: {
-  name: string;
-  priceLine: string;
-  tagline: string;
-  description: string;
-  features: string[];
-}) {
-  return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-9 text-foreground shadow-soft md:p-10">
-      <div className="relative">
-        <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-medium tracking-tight text-brand-indigo">{name}</h3>
-        </div>
-        <p className="mt-2 text-sm text-brand-violet-strong">{tagline}</p>
-        <div className="mt-6">
-          <span className="text-2xl font-light tracking-tight text-brand-indigo md:text-3xl">
-            {priceLine}
-          </span>
-        </div>
-        <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{description}</p>
-        <ul className="mt-7 space-y-3">
-          {features.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-sm">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-violet-strong" />
-              <span className="text-foreground/90">{f}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-9">
-          <Button
-            asChild
-            className="h-11 w-full rounded-full bg-brand-indigo text-[14px] font-medium text-white hover:bg-brand-indigo/90"
-          >
-            <a href="mailto:info@resonabed.com?subject=Platinum%20package%20quote">
-              Contact us for a quote
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-            </a>
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-const INSTALLMENTS = {
 
-  pro: { deposit: 399, monthly: 100, months: 8 },
-  premium: { deposit: 599, monthly: 100, months: 8 },
-} as const;
+type BusinessPackageKey = "essentials" | "pro" | "platinum";
+
+const INSTALLMENTS: Record<
+  BusinessPackageKey,
+  { deposit: number; monthly: number; months: number } | null
+> = {
+  essentials: { deposit: 399, monthly: 100, months: 8 },
+  pro: { deposit: 599, monthly: 100, months: 8 },
+  // Phase 2 will set the Platinum plan numbers.
+  platinum: null,
+};
+
+const PACKAGE_META: Record<BusinessPackageKey, { cents: number; gstLine: string }> = {
+  essentials: { cents: 119900, gstLine: "$1,090 + $109 GST = $1,199" },
+  pro: { cents: 139900, gstLine: "$1,272 + $127 GST = $1,399" },
+  platinum: { cents: 179900, gstLine: "$1,635.45 + $163.55 GST = $1,799" },
+};
 
 function PackageCard({
   name,
@@ -1252,7 +1233,7 @@ function PackageCard({
   highlighted,
 }: {
   name: string;
-  packageKey: "pro" | "premium";
+  packageKey: BusinessPackageKey;
   price: string;
   tagline: string;
   description: string;
@@ -1277,8 +1258,9 @@ function PackageCard({
   const [buyer, setBuyer] = useState<BuyerTypeContinuePayload | null>(null);
 
   const plan = INSTALLMENTS[packageKey];
-  const totalInstallments = plan.deposit + plan.monthly * plan.months;
-  const packagePriceCents = packageKey === "pro" ? 119900 : 139900;
+  const totalInstallments = plan ? plan.deposit + plan.monthly * plan.months : 0;
+  const packagePriceCents = PACKAGE_META[packageKey].cents;
+
 
   const runCheckout = async (
     which: "full" | "installments",
@@ -1435,7 +1417,7 @@ function PackageCard({
           </span>
         </div>
         <p className={"mt-1 text-xs " + (highlighted ? "text-white/55" : "text-muted-foreground")}>
-          {packageKey === "pro" ? "$1,090 + $109 GST = $1,199" : "$1,272 + $127 GST = $1,399"}
+          {PACKAGE_META[packageKey].gstLine}
         </p>
         <p
           className={
@@ -1487,21 +1469,23 @@ function PackageCard({
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
 
-          <Button
-            onClick={() => handleOrder("installments")}
-            disabled={loading !== null}
-            variant="outline"
-            className={
-              "h-11 w-full rounded-full text-[13px] font-medium " +
-              (highlighted
-                ? "border-white/30 bg-white/5 text-white hover:bg-white/15"
-                : "border-brand-indigo/25 bg-transparent text-brand-indigo hover:bg-brand-tint")
-            }
-          >
-            {loading === "installments"
-              ? "Preparing checkout…"
-              : `Deposit $${plan.deposit} + ${plan.months} × $${plan.monthly}/mo`}
-          </Button>
+          {plan ? (
+            <Button
+              onClick={() => handleOrder("installments")}
+              disabled={loading !== null}
+              variant="outline"
+              className={
+                "h-11 w-full rounded-full text-[13px] font-medium " +
+                (highlighted
+                  ? "border-white/30 bg-white/5 text-white hover:bg-white/15"
+                  : "border-brand-indigo/25 bg-transparent text-brand-indigo hover:bg-brand-tint")
+              }
+            >
+              {loading === "installments"
+                ? "Preparing checkout…"
+                : `Deposit $${plan.deposit} + ${plan.months} × $${plan.monthly}/mo`}
+            </Button>
+          ) : null}
 
           <p
             className={
@@ -1509,10 +1493,13 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            + shipping, calculated by destination · repayment plan total ${totalInstallments} incl.
-            GST · billed monthly, auto-stops after the final payment · promo codes only apply to
-            pay-in-full · secure checkout by Stripe
+            + shipping, calculated by destination
+            {plan
+              ? ` · repayment plan total $${totalInstallments} incl. GST · billed monthly, auto-stops after the final payment`
+              : ""}{" "}
+            · promo codes only apply to pay-in-full · secure checkout by Stripe
           </p>
+
         </div>
       </div>
 

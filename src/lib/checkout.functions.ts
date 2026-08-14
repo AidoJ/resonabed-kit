@@ -3,28 +3,38 @@ import { z } from "zod";
 import Stripe from "stripe";
 
 const PACKAGES = {
-  pro: {
-    name: "Resonabed Pro Kit",
+  essentials: {
+    name: "Resonabed Essentials",
     description:
-      "Complete upgrade kit: 2x tactile transducers, Bluetooth amplifier, wiring & fittings, Resonabed session player + booking app, 9 Solfeggio frequencies, 250 DL marketing flyers. Price incl. GST, $1,090 + $109 GST = $1,199 AUD.",
+      "Lean business system: 2x tactile speakers, Bluetooth amplifier, wiring & fittings, the full Resonabed business app and clinic webpage, 100 marketing flyers. Runs on a phone, tablet or laptop you already own. Price incl. GST, $1,090 + $109 GST = $1,199 AUD.",
     amount: 119900,
     exGst: 109000,
     gst: 10900,
     installments: { deposit: 39900, monthly: 10000, months: 8 }, // 399 + 8*100 = 1199
   },
-  premium: {
-    name: "Resonabed Premium Kit",
+  pro: {
+    name: "Resonabed Pro",
     description:
-      "Everything in Pro, plus a 9\" Android tablet pre-configured for session-only use. Price incl. GST, $1,272 + $127 GST = $1,399 AUD.",
+      'Everything in Essentials, plus a dedicated 10" tablet pre-configured for sessions, Audio-Technica ATH-M30x headphones and 100 disposable headphone covers. Price incl. GST, $1,272 + $127 GST = $1,399 AUD.',
     amount: 139900,
     exGst: 127200,
     gst: 12700,
     installments: { deposit: 59900, monthly: 10000, months: 8 }, // 599 + 8*100 = 1399
   },
+  platinum: {
+    name: "Resonabed Platinum",
+    description:
+      "Everything in Pro, on a new therapy table fully fitted and tested before it ships. The complete business in a box. Price incl. GST, $1,635.45 + $163.55 GST = $1,799 AUD.",
+    amount: 179900,
+    exGst: 163545,
+    gst: 16355,
+    // Phase 2 will define the Platinum payment plan; hidden for now.
+    installments: null,
+  },
   home: {
     name: "Resonabed for Home",
     description:
-      "Complete home package: therapy table fully fitted with 2x 50W tactile transducers, Bluetooth amplifier, wiring & fittings, Audio-Technica ATH-M30x headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies. Price incl. GST, $1,362.73 + $136.27 GST = $1,499 AUD.",
+      "Complete home package: therapy table fully fitted with 2x 50W tactile speakers, Bluetooth amplifier, wiring & fittings, a 10\" tablet, Audio-Technica ATH-M30x headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies. Price incl. GST, $1,362.73 + $136.27 GST = $1,499 AUD.",
     amount: 149900,
     exGst: 136273,
     gst: 13627,
@@ -33,6 +43,11 @@ const PACKAGES = {
 } as const;
 
 type PackageKey = keyof typeof PACKAGES;
+
+/** Packages that ship a fitted therapy table price against the table freight bands. */
+const TABLE_SCOPE_PACKAGES = new Set<string>(["platinum", "home"]);
+const PACKAGE_KEYS = ["essentials", "pro", "platinum", "home"] as const;
+
 
 const ShippingAddressSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -60,7 +75,7 @@ export type BusinessDetails = z.infer<typeof BusinessDetailsSchema>;
 
 const InputSchema = z
   .object({
-    package: z.enum(["pro", "premium", "home"]),
+    package: z.enum(PACKAGE_KEYS),
     buyerType: z.enum(["personal", "business"]).default("personal"),
     business: BusinessDetailsSchema.optional(),
     plan: z.enum(["full", "installments"]).default("full"),
@@ -155,7 +170,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
       : await loadShippingRateForCountry(
           addr!.country,
-          data.package === "home" ? "table" : "kit",
+          TABLE_SCOPE_PACKAGES.has(data.package) ? "table" : "kit",
           addr!.state,
         );
 
@@ -209,7 +224,11 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
     let session: Stripe.Checkout.Session;
 
     if (data.plan === "installments") {
+      if (!pkg.installments) {
+        throw new Error("A payment plan is not available for this package yet");
+      }
       const { deposit, monthly, months } = pkg.installments;
+
 
       // Attach the entered address to a Customer so it applies to the subscription's invoices.
       let customerId: string | undefined;
@@ -481,7 +500,7 @@ export const getStripePublishableKey = createServerFn({ method: "GET" }).handler
 });
 
 const ValidatePromoSchema = z.object({
-  package: z.enum(["pro", "premium", "home"]),
+  package: z.enum(PACKAGE_KEYS),
   promoCode: z.string().trim().min(1).max(40),
 });
 
@@ -514,7 +533,7 @@ export const validatePromoCode = createServerFn({ method: "POST" })
   });
 
 const EftOrderSchema = z.object({
-  package: z.enum(["pro", "premium", "home"]),
+  package: z.enum(PACKAGE_KEYS),
   buyerType: z.enum(["personal", "business"]).default("personal"),
   business: BusinessDetailsSchema.optional(),
   promoCode: z.string().trim().max(40).optional().or(z.literal("")),
@@ -539,7 +558,7 @@ export const requestKitEftInvoice = createServerFn({ method: "POST" })
       ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
       : await loadShippingRateForCountry(
           addr!.country,
-          data.package === "home" ? "table" : "kit",
+          TABLE_SCOPE_PACKAGES.has(data.package) ? "table" : "kit",
           addr!.state,
         );
 
