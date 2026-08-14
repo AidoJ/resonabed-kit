@@ -241,39 +241,35 @@ function LandingPage() {
 
         <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-8 md:grid-cols-2 md:gap-8 md:px-10 md:pb-28 md:pt-12">
           <div className="flex flex-col justify-center">
-            <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-white/80 backdrop-blur">
+            <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-white/80 backdrop-blur">
               <Waves className="h-3.5 w-3.5" />
-              Vibroacoustic upgrade kits
+              Vibroacoustic therapy
             </span>
-            <h1 className="text-4xl font-light leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
-              Sound you can feel.
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[color-mix(in_oklab,var(--brand-violet)_60%,white)]">
-                Where tension unwinds.
-              </span>
+            <h1 className="max-w-[16ch] text-4xl font-light leading-[1.06] tracking-tight md:text-5xl lg:text-6xl">
+              Sound you feel, delivered as a service you can offer.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              Turn a therapy table you already own into a new source of income. The Resonabed kit
-              can potentially convert your existing massage, chiropractic, osteopathic or any
-              therapeutic treatment table into a vibroacoustic therapy table, a calm, high-margin
-              session your clients will book again and again.
+              Resonabed is a complete vibroacoustic therapy system: low frequency sound delivered
+              through the table so the body feels the music, guided by an app that runs the whole
+              session. Choose a complete setup with a fitted table, or fit the system to the table
+              you already use.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <a href="#packages">
+                <Button className="h-12 rounded-full bg-white px-7 text-[15px] font-medium text-brand-indigo hover:bg-white/90">
+                  See packages for business
+                </Button>
+              </a>
+              <a href="#home-package">
                 <Button
                   variant="outline"
-                  className="h-12 rounded-full border-white/25 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
+                  className="h-12 rounded-full border-white/30 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
                 >
-                  See packages
+                  See packages for in home use
                 </Button>
               </a>
             </div>
-            <p className="mt-4 text-sm text-white/60">
-              Buying for your own home?{" "}
-              <a href="#home-package" className="underline underline-offset-4 hover:text-white/85">
-                See the Home package, a complete fitted table for $1,499.
-              </a>
-            </p>
+
 
             <p className="mt-2 text-sm text-white/60">
               Looking for a{" "}
