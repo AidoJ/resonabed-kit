@@ -73,18 +73,20 @@ const NAV_LINKS: { href: string; label: string }[] = [
   { href: "#contact", label: "Contact" },
 ];
 
-const COMPARE_ROWS: [string, boolean, boolean, boolean][] = [
-  ["Tactile speakers", true, true, true],
-  ["Amplifier", true, true, true],
-  ['10" tablet', true, true, true],
-  ["Headphones", true, true, true],
-  ["100 disposable headphone covers", true, true, false],
-  ["100 marketing flyers", true, true, false],
-  ["Full business app", true, true, false],
-  ["Full business webpage", true, true, false],
-  ["Home use app", false, false, true],
-  ["Fully fitted out table", false, true, true],
+const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
+  ["Tactile speakers", true, true, true, true],
+  ["Amplifier", true, true, true, true],
+  ['10" tablet', false, true, true, true],
+  ["Headphones", false, true, true, true],
+  ["100 disposable headphone covers", false, true, true, false],
+  ["100 marketing flyers", true, true, true, false],
+  ["Full business app", true, true, true, false],
+  ["Full business webpage", true, true, true, false],
+  ["Home use app", false, false, false, true],
+  ["9 Solfeggio frequencies", false, false, false, true],
+  ["Fully fitted out table", false, false, true, true],
 ];
+
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
