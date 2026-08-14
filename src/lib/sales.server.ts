@@ -1,4 +1,3 @@
-import Stripe from "stripe";
 
 export type KitSaleRow = {
   id: string;
@@ -27,6 +26,9 @@ export type KitSaleRow = {
   /** GST component of the collected amount. */
   gstCents: number;
   monthsRemainingPlan: number | null;
+  /** Order state machine value, e.g. deposit_paid, balance_paid, plan_active, fulfilled. */
+  state: string;
+  fulfilled: boolean;
   /** What the buyer told us at checkout. */
   buyerType: "personal" | "business";
   /** Refined once a business order is provisioned into an organisation. */
@@ -107,11 +109,6 @@ const LIST_PRICE_CENTS: Record<string, number> = {
   home: 149900,
 };
 
-const INSTALLMENTS: Record<string, { deposit: number; monthly: number; months: number }> = {
-  essentials: { deposit: 39900, monthly: 10000, months: 8 },
-  pro: { deposit: 59900, monthly: 10000, months: 8 },
-  home: { deposit: 49900, monthly: 11000, months: 10 },
-};
 
 
 /** GST is 1/11 of a GST-inclusive amount (Australia, 10%). */
@@ -127,95 +124,64 @@ export async function loadShippingGstMap(): Promise<Record<string, boolean>> {
   return map;
 }
 
-function toRow(
-  s: Stripe.Checkout.Session,
-  shippingGstMap: Record<string, boolean>,
-  buyerLookup: BuyerLookup,
-): KitSaleRow | null {
-  const meta = s.metadata ?? {};
-  const packageKey = meta.package;
-  if (!packageKey) return null;
-
-  const plan = (meta.plan === "installments" ? "installments" : "full") as "full" | "installments";
-  const discountCents = Number(meta.amount_discounted_cents ?? 0) || 0;
-  const shippingCents = Number(meta.shipping_amount_cents ?? 0) || 0;
-  const shippingRegion = meta.shipping_region ?? null;
-  const shippingGstInclusive = shippingRegion ? !!shippingGstMap[shippingRegion] : false;
-  const listCents = LIST_PRICE_CENTS[packageKey] ?? 0;
-  const matched = buyerLookup[s.id];
-  const buyerType = meta.buyer_type === "business" ? "business" : "personal";
-  const buyerCategory: BuyerCategory = matched
-    ? matched.category
-    : meta.buyer_type === "business"
-      ? "business_pending"
-      : meta.buyer_type === "personal"
-        ? "private"
-        : "legacy_unclassified";
-
-  const collectedCents = s.amount_total ?? 0;
-
-  const inst = INSTALLMENTS[packageKey];
-  const contractCents =
-    plan === "installments" && inst
-      ? inst.deposit + inst.monthly * inst.months + shippingCents
-      : listCents - discountCents + shippingCents;
-
-  // Kit portion of the collected amount always carries GST; shipping only when GST-inclusive.
-  const kitPortion = Math.max(0, collectedCents - shippingCents);
-  const gstBase = kitPortion + (shippingGstInclusive ? shippingCents : 0);
-
-  return {
-    id: s.id,
-    created: new Date(s.created * 1000).toISOString(),
-    status: s.status ?? "unknown",
-    paid: s.payment_status === "paid" || s.payment_status === "no_payment_required",
-    customerName: s.customer_details?.name ?? null,
-    customerEmail: s.customer_details?.email ?? null,
-    packageKey,
-    packageLabel: PACKAGE_LABELS[packageKey] ?? packageKey,
-    plan,
-    currency: (s.currency ?? "aud").toUpperCase(),
-    listCents,
-    discountCents,
-    promoCode: meta.promo_code ?? null,
-    promoPercent: meta.promo_discount_percent ? Number(meta.promo_discount_percent) : null,
-    shippingRegion,
-    shippingCents,
-    shippingGstInclusive,
-    collectedCents,
-    contractCents,
-    gstCents: gstOf(gstBase),
-    monthsRemainingPlan: plan === "installments" && inst ? inst.months : null,
-    buyerType,
-    buyerCategory,
-    businessName: matched?.businessName ?? meta.business_name ?? null,
-  };
-}
-
-export async function fetchKitSales(secret: string): Promise<{
+/**
+ * Sales now read from the order ledger, not raw Stripe sessions: a single order
+ * can span a deposit session, a balance session and monthly subscription
+ * invoices, and counting sessions would triple-count it.
+ */
+export async function fetchKitSales(_secret?: string): Promise<{
   rows: KitSaleRow[];
   summary: KitSalesSummary;
 }> {
-  const stripe = new Stripe(secret);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const buyerLookup = await loadBuyerLookup();
-  const rows: KitSaleRow[] = [];
-  let startingAfter: string | undefined;
+  const { data, error } = await supabaseAdmin
+    .from("kit_orders")
+    .select("*")
+    .neq("state", "draft")
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (error) throw new Error(error.message);
 
-  // Walk up to 500 recent checkout sessions.
-  for (let page = 0; page < 5; page++) {
-    const res: Stripe.ApiList<Stripe.Checkout.Session> = await stripe.checkout.sessions.list({
-      limit: 100,
-      ...(startingAfter ? { starting_after: startingAfter } : {}),
-    });
-    const shippingGstMap = page === 0 ? await loadShippingGstMap() : cachedMap!;
-    cachedMap = shippingGstMap;
-    for (const s of res.data) {
-      const row = toRow(s, shippingGstMap, buyerLookup);
-      if (row && row.status === "complete") rows.push(row);
-    }
-    if (!res.has_more || res.data.length === 0) break;
-    startingAfter = res.data[res.data.length - 1].id;
-  }
+  const rows: KitSaleRow[] = (data ?? []).map((o) => {
+    const matched = o.stripe_deposit_session_id ? buyerLookup[o.stripe_deposit_session_id] : undefined;
+    const buyerType = o.buyer_type === "business" ? "business" : "personal";
+    return {
+      id: o.id,
+      created: o.created_at,
+      status: o.state,
+      state: o.state,
+      fulfilled: !!o.fulfilled_at,
+      paid: o.collected_cents > 0,
+      customerName: o.contact_name,
+      customerEmail: o.contact_email,
+      packageKey: o.package_key,
+      packageLabel: o.package_label || PACKAGE_LABELS[o.package_key] || o.package_key,
+      plan: o.path === "plan" ? "installments" : "full",
+      currency: "AUD",
+      listCents: o.list_cents || LIST_PRICE_CENTS[o.package_key] || 0,
+      discountCents: o.discount_cents,
+      promoCode: o.promo_code,
+      promoPercent: o.promo_percent,
+      shippingRegion: o.shipping_region,
+      shippingCents: o.shipping_cents,
+      shippingGstInclusive: o.shipping_gst_inclusive,
+      collectedCents: o.collected_cents,
+      contractCents: o.contract_cents,
+      gstCents: o.gst_cents,
+      monthsRemainingPlan:
+        o.path === "plan" && o.plan_months !== null
+          ? Math.max(0, o.plan_months - o.payments_made)
+          : null,
+      buyerType,
+      buyerCategory: matched
+        ? matched.category
+        : buyerType === "business"
+          ? "business_pending"
+          : "private",
+      businessName: matched?.businessName ?? o.business_name ?? null,
+    };
+  });
 
   const summary: KitSalesSummary = {
     orders: rows.length,
@@ -250,5 +216,3 @@ export async function fetchKitSales(secret: string): Promise<{
 
   return { rows, summary };
 }
-
-let cachedMap: Record<string, boolean> | null = null;

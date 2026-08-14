@@ -1,11 +1,15 @@
 /**
- * Stripe webhook: fulfils a kit purchase the moment it completes. Personal
- * buyers get a home-app access code; business buyers land in the clinic
- * onboarding queue for a human to provision. Signature-verified, idempotent (one live code per checkout
- * session), and independent of whether the buyer's browser reaches
- * /order/success.
+ * Stripe webhook: drives the kit_orders state machine.
  *
- * Configure in Stripe with the event `checkout.session.completed` pointing at
+ *   checkout.session.completed  stage=deposit      -> deposit_paid (ships NOTHING)
+ *                               stage=balance_full -> balance_paid -> fulfilled
+ *                               stage=balance_plan -> plan_active  -> fulfilled
+ *   invoice.paid                                   -> counts a plan monthly,
+ *                                                     stops the plan at exactly N
+ *   invoice.payment_failed                         -> logged only (Phase 3)
+ *   charge.refunded                                -> order refunded
+ *
+ * Signature-verified and idempotent. Configure in Stripe against
  * https://resonabed.com/api/public/hooks/stripe
  */
 import { createFileRoute } from "@tanstack/react-router";
@@ -36,20 +40,39 @@ export const Route = createFileRoute("/api/public/hooks/stripe")({
           return new Response("Invalid signature", { status: 400 });
         }
 
-        if (event.type !== "checkout.session.completed") {
-          return Response.json({ received: true });
-        }
-
-        const session = event.data.object as Stripe.Checkout.Session;
-
         try {
-          const { fulfilCheckoutSession } = await import("@/lib/order-fulfilment.server");
-          const result = await fulfilCheckoutSession(session);
-          return Response.json({ received: true, ...result });
+          switch (event.type) {
+            case "checkout.session.completed": {
+              const { fulfilCheckoutSession } = await import("@/lib/order-fulfilment.server");
+              const result = await fulfilCheckoutSession(
+                event.data.object as Stripe.Checkout.Session,
+              );
+              // Never leak the private balance token through the webhook reply.
+              const { balanceToken: _token, ...safe } = result;
+              return Response.json({ received: true, ...safe });
+            }
+            case "invoice.paid": {
+              const { handlePlanInvoicePaid } = await import("@/lib/order-fulfilment.server");
+              const result = await handlePlanInvoicePaid(event.data.object as Stripe.Invoice, secret);
+              return Response.json({ received: true, ...result });
+            }
+            case "invoice.payment_failed": {
+              const { handlePlanInvoiceFailed } = await import("@/lib/order-fulfilment.server");
+              const result = await handlePlanInvoiceFailed(event.data.object as Stripe.Invoice);
+              return Response.json({ received: true, ...result });
+            }
+            case "charge.refunded": {
+              const { handleChargeRefunded } = await import("@/lib/order-fulfilment.server");
+              const result = await handleChargeRefunded(event.data.object as Stripe.Charge);
+              return Response.json({ received: true, ...result });
+            }
+            default:
+              return Response.json({ received: true, ignored: event.type });
+          }
         } catch (err) {
           // Returning 500 asks Stripe to retry, which is what we want.
-          console.error("Failed to fulfil checkout session from Stripe webhook", err);
-          return new Response("Failed to fulfil order", { status: 500 });
+          console.error("Stripe webhook handling failed", event.type, err);
+          return new Response("Webhook handling failed", { status: 500 });
         }
       },
     },

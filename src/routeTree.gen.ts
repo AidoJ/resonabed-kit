@@ -40,6 +40,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as OrderBalanceTokenRouteImport } from './routes/order.balance.$token'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings.$id'
@@ -66,6 +67,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicHooksStripeRouteImport } from './routes/api/public/hooks/stripe'
+import { Route as ApiPublicHooksOrderTickRouteImport } from './routes/api/public/hooks/order-tick'
 import { Route as ApiPublicHooksOfferTickRouteImport } from './routes/api/public/hooks/offer-tick'
 import { Route as AuthenticatedSessionsIdPlayRouteImport } from './routes/_authenticated/sessions.$id.play'
 
@@ -228,6 +230,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const OrderBalanceTokenRoute = OrderBalanceTokenRouteImport.update({
+  id: '/order/balance/$token',
+  path: '/order/balance/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
   id: '/lovable/email/events',
   path: '/lovable/email/events',
@@ -377,6 +384,11 @@ const ApiPublicHooksStripeRoute = ApiPublicHooksStripeRouteImport.update({
   path: '/api/public/hooks/stripe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksOrderTickRoute = ApiPublicHooksOrderTickRouteImport.update({
+  id: '/api/public/hooks/order-tick',
+  path: '/api/public/hooks/order-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksOfferTickRoute = ApiPublicHooksOfferTickRouteImport.update({
   id: '/api/public/hooks/offer-tick',
   path: '/api/public/hooks/offer-tick',
@@ -438,11 +450,13 @@ export interface FileRoutesByFullPath {
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
+  '/order/balance/$token': typeof OrderBalanceTokenRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
+  '/api/public/hooks/order-tick': typeof ApiPublicHooksOrderTickRoute
   '/api/public/hooks/stripe': typeof ApiPublicHooksStripeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -495,11 +509,13 @@ export interface FileRoutesByTo {
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
+  '/order/balance/$token': typeof OrderBalanceTokenRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/sessions': typeof AuthenticatedSessionsIndexRoute
   '/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
+  '/api/public/hooks/order-tick': typeof ApiPublicHooksOrderTickRoute
   '/api/public/hooks/stripe': typeof ApiPublicHooksStripeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -557,11 +573,13 @@ export interface FileRoutesById {
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
+  '/order/balance/$token': typeof OrderBalanceTokenRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
   '/_authenticated/sessions/$id/play': typeof AuthenticatedSessionsIdPlayRoute
   '/api/public/hooks/offer-tick': typeof ApiPublicHooksOfferTickRoute
+  '/api/public/hooks/order-tick': typeof ApiPublicHooksOrderTickRoute
   '/api/public/hooks/stripe': typeof ApiPublicHooksStripeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -619,11 +637,13 @@ export interface FileRouteTypes {
     | '/bookings/$id'
     | '/sessions/new'
     | '/lovable/email/events'
+    | '/order/balance/$token'
     | '/admin/'
     | '/bookings/'
     | '/sessions/'
     | '/sessions/$id/play'
     | '/api/public/hooks/offer-tick'
+    | '/api/public/hooks/order-tick'
     | '/api/public/hooks/stripe'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -676,11 +696,13 @@ export interface FileRouteTypes {
     | '/bookings/$id'
     | '/sessions/new'
     | '/lovable/email/events'
+    | '/order/balance/$token'
     | '/admin'
     | '/bookings'
     | '/sessions'
     | '/sessions/$id/play'
     | '/api/public/hooks/offer-tick'
+    | '/api/public/hooks/order-tick'
     | '/api/public/hooks/stripe'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -737,11 +759,13 @@ export interface FileRouteTypes {
     | '/_authenticated/bookings/$id'
     | '/_authenticated/sessions/new'
     | '/lovable/email/events'
+    | '/order/balance/$token'
     | '/_authenticated/admin/'
     | '/_authenticated/bookings/'
     | '/_authenticated/sessions/'
     | '/_authenticated/sessions/$id/play'
     | '/api/public/hooks/offer-tick'
+    | '/api/public/hooks/order-tick'
     | '/api/public/hooks/stripe'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -766,7 +790,9 @@ export interface RootRouteChildren {
   OrderCancelledRoute: typeof OrderCancelledRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
+  OrderBalanceTokenRoute: typeof OrderBalanceTokenRoute
   ApiPublicHooksOfferTickRoute: typeof ApiPublicHooksOfferTickRoute
+  ApiPublicHooksOrderTickRoute: typeof ApiPublicHooksOrderTickRoute
   ApiPublicHooksStripeRoute: typeof ApiPublicHooksStripeRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -992,6 +1018,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/order/balance/$token': {
+      id: '/order/balance/$token'
+      path: '/order/balance/$token'
+      fullPath: '/order/balance/$token'
+      preLoaderRoute: typeof OrderBalanceTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/events': {
       id: '/lovable/email/events'
       path: '/lovable/email/events'
@@ -1174,6 +1207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksStripeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/order-tick': {
+      id: '/api/public/hooks/order-tick'
+      path: '/api/public/hooks/order-tick'
+      fullPath: '/api/public/hooks/order-tick'
+      preLoaderRoute: typeof ApiPublicHooksOrderTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/offer-tick': {
       id: '/api/public/hooks/offer-tick'
       path: '/api/public/hooks/offer-tick'
@@ -1322,7 +1362,9 @@ const rootRouteChildren: RootRouteChildren = {
   OrderCancelledRoute: OrderCancelledRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
+  OrderBalanceTokenRoute: OrderBalanceTokenRoute,
   ApiPublicHooksOfferTickRoute: ApiPublicHooksOfferTickRoute,
+  ApiPublicHooksOrderTickRoute: ApiPublicHooksOrderTickRoute,
   ApiPublicHooksStripeRoute: ApiPublicHooksStripeRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

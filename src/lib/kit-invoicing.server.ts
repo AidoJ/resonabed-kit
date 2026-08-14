@@ -186,3 +186,146 @@ export async function backfillStripeKitSales(
   }
   return { created, skipped };
 }
+
+/**
+ * Ledger entry for a deposit-first order at the moment it is released.
+ *
+ * One invoice per order for the full contract value (kit less discount, plus
+ * shipping), plus receipts for what has actually been collected so far. Plan
+ * monthlies add their own receipts as they clear.
+ */
+export async function recordOrderInvoice(order: {
+  id: string;
+  order_number: string;
+  package_key: string;
+  package_label: string;
+  buyer_type: string;
+  business_name: string | null;
+  abn: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  shipping_address: string | null;
+  shipping_region: string | null;
+  shipping_cents: number;
+  shipping_gst_inclusive: boolean;
+  discount_cents: number;
+  list_cents: number;
+  contract_cents: number;
+  collected_cents: number;
+  path: string | null;
+  payment_channel: string;
+  promo_code: string | null;
+}): Promise<RecordedKitSale> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const { data: existing } = await supabaseAdmin
+    .from("kit_invoices")
+    .select("invoice_number")
+    .eq("order_id", order.id)
+    .eq("stage", "balance")
+    .maybeSingle();
+  if (existing) {
+    return { invoiceNumber: existing.invoice_number as string, alreadyExisted: true };
+  }
+
+  const kitPortion = Math.max(0, order.contract_cents - order.shipping_cents);
+  const gstCents = gstOf(kitPortion + (order.shipping_gst_inclusive ? order.shipping_cents : 0));
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data: invNumber, error: numErr } = await supabaseAdmin.rpc("next_kit_invoice_number");
+  if (numErr) throw new Error(numErr.message);
+
+  const { data: invoice, error: invErr } = await supabaseAdmin
+    .from("kit_invoices")
+    .insert({
+      invoice_number: invNumber as unknown as string,
+      order_id: order.id,
+      stage: "balance",
+      customer_name: order.contact_name ?? order.business_name ?? "Website customer",
+      customer_email: order.contact_email,
+      customer_phone: order.contact_phone,
+      buyer_type: order.buyer_type === "business" ? "business" : "personal",
+      business_name: order.business_name,
+      abn: order.abn,
+      shipping_address: order.shipping_address,
+      package_key: order.package_key,
+      package_label: order.package_label,
+      plan: order.path === "plan" ? "installments" : "full",
+      currency: "AUD",
+      list_cents: order.list_cents,
+      discount_cents: order.discount_cents,
+      shipping_cents: order.shipping_cents,
+      shipping_region: order.shipping_region,
+      shipping_gst_inclusive: order.shipping_gst_inclusive,
+      total_cents: order.contract_cents,
+      gst_cents: gstCents,
+      payment_terms: order.payment_channel === "eft" ? "eft" : "card",
+      due_date: today,
+      status: order.collected_cents >= order.contract_cents ? "paid" : "partial",
+      notes: [
+        `Order ${order.order_number}.`,
+        "Deposit of $100 plus shipping collected at order, balance cleared before release.",
+        order.path === "plan" ? "Balance on a 10 month payment plan." : null,
+        order.promo_code ? `Promo: ${order.promo_code}.` : null,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    })
+    .select("id, invoice_number")
+    .single();
+  if (invErr) throw new Error(invErr.message);
+
+  const { data: receiptNumber, error: rcptErr } = await supabaseAdmin.rpc(
+    "next_kit_receipt_number",
+  );
+  if (rcptErr) throw new Error(rcptErr.message);
+
+  const { error: payErr } = await supabaseAdmin.from("kit_payments").insert({
+    receipt_number: receiptNumber as unknown as string,
+    invoice_id: invoice.id as string,
+    amount_cents: order.collected_cents,
+    gst_cents: gstOf(order.collected_cents),
+    method: order.payment_channel === "eft" ? "eft" : "card",
+    paid_at: today,
+    reference: order.order_number,
+    notes: "Order deposit plus shipping and cleared balance.",
+  });
+  if (payErr) throw new Error(payErr.message);
+
+  return { invoiceNumber: invoice.invoice_number as string, alreadyExisted: false };
+}
+
+/** Adds a receipt against an order's invoice for a cleared plan monthly. */
+export async function recordOrderPlanReceipt(
+  orderId: string,
+  amountCents: number,
+  reference: string,
+) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: invoice } = await supabaseAdmin
+    .from("kit_invoices")
+    .select("id")
+    .eq("order_id", orderId)
+    .eq("stage", "balance")
+    .maybeSingle();
+  if (!invoice) return;
+  const { data: existing } = await supabaseAdmin
+    .from("kit_payments")
+    .select("id")
+    .eq("invoice_id", invoice.id as string)
+    .eq("reference", reference)
+    .maybeSingle();
+  if (existing) return;
+  const { data: receiptNumber } = await supabaseAdmin.rpc("next_kit_receipt_number");
+  await supabaseAdmin.from("kit_payments").insert({
+    receipt_number: receiptNumber as unknown as string,
+    invoice_id: invoice.id as string,
+    amount_cents: amountCents,
+    gst_cents: gstOf(amountCents),
+    method: "card",
+    paid_at: new Date().toISOString().slice(0, 10),
+    reference,
+    notes: "Payment plan monthly.",
+  });
+}

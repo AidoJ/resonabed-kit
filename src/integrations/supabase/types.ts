@@ -985,6 +985,7 @@ export type Database = {
           invoice_number: string
           list_cents: number
           notes: string | null
+          order_id: string | null
           package_key: string
           package_label: string
           payment_terms: string
@@ -993,6 +994,7 @@ export type Database = {
           shipping_cents: number
           shipping_gst_inclusive: boolean
           shipping_region: string | null
+          stage: string
           status: string
           stripe_session_id: string | null
           total_cents: number
@@ -1016,6 +1018,7 @@ export type Database = {
           invoice_number: string
           list_cents?: number
           notes?: string | null
+          order_id?: string | null
           package_key: string
           package_label: string
           payment_terms?: string
@@ -1024,6 +1027,7 @@ export type Database = {
           shipping_cents?: number
           shipping_gst_inclusive?: boolean
           shipping_region?: string | null
+          stage?: string
           status?: string
           stripe_session_id?: string | null
           total_cents?: number
@@ -1047,6 +1051,7 @@ export type Database = {
           invoice_number?: string
           list_cents?: number
           notes?: string | null
+          order_id?: string | null
           package_key?: string
           package_label?: string
           payment_terms?: string
@@ -1055,12 +1060,21 @@ export type Database = {
           shipping_cents?: number
           shipping_gst_inclusive?: boolean
           shipping_region?: string | null
+          stage?: string
           status?: string
           stripe_session_id?: string | null
           total_cents?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kit_invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "kit_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kit_onboarding_orders: {
         Row: {
@@ -1135,6 +1149,236 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      kit_order_events: {
+        Row: {
+          created_at: string
+          detail: Json
+          event_type: string
+          from_state: string | null
+          id: string
+          order_id: string
+          stripe_ref: string | null
+          to_state: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          event_type: string
+          from_state?: string | null
+          id?: string
+          order_id: string
+          stripe_ref?: string | null
+          to_state?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          event_type?: string
+          from_state?: string | null
+          id?: string
+          order_id?: string
+          stripe_ref?: string | null
+          to_state?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "kit_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_orders: {
+        Row: {
+          abn: string | null
+          arrears_since: string | null
+          balance_cents: number
+          balance_paid_at: string | null
+          business_name: string | null
+          buyer_type: string
+          cancelled_at: string | null
+          collected_cents: number
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          contract_cents: number
+          created_at: string
+          deposit_cents: number
+          deposit_paid_at: string | null
+          discount_cents: number
+          expired_at: string | null
+          expires_at: string | null
+          fulfilled_at: string | null
+          gst_cents: number
+          id: string
+          list_cents: number
+          notes: string | null
+          order_number: string
+          package_key: string
+          package_label: string
+          path: string | null
+          payment_channel: string
+          payments_due: number
+          payments_made: number
+          pickup: boolean
+          plan_completed_at: string | null
+          plan_deposit_balance_cents: number | null
+          plan_monthly_cents: number | null
+          plan_months: number | null
+          plan_started_at: string | null
+          promo_code: string | null
+          promo_code_id: string | null
+          promo_percent: number | null
+          refund_cents: number | null
+          refunded_at: string | null
+          reminder_25_sent_at: string | null
+          reminder_7_sent_at: string | null
+          shipping_address: string | null
+          shipping_cents: number
+          shipping_charged_at: string | null
+          shipping_gst_inclusive: boolean
+          shipping_label: string | null
+          shipping_region: string | null
+          ships_kit: boolean
+          ships_table: boolean
+          state: string
+          stripe_balance_payment_intent: string | null
+          stripe_balance_session_id: string | null
+          stripe_customer_id: string | null
+          stripe_deposit_payment_intent: string | null
+          stripe_deposit_session_id: string | null
+          stripe_subscription_id: string | null
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          abn?: string | null
+          arrears_since?: string | null
+          balance_cents?: number
+          balance_paid_at?: string | null
+          business_name?: string | null
+          buyer_type?: string
+          cancelled_at?: string | null
+          collected_cents?: number
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contract_cents?: number
+          created_at?: string
+          deposit_cents?: number
+          deposit_paid_at?: string | null
+          discount_cents?: number
+          expired_at?: string | null
+          expires_at?: string | null
+          fulfilled_at?: string | null
+          gst_cents?: number
+          id?: string
+          list_cents: number
+          notes?: string | null
+          order_number: string
+          package_key: string
+          package_label: string
+          path?: string | null
+          payment_channel?: string
+          payments_due?: number
+          payments_made?: number
+          pickup?: boolean
+          plan_completed_at?: string | null
+          plan_deposit_balance_cents?: number | null
+          plan_monthly_cents?: number | null
+          plan_months?: number | null
+          plan_started_at?: string | null
+          promo_code?: string | null
+          promo_code_id?: string | null
+          promo_percent?: number | null
+          refund_cents?: number | null
+          refunded_at?: string | null
+          reminder_25_sent_at?: string | null
+          reminder_7_sent_at?: string | null
+          shipping_address?: string | null
+          shipping_cents?: number
+          shipping_charged_at?: string | null
+          shipping_gst_inclusive?: boolean
+          shipping_label?: string | null
+          shipping_region?: string | null
+          ships_kit?: boolean
+          ships_table?: boolean
+          state?: string
+          stripe_balance_payment_intent?: string | null
+          stripe_balance_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_deposit_payment_intent?: string | null
+          stripe_deposit_session_id?: string | null
+          stripe_subscription_id?: string | null
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          abn?: string | null
+          arrears_since?: string | null
+          balance_cents?: number
+          balance_paid_at?: string | null
+          business_name?: string | null
+          buyer_type?: string
+          cancelled_at?: string | null
+          collected_cents?: number
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contract_cents?: number
+          created_at?: string
+          deposit_cents?: number
+          deposit_paid_at?: string | null
+          discount_cents?: number
+          expired_at?: string | null
+          expires_at?: string | null
+          fulfilled_at?: string | null
+          gst_cents?: number
+          id?: string
+          list_cents?: number
+          notes?: string | null
+          order_number?: string
+          package_key?: string
+          package_label?: string
+          path?: string | null
+          payment_channel?: string
+          payments_due?: number
+          payments_made?: number
+          pickup?: boolean
+          plan_completed_at?: string | null
+          plan_deposit_balance_cents?: number | null
+          plan_monthly_cents?: number | null
+          plan_months?: number | null
+          plan_started_at?: string | null
+          promo_code?: string | null
+          promo_code_id?: string | null
+          promo_percent?: number | null
+          refund_cents?: number | null
+          refunded_at?: string | null
+          reminder_25_sent_at?: string | null
+          reminder_7_sent_at?: string | null
+          shipping_address?: string | null
+          shipping_cents?: number
+          shipping_charged_at?: string | null
+          shipping_gst_inclusive?: boolean
+          shipping_label?: string | null
+          shipping_region?: string | null
+          ships_kit?: boolean
+          ships_table?: boolean
+          state?: string
+          stripe_balance_payment_intent?: string | null
+          stripe_balance_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_deposit_payment_intent?: string | null
+          stripe_deposit_session_id?: string | null
+          stripe_subscription_id?: string | null
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       kit_payments: {
         Row: {
@@ -2054,6 +2298,7 @@ export type Database = {
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       next_kit_invoice_number: { Args: never; Returns: string }
+      next_kit_order_number: { Args: never; Returns: string }
       next_kit_receipt_number: { Args: never; Returns: string }
       normalise_phone: { Args: { _phone: string }; Returns: string }
       org_has_active_support_grant: {
