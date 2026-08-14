@@ -132,12 +132,15 @@ function parseGoogleAddress(components: GoogleAddressComponent[], fallbackLine1:
 export function ShippingAddressStepDialog({
   open,
   packagePriceCents,
+  packageKey,
   shippingScope = "kit",
   onCancel,
   onContinue,
 }: {
   open: boolean;
   packagePriceCents: number;
+  /** Drives the deposit-now / balance-later breakdown shown before paying. */
+  packageKey?: PackageKey;
   /** 'table' prices against the fitted-table freight bands, 'kit' against carton rates. */
   shippingScope?: "kit" | "table";
   onCancel: () => void;
