@@ -80,6 +80,22 @@ export type KitOrderRow = {
   payments_made: number;
   payments_due: number;
   arrears_since: string | null;
+  /* Phase 3: arrears, dunning and the proportionate default gate. */
+  first_failure_at: string | null;
+  failure_count: number;
+  prior_failure_count: number;
+  dunning_stage: number;
+  last_dunning_at: string | null;
+  dunning_paused_until: string | null;
+  arrears_entered_at: string | null;
+  defaulted_at: string | null;
+  wind_down_at: string | null;
+  access_level: "full" | "limited" | "suspended";
+  access_applied_at: string | null;
+  owed_cents: number;
+  write_off_cents: number | null;
+  written_off_at: string | null;
+  card_expiry_warned_at: string | null;
   deposit_paid_at: string | null;
   balance_paid_at: string | null;
   plan_started_at: string | null;
