@@ -1236,11 +1236,23 @@ function ContactPackageCard({
   );
 }
 
-const INSTALLMENTS = {
+type BusinessPackageKey = "essentials" | "pro" | "platinum";
 
-  pro: { deposit: 399, monthly: 100, months: 8 },
-  premium: { deposit: 599, monthly: 100, months: 8 },
-} as const;
+const INSTALLMENTS: Record<
+  BusinessPackageKey,
+  { deposit: number; monthly: number; months: number } | null
+> = {
+  essentials: { deposit: 399, monthly: 100, months: 8 },
+  pro: { deposit: 599, monthly: 100, months: 8 },
+  // Phase 2 will set the Platinum plan numbers.
+  platinum: null,
+};
+
+const PACKAGE_META: Record<BusinessPackageKey, { cents: number; gstLine: string }> = {
+  essentials: { cents: 119900, gstLine: "$1,090 + $109 GST = $1,199" },
+  pro: { cents: 139900, gstLine: "$1,272 + $127 GST = $1,399" },
+  platinum: { cents: 179900, gstLine: "$1,635.45 + $163.55 GST = $1,799" },
+};
 
 function PackageCard({
   name,
@@ -1252,7 +1264,7 @@ function PackageCard({
   highlighted,
 }: {
   name: string;
-  packageKey: "pro" | "premium";
+  packageKey: BusinessPackageKey;
   price: string;
   tagline: string;
   description: string;
@@ -1277,8 +1289,9 @@ function PackageCard({
   const [buyer, setBuyer] = useState<BuyerTypeContinuePayload | null>(null);
 
   const plan = INSTALLMENTS[packageKey];
-  const totalInstallments = plan.deposit + plan.monthly * plan.months;
-  const packagePriceCents = packageKey === "pro" ? 119900 : 139900;
+  const totalInstallments = plan ? plan.deposit + plan.monthly * plan.months : 0;
+  const packagePriceCents = PACKAGE_META[packageKey].cents;
+
 
   const runCheckout = async (
     which: "full" | "installments",
