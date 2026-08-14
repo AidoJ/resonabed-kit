@@ -30,13 +30,13 @@ export const Route = createFileRoute("/for-home")({
       {
         name: "description",
         content:
-          "A fully fitted vibroacoustic therapy table for your own home. Lie down, choose a frequency, and feel the music. $1,599 AUD, plus shipping calculated at checkout. Shipped Australia wide.",
+          "A fully fitted vibroacoustic therapy table for your own home. Lie down, choose a frequency, and feel the music. $1,499 AUD, plus shipping calculated at checkout. Shipped Australia wide.",
       },
       { property: "og:title", content: "Resonabed for Home | Vibroacoustic Therapy at Home" },
       {
         property: "og:description",
         content:
-          "Feel the music, not just hear it. A complete home vibroacoustic therapy table, headphones and personal app for $1,599 AUD.",
+          "Feel the music, not just hear it. A complete home vibroacoustic therapy table, headphones and personal app for $1,499 AUD.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -89,7 +89,7 @@ const FAQ = [
   },
   {
     q: "How does it arrive?",
-    a: "The table comes already fitted with the transducers, amplifier and wiring, so it is close to ready when it lands. Shipping is charged on top of the $1,599 and is calculated at checkout by your location, typically $80 to $150.",
+    a: "The table comes already fitted with the transducers, amplifier and wiring, so it is close to ready when it lands. Shipping is charged on top of the $1,499 and is calculated at checkout by your location, typically $80 to $150.",
   },
 ];
 
@@ -179,7 +179,7 @@ function ForHomePage() {
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <a href="#price">
               <Button className="h-11 rounded-full bg-white px-7 text-[14px] font-medium text-brand-ink hover:bg-white/90">
-                Order yours, $1,599
+                Order yours, $1,499
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </a>
@@ -438,14 +438,14 @@ function ForHomePage() {
               One price, everything included
             </h2>
             <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-              $1,599 AUD, everything above included. Shipping is calculated at checkout based on
+              $1,499 AUD, everything above included. Shipping is calculated at checkout based on
               your location (typically $80 to $150). That is the fitted table, the transducers and
               amplifier, the headphones, the personal app with a perpetual licence and all nine
               frequencies. There is nothing else to buy afterwards.
             </p>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              Pay in full by card, spread it over a $799 deposit and eight monthly payments of
-               $100, or ask for a bank transfer invoice at checkout. However you pay, your access code is emailed to
+              Pay in full by card at $1,499, spread it over a $499 deposit and ten monthly payments of
+               $110 (plan total $1,599), or ask for a bank transfer invoice at checkout. However you pay, your access code is emailed to
               you as soon as the first payment lands, so you can set the app up while the table is
               on its way.
             </p>
@@ -531,7 +531,7 @@ function ForHomePage() {
         <div className="mt-10">
           <a href="#price">
             <Button className="h-11 rounded-full bg-brand-indigo px-7 text-[14px] font-medium text-white hover:bg-brand-indigo/90">
-              Order yours, $1,599
+              Order yours, $1,499
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </a>

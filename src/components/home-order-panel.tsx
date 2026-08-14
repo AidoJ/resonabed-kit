@@ -19,9 +19,9 @@ import {
   type EnteredShippingAddress,
 } from "@/components/shipping-address-step-dialog";
 
-const PRICE_CENTS = 159900;
-const PRICE = "$1,599";
-const PLAN = { deposit: 799, monthly: 100, months: 8 };
+const PRICE_CENTS = 149900;
+const PRICE = "$1,499";
+const PLAN = { deposit: 499, monthly: 110, months: 10 };
 
 const INCLUDES = [
   "Therapy table, fully fitted and ready to lie on",
@@ -32,7 +32,7 @@ const INCLUDES = [
 ];
 
 /**
- * Buy panel for the $1,599 Resonabed for Home package.
+ * Buy panel for the $1,499 Resonabed for Home package.
  *
  * Same checkout path as the clinic kits, with one difference: the buyer type is
  * fixed to "for home use", so payment always issues a home access code by email
@@ -151,7 +151,7 @@ export function HomeOrderPanel() {
         </span>
         <span className="text-sm text-muted-foreground">AUD · incl. GST</span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">$1,454 + $145 GST = $1,599</p>
+      <p className="mt-1 text-xs text-muted-foreground">$1,362.73 + $136.27 GST = $1,499</p>
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
         Shipping is calculated at checkout based on your location (typically $80 to $150).
       </p>

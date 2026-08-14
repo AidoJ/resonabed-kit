@@ -13,7 +13,7 @@ const PACKAGE_LABELS: Record<string, string> = {
   premium: "Resonabed Premium Kit",
   home: "Resonabed for Home",
 };
-const LIST_PRICE_CENTS: Record<string, number> = { pro: 119900, premium: 139900, home: 159900 };
+const LIST_PRICE_CENTS: Record<string, number> = { pro: 119900, premium: 139900, home: 149900 };
 
 const gstOf = (inclusiveCents: number) => Math.round(inclusiveCents / 11);
 

@@ -24,11 +24,11 @@ const PACKAGES = {
   home: {
     name: "Resonabed for Home",
     description:
-      "Complete home package: therapy table fully fitted with 2x 50W tactile transducers, Bluetooth amplifier, wiring & fittings, Audio-Technica ATH-M30x headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies. Price incl. GST, $1,454 + $145 GST = $1,599 AUD.",
-    amount: 159900,
-    exGst: 145364,
-    gst: 14536,
-    installments: { deposit: 79900, monthly: 10000, months: 8 }, // 799 + 8*100 = 1599
+      "Complete home package: therapy table fully fitted with 2x 50W tactile transducers, Bluetooth amplifier, wiring & fittings, Audio-Technica ATH-M30x headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies. Price incl. GST, $1,362.73 + $136.27 GST = $1,499 AUD.",
+    amount: 149900,
+    exGst: 136273,
+    gst: 13627,
+    installments: { deposit: 49900, monthly: 11000, months: 10 }, // 499 + 10*110 = 1599
   },
 } as const;
 

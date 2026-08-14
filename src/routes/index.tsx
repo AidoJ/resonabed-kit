@@ -237,7 +237,7 @@ function LandingPage() {
                 to="/for-home"
                 className="underline underline-offset-4 hover:text-white/85"
               >
-                See Resonabed for Home, a complete fitted table for $1,599.
+                See Resonabed for Home, a complete fitted table for $1,499.
               </Link>
             </p>
             <p className="mt-2 text-sm text-white/60">
@@ -525,7 +525,7 @@ function LandingPage() {
             >
               Resonabed for Home
             </Link>
-            , a fully fitted table with headphones and the personal app for $1,599.
+            , a fully fitted table with headphones and the personal app for $1,499.
           </p>
         </div>
 
@@ -680,7 +680,7 @@ function LandingPage() {
                 >
                   Resonabed for Home
                 </Link>{" "}
-                is a complete package for $1,599: a fully fitted table, headphones and the personal
+                is a complete package for $1,499: a fully fitted table, headphones and the personal
                 app, no bookings and no clients, just you and your sessions. We email an access code
                 the moment you pay, and you set up at{" "}
                 <Link
