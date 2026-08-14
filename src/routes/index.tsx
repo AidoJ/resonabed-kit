@@ -103,9 +103,10 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
     a: "No. Shipping is always calculated at checkout based on your location, and is charged on top of the package price.",
   },
   {
-    q: "Do I need my own device?",
-    a: "No. Every package includes a 10 inch tablet, pre-configured to run sessions and nothing else, so notifications never interrupt.",
+    q: "Do I need my own device or table?",
+    a: "It depends on the package. Essentials runs on a phone, tablet or laptop you already own, and fits to the treatment table you already use. Pro includes a dedicated 10 inch tablet, pre-configured to run sessions and nothing else, and also fits your existing table. Platinum and Home include both the tablet and a fully fitted out table, so nothing else is needed.",
   },
+
 ];
 
 
