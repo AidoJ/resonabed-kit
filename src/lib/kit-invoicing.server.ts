@@ -9,7 +9,7 @@
 import type Stripe from "stripe";
 
 const PACKAGE_LABELS: Record<string, string> = {
-  essentials: "Resonabed Essentials",
+  essentials: "Resonabed Basic",
   pro: "Resonabed Pro",
   platinum: "Resonabed Platinum",
   home: "Resonabed for Home",

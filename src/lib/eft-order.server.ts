@@ -5,7 +5,7 @@
  */
 
 export const KIT_PACKAGES = {
-  essentials: { label: "Resonabed Essentials", listCents: 119900 },
+  essentials: { label: "Resonabed Basic", listCents: 119900 },
   pro: { label: "Resonabed Pro", listCents: 139900 },
   platinum: { label: "Resonabed Platinum", listCents: 179900 },
   home: { label: "Resonabed for Home", listCents: 149900 },
