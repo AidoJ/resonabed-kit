@@ -30,6 +30,7 @@ export type OrderState =
   | "expired"
   | "cancelled"
   | "refunded"
+  | "arrears"
   | "defaulted";
 
 /** States in which the physical kit and app access may be released. */
