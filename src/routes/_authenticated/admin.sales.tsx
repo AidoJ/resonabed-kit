@@ -215,12 +215,20 @@ function SalesAdmin() {
                   </TableCell>
                   <TableCell className="whitespace-nowrap">{r.packageLabel}</TableCell>
                   <TableCell className="whitespace-nowrap">
-                    {r.plan === "installments" ? (
-                      <Badge variant="outline">Plan · {r.monthsRemainingPlan} mo</Badge>
-                    ) : (
-                      <Badge variant="secondary">Paid in full</Badge>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      <Badge variant={r.fulfilled ? "secondary" : "outline"}>
+                        {r.state.replace(/_/g, " ")}
+                      </Badge>
+                      {r.plan === "installments" ? (
+                        <span className="text-xs text-muted-foreground">
+                          Plan · {r.monthsRemainingPlan} mo left
+                        </span>
+                      ) : r.state === "deposit_paid" ? (
+                        <span className="text-xs text-muted-foreground">Balance outstanding</span>
+                      ) : null}
+                    </div>
                   </TableCell>
+
                   <TableCell className="text-right whitespace-nowrap">
                     {money(r.listCents, r.currency)}
                   </TableCell>
