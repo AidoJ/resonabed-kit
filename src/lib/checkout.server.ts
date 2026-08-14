@@ -485,7 +485,6 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
   // keeps the first monthly off today's invoice, so the count stays exact.
   const priceId = await ensureMonthlyPrice(stripe, pkgKey);
   const trialEnd = addMonths(new Date(), 1);
-  const backstopCancel = addMonths(trialEnd, pkg.plan.months + 1);
 
   const session = await stripe.checkout.sessions.create({
     ui_mode: "embedded",
@@ -512,8 +511,6 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
     subscription_data: {
       description: `${pkg.label}, ${pkg.plan.months} month payment plan for order ${order.order_number}`,
       trial_end: Math.floor(trialEnd.getTime() / 1000),
-      // Backstop only. The plan is really stopped by counting 10 paid cycles.
-      cancel_at: Math.floor(backstopCancel.getTime() / 1000),
       metadata: { ...baseMetadata, months: String(pkg.plan.months) },
     },
     allow_promotion_codes: false,
