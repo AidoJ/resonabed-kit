@@ -64,10 +64,45 @@ import {
 
 const NAV_LINKS: { href: string; label: string }[] = [
   { href: "#packages", label: "Packages" },
+  { href: "#compare", label: "Compare" },
   { href: "#how", label: "How it works" },
+  { href: "#faq", label: "FAQ" },
   { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
+
+const COMPARE_ROWS: [string, boolean, boolean, boolean][] = [
+  ["Tactile speakers", true, true, true],
+  ["Amplifier", true, true, true],
+  ['10" tablet', true, true, true],
+  ["Headphones", true, true, true],
+  ["100 disposable headphone covers", true, true, false],
+  ["100 marketing flyers", true, true, false],
+  ["Full business app", true, true, false],
+  ["Full business webpage", true, true, false],
+  ["Home use app", false, false, true],
+  ["Fully fitted out table", false, true, true],
+];
+
+const FAQ_ITEMS: { q: string; a: string }[] = [
+  {
+    q: "What is the difference between Pro and Platinum?",
+    a: "Only the table. Pro fits your existing treatment table, Platinum arrives as a new table with the system already fitted. The hardware, the app and the marketing material are identical.",
+  },
+  {
+    q: "Can I run a clinic on the Home package?",
+    a: "No. Home includes the personal app only. It has no bookings, no client records and no clinic webpage, and it does not include the consumables or flyers a practice needs.",
+  },
+  {
+    q: "Is shipping included?",
+    a: "No. Shipping is always calculated at checkout based on your location, and is charged on top of the package price.",
+  },
+  {
+    q: "Do I need my own device?",
+    a: "No. Every package includes a 10 inch tablet, pre-configured to run sessions and nothing else, so notifications never interrupt.",
+  },
+];
+
 
 
 export const Route = createFileRoute("/")({
