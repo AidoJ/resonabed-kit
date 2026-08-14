@@ -558,3 +558,36 @@ export async function createEftDepositOrder(data: z.infer<typeof EftOrderSchema>
   const invoice = await createEftDepositInvoice(order, token);
   return invoice;
 }
+
+/* ------------------------------------------------------- finalise / EFT bal */
+
+/**
+ * Repeats the webhook's idempotent transition when the buyer lands back on
+ * /order/success, so a slow webhook never leaves them without their next step.
+ */
+export async function finalizeSession(sessionId: string) {
+  const secret = process.env["STRIPE_SECRET_KEY"];
+  if (!secret) throw new Error("Stripe is not configured");
+  const stripe = new Stripe(secret);
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ["subscription"],
+  });
+  const { fulfilCheckoutSession } = await import("@/lib/order-fulfilment.server");
+  return await fulfilCheckoutSession(session);
+}
+
+/** EFT buyers settle the balance in full by transfer. Plans require a card. */
+export async function requestEftBalance(token: string) {
+  const order = await getOrderByToken(token);
+  if (!order) throw new Error("We couldn't find that order");
+  if (order.state !== "deposit_paid") {
+    throw new Error("This order is not waiting on a balance payment");
+  }
+  const { createEftBalanceInvoice } = await import("@/lib/eft-order.server");
+  const invoice = await createEftBalanceInvoice(order);
+  await updateOrder(order.id, { payment_channel: "eft", path: "full" });
+  await logOrderEvent(order.id, "balance_eft_invoice_raised", {
+    detail: { invoice: invoice.invoiceNumber, amount_cents: order.balance_cents },
+  });
+  return { ...invoice, balanceCents: order.balance_cents, orderNumber: order.order_number };
+}
