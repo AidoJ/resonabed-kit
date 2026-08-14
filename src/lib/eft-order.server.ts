@@ -7,7 +7,7 @@
 export const KIT_PACKAGES = {
   pro: { label: "Resonabed Pro Kit", listCents: 119900 },
   premium: { label: "Resonabed Premium Kit", listCents: 139900 },
-  home: { label: "Resonabed for Home", listCents: 159900 },
+  home: { label: "Resonabed for Home", listCents: 149900 },
 } as const;
 
 export type KitPackageKey = keyof typeof KIT_PACKAGES;
