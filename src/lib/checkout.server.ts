@@ -111,7 +111,7 @@ export type ShippingChoice = {
 
 export async function loadShippingRateForCountry(
   country: string,
-  scope: "kit" | "table",
+  scope: import("./packages").PackageKey,
   state?: string | null,
 ): Promise<ShippingChoice> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -145,7 +145,7 @@ export async function loadShippingRateForCountry(
     );
   if (!match) {
     throw new Error(
-      scope === "table"
+      scope === "platinum" || scope === "home"
         ? "We can't freight the fitted table to that destination yet. Please contact us."
         : "We don't ship to that country yet.",
     );

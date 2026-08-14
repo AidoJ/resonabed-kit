@@ -208,7 +208,7 @@ export async function createOrderDraft(
       plan_monthly_cents: pkg.plan.monthlyCents,
       plan_months: pkg.plan.months,
       ships_kit: true,
-      ships_table: pkg.shippingScope === "table",
+      ships_table: pkg.shipsTable,
       contract_cents: pkg.listCents - discount + input.shipping.amount,
     })
     .select("*")

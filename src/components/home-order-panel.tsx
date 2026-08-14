@@ -201,7 +201,7 @@ export function HomeOrderPanel() {
         open={shippingOpen}
         packagePriceCents={PRICE_CENTS}
         packageKey="home"
-        shippingScope="table"
+        shippingScope="home"
         onCancel={() => {
           setShippingOpen(false);
           setPendingPlan(null);
