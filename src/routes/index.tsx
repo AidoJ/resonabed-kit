@@ -90,8 +90,9 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
-    q: "What is the difference between Pro and Platinum?",
-    a: "Only the table. Pro fits your existing treatment table, Platinum arrives as a new table with the system already fitted. The hardware, the app and the marketing material are identical.",
+    q: "What is the difference between Essentials, Pro and Platinum?",
+    a: "Essentials is the system fitted to your existing table, running on a device you already own. Pro adds a dedicated 10 inch tablet, headphones and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. The app, the clinic webpage and the marketing material are identical across all three.",
+
   },
   {
     q: "Can I run a clinic on the Home package?",
