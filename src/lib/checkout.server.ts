@@ -466,14 +466,15 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
               name: `${pkg.label}, balance`,
               description: `Remaining balance for order ${order.order_number}. Deposit of ${money(
                 order.deposit_cents,
-              )} and shipping already paid.${
-                order.promo_code ? ` Promo ${order.promo_code} applied.` : ""
-              }`,
+              )} already paid.${
+                shippingDue > 0 ? " Shipping is charged with this payment." : ""
+              }${order.promo_code ? ` Promo ${order.promo_code} applied.` : ""}`,
             },
             unit_amount: order.balance_cents,
           },
           quantity: 1,
         },
+        ...shippingLineItem,
       ],
       allow_promotion_codes: false,
       metadata: { ...baseMetadata, stage: "balance_full" },
@@ -482,7 +483,7 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
     await updateOrder(order.id, { stripe_balance_session_id: session.id });
     await logOrderEvent(order.id, "balance_checkout_opened", {
       stripeRef: session.id,
-      detail: { path: "full", amount_cents: order.balance_cents },
+      detail: { path: "full", amount_cents: order.balance_cents, shipping_cents: shippingDue },
     });
     return { clientSecret: session.client_secret, path: "full" as const };
   }
