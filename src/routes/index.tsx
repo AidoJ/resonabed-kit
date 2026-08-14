@@ -1500,21 +1500,23 @@ function PackageCard({
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
 
-          <Button
-            onClick={() => handleOrder("installments")}
-            disabled={loading !== null}
-            variant="outline"
-            className={
-              "h-11 w-full rounded-full text-[13px] font-medium " +
-              (highlighted
-                ? "border-white/30 bg-white/5 text-white hover:bg-white/15"
-                : "border-brand-indigo/25 bg-transparent text-brand-indigo hover:bg-brand-tint")
-            }
-          >
-            {loading === "installments"
-              ? "Preparing checkout…"
-              : `Deposit $${plan.deposit} + ${plan.months} × $${plan.monthly}/mo`}
-          </Button>
+          {plan ? (
+            <Button
+              onClick={() => handleOrder("installments")}
+              disabled={loading !== null}
+              variant="outline"
+              className={
+                "h-11 w-full rounded-full text-[13px] font-medium " +
+                (highlighted
+                  ? "border-white/30 bg-white/5 text-white hover:bg-white/15"
+                  : "border-brand-indigo/25 bg-transparent text-brand-indigo hover:bg-brand-tint")
+              }
+            >
+              {loading === "installments"
+                ? "Preparing checkout…"
+                : `Deposit $${plan.deposit} + ${plan.months} × $${plan.monthly}/mo`}
+            </Button>
+          ) : null}
 
           <p
             className={
@@ -1522,10 +1524,13 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            + shipping, calculated by destination · repayment plan total ${totalInstallments} incl.
-            GST · billed monthly, auto-stops after the final payment · promo codes only apply to
-            pay-in-full · secure checkout by Stripe
+            + shipping, calculated by destination
+            {plan
+              ? ` · repayment plan total $${totalInstallments} incl. GST · billed monthly, auto-stops after the final payment`
+              : ""}{" "}
+            · promo codes only apply to pay-in-full · secure checkout by Stripe
           </p>
+
         </div>
       </div>
 
