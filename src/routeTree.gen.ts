@@ -62,6 +62,7 @@ import { Route as AuthenticatedAdminMarketingRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated/admin.clients'
+import { Route as AuthenticatedAdminArrearsRouteImport } from './routes/_authenticated/admin.arrears'
 import { Route as AuthenticatedAdminAccessCodesRouteImport } from './routes/_authenticated/admin.access-codes'
 import { Route as AuthenticatedSessionsIdIndexRouteImport } from './routes/_authenticated/sessions.$id.index'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -357,6 +358,12 @@ const AuthenticatedAdminClientsRoute =
     path: '/clients',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminArrearsRoute =
+  AuthenticatedAdminArrearsRouteImport.update({
+    id: '/arrears',
+    path: '/arrears',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAccessCodesRoute =
   AuthenticatedAdminAccessCodesRouteImport.update({
     id: '/access-codes',
@@ -436,6 +443,7 @@ export interface FileRoutesByFullPath {
   '/order/success': typeof OrderSuccessRoute
   '/home/': typeof HomeIndexRoute
   '/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
+  '/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -496,6 +504,7 @@ export interface FileRoutesByTo {
   '/order/success': typeof OrderSuccessRoute
   '/home': typeof HomeIndexRoute
   '/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
+  '/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -561,6 +570,7 @@ export interface FileRoutesById {
   '/order/success': typeof OrderSuccessRoute
   '/home/': typeof HomeIndexRoute
   '/_authenticated/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
+  '/_authenticated/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -626,6 +636,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/home/'
     | '/admin/access-codes'
+    | '/admin/arrears'
     | '/admin/clients'
     | '/admin/global-services'
     | '/admin/invoices'
@@ -686,6 +697,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/home'
     | '/admin/access-codes'
+    | '/admin/arrears'
     | '/admin/clients'
     | '/admin/global-services'
     | '/admin/invoices'
@@ -750,6 +762,7 @@ export interface FileRouteTypes {
     | '/order/success'
     | '/home/'
     | '/_authenticated/admin/access-codes'
+    | '/_authenticated/admin/arrears'
     | '/_authenticated/admin/clients'
     | '/_authenticated/admin/global-services'
     | '/_authenticated/admin/invoices'
@@ -1185,6 +1198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClientsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/arrears': {
+      id: '/_authenticated/admin/arrears'
+      path: '/arrears'
+      fullPath: '/admin/arrears'
+      preLoaderRoute: typeof AuthenticatedAdminArrearsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/access-codes': {
       id: '/_authenticated/admin/access-codes'
       path: '/access-codes'
@@ -1253,6 +1273,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAccessCodesRoute: typeof AuthenticatedAdminAccessCodesRoute
+  AuthenticatedAdminArrearsRoute: typeof AuthenticatedAdminArrearsRoute
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRoute
   AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
@@ -1275,6 +1296,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAccessCodesRoute: AuthenticatedAdminAccessCodesRoute,
+  AuthenticatedAdminArrearsRoute: AuthenticatedAdminArrearsRoute,
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRoute,
   AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
