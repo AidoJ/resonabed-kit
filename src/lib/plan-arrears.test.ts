@@ -46,6 +46,7 @@ function order(patch: Partial<KitOrderRow> = {}): KitOrderRow {
     defaulted_at: null,
     wind_down_at: null,
     stripe_subscription_id: "sub_test",
+    ...patch,
   } as unknown as KitOrderRow;
 }
 
