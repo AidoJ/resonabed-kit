@@ -679,7 +679,7 @@ function LandingPage() {
               <thead>
                 <tr className="border-b border-border text-left">
                   <th className="px-5 py-4 font-medium text-brand-indigo">Included</th>
-                  {["Pro", "Platinum", "Home"].map((h) => (
+                  {["Essentials", "Pro", "Platinum", "Home"].map((h) => (
                     <th key={h} className="px-5 py-4 text-center font-medium text-brand-indigo">
                       {h}
                     </th>
@@ -687,10 +687,11 @@ function LandingPage() {
                 </tr>
               </thead>
               <tbody>
-                {COMPARE_ROWS.map(([label, pro, plat, home]) => (
+                {COMPARE_ROWS.map(([label, ess, pro, plat, home]) => (
                   <tr key={label as string} className="border-b border-border/60 last:border-0">
                     <td className="px-5 py-3.5 text-foreground/90">{label}</td>
-                    {[pro, plat, home].map((v, i) => (
+                    {[ess, pro, plat, home].map((v, i) => (
+
                       <td
                         key={i}
                         className={`px-5 py-3.5 text-center ${
