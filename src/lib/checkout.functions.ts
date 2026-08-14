@@ -75,7 +75,7 @@ export type BusinessDetails = z.infer<typeof BusinessDetailsSchema>;
 
 const InputSchema = z
   .object({
-    package: z.enum(["pro", "premium", "home"]),
+    package: z.enum(PACKAGE_KEYS),
     buyerType: z.enum(["personal", "business"]).default("personal"),
     business: BusinessDetailsSchema.optional(),
     plan: z.enum(["full", "installments"]).default("full"),
@@ -170,7 +170,7 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
       ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
       : await loadShippingRateForCountry(
           addr!.country,
-          data.package === "home" ? "table" : "kit",
+          TABLE_SCOPE_PACKAGES.has(data.package) ? "table" : "kit",
           addr!.state,
         );
 
@@ -500,7 +500,7 @@ export const getStripePublishableKey = createServerFn({ method: "GET" }).handler
 });
 
 const ValidatePromoSchema = z.object({
-  package: z.enum(["pro", "premium", "home"]),
+  package: z.enum(PACKAGE_KEYS),
   promoCode: z.string().trim().min(1).max(40),
 });
 
@@ -533,7 +533,7 @@ export const validatePromoCode = createServerFn({ method: "POST" })
   });
 
 const EftOrderSchema = z.object({
-  package: z.enum(["pro", "premium", "home"]),
+  package: z.enum(PACKAGE_KEYS),
   buyerType: z.enum(["personal", "business"]).default("personal"),
   business: BusinessDetailsSchema.optional(),
   promoCode: z.string().trim().max(40).optional().or(z.literal("")),
@@ -558,7 +558,7 @@ export const requestKitEftInvoice = createServerFn({ method: "POST" })
       ? { region: "pickup", label: "Customer collects (pickup)", amount: 0, gstInclusive: false }
       : await loadShippingRateForCountry(
           addr!.country,
-          data.package === "home" ? "table" : "kit",
+          TABLE_SCOPE_PACKAGES.has(data.package) ? "table" : "kit",
           addr!.state,
         );
 
