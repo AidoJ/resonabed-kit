@@ -22,8 +22,10 @@ export type PackageDef = {
   balanceCents: number;
   /** Plan: paid straight after the $100 deposit, then 10 monthlies. */
   plan: { depositBalanceCents: number; monthlyCents: number; months: number };
-  /** Freight band: table packages ship a fitted therapy table. */
-  shippingScope: "kit" | "table";
+  /** Freight band key: each package has its own shipping_rates rows. */
+  shippingScope: PackageKey;
+  /** Packages that ship a fitted therapy table. */
+  shipsTable: boolean;
   /** Home is a consumer product and always takes the personal path. */
   personalOnly: boolean;
   description: string;
@@ -36,7 +38,8 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     listCents: 119900,
     balanceCents: 109900,
     plan: { depositBalanceCents: 29900, monthlyCents: 9000, months: 10 },
-    shippingScope: "kit",
+    shippingScope: "essentials",
+    shipsTable: false,
     personalOnly: false,
     description:
       "Lean business system: 2x tactile speakers, Bluetooth amplifier, wiring and fittings, the full Resonabed business app and clinic webpage, 100 marketing flyers. Runs on a phone, tablet or laptop you already own.",
@@ -47,7 +50,8 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     listCents: 139900,
     balanceCents: 129900,
     plan: { depositBalanceCents: 29900, monthlyCents: 11000, months: 10 },
-    shippingScope: "kit",
+    shippingScope: "pro",
+    shipsTable: false,
     personalOnly: false,
     description:
       'Everything in Basic, plus a dedicated 10" tablet pre-configured for sessions, Audio-Technica ATH-M30x headphones and 100 disposable headphone covers.',
@@ -58,7 +62,8 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     listCents: 179900,
     balanceCents: 169900,
     plan: { depositBalanceCents: 49900, monthlyCents: 13000, months: 10 },
-    shippingScope: "table",
+    shippingScope: "platinum",
+    shipsTable: true,
     personalOnly: false,
     description:
       "Everything in Pro, on a new therapy table fully fitted and tested before it ships. The complete business in a box.",
@@ -69,7 +74,8 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     listCents: 149900,
     balanceCents: 139900,
     plan: { depositBalanceCents: 39900, monthlyCents: 11000, months: 10 },
-    shippingScope: "table",
+    shippingScope: "home",
+    shipsTable: true,
     personalOnly: true,
     description:
       'Complete home package: therapy table fully fitted with 2x 50W tactile speakers, Bluetooth amplifier, wiring and fittings, a 10" tablet, Audio-Technica ATH-M30x headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies.',

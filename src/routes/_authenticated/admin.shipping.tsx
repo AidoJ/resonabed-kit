@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Truck } from "lucide-react";
+import { PACKAGE_LABELS } from "@/lib/packages";
 
 export const Route = createFileRoute("/_authenticated/admin/shipping")({
   head: () => ({ meta: [{ title: "Shipping rates, ResonaBed" }] }),
@@ -100,7 +101,7 @@ function ShippingRatesPage() {
       <div>
         <h2 className="text-xl font-medium">Shipping rates</h2>
         <p className="text-sm text-muted-foreground">
-          Flat-rate shipping charges per destination region. Kit bands cover the practitioner kit cartons, table bands cover the fitted Resonabed for Home table freight.
+          Flat-rate shipping charges per destination region. Each package has its own bands, so freight can be tuned per product weight and size.
           Country groupings are managed in the database.
         </p>
       </div>
@@ -138,11 +139,9 @@ function ShippingRatesPage() {
                         <div className="text-brand-indigo">
                           {r.label}
                           <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {r.applies_to === "table"
-                              ? "Table freight"
-                              : r.applies_to === "any"
-                                ? "All orders"
-                                : "Kit"}
+                            {r.applies_to === "any"
+                              ? "All orders"
+                              : (PACKAGE_LABELS[r.applies_to] ?? r.applies_to)}
                           </span>
                         </div>
                         <div className="text-xs uppercase tracking-wider text-muted-foreground">

@@ -133,7 +133,7 @@ export function ShippingAddressStepDialog({
   open,
   packagePriceCents,
   packageKey,
-  shippingScope = "kit",
+  shippingScope = "essentials",
   onCancel,
   onContinue,
 }: {
@@ -141,8 +141,8 @@ export function ShippingAddressStepDialog({
   packagePriceCents: number;
   /** Drives the deposit-now / balance-later breakdown shown before paying. */
   packageKey?: PackageKey;
-  /** 'table' prices against the fitted-table freight bands, 'kit' against carton rates. */
-  shippingScope?: "kit" | "table";
+  /** Package key: each package has its own freight bands in shipping_rates. */
+  shippingScope?: PackageKey;
   onCancel: () => void;
   onContinue: (payload: ShippingContinuePayload) => void;
 }) {
