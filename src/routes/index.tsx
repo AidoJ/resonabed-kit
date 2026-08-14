@@ -556,7 +556,7 @@ function LandingPage() {
             <h3 className="text-lg font-medium text-brand-indigo">Fit your existing table</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               Keep the massage, chiropractic or osteopathic table you already work on. The speakers
-              and amplifier mount underneath in an afternoon. This is Pro.
+              and amplifier mount underneath in an afternoon. This is Essentials and Pro.
             </p>
           </div>
         </div>
