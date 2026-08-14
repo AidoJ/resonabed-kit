@@ -40,6 +40,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as OrderCardTokenRouteImport } from './routes/order.card.$token'
 import { Route as OrderBalanceTokenRouteImport } from './routes/order.balance.$token'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
@@ -229,6 +230,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const OrderCardTokenRoute = OrderCardTokenRouteImport.update({
+  id: '/order/card/$token',
+  path: '/order/card/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const OrderBalanceTokenRoute = OrderBalanceTokenRouteImport.update({
   id: '/order/balance/$token',
@@ -451,6 +457,7 @@ export interface FileRoutesByFullPath {
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
+  '/order/card/$token': typeof OrderCardTokenRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
@@ -510,6 +517,7 @@ export interface FileRoutesByTo {
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
+  '/order/card/$token': typeof OrderCardTokenRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/sessions': typeof AuthenticatedSessionsIndexRoute
@@ -574,6 +582,7 @@ export interface FileRoutesById {
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
+  '/order/card/$token': typeof OrderCardTokenRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
@@ -638,6 +647,7 @@ export interface FileRouteTypes {
     | '/sessions/new'
     | '/lovable/email/events'
     | '/order/balance/$token'
+    | '/order/card/$token'
     | '/admin/'
     | '/bookings/'
     | '/sessions/'
@@ -697,6 +707,7 @@ export interface FileRouteTypes {
     | '/sessions/new'
     | '/lovable/email/events'
     | '/order/balance/$token'
+    | '/order/card/$token'
     | '/admin'
     | '/bookings'
     | '/sessions'
@@ -760,6 +771,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sessions/new'
     | '/lovable/email/events'
     | '/order/balance/$token'
+    | '/order/card/$token'
     | '/_authenticated/admin/'
     | '/_authenticated/bookings/'
     | '/_authenticated/sessions/'
@@ -791,6 +803,7 @@ export interface RootRouteChildren {
   OrderSuccessRoute: typeof OrderSuccessRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   OrderBalanceTokenRoute: typeof OrderBalanceTokenRoute
+  OrderCardTokenRoute: typeof OrderCardTokenRoute
   ApiPublicHooksOfferTickRoute: typeof ApiPublicHooksOfferTickRoute
   ApiPublicHooksOrderTickRoute: typeof ApiPublicHooksOrderTickRoute
   ApiPublicHooksStripeRoute: typeof ApiPublicHooksStripeRoute
@@ -1017,6 +1030,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/order/card/$token': {
+      id: '/order/card/$token'
+      path: '/order/card/$token'
+      fullPath: '/order/card/$token'
+      preLoaderRoute: typeof OrderCardTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/order/balance/$token': {
       id: '/order/balance/$token'
@@ -1363,6 +1383,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderSuccessRoute: OrderSuccessRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   OrderBalanceTokenRoute: OrderBalanceTokenRoute,
+  OrderCardTokenRoute: OrderCardTokenRoute,
   ApiPublicHooksOfferTickRoute: ApiPublicHooksOfferTickRoute,
   ApiPublicHooksOrderTickRoute: ApiPublicHooksOrderTickRoute,
   ApiPublicHooksStripeRoute: ApiPublicHooksStripeRoute,

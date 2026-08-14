@@ -59,7 +59,7 @@ function CardUpdatePage() {
   return (
     <main className="min-h-dvh bg-muted/40 px-4 py-16">
       <div className="mx-auto w-full max-w-lg rounded-2xl border bg-background p-8 shadow-sm">
-        <img src={logo.src} alt="Resonabed" className="mb-8 h-8" />
+        <img src={logo.url} alt="Resonabed" className="mb-8 h-8" />
         {done ? (
           <>
             <CheckCircle2 className="mb-4 h-10 w-10 text-primary" />
