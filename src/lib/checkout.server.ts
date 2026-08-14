@@ -528,7 +528,7 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
   await updateOrder(order.id, { stripe_balance_session_id: session.id });
   await logOrderEvent(order.id, "balance_checkout_opened", {
     stripeRef: session.id,
-    detail: { path: "plan", months: pkg.plan.months },
+    detail: { path: "plan", months: pkg.plan.months, shipping_cents: shippingDue },
   });
   return { clientSecret: session.client_secret, path: "plan" as const };
 }
