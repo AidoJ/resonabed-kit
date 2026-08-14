@@ -1,135 +1,189 @@
-# Phase 2 design: deposit-first order model
+# Phase 3 design: failed payments, graduated arrears, and the arrears view
 
-Design document only. Nothing built until you green-light it.
+Design only. Nothing gets built until you say so.
 
-## 0. The money, restated
+## 0. The shape of the risk
 
-| Package | Pay in full | Deposit | Balance | Plan: deposit balance | Monthlies | Plan total |
-|---|---|---|---|---|---|---|
-| Basic | $1,199 | $100 | $1,099 | $299 | 10 x $90 | $1,299 |
-| Pro | $1,399 | $100 | $1,299 | $299 | 10 x $110 | $1,499 |
-| Platinum | $1,799 | $100 | $1,699 | $499 | 10 x $130 | $1,899 |
-| Home | $1,499 | $100 | $1,399 | $399 | 10 x $110 | $1,599 |
+A 10-month plan order looks like this by the time the plan starts:
 
-Shipping is charged once, with the $100 deposit. GST is 1/11 of every GST-inclusive line.
+| Package | Deposit | Deposit balance | Upfront cushion | 10 monthlies | Plan total |
+|---|---|---|---|---|---|
+| Basic | $100 | $299 | $399 | 10 x $90 | $1,299 |
+| Pro | $100 | $299 | $399 | 10 x $110 | $1,499 |
+| Platinum | $100 | $499 | $599 | 10 x $130 | $1,899 |
+| Home | $100 | $399 | $499 | 10 x $110 | $1,599 |
 
-## 1. Order state machine
+Plus shipping, charged with the balance step. The upfront cushion is the only money you are guaranteed. Everything after it is credit you have extended against hardware you cannot get back. That single fact drives the whole design: the response has to be sharpest early, when exposure is near the full monthly stack, and soft late, when it is a rounding error.
 
-A new local table `kit_orders` becomes the source of truth. Stripe stops being the record and goes back to being the payment rail.
-
-Columns (shape, not SQL): order number, package key, buyer type, buyer contact, business details, shipping address or pickup, shipping region/label/cents/gst flag, promo code, chosen path (`full` or `plan`), all money fields (deposit, shipping, balance due, plan deposit balance, monthly, months), Stripe references (deposit session/payment intent, balance session/payment intent, subscription id, customer id), state, timestamps for each transition, `fulfilled_at`, `expires_at`, `notes`.
-
-States:
+**Outstanding** is the number the whole phase turns on:
 
 ```text
-draft -> deposit_paid -> balance_paid  -> fulfilled
-                      -> plan_active   -> fulfilled -> plan_completed
-      -> expired (30 days at deposit_paid, no balance)
-      -> cancelled / refunded (deposit returned)
-      -> defaulted   (Phase 3 only, hook left in place)
+outstanding_cents = plan_monthly_cents * (plan_months - payments_made)
 ```
 
-- `draft`: order row written before the deposit checkout opens, so a webhook always has a row to land on.
-- `deposit_paid`: $100 + shipping cleared. Order secured, `expires_at` = +30 days. Nothing ships.
-- `balance_paid`: remaining balance cleared in a second one-off checkout.
-- `plan_active`: deposit balance cleared and the 10-month subscription is live.
-- `fulfilled`: written by the single fulfilment routine once it has succeeded (code issued / onboarding row created / shipping flagged). Separate from `balance_paid` so a failed email never loses the order.
-- `plan_completed`: 10th invoice paid, subscription ended.
-- `expired`, `refunded`, `cancelled`, `defaulted` as terminal/admin states.
+Pro defaulting after payment 1 owes $990. Pro defaulting after payment 9 owes $110. Same event, ninefold difference in loss. Treating them identically is the mistake this design exists to avoid.
 
-Event mapping (webhook, signature verified, idempotent on Stripe object id):
+## 1. Retries and dunning (the automatic layer)
 
-| Stripe event | Effect |
+Most failures are dead cards, not dead customers. This layer should recover the majority with zero involvement from you.
+
+**Stripe Smart Retries** on the subscription, cadence set in Stripe billing settings, retry on days 3, 5, 7 and a final attempt on day 10 (4 attempts over 10 days). After the final failure Stripe marks the invoice `uncollectible` and we take over. We do **not** let Stripe cancel the subscription on failure; the retry policy is set to leave it alone so we control the lifecycle.
+
+**Dunning emails**, sent by us (not Stripe's built-in ones, so they carry your branding and the tokenised link):
+
+| When | Email | Tone |
+|---|---|---|
+| Failure day 0 | "Your payment didn't go through" | Neutral, assume a card problem. Update-card button. |
+| Day 5 (after 2 failed retries) | "We still can't take your payment" | Warmer nudge, states the amount and next retry date. |
+| Day 10 (retries exhausted) | "Your payment plan needs attention" | Names the outstanding amount, states what happens if nothing changes, gives a date. |
+| Day 17, arrears only | "Final notice before your plan is suspended" | Firm, but tone still scales by tier (see section 3). |
+
+The update-card link reuses the Phase 2 tokenised order URL pattern: `/order/card/<token>` opens a Stripe billing-portal session scoped to that customer, `payment_method_update` only. No login, no guessable order number, token hashed at rest exactly like the balance token.
+
+All four emails suppress once a payment succeeds. Each is idempotency-keyed on order + invoice + step so a webhook replay never double-sends.
+
+## 2. The two states, and where the line falls
+
+```text
+plan_active
+   |  invoice.payment_failed (attempt 1)
+   v
+plan_active + arrears_since set        <- flagged to you, dunning running
+   |  10 days of retries exhausted, still unpaid
+   v
+arrears (real state)                   <- consequence NOT yet applied
+   |  +14 more days unpaid, and outstanding above the floor
+   v
+defaulted                              <- graduated consequence applies
+   |  pays what is owed, at any point
+   v
+back to plan_active (auto-restore)
+```
+
+- **arrears_since** is stamped on the very first failure, so your view lights up on day 0. That is a flag, not a state change.
+- **`arrears`** state is entered when Stripe's retries are exhausted (day 10) and the invoice is still unpaid. Dunning continues, access untouched.
+- **`defaulted`** is entered at **day 24 from first failure** (14 days in arrears), and only if the proportionate gate below allows it.
+
+24 days is deliberate: it is longer than any card reissue cycle, longer than a pay cycle, and short enough that a genuine walk-away is caught inside a month.
+
+### The proportionate gate
+
+Default is not automatic. At the day-24 check the order is graded on **outstanding amount**, and the grade decides both whether default is entered and what it does:
+
+| Tier | Outstanding | Roughly | Enters `defaulted`? |
+|---|---|---|---|
+| **A. Heavy** | >= $700 | fails on payments 1-3 | Yes, automatically |
+| **B. Moderate** | $250 - $699 | payments 4-7 | Yes, automatically |
+| **C. Light** | < $250 (about 2 monthlies) | payments 8-10 | **No.** Stays in `arrears`, flagged as "write-off candidate", never auto-defaults |
+
+Tier C is the point of the whole design. Chasing a customer hard over $110 costs more in goodwill than the $110 is worth, and you already hold $1,489 of a $1,599 order. Those orders sit in a **Soft arrears** bucket in your view with a one-click "Close as settled (write off $X)" action. Human decision, never automatic.
+
+There is also a **grace exemption**: an order with a clean history (no prior failure in the plan) gets +7 days before default, on the reasoning that a first-time miss from an otherwise perfect payer is almost always a card, not a decision.
+
+## 3. What actually happens on default
+
+Being honest first: **you cannot repossess a table.** No consequence here recovers hardware. The upfront cushion ($399-$599) is the actual loss floor, and some default risk is simply the cost of offering plans. Everything below is about (a) stopping further loss, (b) creating enough friction that a recoverable customer comes back, and (c) not pretending to leverage you do not have.
+
+### Home buyers
+
+They own the hardware. The kit plays through the app; without the app they have a table and headphones and nothing to drive them. So access suspension is *real* leverage, but only as long as the app is the only playback route. That is true today.
+
+| Tier | Consequence |
 |---|---|
-| `checkout.session.completed` with `order_step=deposit` | draft -> deposit_paid, stamp expiry |
-| `checkout.session.completed` with `order_step=balance` | deposit_paid -> balance_paid, then fulfil |
-| `checkout.session.completed` with `order_step=plan` (subscription mode) | deposit_paid -> plan_active, set the plan end, then fulfil |
-| `invoice.paid` on the plan subscription | increment payments made; on the 10th, plan_completed |
-| `invoice.payment_failed` | Phase 3 hook: record only, no action now |
-| `charge.refunded` on the deposit | -> refunded |
+| A. Heavy | `home_accounts` access suspended: sign-in blocked with a payment-required screen and a pay-now link. Access code marked `suspended`, not revoked. |
+| B. Moderate | Access limited: sign-in works, global library locked (the same gate the music licence already uses), banner on every screen. They keep any org/uploaded content. |
+| C. Light | Nothing. Email only. |
 
-Every state change is appended to a `kit_order_events` log (event type, Stripe ref, payload snippet) so money movement is auditable and replays are safe.
+Suspension is a **soft lock, never a delete.** No account removal, no data loss, everything comes back intact on payment.
 
-## 2. Stripe mechanics
+### Clinic buyers
 
-Two checkouts per order, never one.
+Stronger leverage, because their business runs on it, and correspondingly more care needed: suspending a clinic mid-session harms *their* clients, who owe you nothing.
 
-1. **Deposit checkout** (`mode: payment`): $100 line + shipping line. Metadata carries the order id and `order_step=deposit`. Customer is created up front (name, address, shipping) and reused, so the balance step and the plan bill the same customer.
-2. **Balance step**, chosen after the deposit clears, from a returning-buyer page at `/order/<order-number>`:
-   - **Pay in full**: second `mode: payment` checkout for the balance only. No shipping line.
-   - **Plan**: `mode: subscription` checkout with a one-off deposit-balance line plus the monthly recurring line. No shipping line.
+| Tier | Consequence |
+|---|---|
+| A. Heavy | Org moved to `suspended` after a **7-day notified wind-down** (email to org admin naming the date). Existing confirmed bookings inside the window still run; new bookings and new sessions blocked. Never an instant cut. |
+| B. Moderate | Org stays active. Public booking page unpublished, new-session creation blocked, admin can still see records and complete existing bookings. |
+| C. Light | Nothing. Email only. |
 
-**Stopping after exactly 10 payments.** Drop the `cancel_at` 30-day arithmetic. Use `subscription_data.cancel_at_period_end` logic driven by the invoice count instead: on each `invoice.paid`, count paid invoices carrying the monthly line; when the count hits 10, call `subscriptions.update(..., { cancel_at_period_end: true })` (or cancel immediately, since the last payment is collected). That is exact by construction and immune to month-length drift, DST and retries. Belt and braces: also set `cancel_at` to the real calendar date 10 months + 2 days out at creation as a backstop, computed with proper date maths, not 30-day blocks.
+**Never suspended in any tier:** access to their own client records, screening history, and clearance letters. That is clinical/legal record-keeping and withholding it over a billing dispute is indefensible.
 
-## 3. Shipping charged once
+The whole enforcement layer reads from one function, `planAccessLevel(order) -> 'full' | 'limited' | 'suspended'`, so there is exactly one place the rule lives and one place to audit it.
 
-Shipping only ever exists as a line item on the deposit checkout. The balance and plan checkouts are built from the order row's balance figures, which exclude shipping by definition. The order row stores `shipping_cents` and `shipping_charged_at`; the balance builder asserts shipping is already charged and never adds a line. Pickup orders store zero and behave identically.
+## 4. Auto-restore
 
-## 4. Fulfilment fork
+Recovery must be instant and unattended, because a customer who has just paid and still can't log in is a support ticket and a refund request.
 
-One entry point, `fulfilOrder(orderId)`, replaces `fulfilCheckoutSession(session)` as the caller-facing function. It is called only from `balance_paid` and `plan_active`, never from the deposit.
+On `invoice.paid` for a plan order in `arrears` or `defaulted`:
 
-It reuses the existing paths unchanged underneath:
-- record the sale/invoice (`kit-invoicing.server`)
-- business -> `recordOnboardingOrder` (clinic onboarding queue)
-- personal/home -> `issueAccessCode` (existing home access email)
-- physical flags on the order row: `ships_kit` always, `ships_table` for Platinum and Home, surfaced in the admin fulfilment list.
+1. `payments_made` increments, `collected_cents` rises (existing Phase 2 code, unchanged).
+2. `arrears_since` cleared, state returns to `plan_active`.
+3. Access restored in the same transaction path: home account unsuspended, code back to `redeemed`, org back to `active` (only if this default suspended it, tracked via a `suspended_by_order_id` marker so we never un-suspend an org you suspended for another reason).
+4. "Welcome back, your plan is running again" email, stating payments remaining.
+5. Event logged.
 
-Idempotency keys move from the Stripe session id to the order number, so a plan order and a pay-in-full order fulfil identically and only once.
+Restore is also available as a manual admin action for EFT/bank payers, taking a reference and an amount, writing the same events.
 
-## 5. Deposit hold, expiry, refund
+The subscription itself is never cancelled during arrears or default, only paused (`pause_collection`) at tier A. Pausing rather than cancelling means resuming is one API call and the customer never re-enters card details.
 
-- `expires_at` = deposit paid + 30 days.
-- A daily sweep (existing `/api/public/hooks/offer-tick` style cron endpoint) moves stale `deposit_paid` orders to `expired` and flags them to admin. It does **not** auto-refund: money leaves only on a human action.
-- Reminder emails at day 7 and day 25 while still at `deposit_paid`.
-- Admin refund action on the order refunds the deposit (and shipping) through the stored payment intent, writes `refunded`, logs who and why. Refunds are blocked once the order is `fulfilled`.
+## 5. The arrears view (super admin)
 
-## 6. Platinum plan
+This is the part you will actually use daily, so it is a working surface, not a status column. New tab at `/admin/arrears`, and a red count badge on Kit sales whenever anything is in arrears.
 
-Un-hidden: $100 deposit + $499 deposit balance + 10 x $130 = $1,899. Table freight scope stays. Removes the current `installments: null` guard and the hidden plan button on the homepage card.
+**Top strip, four figures:**
+- Total outstanding across all plans (the real credit book)
+- At-risk today (outstanding on arrears + defaulted orders only)
+- Recovered this month (arrears that returned to active)
+- Written off this year
 
-## 7. What breaks, what carries over
+**Three buckets, in priority order:**
+1. **Action needed** — default candidates and tier A/B defaults
+2. **Chasing** — in dunning, retries still running
+3. **Soft arrears** — tier C, write-off candidates
 
-Breaks / must change:
-- **Fulfilment on `checkout.session.completed`** — the biggest one. Today any completed session fulfils. After this change the deposit session completes and must fulfil nothing. This is the change most likely to leak product if we get it wrong, so the fulfil routine will hard-refuse unless the order is in `balance_paid`/`plan_active`.
-- **The 8 x $100 subscriptions** — replaced by the 10-month structure everywhere (checkout, sales reporting installment map, admin invoice builder, homepage plan buttons and plan-total copy).
-- **`/order/success` idempotent re-run** — kept, but it now finalises whichever step just completed, keyed on the order, and only fulfils when the step warrants it.
-- **`finalizeCheckoutSession`'s `cancel_at` maths** — deleted, replaced by the invoice-count rule.
-- **Reporting** (`sales.server.ts`) — currently derives everything from Stripe sessions and a list-price map. It has to read `kit_orders` instead, or an order will appear twice (deposit session + balance session). Contract value, collected-to-date, GST and outstanding balance all come off the order row.
-- **Promo codes** — apply to the kit balance, not the deposit. Redemption recording moves to the balance step.
+**Each row shows:** order number and package, buyer name and type (clinic/home badge), a payments bar (`6 of 10` rendered visually), collected vs outstanding in dollars, **owed today** (the failed invoices' total, which is the number you actually chase, distinct from remaining contract), days in arrears, current access level, and last dunning email sent.
 
-Carries over unchanged: shipping rate resolution and bands, the access-code issuing path, onboarding queue, kit invoice/receipt numbering, the buyer-type fork, GST maths.
+**Row actions:** resend dunning email, send card-update link, pause dunning for 14 days (customer promised to pay), restore access manually, record an off-platform payment, close as settled/write off, and open the full order event log.
 
-## 8. EFT / invoice path
+**Sorting defaults to outstanding descending**, so the money is at the top of the page, not the oldest complaint.
 
-Same model, different rail. EFT buyers also start with a $100 + shipping deposit invoice; the order row is identical and states move on admin-recorded payments rather than Stripe events.
+## 6. What this touches
 
-- Deposit invoice raised at order time; admin marks it paid -> `deposit_paid`.
-- Balance invoice raised for the remaining amount (or the deposit-balance for a plan); marked paid -> `balance_paid` / `plan_active` -> fulfil.
-- EFT payment plans have no card on file, so the 10 monthlies become 10 scheduled invoices with no automatic collection. My recommendation: for Phase 2, offer EFT for the **deposit and pay-in-full balance only**, and require a card for the 10-month plan. Manual monthly EFT chasing is a dunning problem, which is explicitly Phase 3.
+**Changes:**
+- **Webhook** — `invoice.payment_failed` stops being a log line and drives dunning + state. `invoice.paid` gains the restore path. New: `customer.subscription.paused/resumed` handled for consistency.
+- **`orders.server.ts`** — `recordPlanPaymentFailure` rewritten; new `enterArrears`, `evaluateDefault`, `restorePlan`, `writeOffOrder`, and `planAccessLevel`.
+- **`order-tick` cron** — gains the daily arrears sweep: escalate day-10 to arrears, evaluate day-24 defaults through the proportionate gate, send the day-17 notice, and run clinic wind-down expiries. The existing draft/expiry/reminder sweeps are untouched.
+- **Schema** — `kit_orders` gains `dunning_stage`, `last_dunning_at`, `defaulted_at`, `access_level`, `write_off_cents`, `dunning_paused_until`; `kit_access_codes.status` gains `suspended`; `organisations` gains `suspended_by_order_id`. New event types only, no new tables.
+- **Access control** — home sign-in gate, home global-library gate (reuses the music-licence pattern), clinic org-suspension gate, public booking page gate.
+- **Reporting** — `sales.server.ts` gains arrears/default/write-off awareness so collected vs contract stays honest; a written-off order should not read as owing forever.
+- **Emails** — 5 new templates: `plan-payment-failed`, `plan-payment-retry`, `plan-payment-final-notice`, `plan-access-suspended` (with home/clinic variants), `plan-restored`.
+- **New route** — `/order/card/<token>` for the tokenised billing-portal card update.
 
-## Phase 3 hooks left in place
+**Carries over unchanged:** the deposit-first checkout, fulfilment gating, the exact-10-payment stop rule, shipping-at-balance, promo redemption, invoicing/receipt numbering, the buyer-type fork, GST maths, and the whole Phase 2 order/event schema and RLS approach.
 
-`invoice.payment_failed` recorded into the event log, `defaulted` state defined but never entered, `payments_made` / `payments_due` counters on the order row, and an `arrears_since` timestamp column. No behaviour attached.
+## 7. What worries me
 
-## Size and risk
+1. **Home enforcement is weaker than it looks, and it degrades.** Today the app is the only way to drive the hardware. The moment a buyer discovers they can play tones from anywhere, suspension is worth nothing. Treat it as friction that prompts payment, not as a lock. It works because most defaulters are disorganised, not adversarial.
+2. **Clinic suspension has an innocent third party.** Their clients booked in good faith. That is why tier A is a notified 7-day wind-down and never touches clinical records. I would rather lose a month of leverage than strand someone's patient.
+3. **Tier C is a deliberate write-off policy, not a loophole.** You will lose small amounts on late defaulters, on purpose. If that sits badly, the alternative is a single flat rule and worse customer relations, which I would advise against.
+4. **The biggest real protection is not in this phase.** It is the upfront cushion. If plan defaults ever exceed a few percent, the fix is raising the deposit balance, not sharpening the dunning.
+5. **I'd add one thing you didn't ask for:** a card-expiry pre-warning. Stripe tells us when a card on file expires next month. One email before the failure prevents more arrears than the entire dunning chain recovers, at a fraction of the cost.
+6. **Testing default paths safely.** Stripe test clocks let us simulate 10 months of billing in seconds. I'd build against them rather than trust reasoning about date arithmetic, given this touches both money and access.
+
+## 8. Size and risk
 
 | Part | Size | Risk |
 |---|---|---|
-| `kit_orders` + events schema, RLS, grants | Medium | Low |
-| Deposit checkout + returning-buyer balance page | Medium | Medium |
-| Webhook rewrite to order state machine | Medium | **High** (money and fulfilment correctness) |
-| Exact 10-payment stop | Small | Medium |
-| Fulfilment gating rewrite | Small | **High** (could ship on a $100 deposit if wrong) |
-| Expiry sweep, reminders, refund action | Medium | Low |
-| Platinum plan | Small | Low |
-| Reporting rebuild onto orders | Medium | Medium |
-| EFT deposit-first | Medium | Low |
+| Schema, event types, columns | Small | Low |
+| Smart Retries config + dunning emails (5 templates) | Medium | Low |
+| Webhook: act on failure, restore on paid | Medium | **High** (money and access correctness) |
+| Arrears/default state machine + proportionate gate | Medium | Medium |
+| `planAccessLevel` + home access gates | Medium | **High** (wrongly locking a paying customer) |
+| Clinic wind-down + org suspension gate | Medium | **High** (third-party harm if wrong) |
+| Auto-restore path | Small | **High** (must be instant and total) |
+| Tokenised card-update route | Small | Medium |
+| Arrears view + row actions | Large | Low |
+| Reporting write-off awareness | Small | Low |
+| Card-expiry pre-warning (optional) | Small | Low |
 
-## Things that worry me, and what I would do differently
-
-1. **Two-step checkout increases abandonment.** A real fraction of buyers will pay $100 and never return. That is a business decision, not a bug, but the reminder emails and the returning-buyer link are load-bearing, not nice-to-have.
-2. **Shipping is charged before we know the buyer will complete.** If an order expires, the refund should return deposit *and* shipping. I will make that the default in the refund action.
-3. **Reporting double-count is the quiet danger.** Any Stripe-session-derived report will show two "orders" per sale after this. Rebuilding reporting onto `kit_orders` is not optional.
-4. **I would price the plan monthlies as a Stripe Price object per package** rather than inline `price_data`, so the plan is visible and auditable in the Stripe dashboard and future changes do not silently fork.
-5. **Suggestion:** hold the balance link behind an emailed tokenised URL (like the existing booking-offer tokens) rather than a guessable order number.
+The three genuinely dangerous items are all "a paying customer gets locked out" or "a defaulted customer keeps everything". Both fail loudly and both are covered by test-clock simulation before anything goes live.
