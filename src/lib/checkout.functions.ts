@@ -224,7 +224,11 @@ export const createKitCheckoutSession = createServerFn({ method: "POST" })
     let session: Stripe.Checkout.Session;
 
     if (data.plan === "installments") {
+      if (!pkg.installments) {
+        throw new Error("A payment plan is not available for this package yet");
+      }
       const { deposit, monthly, months } = pkg.installments;
+
 
       // Attach the entered address to a Customer so it applies to the subscription's invoices.
       let customerId: string | undefined;
