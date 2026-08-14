@@ -270,13 +270,11 @@ function LandingPage() {
             </div>
             <p className="mt-4 text-sm text-white/60">
               Buying for your own home?{" "}
-              <Link
-                to="/for-home"
-                className="underline underline-offset-4 hover:text-white/85"
-              >
-                See Resonabed for Home, a complete fitted table for $1,499.
-              </Link>
+              <a href="#home-package" className="underline underline-offset-4 hover:text-white/85">
+                See the Home package, a complete fitted table for $1,499.
+              </a>
             </p>
+
             <p className="mt-2 text-sm text-white/60">
               Looking for a{" "}
               <Link
