@@ -1,104 +1,135 @@
-# Pseudonymisation layer — proposal and migration risk assessment
+# Phase 2 design: deposit-first order model
 
-No schema changes made. This is a written proposal only.
+Design document only. Nothing built until you green-light it.
 
-## Read-back
+## 0. The money, restated
 
-A random, opaque token per client. Health-bearing rows point at the token's row, never at a name. The name/contact/DOB mapping lives in one isolated, separately access-controlled place. Therapists still see "Aidan Leonard — pacemaker flagged" in normal use, so the two remain rejoinable for authorised users of that clinic; this is blast-radius reduction, not anonymisation, and does not reduce custody obligations under the Privacy Act / APPs and state health records law.
+| Package | Pay in full | Deposit | Balance | Plan: deposit balance | Monthlies | Plan total |
+|---|---|---|---|---|---|---|
+| Basic | $1,199 | $100 | $1,099 | $299 | 10 x $90 | $1,299 |
+| Pro | $1,399 | $100 | $1,299 | $299 | 10 x $110 | $1,499 |
+| Platinum | $1,799 | $100 | $1,699 | $499 | 10 x $130 | $1,899 |
+| Home | $1,499 | $100 | $1,399 | $399 | 10 x $110 | $1,599 |
 
-## Current state (verified against the live database)
+Shipping is charged once, with the $100 deposit. GST is 1/11 of every GST-inclusive line.
 
-Live health volume today: 0 screenings, 0 clearance letters, 1 client note, 4 sessions, 4 clients, 1 organisation. This is the cheapest moment this change will ever be.
+## 1. Order state machine
 
-What the health tables look like now:
-- `client_screenings`, `client_clearance_letters`, `client_clearance_letter_revocations`, `client_notes`, `sessions` all carry `client_id` (a direct FK to `clients`, which holds first/last name, email, phone, DOB) plus `org_id`.
-- RLS on all of them is `org_id = current_org_id() OR is_super_admin(auth.uid())`.
-- So the health store is not self-identifying only if `clients` is out of reach — today it is one join away in the same schema, same database, same connection.
+A new local table `kit_orders` becomes the source of truth. Stripe stops being the record and goes back to being the payment rail.
 
-### Cross-clinic exposure (the bigger lever)
+Columns (shape, not SQL): order number, package key, buyer type, buyer contact, business details, shipping address or pickup, shipping region/label/cents/gst flag, promo code, chosen path (`full` or `plan`), all money fields (deposit, shipping, balance due, plan deposit balance, monthly, months), Stripe references (deposit session/payment intent, balance session/payment intent, subscription id, customer id), state, timestamps for each transition, `fulfilled_at`, `expires_at`, `notes`.
 
-Two real cross-clinic reach paths exist today:
+States:
 
-1. **`is_super_admin()` in the SELECT policy of every health table.** A platform super admin can read every clinic's screenings, letters, notes and sessions, at any time, without a support grant and without an entry in `support_sessions`. The consent/audit machinery you built (`support_access_grants`, `support_sessions`, `resolveEffectiveOrgId`) is enforced in application code, not in these policies.
-2. **Service role.** `supabaseAdmin` bypasses RLS entirely. Any server function that reaches for it can traverse all clinics' health data.
-
-Recommendation, independent of and higher-value than tokenisation:
-- Drop `is_super_admin()` from the SELECT policies on the four health tables and replace it with a grant-and-session-scoped predicate: super admin sees a clinic's health rows only where `org_id` matches an *open* `support_sessions` row for that admin backed by a live `support_access_grant`. Platform metrics keep working because they already use aggregates, and aggregates can be served by a `SECURITY DEFINER` function that returns counts only.
-- Keep the admin client out of health tables by policy: no `*.functions.ts` health path may import `client.server.ts`. Worth a lint rule, not just a convention.
-
-Result: no single credential short of database-level access can enumerate identifiable health data across clinics. That shrinks the central pool far more than a token does.
-
-### `get_public_*` functions
-
-`get_public_org`, `get_public_services`, `get_public_availability` touch organisations, services, availability and profiles only. None touch a health table or `clients`. This work must not add anything to them, and the build should end with a check asserting that.
-
-## Proposed design
-
-### 1. The token
-
-New table, one row per client:
-
-```
-client_pseudonyms
-  id            uuid  pk  default gen_random_uuid()   -- the token itself
-  org_id        uuid  not null
-  created_at    timestamptz
+```text
+draft -> deposit_paid -> balance_paid  -> fulfilled
+                      -> plan_active   -> fulfilled -> plan_completed
+      -> expired (30 days at deposit_paid, no balance)
+      -> cancelled / refunded (deposit returned)
+      -> defaulted   (Phase 3 only, hook left in place)
 ```
 
-The token is `gen_random_uuid()` — CSPRNG, no name input, no sequence, no year, nothing derivable. A short human-readable label for the operator UI (e.g. `RB-7K4Q2M`) can be generated from random bytes, never from the name.
+- `draft`: order row written before the deposit checkout opens, so a webhook always has a row to land on.
+- `deposit_paid`: $100 + shipping cleared. Order secured, `expires_at` = +30 days. Nothing ships.
+- `balance_paid`: remaining balance cleared in a second one-off checkout.
+- `plan_active`: deposit balance cleared and the 10-month subscription is live.
+- `fulfilled`: written by the single fulfilment routine once it has succeeded (code issued / onboarding row created / shipping flagged). Separate from `balance_paid` so a failed email never loses the order.
+- `plan_completed`: 10th invoice paid, subscription ended.
+- `expired`, `refunded`, `cancelled`, `defaulted` as terminal/admin states.
 
-`clients` keeps identity (name, email, phone, DOB) and gains `pseudonym_id uuid unique` pointing at the token. The mapping direction matters: the identity table references the token, so the health store never needs to name the identity table.
+Event mapping (webhook, signature verified, idempotent on Stripe object id):
 
-### 2. Health rows re-key onto the token
+| Stripe event | Effect |
+|---|---|
+| `checkout.session.completed` with `order_step=deposit` | draft -> deposit_paid, stamp expiry |
+| `checkout.session.completed` with `order_step=balance` | deposit_paid -> balance_paid, then fulfil |
+| `checkout.session.completed` with `order_step=plan` (subscription mode) | deposit_paid -> plan_active, set the plan end, then fulfil |
+| `invoice.paid` on the plan subscription | increment payments made; on the 10th, plan_completed |
+| `invoice.payment_failed` | Phase 3 hook: record only, no action now |
+| `charge.refunded` on the deposit | -> refunded |
 
-`client_screenings`, `client_clearance_letters`, `client_clearance_letter_revocations` (via letter), `client_notes`, and `sessions` gain `pseudonym_id`, and after cut-over `client_id` is dropped from them. They then contain: a meaningless uuid, an org id, clinical content. Breached alone, they say "someone at clinic X has a pacemaker flag" — a real reduction, and honestly a partial one, because free-text practitioner notes and clearance-letter issuer names can self-identify. Note snapshots also embed `org_name_snapshot`; that stays (it is the clinic, not the client).
+Every state change is appended to a `kit_order_events` log (event type, Stripe ref, payload snippet) so money movement is auditable and replays are safe.
 
-### 3. Isolating the mapping
+## 2. Stripe mechanics
 
-Three options, in increasing separation and cost. Design stays flexible on which, given your legal advice is pending.
+Two checkouts per order, never one.
 
-- **A. Separate schema, same database** (`identity.clients`), Data API not exposed, reachable only through `SECURITY DEFINER` resolver functions that take a token and return identity for the caller's own org. Cheap, works today, defeats "read the public schema" but not "read the whole database".
-- **B. Separate Postgres role and grants** on top of A: the app's normal role can read health but only call the resolver for identity; resolution becomes individually auditable (every re-identification is a function call you can log).
-- **C. Separate database or per-clinic custody**, identity held by the clinic, platform holds only tokens. Strongest, and the only one that meaningfully changes who the custodian is — this is exactly the question your advisers are considering. The token design is compatible with C without rework, which is the point of choosing an opaque uuid now.
+1. **Deposit checkout** (`mode: payment`): $100 line + shipping line. Metadata carries the order id and `order_step=deposit`. Customer is created up front (name, address, shipping) and reused, so the balance step and the plan bill the same customer.
+2. **Balance step**, chosen after the deposit clears, from a returning-buyer page at `/order/<order-number>`:
+   - **Pay in full**: second `mode: payment` checkout for the balance only. No shipping line.
+   - **Plan**: `mode: subscription` checkout with a one-off deposit-balance line plus the monthly recurring line. No shipping line.
 
-Recommendation: build A+B now, keep C open.
+**Stopping after exactly 10 payments.** Drop the `cancel_at` 30-day arithmetic. Use `subscription_data.cancel_at_period_end` logic driven by the invoice count instead: on each `invoice.paid`, count paid invoices carrying the monthly line; when the count hits 10, call `subscriptions.update(..., { cancel_at_period_end: true })` (or cancel immediately, since the last payment is collected). That is exact by construction and immune to month-length drift, DST and retries. Belt and braces: also set `cancel_at` to the real calendar date 10 months + 2 days out at creation as a backstop, computed with proper date maths, not 30-day blocks.
 
-### 4. Encryption
+## 3. Shipping charged once
 
-What Supabase gives by default: AES-256 encryption at rest for the database volume, backups and Storage objects, and TLS in transit. That protects against a stolen disk. It does not protect against a compromised application credential, a leaked service key, or an over-broad query — the data is transparently decrypted for anyone who can connect.
+Shipping only ever exists as a line item on the deposit checkout. The balance and plan checkouts are built from the order row's balance figures, which exclude shipping by definition. The order row stores `shipping_cents` and `shipping_charged_at`; the balance builder asserts shipping is already charged and never adds a line. Pickup orders store zero and behave identically.
 
-What to add, in priority order:
-1. **Clearance-letter files** (`clearance-letters` bucket — doctors' letters, the most sensitive artefact). Encrypt client-side/server-side with a key held outside the database (Supabase Vault or an env-held KEK, per-org DEK) before upload, so a Storage breach yields ciphertext. Signed URLs already gate access; this covers key/credential compromise too.
-2. **Screening detail** — `checklist_snapshot`, `flagged_items`, `blocking_items`, `practitioner_notes`, `decline_reason`, and `client_notes.body`. Encrypt with `pgsodium`/Vault-managed keys or application-layer envelope encryption. Cost: these columns become unsearchable and unfilterable in SQL. Check first whether anything filters on them — `client_item_cleared` filters on `item_key`, which must stay plaintext.
-3. Signatures (`client_signature`, `practitioner_signature`) are images of a person's handwriting — identifying. Treat them like letters, not like screening detail.
+## 4. Fulfilment fork
 
-## Migration risk assessment
+One entry point, `fulfilOrder(orderId)`, replaces `fulfilCheckoutSession(session)` as the caller-facing function. It is called only from `balance_paid` and `plan_active`, never from the deposit.
 
-The failure mode you named — a health row whose token resolves to nobody — is the one to engineer against.
+It reuses the existing paths unchanged underneath:
+- record the sale/invoice (`kit-invoicing.server`)
+- business -> `recordOnboardingOrder` (clinic onboarding queue)
+- personal/home -> `issueAccessCode` (existing home access email)
+- physical flags on the order row: `ships_kit` always, `ships_table` for Platinum and Home, surfaced in the admin fulfilment list.
 
-**Risk today: low, because volume is near zero.** 1 note and 4 sessions carry a `client_id`. Zero screenings and zero letters. If this is going to happen, now is materially safer than in six months.
+Idempotency keys move from the Stripe session id to the order number, so a plan order and a pay-in-full order fulfil identically and only once.
 
-Method — one migration, idempotent, verified, reversible:
+## 5. Deposit hold, expiry, refund
 
-1. Create `client_pseudonyms` and backfill exactly one row per existing client, inside a single transaction. Idempotency comes from `insert ... select ... where not exists`, plus a unique constraint on `clients.pseudonym_id` — a re-run inserts zero rows rather than duplicating.
-2. Add `pseudonym_id` to health tables as **nullable**, backfill from the existing `client_id` join, all in the same transaction.
-3. **Verify before committing**, in-migration, with hard assertions that abort the transaction: (a) every client has exactly one pseudonym; (b) for each health table, `count(*) where pseudonym_id is null` = 0; (c) for each health table, the count of rows whose `pseudonym_id` resolves through `clients` back to the same `client_id` equals the total row count; (d) row counts before and after are identical. If any assertion fails, the whole thing rolls back and nothing has changed.
-4. **Only then** set `pseudonym_id` NOT NULL and add the FK.
-5. **Keep `client_id` in place, dual-written, for a defined soak period** (suggest two weeks of live use). This is what makes it reversible: reverting is dropping the new column, not reconstructing lost links. Drop `client_id` in a second, separate migration after the soak, and only after a re-run of the same verification queries.
+- `expires_at` = deposit paid + 30 days.
+- A daily sweep (existing `/api/public/hooks/offer-tick` style cron endpoint) moves stale `deposit_paid` orders to `expired` and flags them to admin. It does **not** auto-refund: money leaves only on a human action.
+- Reminder emails at day 7 and day 25 while still at `deposit_paid`.
+- Admin refund action on the order refunds the deposit (and shipping) through the stored payment intent, writes `refunded`, logs who and why. Refunds are blocked once the order is `fulfilled`.
 
-## What breaks, and how it is handled
+## 6. Platinum plan
 
-- **RLS policies** — health-table policies key on `org_id`, not `client_id`, so they survive re-keying untouched. The separate super-admin tightening above is where the policy work actually is.
-- **Screening gate triggers** — `sessions_require_signed_screening` and `sessions_screening_immutable` both compare `s.client_id` to `NEW.client_id`; `bookings_require_signed_screening` joins `sessions.client_id`. All three must be rewritten to compare `pseudonym_id`, in the same migration that adds the column, and re-tested against the ratification steps you already ran (walk-in gate, direct status update rejected, screening reuse rejected). These are the highest-risk objects in the change: if a trigger silently stops matching, the gate opens.
-- **`client_item_cleared(_client_id, _item)`** — becomes token-keyed; call sites in the screening flow update with it.
-- **Joins in application code** — every `.eq("client_id", ...)` against a health table, the client history dialog, screening history, and the vetting/notes panel. All go through a single resolver so re-identification has one chokepoint.
-- **Audit trail** — `booking_events` carries `client_id` plus `requester_name`/`requester_email`/`requester_phone` in the clear, and it is append-only, so it cannot be rewritten in place. It is a booking audit, not a health store, and it should stay identity-bearing — but it is then a second place identity lives, and the proposal should not pretend otherwise. Recommend leaving it as-is and documenting it as identity-bearing by design.
-- **`get_public_*`** — untouched, with an explicit post-build assertion that none of them reference a health table or the identity mapping.
+Un-hidden: $100 deposit + $499 deposit balance + 10 x $130 = $1,899. Table freight scope stays. Removes the current `installments: null` guard and the hidden plan button on the homepage card.
 
-## What this protects against, and what it does not
+## 7. What breaks, what carries over
 
-Protects against: a breach or exfiltration limited to the health tables; an over-broad query by an authenticated app credential; a leaked read replica or dump of the public schema (under option A/B); a Storage bucket breach (with encryption item 1).
+Breaks / must change:
+- **Fulfilment on `checkout.session.completed`** — the biggest one. Today any completed session fulfils. After this change the deposit session completes and must fulfil nothing. This is the change most likely to leak product if we get it wrong, so the fulfil routine will hard-refuse unless the order is in `balance_paid`/`plan_active`.
+- **The 8 x $100 subscriptions** — replaced by the 10-month structure everywhere (checkout, sales reporting installment map, admin invoice builder, homepage plan buttons and plan-total copy).
+- **`/order/success` idempotent re-run** — kept, but it now finalises whichever step just completed, keyed on the order, and only fulfils when the step warrants it.
+- **`finalizeCheckoutSession`'s `cancel_at` maths** — deleted, replaced by the invoice-count rule.
+- **Reporting** (`sales.server.ts`) — currently derives everything from Stripe sessions and a list-price map. It has to read `kit_orders` instead, or an order will appear twice (deposit session + balance session). Contract value, collected-to-date, GST and outstanding balance all come off the order row.
+- **Promo codes** — apply to the kit balance, not the deposit. Redemption recording moves to the balance step.
 
-Does not protect against: full database compromise (both halves are reachable); a compromised authorised clinic account (they are entitled to rejoin); an insider with resolver access; free-text notes that self-identify; and it does not reduce your obligations as custodian — the data remains re-identifiable personal health information in your hands.
+Carries over unchanged: shipping rate resolution and bands, the access-code issuing path, onboarding queue, kit invoice/receipt numbering, the buyer-type fork, GST maths.
 
-Honest ranking of value: cross-clinic scoping tightening > clearance-letter encryption > pseudonymisation > screening-detail column encryption.
+## 8. EFT / invoice path
+
+Same model, different rail. EFT buyers also start with a $100 + shipping deposit invoice; the order row is identical and states move on admin-recorded payments rather than Stripe events.
+
+- Deposit invoice raised at order time; admin marks it paid -> `deposit_paid`.
+- Balance invoice raised for the remaining amount (or the deposit-balance for a plan); marked paid -> `balance_paid` / `plan_active` -> fulfil.
+- EFT payment plans have no card on file, so the 10 monthlies become 10 scheduled invoices with no automatic collection. My recommendation: for Phase 2, offer EFT for the **deposit and pay-in-full balance only**, and require a card for the 10-month plan. Manual monthly EFT chasing is a dunning problem, which is explicitly Phase 3.
+
+## Phase 3 hooks left in place
+
+`invoice.payment_failed` recorded into the event log, `defaulted` state defined but never entered, `payments_made` / `payments_due` counters on the order row, and an `arrears_since` timestamp column. No behaviour attached.
+
+## Size and risk
+
+| Part | Size | Risk |
+|---|---|---|
+| `kit_orders` + events schema, RLS, grants | Medium | Low |
+| Deposit checkout + returning-buyer balance page | Medium | Medium |
+| Webhook rewrite to order state machine | Medium | **High** (money and fulfilment correctness) |
+| Exact 10-payment stop | Small | Medium |
+| Fulfilment gating rewrite | Small | **High** (could ship on a $100 deposit if wrong) |
+| Expiry sweep, reminders, refund action | Medium | Low |
+| Platinum plan | Small | Low |
+| Reporting rebuild onto orders | Medium | Medium |
+| EFT deposit-first | Medium | Low |
+
+## Things that worry me, and what I would do differently
+
+1. **Two-step checkout increases abandonment.** A real fraction of buyers will pay $100 and never return. That is a business decision, not a bug, but the reminder emails and the returning-buyer link are load-bearing, not nice-to-have.
+2. **Shipping is charged before we know the buyer will complete.** If an order expires, the refund should return deposit *and* shipping. I will make that the default in the refund action.
+3. **Reporting double-count is the quiet danger.** Any Stripe-session-derived report will show two "orders" per sale after this. Rebuilding reporting onto `kit_orders` is not optional.
+4. **I would price the plan monthlies as a Stripe Price object per package** rather than inline `price_data`, so the plan is visible and auditable in the Stripe dashboard and future changes do not silently fork.
+5. **Suggestion:** hold the balance link behind an emailed tokenised URL (like the existing booking-offer tokens) rather than a guessable order number.
