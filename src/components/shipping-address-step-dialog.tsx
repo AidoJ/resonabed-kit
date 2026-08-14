@@ -517,25 +517,16 @@ export function ShippingAddressStepDialog({
                   </div>
 
                   {matchedRate ? (
-                    <div className="rounded-2xl border border-brand-indigo/15 bg-white p-3 text-sm">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Kit</span>
-                        <span>{fmt(packagePriceCents)}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>
+                    <Breakdown
+                      shippingLine={
+                        <>
                           Shipping, {matchedRate.label}
                           <span className="ml-1 text-xs">
                             ({matchedRate.gst_inclusive ? "incl. GST" : "GST-free export"})
                           </span>
-                        </span>
-                        <span>{fmt(matchedRate.amount_cents)}</span>
-                      </div>
-                      <div className="mt-1 flex justify-between border-t border-brand-indigo/10 pt-2 font-medium text-brand-indigo">
-                        <span>Order total</span>
-                        <span>{fmt(totalCents)}</span>
-                      </div>
-                    </div>
+                        </>
+                      }
+                    />
                   ) : form.country ? (
                     <p className="text-sm text-destructive">We don't ship to that country yet.</p>
                   ) : null}
@@ -543,20 +534,7 @@ export function ShippingAddressStepDialog({
               )}
             </>
           ) : (
-            <div className="rounded-2xl border border-brand-indigo/15 bg-white p-3 text-sm">
-              <div className="flex justify-between text-muted-foreground">
-                <span>Kit</span>
-                <span>{fmt(packagePriceCents)}</span>
-              </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span>Shipping, pickup</span>
-                <span>Free</span>
-              </div>
-              <div className="mt-1 flex justify-between border-t border-brand-indigo/10 pt-2 font-medium text-brand-indigo">
-                <span>Order total</span>
-                <span>{fmt(totalCents)}</span>
-              </div>
-            </div>
+            <Breakdown shippingLine={<>Shipping, pickup</>} />
           )}
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
