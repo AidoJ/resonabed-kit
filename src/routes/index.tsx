@@ -1260,7 +1260,6 @@ function PackageCard({
     who: BuyerTypeContinuePayload | null,
   ) => {
     setLoading(which);
-    setActivePlan(which);
     try {
       const address: EnteredShippingAddress | undefined = ship.pickup ? undefined : ship.address;
       const {
