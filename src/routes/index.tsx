@@ -1203,55 +1203,7 @@ function ContactForm() {
 }
 
 
-function ContactPackageCard({
-  name,
-  priceLine,
-  tagline,
-  description,
-  features,
-}: {
-  name: string;
-  priceLine: string;
-  tagline: string;
-  description: string;
-  features: string[];
-}) {
-  return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-9 text-foreground shadow-soft md:p-10">
-      <div className="relative">
-        <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-medium tracking-tight text-brand-indigo">{name}</h3>
-        </div>
-        <p className="mt-2 text-sm text-brand-violet-strong">{tagline}</p>
-        <div className="mt-6">
-          <span className="text-2xl font-light tracking-tight text-brand-indigo md:text-3xl">
-            {priceLine}
-          </span>
-        </div>
-        <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{description}</p>
-        <ul className="mt-7 space-y-3">
-          {features.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-sm">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-violet-strong" />
-              <span className="text-foreground/90">{f}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-9">
-          <Button
-            asChild
-            className="h-11 w-full rounded-full bg-brand-indigo text-[14px] font-medium text-white hover:bg-brand-indigo/90"
-          >
-            <a href="mailto:info@resonabed.com?subject=Platinum%20package%20quote">
-              Contact us for a quote
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-            </a>
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
+
 
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
 
