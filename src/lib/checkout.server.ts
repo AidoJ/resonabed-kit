@@ -507,12 +507,13 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
             name: `${pkg.label}, deposit balance`,
             description: `Deposit balance for order ${order.order_number}, followed by ${pkg.plan.months} monthly payments of ${money(
               pkg.plan.monthlyCents,
-            )}.`,
+            )}.${shippingDue > 0 ? " Shipping is charged in full with this payment." : ""}`,
           },
           unit_amount: order.plan_deposit_balance_cents ?? pkg.plan.depositBalanceCents,
         },
         quantity: 1,
       },
+      ...shippingLineItem,
       { price: priceId, quantity: 1 },
     ],
     subscription_data: {
