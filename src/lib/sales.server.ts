@@ -94,16 +94,25 @@ export async function loadBuyerLookup(): Promise<BuyerLookup> {
 }
 
 const PACKAGE_LABELS: Record<string, string> = {
-  pro: "Resonabed Pro Kit",
-  premium: "Resonabed Premium Kit",
+  essentials: "Resonabed Essentials",
+  pro: "Resonabed Pro",
+  platinum: "Resonabed Platinum",
+  home: "Resonabed for Home",
 };
 
-const LIST_PRICE_CENTS: Record<string, number> = { pro: 119900, premium: 139900 };
+const LIST_PRICE_CENTS: Record<string, number> = {
+  essentials: 119900,
+  pro: 139900,
+  platinum: 179900,
+  home: 149900,
+};
 
 const INSTALLMENTS: Record<string, { deposit: number; monthly: number; months: number }> = {
-  pro: { deposit: 39900, monthly: 10000, months: 8 },
-  premium: { deposit: 59900, monthly: 10000, months: 8 },
+  essentials: { deposit: 39900, monthly: 10000, months: 8 },
+  pro: { deposit: 59900, monthly: 10000, months: 8 },
+  home: { deposit: 49900, monthly: 11000, months: 10 },
 };
+
 
 /** GST is 1/11 of a GST-inclusive amount (Australia, 10%). */
 export function gstOf(inclusiveCents: number) {
