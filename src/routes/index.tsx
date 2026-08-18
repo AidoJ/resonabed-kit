@@ -182,7 +182,7 @@ function LandingPage() {
         {/* NAV */}
         <header className="relative z-20">
           <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-6 md:px-10 md:py-8">
-            <div className="flex min-w-0 flex-col items-start">
+            <div className="flex w-fit min-w-0 flex-col items-center">
               <img
                 src={logoWhite}
                 alt="Resonabed"
