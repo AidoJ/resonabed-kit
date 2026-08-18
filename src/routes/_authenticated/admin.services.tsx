@@ -256,32 +256,94 @@ function ServicesAdmin() {
         </TableBody>
       </Table>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog
+        open={!!editing}
+        onOpenChange={(o) => {
+          if (!o) {
+            setEditing(null);
+            setImageFile(null);
+            setImagePreview(null);
+          }
+        }}
+      >
         <DialogTrigger asChild><span /></DialogTrigger>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing?.id ? "Edit service" : "New service"}</DialogTitle>
           </DialogHeader>
           {editing && (
             <div className="space-y-3">
+              {editing.is_standard ? (
+                <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+                  This is a standard ResonaBed vibroacoustic session. Its name, description,
+                  picture and duration are set by ResonaBed. You can change the price, price
+                  visibility, changeover time and whether it is active.
+                </div>
+              ) : null}
               <div>
                 <Label>Name</Label>
                 <Input
                   value={editing.name ?? ""}
+                  disabled={!!editing.is_standard}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                 />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  rows={4}
+                  disabled={!!editing.is_standard}
+                  placeholder="What this session is and how it feels."
+                  value={editing.description ?? ""}
+                  onChange={(e) =>
+                    setEditing({ ...editing, description: e.target.value || null })
+                  }
+                />
+              </div>
+              <div>
+                <Label>Picture</Label>
+                <div className="mt-1 flex items-center gap-3">
+                  {imagePreview ?? editing.image_url ? (
+                    <img
+                      src={imagePreview ?? editing.image_url ?? ""}
+                      alt="Session"
+                      className="h-16 w-24 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-24 items-center justify-center rounded bg-muted">
+                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  {editing.is_standard ? (
+                    <p className="text-xs text-muted-foreground">
+                      Supplied by ResonaBed and cannot be changed.
+                    </p>
+                  ) : (
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null;
+                        setImageFile(f);
+                        setImagePreview(f ? URL.createObjectURL(f) : null);
+                      }}
+                    />
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Duration (min)</Label>
                   <Input
                     type="number"
+                    disabled={!!editing.is_standard}
                     value={editing.duration_minutes ?? 30}
                     onChange={(e) =>
                       setEditing({ ...editing, duration_minutes: Number(e.target.value) })
                     }
                   />
                 </div>
+
                 <div>
                   <Label>Price</Label>
                   <Input
