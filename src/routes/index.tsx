@@ -786,7 +786,7 @@ function LandingPage() {
         <div className="mt-10 rounded-2xl border border-border bg-card p-8 text-center shadow-soft">
           <Button size="lg" asChild>
             <a
-              href="https://calendly.com/aidan-rejuvenators/new-meeting/invitees/86bcb4e8-088c-4381-b63c-559fc4b938f3"
+              href="https://calendly.com/aidan-rejuvenators/demo"
               target="_blank"
               rel="noopener noreferrer"
             >
