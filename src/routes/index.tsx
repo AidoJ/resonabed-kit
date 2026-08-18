@@ -66,8 +66,11 @@ import {
 } from "lucide-react";
 
 const NAV_LINKS: { href: string; label: string; children?: { href: string; label: string }[] }[] = [
-  { href: "#packages", label: "Packages" },
-  { href: "#compare", label: "Compare" },
+  {
+    href: "#packages",
+    label: "Packages",
+    children: [{ href: "#compare", label: "Compare" }],
+  },
   { href: "#how", label: "How it works" },
   { href: "#demo", label: "Book a demo" },
   { href: "#faq", label: "FAQ" },
@@ -76,6 +79,7 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
     label: "About",
     children: [{ href: "#contact", label: "Contact" }],
   },
+
 ];
 
 
