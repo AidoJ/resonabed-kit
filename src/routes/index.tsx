@@ -793,12 +793,9 @@ function LandingPage() {
             whole body. So we would rather show you.
           </p>
           <p>
-            Book a demo and we will walk you through the Resonabed system, how it fits a table you
-            already own, how a session runs, and the simple app that guides it. You will feel a
-            session yourself, ask anything you like, and see whether it is the right fit for your
-            practice.
+            For the demo, we will come to you with a working model and walk you through the Resonabed system. Learn how it fits a table you already own, how a session runs, and the simple app that guides it. You will feel a session yourself, ask anything you like, and see whether it is the right fit for your practice.
           </p>
-          <p>No pressure, no obligation. Just come and experience it.</p>
+          <p>No pressure, no obligation. Just book a demo and experience it today.</p>
         </div>
 
         <div className="mt-10 rounded-2xl border border-border bg-card p-8 text-center shadow-soft">
