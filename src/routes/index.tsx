@@ -201,23 +201,20 @@ function LandingPage() {
             <div className="flex shrink-0 items-center gap-3 md:gap-6">
               {NAV_LINKS.map((l) =>
                 l.children ? (
-                  <div
-                    key={l.href}
-                    className="group relative hidden lg:flex lg:flex-col lg:items-center"
-                  >
+                  <div key={l.href} className="group relative hidden lg:block">
                     <a
                       href={l.href}
                       className="text-sm font-medium text-white/80 transition-colors hover:text-white"
                     >
                       {l.label}
                     </a>
-                    <div className="pointer-events-none absolute left-1/2 top-full z-30 -translate-x-1/2 translate-y-1 pt-4 opacity-0 transition duration-200 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                      <div className="flex flex-col items-center gap-1">
+                    <div className="pointer-events-none absolute left-3 top-full z-30 translate-y-1 pt-3 opacity-0 transition duration-200 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                      <div className="flex flex-col items-start gap-1 border-l border-white/20 pl-3">
                         {l.children.map((c) => (
                           <a
                             key={c.href}
                             href={c.href}
-                            className="whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm font-medium text-white/85 backdrop-blur transition-colors hover:bg-white/20 hover:text-white"
+                            className="whitespace-nowrap text-sm font-medium text-white/70 transition-colors hover:text-white"
                           >
                             {c.label}
                           </a>
@@ -225,6 +222,7 @@ function LandingPage() {
                       </div>
                     </div>
                   </div>
+
 
                 ) : (
                   <a
