@@ -66,8 +66,11 @@ import {
 } from "lucide-react";
 
 const NAV_LINKS: { href: string; label: string; children?: { href: string; label: string }[] }[] = [
-  { href: "#packages", label: "Packages" },
-  { href: "#compare", label: "Compare" },
+  {
+    href: "#packages",
+    label: "Packages",
+    children: [{ href: "#compare", label: "Compare" }],
+  },
   { href: "#how", label: "How it works" },
   { href: "#demo", label: "Book a demo" },
   { href: "#faq", label: "FAQ" },
@@ -76,6 +79,7 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
     label: "About",
     children: [{ href: "#contact", label: "Contact" }],
   },
+
 ];
 
 
@@ -204,19 +208,20 @@ function LandingPage() {
                     >
                       {l.label}
                     </a>
-                    <div className="invisible absolute left-1/2 top-full z-30 w-40 -translate-x-1/2 pt-3 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                      <div className="rounded-xl border border-white/15 bg-brand-ink/95 p-1 backdrop-blur">
+                    <div className="pointer-events-none invisible absolute left-1/2 top-full z-30 -translate-x-1/2 pt-2 opacity-0 transition duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100">
+                      <div className="min-w-[7rem] rounded-lg border border-white/10 bg-brand-ink/90 py-1 shadow-lg backdrop-blur">
                         {l.children.map((c) => (
                           <a
                             key={c.href}
                             href={c.href}
-                            className="block rounded-lg px-3 py-2 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white"
+                            className="block whitespace-nowrap px-3 py-1.5 text-sm font-medium text-white/75 hover:text-white"
                           >
                             {c.label}
                           </a>
                         ))}
                       </div>
                     </div>
+
                   </div>
                 ) : (
                   <a
