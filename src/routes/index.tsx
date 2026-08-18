@@ -315,7 +315,16 @@ function LandingPage() {
                   See packages for in home use
                 </Button>
               </a>
+              <a href="#demo">
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-full border-white/30 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
+                >
+                  Book a demo
+                </Button>
+              </a>
             </div>
+
 
 
             <p className="mt-2 text-sm text-white/60">
