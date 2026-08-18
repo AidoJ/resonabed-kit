@@ -252,15 +252,27 @@ function LandingPage() {
             <div className="mx-6 mb-4 rounded-2xl border border-white/15 bg-brand-ink/95 p-2 backdrop-blur lg:hidden md:mx-10">
               <nav className="flex flex-col">
                 {NAV_LINKS.map((l) => (
-                  <a
-                    key={l.href}
-                    href={l.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="rounded-xl px-4 py-3 text-[15px] font-medium text-white/85 hover:bg-white/10 hover:text-white"
-                  >
-                    {l.label}
-                  </a>
+                  <div key={l.href} className="flex flex-col">
+                    <a
+                      href={l.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="rounded-xl px-4 py-3 text-[15px] font-medium text-white/85 hover:bg-white/10 hover:text-white"
+                    >
+                      {l.label}
+                    </a>
+                    {l.children?.map((c) => (
+                      <a
+                        key={c.href}
+                        href={c.href}
+                        onClick={() => setMenuOpen(false)}
+                        className="rounded-xl px-8 py-2.5 text-[14px] font-medium text-white/70 hover:bg-white/10 hover:text-white"
+                      >
+                        {c.label}
+                      </a>
+                    ))}
+                  </div>
                 ))}
+
                 <Link
                   to={loginHref}
                   onClick={() => setMenuOpen(false)}
