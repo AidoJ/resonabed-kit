@@ -9,9 +9,11 @@ import {
   deleteGlobalService,
   type GlobalService,
 } from "@/lib/global-services.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -29,7 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/global-services")({
   head: () => ({ meta: [{ title: "Global services, ResonaBed" }] }),
@@ -46,6 +48,10 @@ function GlobalServicesAdmin() {
     queryFn: () => list(),
   });
   const [editing, setEditing] = useState<Partial<GlobalService> | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
 
   const saveMut = useMutation({
     mutationFn: (payload: Partial<GlobalService>) =>
