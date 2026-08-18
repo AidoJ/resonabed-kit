@@ -38,7 +38,7 @@ export const listServices = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("services")
       .select(
-        "id, name, duration_minutes, buffer_minutes, price, show_price, is_active, created_at, source_global_id, sort_order",
+        "id, name, duration_minutes, buffer_minutes, price, show_price, is_active, created_at, source_global_id, sort_order, description, image_path",
       )
       .not("org_id", "is", null)
       .order("sort_order")
@@ -48,20 +48,52 @@ export const listServices = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     const rows = data ?? [];
 
-    // Live RRP guide from the global catalogue (never snapshotted, never binding).
+    // Live RRP guide plus the locked description/picture from the global
+    // catalogue (never snapshotted, never editable by the clinic).
     const globalIds = [...new Set(rows.map((r) => r.source_global_id).filter(Boolean))] as string[];
-    const rrpById = new Map<string, number | null>();
+    const globalById = new Map<
+      string,
+      { rrp: number | null; description: string | null; image_path: string | null }
+    >();
     if (globalIds.length > 0) {
       const { data: globals } = await context.supabase
         .from("services")
-        .select("id, rrp")
+        .select("id, rrp, description, image_path")
         .in("id", globalIds)
         .is("org_id", null);
-      for (const g of globals ?? []) rrpById.set(g.id, g.rrp as number | null);
+      for (const g of globals ?? [])
+        globalById.set(g.id, {
+          rrp: g.rrp as number | null,
+          description: (g.description as string | null) ?? null,
+          image_path: (g.image_path as string | null) ?? null,
+        });
     }
-    return rows.map((r) => ({
+
+    const withGlobal = rows.map((r) => {
+      const g = r.source_global_id ? globalById.get(r.source_global_id) : undefined;
+      return {
+        ...r,
+        rrp: g?.rrp ?? null,
+        /** Standard sessions display the platform copy, not their own. */
+        description: g ? (g.description ?? null) : ((r.description as string | null) ?? null),
+        image_path: g ? (g.image_path ?? null) : ((r.image_path as string | null) ?? null),
+        is_standard: !!r.source_global_id,
+      };
+    });
+
+    const paths = withGlobal.map((r) => r.image_path).filter((p): p is string => !!p);
+    const urlByPath = new Map<string, string>();
+    if (paths.length > 0) {
+      const { data: signed } = await context.supabase.storage
+        .from("service-images")
+        .createSignedUrls([...new Set(paths)], 3600);
+      for (const s of signed ?? []) {
+        if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl);
+      }
+    }
+    return withGlobal.map((r) => ({
       ...r,
-      rrp: r.source_global_id ? (rrpById.get(r.source_global_id) ?? null) : null,
+      image_url: r.image_path ? (urlByPath.get(r.image_path) ?? null) : null,
     }));
   });
 
@@ -77,6 +109,8 @@ export const upsertService = createServerFn({ method: "POST" })
         price: z.number().min(0).max(100000),
         show_price: z.boolean().default(true),
         is_active: z.boolean(),
+        description: z.string().max(2000).nullable().optional(),
+        image_path: z.string().max(400).nullable().optional(),
       })
       .parse(d),
   )
@@ -85,17 +119,31 @@ export const upsertService = createServerFn({ method: "POST" })
     const { orgId: _org_id } = await resolveEffectiveOrgId(context);
     if (!_org_id) throw new Error("No organisation");
     if (data.id) {
-      const { error } = await context.supabase
+      // Standard vibroacoustic sessions are platform-owned: the clinic may set
+      // pricing/visibility/turnaround only, never the wording or the picture.
+      const { data: existing, error: exErr } = await context.supabase
         .from("services")
-        .update({
-          name: data.name,
-          duration_minutes: data.duration_minutes,
-          buffer_minutes: data.buffer_minutes,
-          price: data.price,
-          show_price: data.show_price,
-          is_active: data.is_active,
-        })
-        .eq("id", data.id);
+        .select("source_global_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (exErr) throw new Error(exErr.message);
+      const isStandard = !!existing?.source_global_id;
+      const patch: Record<string, unknown> = {
+        duration_minutes: data.duration_minutes,
+        buffer_minutes: data.buffer_minutes,
+        price: data.price,
+        show_price: data.show_price,
+        is_active: data.is_active,
+      };
+      if (!isStandard) {
+        patch.name = data.name;
+        patch.duration_minutes = data.duration_minutes;
+        if (data.description !== undefined) patch.description = data.description;
+        if (data.image_path !== undefined) patch.image_path = data.image_path;
+      } else {
+        delete patch.duration_minutes;
+      }
+      const { error } = await context.supabase.from("services").update(patch).eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
@@ -109,12 +157,15 @@ export const upsertService = createServerFn({ method: "POST" })
         price: data.price,
         show_price: data.show_price,
         is_active: data.is_active,
+        description: data.description ?? null,
+        image_path: data.image_path ?? null,
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
     return row;
   });
+
 
 export const deleteService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
