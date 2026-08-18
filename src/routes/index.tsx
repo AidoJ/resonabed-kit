@@ -182,17 +182,18 @@ function LandingPage() {
         {/* NAV */}
         <header className="relative z-20">
           <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-6 md:px-10 md:py-8">
-            <div className="flex min-w-0 flex-col items-start">
+            <div className="flex w-fit min-w-0 flex-col items-center">
               <img
                 src={logoWhite}
                 alt="Resonabed"
                 className="h-20 w-auto sm:h-28 md:h-44 lg:h-52 drop-shadow-[0_6px_28px_rgba(136,75,199,0.55)]"
                 draggable={false}
               />
-              <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.3em] text-white/70 sm:text-xs md:tracking-[0.35em] md:text-sm">
+              <p className="mt-1 w-full text-center text-[10px] font-medium uppercase tracking-[0.3em] text-white/70 sm:text-xs md:tracking-[0.35em] md:text-sm">
                 Feel. Rest. Restore.
               </p>
             </div>
+
             <div className="flex shrink-0 items-center gap-3 md:gap-6">
               {NAV_LINKS.map((l) =>
                 l.children ? (
