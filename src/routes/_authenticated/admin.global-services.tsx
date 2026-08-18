@@ -206,8 +206,17 @@ function GlobalServicesAdmin() {
         </TableBody>
       </Table>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent>
+      <Dialog
+        open={!!editing}
+        onOpenChange={(o) => {
+          if (!o) {
+            setEditing(null);
+            setImageFile(null);
+            setImagePreview(null);
+          }
+        }}
+      >
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editing?.id ? "Edit global service" : "New global service"}
@@ -221,6 +230,48 @@ function GlobalServicesAdmin() {
                   value={editing.name ?? ""}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                 />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  rows={4}
+                  placeholder="What this session is and how it feels."
+                  value={editing.description ?? ""}
+                  onChange={(e) =>
+                    setEditing({ ...editing, description: e.target.value || null })
+                  }
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Shown on every clinic&rsquo;s public page. Clinics cannot change this wording.
+                </p>
+              </div>
+              <div>
+                <Label>Picture</Label>
+                <div className="mt-1 flex items-center gap-3">
+                  {imagePreview ?? editing.image_url ? (
+                    <img
+                      src={imagePreview ?? editing.image_url ?? ""}
+                      alt="Session"
+                      className="h-16 w-24 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-24 items-center justify-center rounded bg-muted">
+                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setImageFile(f);
+                      setImagePreview(f ? URL.createObjectURL(f) : null);
+                    }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Ships with every new clinic and stays locked to the platform.
+                </p>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
@@ -276,18 +327,26 @@ function GlobalServicesAdmin() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditing(null)}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setEditing(null);
+                setImageFile(null);
+                setImagePreview(null);
+              }}
+            >
               Cancel
             </Button>
             <Button
               onClick={() => editing && saveMut.mutate(editing)}
-              disabled={saveMut.isPending || !editing?.name}
+              disabled={saveMut.isPending || uploading || !editing?.name}
             >
-              Save
+              {uploading ? "Uploading…" : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
