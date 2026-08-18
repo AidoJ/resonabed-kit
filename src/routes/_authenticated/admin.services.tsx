@@ -147,6 +147,7 @@ function ServicesAdmin() {
         <TableHeader>
           <TableRow>
             <TableHead className="w-20">Order</TableHead>
+            <TableHead className="w-20">Picture</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Changeover</TableHead>
@@ -157,9 +158,9 @@ function ServicesAdmin() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow><TableCell colSpan={7}>Loading…</TableCell></TableRow>
+            <TableRow><TableCell colSpan={8}>Loading…</TableCell></TableRow>
           ) : rows.length === 0 ? (
-            <TableRow><TableCell colSpan={7} className="text-muted-foreground">No services yet.</TableCell></TableRow>
+            <TableRow><TableCell colSpan={8} className="text-muted-foreground">No services yet.</TableCell></TableRow>
           ) : (
             rows.map((s, i) => (
               <TableRow key={s.id}>
@@ -187,7 +188,38 @@ function ServicesAdmin() {
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell>{s.name}</TableCell>
+                <TableCell>
+                  {s.image_url ? (
+                    <img
+                      src={s.image_url}
+                      alt={`${s.name} session`}
+                      className="h-10 w-14 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-14 items-center justify-center rounded bg-muted">
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {s.name}
+                    {s.is_standard ? (
+                      <span
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+                        title="Standard ResonaBed session, wording and picture are fixed"
+                      >
+                        <Lock className="h-3 w-3" /> Standard
+                      </span>
+                    ) : null}
+                  </div>
+                  {s.description ? (
+                    <div className="line-clamp-1 max-w-xs text-xs text-muted-foreground">
+                      {s.description}
+                    </div>
+                  ) : null}
+                </TableCell>
+
                 <TableCell>{s.duration_minutes} min</TableCell>
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
                 <TableCell>
