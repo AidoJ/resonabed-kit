@@ -4,9 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { listServices, upsertService, deleteService, reorderServices } from "@/lib/admin.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
@@ -15,7 +18,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, ImageIcon, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/services")({
   head: () => ({ meta: [{ title: "Services, Admin, ResonaBed" }] }),
@@ -32,15 +35,26 @@ type Service = {
   is_active: boolean;
   /** Live recommended retail price from the global catalogue. Display only. */
   rrp?: number | null;
+  description?: string | null;
+  image_path?: string | null;
+  image_url?: string | null;
+  /** True for the standard vibroacoustic sessions shipped by ResonaBed. */
+  is_standard?: boolean;
 };
 
 function ServicesAdmin() {
   const list = useServerFn(listServices);
   const save = useServerFn(upsertService);
   const del = useServerFn(deleteService);
+  const ctxFn = useServerFn(getCurrentUserContext);
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ["admin-services"], queryFn: () => list() });
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
   const [editing, setEditing] = useState<Partial<Service> | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
 
   const saveMut = useMutation({
     mutationFn: (payload: Partial<Service>) =>
