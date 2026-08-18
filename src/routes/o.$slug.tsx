@@ -528,6 +528,42 @@ function PublicOrgPage() {
             </h2>
           </div>
 
+          {services.length > 0 ? (
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {services.map((s) => (
+                <article
+                  key={s.id}
+                  className="overflow-hidden rounded-2xl border bg-background"
+                >
+                  {s.imageUrl ? (
+                    <img
+                      src={s.imageUrl}
+                      alt={`${s.name} session`}
+                      loading="lazy"
+                      className="h-44 w-full object-cover"
+                    />
+                  ) : null}
+                  <div className="p-6">
+                    <h3 className="text-lg font-light tracking-tight">{s.name}</h3>
+                    <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+                      {s.duration_minutes} minutes
+                      {s.show_price && s.price !== null
+                        ? ` · $${Number(s.price).toFixed(2)}`
+                        : ""}
+                    </p>
+                    {s.description ? (
+                      <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                        {s.description}
+                      </p>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
+
+
+
           {bookable ? (
             <div id="request" className="mx-auto mt-12 max-w-2xl scroll-mt-8">
               <p className="mb-4 text-center text-sm text-muted-foreground">
