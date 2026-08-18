@@ -412,14 +412,24 @@ function ServicesAdmin() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setEditing(null);
+                setImageFile(null);
+                setImagePreview(null);
+              }}
+            >
+              Cancel
+            </Button>
             <Button
               onClick={() => editing && saveMut.mutate(editing)}
-              disabled={saveMut.isPending || !editing?.name}
+              disabled={saveMut.isPending || uploading || !editing?.name}
             >
-              Save
+              {uploading ? "Uploading…" : "Save"}
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </div>
