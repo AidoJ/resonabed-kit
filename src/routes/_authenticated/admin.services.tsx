@@ -57,8 +57,26 @@ function ServicesAdmin() {
 
 
   const saveMut = useMutation({
-    mutationFn: (payload: Partial<Service>) =>
-      save({
+    mutationFn: async (payload: Partial<Service>) => {
+      const standard = !!payload.is_standard;
+      let imagePath = payload.image_path ?? null;
+      if (imageFile && !standard) {
+        const orgId = ctx?.org?.id;
+        if (!orgId) throw new Error("No clinic selected");
+        setUploading(true);
+        try {
+          const ext = (imageFile.name.split(".").pop() ?? "jpg").toLowerCase();
+          const path = `${orgId}/${crypto.randomUUID()}.${ext}`;
+          const { error } = await supabase.storage
+            .from("service-images")
+            .upload(path, imageFile, { upsert: true, contentType: imageFile.type });
+          if (error) throw new Error(error.message);
+          imagePath = path;
+        } finally {
+          setUploading(false);
+        }
+      }
+      return save({
         data: {
           id: payload.id,
           name: payload.name ?? "",
@@ -67,15 +85,22 @@ function ServicesAdmin() {
           price: Number(payload.price ?? 0),
           show_price: payload.show_price ?? true,
           is_active: payload.is_active ?? true,
+          ...(standard
+            ? {}
+            : { description: payload.description ?? null, image_path: imagePath }),
         },
-      }),
+      });
+    },
     onSuccess: () => {
       toast.success("Service saved");
       setEditing(null);
+      setImageFile(null);
+      setImagePreview(null);
       qc.invalidateQueries({ queryKey: ["admin-services"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { id } }),
