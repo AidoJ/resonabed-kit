@@ -38,7 +38,14 @@ export type PublicService = {
   /** Null when the clinic has chosen not to publish this session's price. */
   price: number | null;
   show_price: boolean;
+  /** Session description. Standard sessions inherit the platform copy. */
+  description?: string | null;
+  /** Storage path of the session picture (internal). */
+  image_path?: string | null;
+  /** Signed URL for the session picture, ready to render. */
+  imageUrl?: string | null;
 };
+
 
 export type PublicPractitioner = {
   id: string;
