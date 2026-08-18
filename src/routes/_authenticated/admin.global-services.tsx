@@ -54,8 +54,23 @@ function GlobalServicesAdmin() {
 
 
   const saveMut = useMutation({
-    mutationFn: (payload: Partial<GlobalService>) =>
-      save({
+    mutationFn: async (payload: Partial<GlobalService>) => {
+      let imagePath = payload.image_path ?? null;
+      if (imageFile) {
+        setUploading(true);
+        try {
+          const ext = (imageFile.name.split(".").pop() ?? "jpg").toLowerCase();
+          const path = `global/${crypto.randomUUID()}.${ext}`;
+          const { error } = await supabase.storage
+            .from("service-images")
+            .upload(path, imageFile, { upsert: true, contentType: imageFile.type });
+          if (error) throw new Error(error.message);
+          imagePath = path;
+        } finally {
+          setUploading(false);
+        }
+      }
+      return save({
         data: {
           id: payload.id,
           name: payload.name ?? "",
@@ -66,15 +81,21 @@ function GlobalServicesAdmin() {
               ? null
               : Number(payload.rrp),
           is_active: payload.is_active ?? true,
+          description: payload.description ?? null,
+          image_path: imagePath,
         },
-      }),
+      });
+    },
     onSuccess: () => {
       toast.success("Saved");
       setEditing(null);
+      setImageFile(null);
+      setImagePreview(null);
       qc.invalidateQueries({ queryKey: ["global-services"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { id } }),
