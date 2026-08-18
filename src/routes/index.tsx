@@ -201,28 +201,31 @@ function LandingPage() {
             <div className="flex shrink-0 items-center gap-3 md:gap-6">
               {NAV_LINKS.map((l) =>
                 l.children ? (
-                  <div key={l.href} className="group relative hidden lg:block">
+                  <div
+                    key={l.href}
+                    className="group relative hidden lg:flex lg:flex-col lg:items-center"
+                  >
                     <a
                       href={l.href}
-                      className="text-sm font-medium text-white/80 hover:text-white"
+                      className="text-sm font-medium text-white/80 transition-colors hover:text-white"
                     >
                       {l.label}
                     </a>
-                    <div className="pointer-events-none invisible absolute left-1/2 top-full z-30 -translate-x-1/2 pt-2 opacity-0 transition duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100">
-                      <div className="min-w-[7rem] rounded-lg border border-white/10 bg-brand-ink/90 py-1 shadow-lg backdrop-blur">
+                    <div className="pointer-events-none absolute left-1/2 top-full z-30 -translate-x-1/2 translate-y-1 pt-4 opacity-0 transition duration-200 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                      <div className="flex flex-col items-center gap-1">
                         {l.children.map((c) => (
                           <a
                             key={c.href}
                             href={c.href}
-                            className="block whitespace-nowrap px-3 py-1.5 text-sm font-medium text-white/75 hover:text-white"
+                            className="whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm font-medium text-white/85 backdrop-blur transition-colors hover:bg-white/20 hover:text-white"
                           >
                             {c.label}
                           </a>
                         ))}
                       </div>
                     </div>
-
                   </div>
+
                 ) : (
                   <a
                     key={l.href}
