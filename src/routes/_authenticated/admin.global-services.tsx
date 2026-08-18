@@ -125,6 +125,7 @@ function GlobalServicesAdmin() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-20">Picture</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Changeover</TableHead>
@@ -136,19 +137,40 @@ function GlobalServicesAdmin() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={6}>Loading…</TableCell>
+              <TableCell colSpan={7}>Loading…</TableCell>
             </TableRow>
           ) : (data ?? []).length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-muted-foreground">
+              <TableCell colSpan={7} className="text-muted-foreground">
                 No global services yet.
               </TableCell>
             </TableRow>
           ) : (
             (data ?? []).map((s) => (
               <TableRow key={s.id}>
-                <TableCell>{s.name}</TableCell>
+                <TableCell>
+                  {s.image_url ? (
+                    <img
+                      src={s.image_url}
+                      alt={`${s.name} session`}
+                      className="h-10 w-14 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-14 items-center justify-center rounded bg-muted">
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div>{s.name}</div>
+                  {s.description ? (
+                    <div className="line-clamp-1 max-w-xs text-xs text-muted-foreground">
+                      {s.description}
+                    </div>
+                  ) : null}
+                </TableCell>
                 <TableCell>{s.duration_minutes} min</TableCell>
+
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
                 <TableCell>
                   {s.rrp === null || s.rrp === undefined ? (
