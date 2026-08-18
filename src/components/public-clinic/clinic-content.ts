@@ -14,13 +14,13 @@ export const EXPECT_STEPS = [
   },
   {
     n: "02",
-    title: "Settle onto the bed",
+    title: "Settle onto the table",
     body: "You stay fully clothed, lie back and get comfortable. Nothing is applied to you and nothing is asked of you.",
   },
   {
     n: "03",
     title: "Sound and vibration",
-    body: "Low-frequency tones play through the bed itself. You hear the music and you feel it moving gently through your body.",
+    body: "Low-frequency tones play through the table itself. You hear the music and you feel it moving gently through your body.",
   },
   {
     n: "04",

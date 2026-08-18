@@ -84,13 +84,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { property: "og:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
       {
         property: "og:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -98,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "twitter:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy bed. Kit, app and music licence included.",
+          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
       },
       { property: "og:image", content: "https://resonabed.com/__l5e/assets-v1/4c98a945-1707-458f-9997-2172e42adacc/resonabed-og.png" },
       { property: "og:image:width", content: "1200" },

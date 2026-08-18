@@ -235,7 +235,7 @@ function PublicOrgPage() {
               style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 78%, transparent)" }}
             >
               A calm, passive session of Vibroacoustic therapy at {org.name}. You simply
-              relax back on the bed fully clothed while low-frequency sound moves gently
+              relax back on the table fully clothed while low-frequency sound moves gently
               through your body.
             </p>
 
@@ -313,7 +313,7 @@ function PublicOrgPage() {
                 <source srcSet={heroWide.url} type="image/webp" />
                 <img
                   src={heroWide.url}
-                  alt="A client resting on a vibroacoustic therapy bed as sound resonates through it"
+                  alt="A client resting on a vibroacoustic therapy table as sound resonates through it"
                   className="h-auto w-full"
                   width={1536}
                   height={1024}
@@ -376,7 +376,7 @@ function PublicOrgPage() {
             >
               <p>
                 Vibroacoustic therapy is music felt through the body. Low-frequency sound is played
-                through the bed you&rsquo;re lying on, so the tones travel through you as gentle,
+                through the table you&rsquo;re lying on, so the tones travel through you as gentle,
                 steady vibration rather than sitting in the room around you.
               </p>
               <p>
