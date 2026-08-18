@@ -194,15 +194,40 @@ function LandingPage() {
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-3 md:gap-6">
-              {NAV_LINKS.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
-                >
-                  {l.label}
-                </a>
-              ))}
+              {NAV_LINKS.map((l) =>
+                l.children ? (
+                  <div key={l.href} className="group relative hidden lg:block">
+                    <a
+                      href={l.href}
+                      className="text-sm font-medium text-white/80 hover:text-white"
+                    >
+                      {l.label}
+                    </a>
+                    <div className="invisible absolute left-1/2 top-full z-30 w-40 -translate-x-1/2 pt-3 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                      <div className="rounded-xl border border-white/15 bg-brand-ink/95 p-1 backdrop-blur">
+                        {l.children.map((c) => (
+                          <a
+                            key={c.href}
+                            href={c.href}
+                            className="block rounded-lg px-3 py-2 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white"
+                          >
+                            {c.label}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    className="hidden text-sm font-medium text-white/80 hover:text-white lg:inline"
+                  >
+                    {l.label}
+                  </a>
+                ),
+              )}
+
               <Link to={loginHref} className="hidden sm:block">
                 <Button
                   variant="outline"
