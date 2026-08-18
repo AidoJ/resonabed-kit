@@ -128,22 +128,22 @@ export const upsertService = createServerFn({ method: "POST" })
         .maybeSingle();
       if (exErr) throw new Error(exErr.message);
       const isStandard = !!existing?.source_global_id;
-      const patch: Record<string, unknown> = {
-        duration_minutes: data.duration_minutes,
+      const patch = {
         buffer_minutes: data.buffer_minutes,
         price: data.price,
         show_price: data.show_price,
         is_active: data.is_active,
+        ...(isStandard
+          ? {}
+          : {
+              name: data.name,
+              duration_minutes: data.duration_minutes,
+              ...(data.description !== undefined ? { description: data.description } : {}),
+              ...(data.image_path !== undefined ? { image_path: data.image_path } : {}),
+            }),
       };
-      if (!isStandard) {
-        patch.name = data.name;
-        patch.duration_minutes = data.duration_minutes;
-        if (data.description !== undefined) patch.description = data.description;
-        if (data.image_path !== undefined) patch.image_path = data.image_path;
-      } else {
-        delete patch.duration_minutes;
-      }
       const { error } = await context.supabase.from("services").update(patch).eq("id", data.id);
+
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
