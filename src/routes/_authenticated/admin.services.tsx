@@ -4,9 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { listServices, upsertService, deleteService, reorderServices } from "@/lib/admin.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
@@ -15,7 +18,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, ImageIcon, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/services")({
   head: () => ({ meta: [{ title: "Services, Admin, ResonaBed" }] }),
@@ -32,19 +35,48 @@ type Service = {
   is_active: boolean;
   /** Live recommended retail price from the global catalogue. Display only. */
   rrp?: number | null;
+  description?: string | null;
+  image_path?: string | null;
+  image_url?: string | null;
+  /** True for the standard vibroacoustic sessions shipped by ResonaBed. */
+  is_standard?: boolean;
 };
 
 function ServicesAdmin() {
   const list = useServerFn(listServices);
   const save = useServerFn(upsertService);
   const del = useServerFn(deleteService);
+  const ctxFn = useServerFn(getCurrentUserContext);
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ["admin-services"], queryFn: () => list() });
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
   const [editing, setEditing] = useState<Partial<Service> | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
 
   const saveMut = useMutation({
-    mutationFn: (payload: Partial<Service>) =>
-      save({
+    mutationFn: async (payload: Partial<Service>) => {
+      const standard = !!payload.is_standard;
+      let imagePath = payload.image_path ?? null;
+      if (imageFile && !standard) {
+        const orgId = ctx?.org?.id;
+        if (!orgId) throw new Error("No clinic selected");
+        setUploading(true);
+        try {
+          const ext = (imageFile.name.split(".").pop() ?? "jpg").toLowerCase();
+          const path = `${orgId}/${crypto.randomUUID()}.${ext}`;
+          const { error } = await supabase.storage
+            .from("service-images")
+            .upload(path, imageFile, { upsert: true, contentType: imageFile.type });
+          if (error) throw new Error(error.message);
+          imagePath = path;
+        } finally {
+          setUploading(false);
+        }
+      }
+      return save({
         data: {
           id: payload.id,
           name: payload.name ?? "",
@@ -53,15 +85,22 @@ function ServicesAdmin() {
           price: Number(payload.price ?? 0),
           show_price: payload.show_price ?? true,
           is_active: payload.is_active ?? true,
+          ...(standard
+            ? {}
+            : { description: payload.description ?? null, image_path: imagePath }),
         },
-      }),
+      });
+    },
     onSuccess: () => {
       toast.success("Service saved");
       setEditing(null);
+      setImageFile(null);
+      setImagePreview(null);
       qc.invalidateQueries({ queryKey: ["admin-services"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { id } }),
@@ -108,6 +147,7 @@ function ServicesAdmin() {
         <TableHeader>
           <TableRow>
             <TableHead className="w-20">Order</TableHead>
+            <TableHead className="w-20">Picture</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Changeover</TableHead>
@@ -118,9 +158,9 @@ function ServicesAdmin() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow><TableCell colSpan={7}>Loading…</TableCell></TableRow>
+            <TableRow><TableCell colSpan={8}>Loading…</TableCell></TableRow>
           ) : rows.length === 0 ? (
-            <TableRow><TableCell colSpan={7} className="text-muted-foreground">No services yet.</TableCell></TableRow>
+            <TableRow><TableCell colSpan={8} className="text-muted-foreground">No services yet.</TableCell></TableRow>
           ) : (
             rows.map((s, i) => (
               <TableRow key={s.id}>
@@ -148,7 +188,38 @@ function ServicesAdmin() {
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell>{s.name}</TableCell>
+                <TableCell>
+                  {s.image_url ? (
+                    <img
+                      src={s.image_url}
+                      alt={`${s.name} session`}
+                      className="h-10 w-14 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-14 items-center justify-center rounded bg-muted">
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {s.name}
+                    {s.is_standard ? (
+                      <span
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+                        title="Standard ResonaBed session, wording and picture are fixed"
+                      >
+                        <Lock className="h-3 w-3" /> Standard
+                      </span>
+                    ) : null}
+                  </div>
+                  {s.description ? (
+                    <div className="line-clamp-1 max-w-xs text-xs text-muted-foreground">
+                      {s.description}
+                    </div>
+                  ) : null}
+                </TableCell>
+
                 <TableCell>{s.duration_minutes} min</TableCell>
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
                 <TableCell>
@@ -185,32 +256,94 @@ function ServicesAdmin() {
         </TableBody>
       </Table>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog
+        open={!!editing}
+        onOpenChange={(o) => {
+          if (!o) {
+            setEditing(null);
+            setImageFile(null);
+            setImagePreview(null);
+          }
+        }}
+      >
         <DialogTrigger asChild><span /></DialogTrigger>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing?.id ? "Edit service" : "New service"}</DialogTitle>
           </DialogHeader>
           {editing && (
             <div className="space-y-3">
+              {editing.is_standard ? (
+                <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+                  This is a standard ResonaBed vibroacoustic session. Its name, description,
+                  picture and duration are set by ResonaBed. You can change the price, price
+                  visibility, changeover time and whether it is active.
+                </div>
+              ) : null}
               <div>
                 <Label>Name</Label>
                 <Input
                   value={editing.name ?? ""}
+                  disabled={!!editing.is_standard}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                 />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  rows={4}
+                  disabled={!!editing.is_standard}
+                  placeholder="What this session is and how it feels."
+                  value={editing.description ?? ""}
+                  onChange={(e) =>
+                    setEditing({ ...editing, description: e.target.value || null })
+                  }
+                />
+              </div>
+              <div>
+                <Label>Picture</Label>
+                <div className="mt-1 flex items-center gap-3">
+                  {imagePreview ?? editing.image_url ? (
+                    <img
+                      src={imagePreview ?? editing.image_url ?? ""}
+                      alt="Session"
+                      className="h-16 w-24 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-24 items-center justify-center rounded bg-muted">
+                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  {editing.is_standard ? (
+                    <p className="text-xs text-muted-foreground">
+                      Supplied by ResonaBed and cannot be changed.
+                    </p>
+                  ) : (
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null;
+                        setImageFile(f);
+                        setImagePreview(f ? URL.createObjectURL(f) : null);
+                      }}
+                    />
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Duration (min)</Label>
                   <Input
                     type="number"
+                    disabled={!!editing.is_standard}
                     value={editing.duration_minutes ?? 30}
                     onChange={(e) =>
                       setEditing({ ...editing, duration_minutes: Number(e.target.value) })
                     }
                   />
                 </div>
+
                 <div>
                   <Label>Price</Label>
                   <Input
@@ -279,14 +412,24 @@ function ServicesAdmin() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setEditing(null);
+                setImageFile(null);
+                setImagePreview(null);
+              }}
+            >
+              Cancel
+            </Button>
             <Button
               onClick={() => editing && saveMut.mutate(editing)}
-              disabled={saveMut.isPending || !editing?.name}
+              disabled={saveMut.isPending || uploading || !editing?.name}
             >
-              Save
+              {uploading ? "Uploading…" : "Save"}
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </div>

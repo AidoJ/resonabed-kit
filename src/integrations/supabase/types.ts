@@ -1918,8 +1918,10 @@ export type Database = {
         Row: {
           buffer_minutes: number
           created_at: string
+          description: string | null
           duration_minutes: number
           id: string
+          image_path: string | null
           is_active: boolean
           name: string
           org_id: string | null
@@ -1933,8 +1935,10 @@ export type Database = {
         Insert: {
           buffer_minutes?: number
           created_at?: string
+          description?: string | null
           duration_minutes: number
           id?: string
+          image_path?: string | null
           is_active?: boolean
           name: string
           org_id?: string | null
@@ -1948,8 +1952,10 @@ export type Database = {
         Update: {
           buffer_minutes?: number
           created_at?: string
+          description?: string | null
           duration_minutes?: number
           id?: string
+          image_path?: string | null
           is_active?: boolean
           name?: string
           org_id?: string | null
@@ -2331,8 +2337,10 @@ export type Database = {
       get_public_services: {
         Args: { p_slug: string }
         Returns: {
+          description: string
           duration_minutes: number
           id: string
+          image_path: string
           name: string
           price: number
           show_price: boolean

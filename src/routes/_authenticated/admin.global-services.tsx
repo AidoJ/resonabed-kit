@@ -9,9 +9,11 @@ import {
   deleteGlobalService,
   type GlobalService,
 } from "@/lib/global-services.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -29,7 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/global-services")({
   head: () => ({ meta: [{ title: "Global services, ResonaBed" }] }),
@@ -46,10 +48,29 @@ function GlobalServicesAdmin() {
     queryFn: () => list(),
   });
   const [editing, setEditing] = useState<Partial<GlobalService> | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
 
   const saveMut = useMutation({
-    mutationFn: (payload: Partial<GlobalService>) =>
-      save({
+    mutationFn: async (payload: Partial<GlobalService>) => {
+      let imagePath = payload.image_path ?? null;
+      if (imageFile) {
+        setUploading(true);
+        try {
+          const ext = (imageFile.name.split(".").pop() ?? "jpg").toLowerCase();
+          const path = `global/${crypto.randomUUID()}.${ext}`;
+          const { error } = await supabase.storage
+            .from("service-images")
+            .upload(path, imageFile, { upsert: true, contentType: imageFile.type });
+          if (error) throw new Error(error.message);
+          imagePath = path;
+        } finally {
+          setUploading(false);
+        }
+      }
+      return save({
         data: {
           id: payload.id,
           name: payload.name ?? "",
@@ -60,15 +81,21 @@ function GlobalServicesAdmin() {
               ? null
               : Number(payload.rrp),
           is_active: payload.is_active ?? true,
+          description: payload.description ?? null,
+          image_path: imagePath,
         },
-      }),
+      });
+    },
     onSuccess: () => {
       toast.success("Saved");
       setEditing(null);
+      setImageFile(null);
+      setImagePreview(null);
       qc.invalidateQueries({ queryKey: ["global-services"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { id } }),
@@ -98,6 +125,7 @@ function GlobalServicesAdmin() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-20">Picture</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Changeover</TableHead>
@@ -109,19 +137,40 @@ function GlobalServicesAdmin() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={6}>Loading…</TableCell>
+              <TableCell colSpan={7}>Loading…</TableCell>
             </TableRow>
           ) : (data ?? []).length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-muted-foreground">
+              <TableCell colSpan={7} className="text-muted-foreground">
                 No global services yet.
               </TableCell>
             </TableRow>
           ) : (
             (data ?? []).map((s) => (
               <TableRow key={s.id}>
-                <TableCell>{s.name}</TableCell>
+                <TableCell>
+                  {s.image_url ? (
+                    <img
+                      src={s.image_url}
+                      alt={`${s.name} session`}
+                      className="h-10 w-14 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-14 items-center justify-center rounded bg-muted">
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div>{s.name}</div>
+                  {s.description ? (
+                    <div className="line-clamp-1 max-w-xs text-xs text-muted-foreground">
+                      {s.description}
+                    </div>
+                  ) : null}
+                </TableCell>
                 <TableCell>{s.duration_minutes} min</TableCell>
+
                 <TableCell className="text-muted-foreground">{s.buffer_minutes} min</TableCell>
                 <TableCell>
                   {s.rrp === null || s.rrp === undefined ? (
@@ -157,8 +206,17 @@ function GlobalServicesAdmin() {
         </TableBody>
       </Table>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent>
+      <Dialog
+        open={!!editing}
+        onOpenChange={(o) => {
+          if (!o) {
+            setEditing(null);
+            setImageFile(null);
+            setImagePreview(null);
+          }
+        }}
+      >
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editing?.id ? "Edit global service" : "New global service"}
@@ -172,6 +230,48 @@ function GlobalServicesAdmin() {
                   value={editing.name ?? ""}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                 />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  rows={4}
+                  placeholder="What this session is and how it feels."
+                  value={editing.description ?? ""}
+                  onChange={(e) =>
+                    setEditing({ ...editing, description: e.target.value || null })
+                  }
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Shown on every clinic&rsquo;s public page. Clinics cannot change this wording.
+                </p>
+              </div>
+              <div>
+                <Label>Picture</Label>
+                <div className="mt-1 flex items-center gap-3">
+                  {imagePreview ?? editing.image_url ? (
+                    <img
+                      src={imagePreview ?? editing.image_url ?? ""}
+                      alt="Session"
+                      className="h-16 w-24 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-24 items-center justify-center rounded bg-muted">
+                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setImageFile(f);
+                      setImagePreview(f ? URL.createObjectURL(f) : null);
+                    }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Ships with every new clinic and stays locked to the platform.
+                </p>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
@@ -227,18 +327,26 @@ function GlobalServicesAdmin() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditing(null)}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setEditing(null);
+                setImageFile(null);
+                setImagePreview(null);
+              }}
+            >
               Cancel
             </Button>
             <Button
               onClick={() => editing && saveMut.mutate(editing)}
-              disabled={saveMut.isPending || !editing?.name}
+              disabled={saveMut.isPending || uploading || !editing?.name}
             >
-              Save
+              {uploading ? "Uploading…" : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

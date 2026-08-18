@@ -38,7 +38,14 @@ export type PublicService = {
   /** Null when the clinic has chosen not to publish this session's price. */
   price: number | null;
   show_price: boolean;
+  /** Session description. Standard sessions inherit the platform copy. */
+  description?: string | null;
+  /** Storage path of the session picture (internal). */
+  image_path?: string | null;
+  /** Signed URL for the session picture, ready to render. */
+  imageUrl?: string | null;
 };
+
 
 export type PublicPractitioner = {
   id: string;
@@ -139,9 +146,29 @@ export const getPublicOrgPage = createServerFn({ method: "GET" })
       practitioners = practitioners.filter((p) => !!p.name);
     }
 
+    // Session pictures live in a private bucket; sign them for the public page.
+    const rawServices = (svcRes.data as PublicService[] | null) ?? [];
+    const imagePaths = rawServices
+      .map((s) => s.image_path)
+      .filter((p): p is string => !!p);
+    const signedByPath = new Map<string, string>();
+    if (imagePaths.length > 0) {
+      const { data: signed } = await supabaseAdmin.storage
+        .from("service-images")
+        .createSignedUrls([...new Set(imagePaths)], 60 * 60 * 24 * 7);
+      for (const s of signed ?? []) {
+        if (s.path && s.signedUrl) signedByPath.set(s.path, s.signedUrl);
+      }
+    }
+    const services: PublicService[] = rawServices.map((s) => ({
+      ...s,
+      imageUrl: s.image_path ? (signedByPath.get(s.image_path) ?? null) : null,
+    }));
+
     return {
       org,
-      services: (svcRes.data as PublicService[] | null) ?? [],
+      services,
+
       logoUrl,
       availability: (availRes.data as AvailabilityWindow[] | null) ?? [],
       practitioners,
