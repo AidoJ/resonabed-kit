@@ -712,6 +712,61 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* BOOK A DEMO */}
+      <section id="demo" className="mx-auto max-w-4xl px-6 py-24 md:px-10 md:py-28">
+        <div className="text-center">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+            Book a demo
+          </p>
+          <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+            Feel it for yourself.
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+            The best way to understand vibroacoustic therapy is to experience it. Book a free demo
+            and feel exactly what your clients would feel.
+          </p>
+        </div>
+
+        <div className="mt-10 space-y-5 text-base leading-relaxed text-muted-foreground">
+          <p>
+            There is only so much a video or a page can convey about sound you feel through your
+            whole body. So we would rather show you.
+          </p>
+          <p>
+            Book a demo and we will walk you through the Resonabed system, how it fits a table you
+            already own, how a session runs, and the simple app that guides it. You will feel a
+            session yourself, ask anything you like, and see whether it is the right fit for your
+            practice.
+          </p>
+          <p>No pressure, no obligation. Just come and experience it.</p>
+        </div>
+
+        <div className="mt-10 rounded-2xl border border-border bg-card p-8 text-center shadow-soft">
+          <Button size="lg" asChild>
+            <a
+              href="https://calendly.com/aidan-rejuvenators/new-meeting/invitees/86bcb4e8-088c-4381-b63c-559fc4b938f3"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book your free demo
+            </a>
+          </Button>
+          <p className="mt-5 text-sm text-muted-foreground">
+            Prefer to talk first? Email{" "}
+            <a className="underline underline-offset-2" href="mailto:info@resonabed.com">
+              info@resonabed.com
+            </a>{" "}
+            or call{" "}
+            <a className="underline underline-offset-2" href="tel:+61494825281">
+              0494 825 281
+            </a>
+            .
+          </p>
+        </div>
+      </section>
+
+
+
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl px-6 py-24 md:px-10 md:py-28">
         <div className="text-center">
