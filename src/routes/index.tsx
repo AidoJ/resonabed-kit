@@ -65,14 +65,19 @@ import {
   X,
 } from "lucide-react";
 
-const NAV_LINKS: { href: string; label: string }[] = [
+const NAV_LINKS: { href: string; label: string; children?: { href: string; label: string }[] }[] = [
   { href: "#packages", label: "Packages" },
   { href: "#compare", label: "Compare" },
   { href: "#how", label: "How it works" },
+  { href: "#demo", label: "Book a demo" },
   { href: "#faq", label: "FAQ" },
-  { href: "#about", label: "About" },
-  { href: "#contact", label: "Contact" },
+  {
+    href: "#about",
+    label: "About",
+    children: [{ href: "#contact", label: "Contact" }],
+  },
 ];
+
 
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Tactile speakers", true, true, true, true],
