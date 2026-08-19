@@ -158,6 +158,25 @@ function LandingPage() {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
   }, []);
 
+  // Scroll to the #hash target on first load (external links, email links).
+  // Images/fonts settling after hydration can shift layout, so re-align a few times.
+  useEffect(() => {
+    const id = window.location.hash.replace("#", "");
+    if (!id) return;
+    let cancelled = false;
+    const go = () => {
+      if (cancelled) return;
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "auto", block: "start" });
+    };
+    const timers = [0, 120, 400, 900].map((ms) => window.setTimeout(go, ms));
+    return () => {
+      cancelled = true;
+      timers.forEach(window.clearTimeout);
+    };
+  }, []);
+
+
   const loginHref = signedIn ? "/dashboard" : "/auth";
   const loginLabel = signedIn ? "Open dashboard" : "Clinic login";
 
