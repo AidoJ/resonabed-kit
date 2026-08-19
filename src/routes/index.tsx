@@ -204,15 +204,16 @@ function LandingPage() {
 
         {/* NAV */}
         <header className="relative z-20">
-          <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-6 md:px-10 md:py-8">
+          <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-6 md:px-10 md:py-7">
             <div className="flex w-fit min-w-0 flex-col items-center">
               <img
                 src={logoWhite}
                 alt="Resonabed"
-                className="h-20 w-auto sm:h-28 md:h-44 lg:h-52 drop-shadow-[0_6px_28px_rgba(136,75,199,0.55)]"
+                className="h-20 w-auto sm:h-24 md:h-28 lg:h-32 xl:h-44 drop-shadow-[0_6px_28px_rgba(136,75,199,0.55)]"
                 draggable={false}
               />
               <p className="mt-1 w-full text-center text-[10px] font-medium uppercase tracking-[0.3em] text-white/70 sm:text-xs md:tracking-[0.35em] md:text-sm">
+
                 Feel. Rest. Restore.
               </p>
             </div>
@@ -312,13 +313,13 @@ function LandingPage() {
         </header>
 
 
-        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-8 md:grid-cols-2 md:gap-8 md:px-10 md:pb-28 md:pt-12">
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-8 md:px-10 md:pb-28 md:pt-12 lg:grid-cols-2 lg:gap-8">
           <div className="flex flex-col justify-center">
             <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-white/80 backdrop-blur">
               <Waves className="h-3.5 w-3.5" />
               Vibroacoustic therapy
             </span>
-            <h1 className="max-w-[16ch] text-4xl font-light leading-[1.06] tracking-tight md:text-5xl lg:text-6xl">
+            <h1 className="max-w-[16ch] text-4xl font-light leading-[1.06] tracking-tight sm:text-5xl lg:text-5xl xl:text-6xl">
               Sound you feel, delivered as a service you can offer.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
@@ -425,7 +426,7 @@ function LandingPage() {
           </p>
         </div>
 
-        <div className="mt-16 grid gap-6 md:grid-cols-3">
+        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
             {
               icon: Sparkles,
@@ -568,7 +569,7 @@ function LandingPage() {
             </p>
           </div>
 
-          <ol className="mt-14 grid gap-6 md:grid-cols-4">
+          <ol className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 n: "01",
