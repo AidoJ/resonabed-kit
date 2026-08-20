@@ -404,7 +404,7 @@ async function drawWhiteLogoCard(
   const ih = image.height * scale;
   page.drawImage(image, {
     x: x + (w - iw) / 2,
-    y: y + (h - ih) / 2,
+    y: card.y + (h - ih) / 2,
     width: iw,
     height: ih,
   });
