@@ -385,7 +385,7 @@ async function drawWhiteLogoCard(
   if (!bytes) return;
   const image = await pdf.embedPng(bytes);
 
-  const card = { x: 325, y: 387, width: 189, height: 159 };
+  const card = { x: 325, y: 387, width: 189, height: 166 };
   const r = 16;
   const { x, width: w, height: h } = card;
   // drawSvgPath works top-down, so convert the card's PDF y to a top offset.
