@@ -408,14 +408,14 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     y: 169.92,
     size: 8.6,
     font: regular,
-    color: rgb(0.4196, 0.3961, 0.502),
+    color: MUTED,
   });
   page.drawText("vibroacoustic session to your visit.", {
     x: 26,
     y: 156.92,
     size: 8.6,
     font: regular,
-    color: rgb(0.4196, 0.3961, 0.502),
+    color: MUTED,
   });
 
   // Cover the printed placeholder ("Clinic details:" + dashed box).
@@ -433,7 +433,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     const dataUrl = await QRCode.toDataURL(details.bookingUrl, {
       margin: 0,
       scale: 8,
-      color: { dark: "#26106cff", light: "#ffffffff" },
+      color: { dark: qrDark, light: "#ffffffff" },
     });
     const qrBytes = Uint8Array.from(atob(dataUrl.split(",")[1]!), (c) => c.charCodeAt(0));
     const qrImage = await pdf.embedPng(qrBytes);
