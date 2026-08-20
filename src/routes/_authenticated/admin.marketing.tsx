@@ -93,7 +93,7 @@ function MarketingPage() {
     QRCode.toDataURL(bookingUrl, {
       margin: 0,
       scale: 6,
-      color: { dark: "#26106cff", light: "#ffffffff" },
+      color: { dark: `${useBrandColours && brand ? brand.sidebar : "#26106c"}ff`, light: "#ffffffff" },
     })
       .then((url) => {
         if (!cancelled) setQrPreview(url);
@@ -102,7 +102,7 @@ function MarketingPage() {
     return () => {
       cancelled = true;
     };
-  }, [include.qr, bookingUrl]);
+  }, [include.qr, bookingUrl, useBrandColours, brand]);
 
   const details = useMemo(
     () => ({
@@ -112,8 +112,9 @@ function MarketingPage() {
       website: include.website ? website.trim() : "",
       logoUrl: include.logo ? (logo?.url ?? "") : "",
       bookingUrl: include.qr ? bookingUrl : "",
+      brand: useBrandColours ? brand : null,
     }),
-    [include, name, phone, email, website, logo, bookingUrl],
+    [include, name, phone, email, website, logo, bookingUrl, useBrandColours, brand],
   );
 
   const anything = Boolean(
