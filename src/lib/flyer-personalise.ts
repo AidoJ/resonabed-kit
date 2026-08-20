@@ -13,6 +13,16 @@ import QRCode from "qrcode";
 
 /** Print artwork, served from /public so wording fixes ship with the app. */
 const FLYER_PDF_URL = "/resonabed-flyer.pdf";
+/** All-white Resonabed mark, used when the flyer is re-skinned to clinic colours. */
+const WHITE_LOGO_URL = "/resonabed-logo-flyer-white.png";
+
+/** Clinic brand colours used to re-skin the flyer artwork. */
+export interface FlyerBrand {
+  /** Main brand colour, e.g. the clinic's primary. */
+  primary: string;
+  /** Deep colour used for dark panels. */
+  sidebar: string;
+}
 
 /**
  * Details the clinic can stamp into the blank "Clinic details" panel on the
@@ -27,17 +37,20 @@ export interface FlyerClinicDetails {
   logoUrl?: string;
   /** Booking page URL encoded into the QR code printed beside the details. */
   bookingUrl?: string;
+  /** When set, the flyer's purple palette is re-skinned to these colours. */
+  brand?: FlyerBrand | null;
 }
 
 /** Blank panel on page 1, measured from the artwork (PDF points). */
 const PANEL = { x: 24, y: 32, width: 236, height: 108 };
 /** Matches the flyer's paper tint so the placeholder box is covered cleanly. */
-const PAPER = rgb(247 / 255, 241 / 255, 253 / 255);
+const PAPER_HEX = "#f7f1fd";
+const INK_HEX = "#26106c";
+const MUTED_HEX = "#52477b";
 const WHITE = rgb(1, 1, 1);
-const INK = rgb(0.15, 0.06, 0.42);
-const MUTED = rgb(0.32, 0.28, 0.42);
 /** Size of the printed QR square, plus its white surround. */
 const QR = { size: 62, pad: 4, gap: 10 };
+
 
 const MM_TO_PT = 72 / 25.4;
 const BLEED_MM = 3;
