@@ -322,36 +322,97 @@ function recolourPage(
       },
     );
 
-    // The Resonabed mark sits on a white rounded card. With brand colours the
-    // mark prints white, so the card becomes the deep brand colour instead.
-    if (deep) {
-      const cardPath = text.indexOf("436 237.76378 m");
-      if (cardPath > 0) {
-        const marker = "1 1 1 RG 1 1 1 rg";
-        const at = text.lastIndexOf(marker, cardPath);
-        if (at > 0) {
-          const fill = `${num(deep.r)} ${num(deep.g)} ${num(deep.b)}`;
-          text = `${text.slice(0, at)}${fill} RG ${fill} rg${text.slice(at + marker.length)}`;
-        }
-      }
-    }
-
     ctx.assign(
       ref as never,
       ctx.flateStream(Uint8Array.from(text, (c) => c.charCodeAt(0))),
     );
   }
+
+  recolourPatternImages(pdf, page, map);
 }
 
-/** Swaps the embedded purple Resonabed mark for the all-white version. */
-async function useWhiteLogo(pdf: PDFDocument, page: PDFPage) {
+/**
+ * The deep purple panels are painted with tiling patterns that wrap a raw RGB
+ * gradient image, so their colour lives in pixel data rather than in operators.
+ * This walks those images and shifts every pixel onto the brand hue.
+ */
+function recolourPatternImages(
+  pdf: PDFDocument,
+  page: PDFPage,
+  map: ReturnType<typeof makeRecolour>,
+) {
+  const ctx = pdf.context;
+  const patterns = page.node.Resources()?.lookup(PDFName.of("Pattern")) as PDFDict | undefined;
+  if (!patterns) return;
+
+  for (const [, patternRef] of patterns.entries()) {
+    const pattern = ctx.lookup(patternRef);
+    if (!(pattern instanceof PDFRawStream)) continue;
+    const xobjects = pattern.dict
+      .lookup(PDFName.of("Resources"), PDFDict)
+      ?.lookup(PDFName.of("XObject")) as PDFDict | undefined;
+    if (!xobjects) continue;
+
+    for (const [, imageRef] of xobjects.entries()) {
+      const image = ctx.lookup(imageRef);
+      if (!(image instanceof PDFRawStream)) continue;
+      const cs = image.dict.get(PDFName.of("ColorSpace"));
+      if (!cs || cs.toString() !== "/DeviceRGB") continue;
+
+      const pixels = decodePDFRawStream(image).decode();
+      for (let i = 0; i + 2 < pixels.length; i += 3) {
+        const c = map(pixels[i]! / 255, pixels[i + 1]! / 255, pixels[i + 2]! / 255);
+        pixels[i] = Math.round(Math.max(0, Math.min(1, c.r)) * 255);
+        pixels[i + 1] = Math.round(Math.max(0, Math.min(1, c.g)) * 255);
+        pixels[i + 2] = Math.round(Math.max(0, Math.min(1, c.b)) * 255);
+      }
+
+      const next = ctx.flateStream(pixels);
+      for (const key of image.dict.keys()) {
+        if (key === PDFName.of("Length") || key === PDFName.of("Filter")) continue;
+        next.dict.set(key, image.dict.get(key)!);
+      }
+      ctx.assign(imageRef as never, next);
+    }
+  }
+}
+
+/**
+ * Prints the all-white Resonabed mark on a deep brand-coloured card, replacing
+ * the white card and purple mark in the original artwork.
+ */
+async function drawWhiteLogoCard(
+  pdf: PDFDocument,
+  page: PDFPage,
+  deep: { r: number; g: number; b: number },
+) {
   const bytes = await fetch(WHITE_LOGO_URL).then((r) => (r.ok ? r.arrayBuffer() : null));
   if (!bytes) return;
   const image = await pdf.embedPng(bytes);
-  const xobjects = page.node.Resources()?.lookup(PDFName.of("XObject")) as PDFDict | undefined;
-  if (!xobjects?.get(PDFName.of("X16"))) return;
-  xobjects.set(PDFName.of("X16"), image.ref);
+
+  const card = { x: 328, y: 390, width: 183, height: 153 };
+  const r = 16;
+  const { x, y, width: w, height: h } = card;
+  page.drawSvgPath(
+    `M ${x + r} ${y} H ${x + w - r} A ${r} ${r} 0 0 1 ${x + w} ${y + r} V ${y + h - r} ` +
+      `A ${r} ${r} 0 0 1 ${x + w - r} ${y + h} H ${x + r} A ${r} ${r} 0 0 1 ${x} ${y + h - r} ` +
+      `V ${y + r} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`,
+    { x: 0, y: page.getHeight(), color: rgb(deep.r, deep.g, deep.b), borderWidth: 0 },
+  );
+
+  const maxW = w - 44;
+  const maxH = h - 56;
+  const scale = Math.min(maxW / image.width, maxH / image.height);
+  const iw = image.width * scale;
+  const ih = image.height * scale;
+  page.drawImage(image, {
+    x: x + (w - iw) / 2,
+    y: y + (h - ih) / 2,
+    width: iw,
+    height: ih,
+  });
 }
+
 
 /**
  * Returns the flyer PDF with the supplied clinic details printed into the
