@@ -13,6 +13,16 @@ import QRCode from "qrcode";
 
 /** Print artwork, served from /public so wording fixes ship with the app. */
 const FLYER_PDF_URL = "/resonabed-flyer.pdf";
+/** All-white Resonabed mark, used when the flyer is re-skinned to clinic colours. */
+const WHITE_LOGO_URL = "/resonabed-logo-flyer-white.png";
+
+/** Clinic brand colours used to re-skin the flyer artwork. */
+export interface FlyerBrand {
+  /** Main brand colour, e.g. the clinic's primary. */
+  primary: string;
+  /** Deep colour used for dark panels. */
+  sidebar: string;
+}
 
 /**
  * Details the clinic can stamp into the blank "Clinic details" panel on the
@@ -27,17 +37,20 @@ export interface FlyerClinicDetails {
   logoUrl?: string;
   /** Booking page URL encoded into the QR code printed beside the details. */
   bookingUrl?: string;
+  /** When set, the flyer's purple palette is re-skinned to these colours. */
+  brand?: FlyerBrand | null;
 }
 
 /** Blank panel on page 1, measured from the artwork (PDF points). */
 const PANEL = { x: 24, y: 32, width: 236, height: 108 };
 /** Matches the flyer's paper tint so the placeholder box is covered cleanly. */
-const PAPER = rgb(247 / 255, 241 / 255, 253 / 255);
+const PAPER_HEX = "#f7f1fd";
+const INK_HEX = "#26106c";
+const MUTED_HEX = "#52477b";
 const WHITE = rgb(1, 1, 1);
-const INK = rgb(0.15, 0.06, 0.42);
-const MUTED = rgb(0.32, 0.28, 0.42);
 /** Size of the printed QR square, plus its white surround. */
 const QR = { size: 62, pad: 4, gap: 10 };
+
 
 const MM_TO_PT = 72 / 25.4;
 const BLEED_MM = 3;
@@ -200,6 +213,204 @@ function stripBaseFontText(pdf: PDFDocument, page: PDFPage) {
   fonts?.delete(PDFName.of("F1"));
 }
 
+/* ---------------------------------------------------------------- colours */
+
+function hexToRgb01(hex: string) {
+  const h = hex.replace("#", "");
+  return {
+    r: parseInt(h.slice(0, 2), 16) / 255,
+    g: parseInt(h.slice(2, 4), 16) / 255,
+    b: parseInt(h.slice(4, 6), 16) / 255,
+  };
+}
+
+function rgbToHsl(r: number, g: number, b: number) {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return { h, s, l };
+}
+
+function hslToRgb(h: number, s: number, l: number) {
+  if (s === 0) return { r: l, g: l, b: l };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const hue = (t: number) => {
+    let x = t;
+    if (x < 0) x += 1;
+    if (x > 1) x -= 1;
+    if (x < 1 / 6) return p + (q - p) * 6 * x;
+    if (x < 1 / 2) return q;
+    if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
+    return p;
+  };
+  return { r: hue(h + 1 / 3), g: hue(h), b: hue(h - 1 / 3) };
+}
+
+/** Resonabed's own deep purple, the reference hue for the artwork. */
+const BASE_DEEP = "#26106c";
+
+/**
+ * Builds a mapper that shifts the flyer's purple family onto the clinic's
+ * brand hue while keeping every tint, shade and neutral exactly as designed.
+ */
+function makeRecolour(brand: FlyerBrand | null | undefined) {
+  if (!brand) return (r: number, g: number, b: number) => ({ r, g, b });
+  const base = hexToRgb01(BASE_DEEP);
+  const target = hexToRgb01(brand.sidebar || brand.primary);
+  const baseHsl = rgbToHsl(base.r, base.g, base.b);
+  const targetHsl = rgbToHsl(target.r, target.g, target.b);
+  const dh = targetHsl.h - baseHsl.h;
+  const satScale =
+    baseHsl.s > 0.05 ? Math.max(0.5, Math.min(1.6, targetHsl.s / baseHsl.s)) : 1;
+
+  return (r: number, g: number, b: number) => {
+    const { h, s, l } = rgbToHsl(r, g, b);
+    // Leave neutrals (white card fills, blacks, greys) untouched.
+    if (s < 0.05) return { r, g, b };
+    const out = hslToRgb((h + dh + 1) % 1, Math.max(0, Math.min(1, s * satScale)), l);
+    return out;
+  };
+}
+
+/** Applies the recolour to a hex string, for text we draw ourselves. */
+function shiftHex(hex: string, map: ReturnType<typeof makeRecolour>) {
+  const { r, g, b } = hexToRgb01(hex);
+  return map(r, g, b);
+}
+
+const num = (n: number) => Math.max(0, Math.min(1, n)).toFixed(4);
+
+/**
+ * Rewrites every fill/stroke colour operator in a page's content streams and
+ * turns the white logo card into a brand-coloured panel, so the artwork sits
+ * in the clinic's palette rather than Resonabed purple.
+ */
+function recolourPage(pdf: PDFDocument, page: PDFPage, map: ReturnType<typeof makeRecolour>) {
+  const ctx = pdf.context;
+  const contents: unknown = page.node.Contents();
+  const refs =
+    contents instanceof PDFArray ? contents.asArray() : [page.node.get(PDFName.of("Contents"))];
+
+  for (const ref of refs) {
+    if (!ref) continue;
+    const stream = ctx.lookup(ref);
+    if (!(stream instanceof PDFRawStream)) continue;
+    const bytes = decodePDFRawStream(stream).decode();
+    let text = new TextDecoder("latin1").decode(bytes);
+
+    text = text.replace(
+      /(\d*\.\d+|\d+) (\d*\.\d+|\d+) (\d*\.\d+|\d+) (rg|RG)\b/g,
+      (_m, r: string, g: string, b: string, op: string) => {
+        const c = map(parseFloat(r), parseFloat(g), parseFloat(b));
+        return `${num(c.r)} ${num(c.g)} ${num(c.b)} ${op}`;
+      },
+    );
+
+    ctx.assign(
+      ref as never,
+      ctx.flateStream(Uint8Array.from(text, (c) => c.charCodeAt(0))),
+    );
+  }
+
+  recolourPatternImages(pdf, page, map);
+}
+
+/**
+ * The deep purple panels are painted with tiling patterns that wrap a raw RGB
+ * gradient image, so their colour lives in pixel data rather than in operators.
+ * This walks those images and shifts every pixel onto the brand hue.
+ */
+function recolourPatternImages(
+  pdf: PDFDocument,
+  page: PDFPage,
+  map: ReturnType<typeof makeRecolour>,
+) {
+  const ctx = pdf.context;
+  const patterns = page.node.Resources()?.lookup(PDFName.of("Pattern")) as PDFDict | undefined;
+  if (!patterns) return;
+
+  for (const [, patternRef] of patterns.entries()) {
+    const pattern = ctx.lookup(patternRef);
+    if (!(pattern instanceof PDFRawStream)) continue;
+    const xobjects = pattern.dict
+      .lookup(PDFName.of("Resources"), PDFDict)
+      ?.lookup(PDFName.of("XObject")) as PDFDict | undefined;
+    if (!xobjects) continue;
+
+    for (const [, imageRef] of xobjects.entries()) {
+      const image = ctx.lookup(imageRef);
+      if (!(image instanceof PDFRawStream)) continue;
+      const cs = image.dict.get(PDFName.of("ColorSpace"));
+      if (!cs || cs.toString() !== "/DeviceRGB") continue;
+
+      const pixels = decodePDFRawStream(image).decode();
+      for (let i = 0; i + 2 < pixels.length; i += 3) {
+        const c = map(pixels[i]! / 255, pixels[i + 1]! / 255, pixels[i + 2]! / 255);
+        pixels[i] = Math.round(Math.max(0, Math.min(1, c.r)) * 255);
+        pixels[i + 1] = Math.round(Math.max(0, Math.min(1, c.g)) * 255);
+        pixels[i + 2] = Math.round(Math.max(0, Math.min(1, c.b)) * 255);
+      }
+
+      const next = ctx.flateStream(pixels);
+      for (const key of image.dict.keys()) {
+        if (key === PDFName.of("Length") || key === PDFName.of("Filter")) continue;
+        next.dict.set(key, image.dict.get(key)!);
+      }
+      ctx.assign(imageRef as never, next);
+    }
+  }
+}
+
+/**
+ * Prints the all-white Resonabed mark on a deep brand-coloured card, replacing
+ * the white card and purple mark in the original artwork.
+ */
+async function drawWhiteLogoCard(
+  pdf: PDFDocument,
+  page: PDFPage,
+  deep: { r: number; g: number; b: number },
+) {
+  const bytes = await fetch(WHITE_LOGO_URL).then((r) => (r.ok ? r.arrayBuffer() : null));
+  if (!bytes) return;
+  const image = await pdf.embedPng(bytes);
+
+  const card = { x: 325, y: 387, width: 189, height: 166 };
+  const r = 16;
+  const { x, width: w, height: h } = card;
+  // drawSvgPath works top-down, so convert the card's PDF y to a top offset.
+  const t = page.getHeight() - (card.y + h);
+  page.drawSvgPath(
+    `M ${x + r} ${t} H ${x + w - r} A ${r} ${r} 0 0 1 ${x + w} ${t + r} V ${t + h - r} ` +
+      `A ${r} ${r} 0 0 1 ${x + w - r} ${t + h} H ${x + r} A ${r} ${r} 0 0 1 ${x} ${t + h - r} ` +
+      `V ${t + r} A ${r} ${r} 0 0 1 ${x + r} ${t} Z`,
+    { x: 0, y: page.getHeight(), color: rgb(deep.r, deep.g, deep.b), borderWidth: 0 },
+  );
+
+  const maxW = w - 44;
+  const maxH = h - 56;
+  const scale = Math.min(maxW / image.width, maxH / image.height);
+  const iw = image.width * scale;
+  const ih = image.height * scale;
+  page.drawImage(image, {
+    x: x + (w - iw) / 2,
+    y: card.y + (h - ih) / 2,
+    width: iw,
+    height: ih,
+  });
+}
+
+
 /**
  * Returns the flyer PDF with the supplied clinic details printed into the
  * reserved panel. Empty fields are simply left out.
@@ -208,6 +419,18 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   const src = await fetch(FLYER_PDF_URL).then((r) => r.arrayBuffer());
   const pdf = await PDFDocument.load(src);
   const page = pdf.getPages()[0]!;
+
+  const map = makeRecolour(details.brand);
+  const deepC = shiftHex(BASE_DEEP, map);
+  const paperC = shiftHex(PAPER_HEX, map);
+  const inkC = shiftHex(INK_HEX, map);
+  const mutedC = shiftHex(MUTED_HEX, map);
+  const PAPER = rgb(paperC.r, paperC.g, paperC.b);
+  const INK = rgb(inkC.r, inkC.g, inkC.b);
+  const MUTED = rgb(mutedC.r, mutedC.g, mutedC.b);
+  const qrDark = `#${[deepC.r, deepC.g, deepC.b]
+    .map((v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0"))
+    .join("")}ff`;
 
   // Embed real font files (subset) so the output has no unembedded fonts,
   // which commercial printers reject.
@@ -221,6 +444,13 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
 
   stripBaseFontText(pdf, page);
 
+  if (details.brand) {
+    for (const p of pdf.getPages()) {
+      recolourPage(pdf, p, map);
+    }
+    await drawWhiteLogoCard(pdf, page, deepC);
+  }
+
   // Redraw the intro block with the embedded font.
   page.drawRectangle({ x: 0, y: 17.9, width: 280, height: 187, color: PAPER });
   page.drawText("Resonabed", {
@@ -228,21 +458,22 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     y: 191.92,
     size: 13,
     font: regular,
-    color: rgb(0.149, 0.0627, 0.4235),
+    color: INK,
   });
+
   page.drawText("Ask your practitioner about adding a", {
     x: 26,
     y: 169.92,
     size: 8.6,
     font: regular,
-    color: rgb(0.4196, 0.3961, 0.502),
+    color: MUTED,
   });
   page.drawText("vibroacoustic session to your visit.", {
     x: 26,
     y: 156.92,
     size: 8.6,
     font: regular,
-    color: rgb(0.4196, 0.3961, 0.502),
+    color: MUTED,
   });
 
   // Cover the printed placeholder ("Clinic details:" + dashed box).
@@ -260,7 +491,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     const dataUrl = await QRCode.toDataURL(details.bookingUrl, {
       margin: 0,
       scale: 8,
-      color: { dark: "#26106cff", light: "#ffffffff" },
+      color: { dark: qrDark, light: "#ffffffff" },
     });
     const qrBytes = Uint8Array.from(atob(dataUrl.split(",")[1]!), (c) => c.charCodeAt(0));
     const qrImage = await pdf.embedPng(qrBytes);

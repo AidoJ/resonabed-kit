@@ -50,6 +50,20 @@ function MarketingPage() {
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
   const [qrPreview, setQrPreview] = useState("");
+  const [useBrandColours, setUseBrandColours] = useState(false);
+
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+  const brand = useMemo(() => {
+    const primary = (org as { theme_primary?: string } | undefined)?.theme_primary ?? "";
+    const sidebar = (org as { theme_sidebar?: string } | undefined)?.theme_sidebar ?? "";
+    if (!HEX.test(primary) && !HEX.test(sidebar)) return null;
+    return {
+      primary: HEX.test(primary) ? primary : sidebar,
+      sidebar: HEX.test(sidebar) ? sidebar : primary,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [org]);
+
 
   // Prefill from clinic settings once loaded, still editable per print run.
   useEffect(() => {
@@ -79,7 +93,7 @@ function MarketingPage() {
     QRCode.toDataURL(bookingUrl, {
       margin: 0,
       scale: 6,
-      color: { dark: "#26106cff", light: "#ffffffff" },
+      color: { dark: `${useBrandColours && brand ? brand.sidebar : "#26106c"}ff`, light: "#ffffffff" },
     })
       .then((url) => {
         if (!cancelled) setQrPreview(url);
@@ -88,7 +102,7 @@ function MarketingPage() {
     return () => {
       cancelled = true;
     };
-  }, [include.qr, bookingUrl]);
+  }, [include.qr, bookingUrl, useBrandColours, brand]);
 
   const details = useMemo(
     () => ({
@@ -98,8 +112,9 @@ function MarketingPage() {
       website: include.website ? website.trim() : "",
       logoUrl: include.logo ? (logo?.url ?? "") : "",
       bookingUrl: include.qr ? bookingUrl : "",
+      brand: useBrandColours ? brand : null,
     }),
-    [include, name, phone, email, website, logo, bookingUrl],
+    [include, name, phone, email, website, logo, bookingUrl, useBrandColours, brand],
   );
 
   const anything = Boolean(
@@ -265,7 +280,40 @@ function MarketingPage() {
                 </Label>
               </div>
 
+              <div className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3">
+                <Checkbox
+                  id="f-brand"
+                  checked={useBrandColours}
+                  onCheckedChange={(v) => setUseBrandColours(v === true)}
+                  disabled={!brand}
+                  className="mt-0.5"
+                />
+                <div className="min-w-0 flex-1 space-y-1">
+                  <Label htmlFor="f-brand" className="font-normal">
+                    Print in my brand colours
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {brand
+                      ? "Re-skins the flyer artwork to your clinic palette. The Resonabed mark prints in white so it sits cleanly on your colours."
+                      : "Set your brand colours in Settings first."}
+                  </p>
+                  {brand && (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span
+                        className="h-5 w-5 rounded-full border"
+                        style={{ backgroundColor: brand.sidebar }}
+                      />
+                      <span
+                        className="h-5 w-5 rounded-full border"
+                        style={{ backgroundColor: brand.primary }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
+
 
             <div className="space-y-2 border-t pt-5">
               <Button
