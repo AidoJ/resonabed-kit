@@ -296,12 +296,7 @@ const num = (n: number) => Math.max(0, Math.min(1, n)).toFixed(4);
  * turns the white logo card into a brand-coloured panel, so the artwork sits
  * in the clinic's palette rather than Resonabed purple.
  */
-function recolourPage(
-  pdf: PDFDocument,
-  page: PDFPage,
-  map: ReturnType<typeof makeRecolour>,
-  deep: { r: number; g: number; b: number } | null,
-) {
+function recolourPage(pdf: PDFDocument, page: PDFPage, map: ReturnType<typeof makeRecolour>) {
   const ctx = pdf.context;
   const contents: unknown = page.node.Contents();
   const refs =
@@ -392,11 +387,13 @@ async function drawWhiteLogoCard(
 
   const card = { x: 328, y: 390, width: 183, height: 153 };
   const r = 16;
-  const { x, y, width: w, height: h } = card;
+  const { x, width: w, height: h } = card;
+  // drawSvgPath works top-down, so convert the card's PDF y to a top offset.
+  const t = page.getHeight() - (card.y + h);
   page.drawSvgPath(
-    `M ${x + r} ${y} H ${x + w - r} A ${r} ${r} 0 0 1 ${x + w} ${y + r} V ${y + h - r} ` +
-      `A ${r} ${r} 0 0 1 ${x + w - r} ${y + h} H ${x + r} A ${r} ${r} 0 0 1 ${x} ${y + h - r} ` +
-      `V ${y + r} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`,
+    `M ${x + r} ${t} H ${x + w - r} A ${r} ${r} 0 0 1 ${x + w} ${t + r} V ${t + h - r} ` +
+      `A ${r} ${r} 0 0 1 ${x + w - r} ${t + h} H ${x + r} A ${r} ${r} 0 0 1 ${x} ${t + h - r} ` +
+      `V ${t + r} A ${r} ${r} 0 0 1 ${x + r} ${t} Z`,
     { x: 0, y: page.getHeight(), color: rgb(deep.r, deep.g, deep.b), borderWidth: 0 },
   );
 
@@ -449,9 +446,9 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
 
   if (details.brand) {
     for (const p of pdf.getPages()) {
-      recolourPage(pdf, p, map, p === page ? deepC : null);
+      recolourPage(pdf, p, map);
     }
-    await useWhiteLogo(pdf, page);
+    await drawWhiteLogoCard(pdf, page, deepC);
   }
 
   // Redraw the intro block with the embedded font.
