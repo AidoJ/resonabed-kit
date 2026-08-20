@@ -265,7 +265,40 @@ function MarketingPage() {
                 </Label>
               </div>
 
+              <div className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3">
+                <Checkbox
+                  id="f-brand"
+                  checked={useBrandColours}
+                  onCheckedChange={(v) => setUseBrandColours(v === true)}
+                  disabled={!brand}
+                  className="mt-0.5"
+                />
+                <div className="min-w-0 flex-1 space-y-1">
+                  <Label htmlFor="f-brand" className="font-normal">
+                    Print in my brand colours
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {brand
+                      ? "Re-skins the flyer artwork to your clinic palette. The Resonabed mark prints in white so it sits cleanly on your colours."
+                      : "Set your brand colours in Settings first."}
+                  </p>
+                  {brand && (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span
+                        className="h-5 w-5 rounded-full border"
+                        style={{ backgroundColor: brand.sidebar }}
+                      />
+                      <span
+                        className="h-5 w-5 rounded-full border"
+                        style={{ backgroundColor: brand.primary }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
+
 
             <div className="space-y-2 border-t pt-5">
               <Button
