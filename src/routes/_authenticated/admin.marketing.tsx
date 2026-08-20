@@ -50,6 +50,20 @@ function MarketingPage() {
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
   const [qrPreview, setQrPreview] = useState("");
+  const [useBrandColours, setUseBrandColours] = useState(false);
+
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+  const brand = useMemo(() => {
+    const primary = (org as { theme_primary?: string } | undefined)?.theme_primary ?? "";
+    const sidebar = (org as { theme_sidebar?: string } | undefined)?.theme_sidebar ?? "";
+    if (!HEX.test(primary) && !HEX.test(sidebar)) return null;
+    return {
+      primary: HEX.test(primary) ? primary : sidebar,
+      sidebar: HEX.test(sidebar) ? sidebar : primary,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [org]);
+
 
   // Prefill from clinic settings once loaded, still editable per print run.
   useEffect(() => {
