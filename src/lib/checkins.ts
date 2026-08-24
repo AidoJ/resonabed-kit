@@ -62,7 +62,28 @@ export interface CheckinRow extends CheckinRatings {
 }
 
 /**
- * Slider colour: red at 0 (worst) through amber to green at 10 (best).
+ * Slider thumb colour: red at 0 (worst), white at 5 (neutral), green at 10 (best).
+ * Used only for the handle (circle), not the track line.
+ */
+export function wellbeingThumbColor(value: number): string {
+  const t = Math.max(0, Math.min(10, value)) / 10;
+  // 0 = red, 0.5 = white, 1 = green
+  if (t <= 0.5) {
+    const p = t / 0.5; // 0 → 1
+    const sat = 75 * (1 - p);
+    const light = 42 + 58 * p;
+    return `hsl(0 ${sat}% ${light}%)`;
+  } else {
+    const p = (t - 0.5) / 0.5; // 0 → 1
+    const hue = 120 * p;
+    const sat = 75 * p;
+    const light = 100 - 58 * p;
+    return `hsl(${hue} ${sat}% ${light}%)`;
+  }
+}
+
+/**
+ * Value-label colour: red at 0 (worst) through amber to green at 10 (best).
  * Because every scale is right-positive, one function covers all of them.
  */
 export function wellbeingColor(value: number): string {
@@ -70,6 +91,7 @@ export function wellbeingColor(value: number): string {
   const hue = Math.round(t * 120); // 0 = red, 60 = amber, 120 = green
   return `hsl(${hue} 75% 42%)`;
 }
+
 
 export const CHECKIN_CAPTION =
   "A simple record of how the client felt before and after. It reflects their experience, not a medical measurement.";
