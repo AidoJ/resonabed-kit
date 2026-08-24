@@ -168,6 +168,35 @@ function PlaySession() {
           </Alert>
         ) : null}
 
+        {/* Pre-session check-in (optional, client self-rating) */}
+        {checkinSettings ? (
+          beforeCheckin && !redoBefore ? (
+            <div className="flex w-full max-w-2xl items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
+              <span>Pre-session check-in recorded.</span>
+              <button
+                type="button"
+                className="underline underline-offset-2 hover:text-foreground"
+                onClick={() => setRedoBefore(true)}
+              >
+                Redo
+              </button>
+            </div>
+          ) : (
+            <div className="w-full max-w-2xl">
+              <CheckinPanel
+                sessionId={session.id}
+                phase="before"
+                items={checkinSettings.items}
+                existing={beforeCheckin}
+                onSaved={() => {
+                  setRedoBefore(false);
+                  refetchCheckins();
+                }}
+              />
+            </div>
+          )
+        ) : null}
+
         {/* Frequency badge */}
         {freq ? (
           <div className="flex flex-col items-center gap-2 text-center">
