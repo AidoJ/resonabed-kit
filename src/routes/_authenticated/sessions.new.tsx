@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { WizardShell } from "@/components/session-wizard/wizard-shell";
 import { StepClient, type ClientOption } from "@/components/session-wizard/step-client";
 import { StepService, type ServiceOption } from "@/components/session-wizard/step-service";
-import { StepSymptoms, type SymptomsState } from "@/components/session-wizard/step-symptoms";
+import {
+  StepSymptoms,
+  DEFAULT_SYMPTOMS,
+  toIntakeInputs,
+  type SymptomsState,
+} from "@/components/session-wizard/step-symptoms";
+import { saveSessionCheckin } from "@/lib/checkins.functions";
 import { StepSafety, type SafetyState } from "@/components/session-wizard/step-safety";
 import { StepFrequency } from "@/components/session-wizard/step-frequency";
 import {
@@ -42,7 +48,7 @@ export const Route = createFileRoute("/_authenticated/sessions/new")({
   component: NewSession,
 });
 
-const STEP_TITLES = ["Client", "Service", "Symptoms", "Safety", "Frequency"];
+const STEP_TITLES = ["Client", "Service", "Wellbeing Check", "Safety", "Frequency"];
 
 function NewSession() {
   const { booking_id } = Route.useSearch();
@@ -83,13 +89,7 @@ function NewSession() {
     setStep((s) => (s < 2 ? 2 : s));
   }, [booking]);
 
-  const [symptoms, setSymptoms] = useState<SymptomsState>({
-    painLevel: 3,
-    stressLevel: 5,
-    sleepQuality: 5,
-    bodyAreas: [],
-    goals: [],
-  });
+  const [symptoms, setSymptoms] = useState<SymptomsState>({ ...DEFAULT_SYMPTOMS });
   const [safety, setSafety] = useState<SafetyState>({
     contraindications: [],
     noneApply: false,
@@ -108,12 +108,16 @@ function NewSession() {
   const freqFn = useServerFn(listFrequenciesWithAudioFlag);
   const { data: freqs } = useQuery({ queryKey: ["frequencies-with-audio"], queryFn: () => freqFn() });
 
-  const targetHz = useMemo(() => computeTargetHz(symptoms, freqs ?? []), [symptoms, freqs]);
+  // The six right-positive wellbeing scales are converted once, pain and
+  // stress invert here so the matcher keeps its historical semantics.
+  const intake = useMemo(() => toIntakeInputs(symptoms), [symptoms]);
+
+  const targetHz = useMemo(() => computeTargetHz(intake, freqs ?? []), [intake, freqs]);
 
   const ranked = useMemo(() => {
     if (!freqs) return [];
-    return rankFrequencies(freqs, symptoms);
-  }, [freqs, symptoms]);
+    return rankFrequencies(freqs, intake);
+  }, [freqs, intake]);
 
   const hasAudio = useMemo(() => {
     const m: Record<string, boolean> = {};
@@ -129,6 +133,7 @@ function NewSession() {
 
   const activeFreqId = chosenFreqId ?? defaultFreqId;
   const createFn = useServerFn(createDraftSession);
+  const saveCheckinFn = useServerFn(saveSessionCheckin);
   const startFromBookingFn = useServerFn(startSessionFromBooking);
   const navigate = useNavigate();
 
@@ -208,10 +213,11 @@ function NewSession() {
     if (!client || !service || !activeFreqId || !screeningId) return;
     setSubmitting(true);
     try {
+      const intakeNow = toIntakeInputs(symptoms);
       const payload = {
-        pain_level: symptoms.painLevel,
-        stress_level: symptoms.stressLevel,
-        sleep_quality: symptoms.sleepQuality,
+        pain_level: intakeNow.painLevel,
+        stress_level: intakeNow.stressLevel,
+        sleep_quality: intakeNow.sleepQuality,
         body_areas: symptoms.bodyAreas,
         primary_goals: symptoms.goals,
         health_concerns: [],
@@ -234,6 +240,27 @@ function NewSession() {
         });
         sessionId = res.id;
       }
+      // The wizard's Wellbeing Check doubles as the "before" check-in, saved
+      // in right-positive scale semantics. A failure here must not block the
+      // session, the player screen still offers the check-in.
+      try {
+        await saveCheckinFn({
+          data: {
+            session_id: sessionId,
+            phase: "before",
+            ratings: {
+              pain: symptoms.pain,
+              physical_ease: symptoms.physicalEase,
+              sleep_quality: symptoms.sleep,
+              arousal: symptoms.stress,
+              mood: symptoms.mood,
+              relaxation: symptoms.relaxation,
+            },
+          },
+        });
+      } catch {
+        toast.info("Session created, but the wellbeing check could not be saved");
+      }
       toast.success("Session created");
       navigate({ to: "/sessions/$id/play", params: { id: sessionId } });
     } catch (e) {
@@ -246,7 +273,7 @@ function NewSession() {
   const subtitles = [
     "Pick an existing client or add a new one.",
     "Choose the service being delivered.",
-    "Quick snapshot of how the client feels right now.",
+    "Slide each scale to where the client feels right now, red is hardest, green is best.",
     "Screen for contraindications, then both parties sign. This record is permanent.",
     "Suggested frequency for this intake, override if you prefer.",
   ];

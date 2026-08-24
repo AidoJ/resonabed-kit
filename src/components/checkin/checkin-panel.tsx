@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   CHECKIN_ITEMS,
+  WELLBEING_SCALES,
+  wellbeingColor,
   type CheckinItemKey,
   type CheckinPhase,
   type CheckinRatings,
@@ -13,7 +15,8 @@ import { saveSessionCheckin } from "@/lib/checkins.functions";
 interface Props {
   sessionId: string;
   phase: CheckinPhase;
-  items: CheckinItemKey[];
+  /** Defaults to the fixed six wellbeing scales. */
+  items?: CheckinItemKey[];
   /** Pre-fill when re-recording a phase. */
   existing?: CheckinRatings | null;
   onSaved?: () => void;
@@ -24,7 +27,13 @@ interface Props {
  * end, neutral until touched — untouched scales are saved as blank, not as
  * a fake midpoint.
  */
-export function CheckinPanel({ sessionId, phase, items, existing, onSaved }: Props) {
+export function CheckinPanel({
+  sessionId,
+  phase,
+  items = WELLBEING_SCALES,
+  existing,
+  onSaved,
+}: Props) {
   const saveFn = useServerFn(saveSessionCheckin);
   const [values, setValues] = useState<Record<CheckinItemKey, number>>(() => {
     const init = {} as Record<CheckinItemKey, number>;
@@ -77,7 +86,10 @@ export function CheckinPanel({ sessionId, phase, items, existing, onSaved }: Pro
             <div key={k} className="space-y-2">
               <div className="flex items-baseline justify-between">
                 <p className="text-sm font-medium">{meta.label}</p>
-                <span className="min-w-8 text-right text-2xl font-extralight tabular-nums text-foreground/90">
+                <span
+                  className="min-w-8 text-right text-2xl font-extralight tabular-nums text-foreground/90"
+                  style={isTouched ? { color: wellbeingColor(values[k]) } : undefined}
+                >
                   {isTouched ? values[k] : "–"}
                 </span>
               </div>
@@ -89,6 +101,7 @@ export function CheckinPanel({ sessionId, phase, items, existing, onSaved }: Pro
                 value={values[k]}
                 aria-label={meta.label}
                 className="h-12 w-full cursor-pointer accent-primary"
+                style={isTouched ? { accentColor: wellbeingColor(values[k]) } : undefined}
                 onChange={(e) => {
                   const v = Number(e.target.value);
                   setValues((s) => ({ ...s, [k]: v }));

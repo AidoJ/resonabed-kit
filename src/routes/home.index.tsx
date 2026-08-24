@@ -27,7 +27,12 @@ import {
   type FrequencyRow,
 } from "@/lib/frequency-match";
 import { WizardShell } from "@/components/session-wizard/wizard-shell";
-import { StepSymptoms, type SymptomsState } from "@/components/session-wizard/step-symptoms";
+import {
+  StepSymptoms,
+  DEFAULT_SYMPTOMS,
+  toIntakeInputs,
+  type SymptomsState,
+} from "@/components/session-wizard/step-symptoms";
 import { StepFrequency } from "@/components/session-wizard/step-frequency";
 import { SignaturePad } from "@/components/session-wizard/signature-pad";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
@@ -120,13 +125,7 @@ function HomeWizard({
 
   const [step, setStep] = useState(0);
   const [minutes, setMinutes] = useState<number>(30);
-  const [symptoms, setSymptoms] = useState<SymptomsState>({
-    painLevel: 3,
-    stressLevel: 5,
-    sleepQuality: 5,
-    bodyAreas: [],
-    goals: [],
-  });
+  const [symptoms, setSymptoms] = useState<SymptomsState>({ ...DEFAULT_SYMPTOMS });
   const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
 
@@ -158,14 +157,16 @@ function HomeWizard({
     return m;
   }, [frequencies, tracks]);
 
+  const intake = useMemo(() => toIntakeInputs(symptoms), [symptoms]);
+
   const targetHz = useMemo(
-    () => computeTargetHz(symptoms, frequencies),
-    [symptoms, frequencies],
+    () => computeTargetHz(intake, frequencies),
+    [intake, frequencies],
   );
 
   const ranked = useMemo(
-    () => (frequencies.length ? rankFrequencies(frequencies, symptoms) : []),
-    [frequencies, symptoms],
+    () => (frequencies.length ? rankFrequencies(frequencies, intake) : []),
+    [frequencies, intake],
   );
 
   const defaultFreqId = useMemo(() => {
@@ -189,13 +190,7 @@ function HomeWizard({
     setAgreed(false);
     setChosenFreqId(null);
     setMinutes(30);
-    setSymptoms({
-      painLevel: 3,
-      stressLevel: 5,
-      sleepQuality: 5,
-      bodyAreas: [],
-      goals: [],
-    });
+    setSymptoms({ ...DEFAULT_SYMPTOMS });
     if (typeof window !== "undefined") window.scrollTo({ top: 0 });
   };
 

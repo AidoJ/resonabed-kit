@@ -1,11 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  CHECKIN_ITEM_KEYS,
-  DEFAULT_CHECKIN_ITEMS,
-  type CheckinItemKey,
-} from "@/lib/checkins";
 
 const uuid = z.string().uuid();
 const score = z.number().int().min(0).max(10).nullable().optional();
@@ -18,25 +13,6 @@ const ratingsSchema = z.object({
   sleep_quality: score,
   physical_ease: score,
 });
-
-/** The org's enabled check-in scales (falls back to the three defaults). */
-export const getCheckinSettings = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { resolveEffectiveOrgId } = await import("@/lib/org-context");
-    const { orgId } = await resolveEffectiveOrgId(context);
-    if (!orgId) return { items: [...DEFAULT_CHECKIN_ITEMS] };
-    const { data: org } = await context.supabase
-      .from("organisations")
-      .select("checkin_items")
-      .eq("id", orgId)
-      .maybeSingle();
-    const raw = (org?.checkin_items ?? []) as string[];
-    const items = raw.filter((k): k is CheckinItemKey =>
-      (CHECKIN_ITEM_KEYS as readonly string[]).includes(k),
-    );
-    return { items: items.length > 0 ? items : [...DEFAULT_CHECKIN_ITEMS] };
-  });
 
 /** Both phases for one session (RLS scopes to the caller's org). */
 export const getSessionCheckins = createServerFn({ method: "POST" })
