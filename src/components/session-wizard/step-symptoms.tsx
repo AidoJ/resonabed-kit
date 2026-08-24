@@ -13,6 +13,7 @@ import {
   CHECKIN_ITEMS,
   WELLBEING_SCALES,
   wellbeingColor,
+  wellbeingThumbColor,
   type CheckinItemKey,
 } from "@/lib/checkins";
 
@@ -103,7 +104,9 @@ export function StepSymptoms({ value, onChange }: Props) {
             <div className="flex items-center gap-4">
               <Slider
                 className={SLIDER_CLASSES}
-                style={{ "--slider-color": wellbeingColor(v) } as CSSProperties}
+                style={{
+                  "--slider-thumb-color": wellbeingThumbColor(v),
+                } as CSSProperties}
                 min={0}
                 max={10}
                 step={1}
