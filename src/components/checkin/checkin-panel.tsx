@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import {
   CHECKIN_ITEMS,
   WELLBEING_SCALES,
   wellbeingColor,
+  wellbeingThumbColor,
   type CheckinItemKey,
   type CheckinPhase,
   type CheckinRatings,
