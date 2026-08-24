@@ -133,6 +133,7 @@ function NewSession() {
 
   const activeFreqId = chosenFreqId ?? defaultFreqId;
   const createFn = useServerFn(createDraftSession);
+  const saveCheckinFn = useServerFn(saveSessionCheckin);
   const startFromBookingFn = useServerFn(startSessionFromBooking);
   const navigate = useNavigate();
 
