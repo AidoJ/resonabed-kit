@@ -70,13 +70,14 @@ export const validatePromoCode = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => PromoSchema.parse(input))
   .handler(async ({ data }) => {
     const { resolvePromo } = await import("@/lib/checkout.server");
-    const { PACKAGES } = await import("@/lib/packages");
+    const { resolveKitPricing } = await import("@/lib/pricing.server");
+    const pricing = await resolveKitPricing();
     const promo = await resolvePromo(data.package, data.promoCode);
     if (!promo) throw new Error("That promo code is not active");
     return {
       code: promo.code,
       percentOff: promo.percentOff,
-      originalAmount: PACKAGES[data.package].listCents,
+      originalAmount: pricing.packages[data.package].listCents,
       amountDiscounted: promo.amountDiscounted,
       payableAmount: promo.payableAmount,
     };

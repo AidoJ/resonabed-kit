@@ -10,13 +10,7 @@
  * Fulfilment (access code, onboarding queue, shipping flags) happens ONLY from
  * balance_paid or plan_active. A paid $100 deposit ships nothing, ever.
  */
-import {
-  PACKAGES,
-  ORDER_DEPOSIT_CENTS,
-  gstOf,
-  isPackageKey,
-  type PackageKey,
-} from "@/lib/packages";
+import { PACKAGES, gstOf, isPackageKey, type PackageKey } from "@/lib/packages";
 
 export const SITE_URL = "https://resonabed.com";
 
@@ -183,7 +177,12 @@ export async function createOrderDraft(
   input: CreateOrderInput,
 ): Promise<{ order: KitOrderRow; token: string }> {
   const db = await admin();
-  const pkg = PACKAGES[input.packageKey];
+  // Prices resolve from the super-admin editable table, falling back to the
+  // static defaults; the resolved figures are then frozen onto the order row.
+  const { resolveKitPricing } = await import("@/lib/pricing.server");
+  const pricing = await resolveKitPricing();
+  const pkg = pricing.packages[input.packageKey];
+  const depositCents = pricing.depositCents;
   const token = generateOrderToken();
   const tokenHash = await hashOrderToken(token);
 
@@ -219,7 +218,7 @@ export async function createOrderDraft(
       discount_cents: discount,
       payment_channel: input.paymentChannel,
       list_cents: pkg.listCents,
-      deposit_cents: ORDER_DEPOSIT_CENTS,
+      deposit_cents: depositCents,
       balance_cents: Math.max(0, pkg.balanceCents - discount),
       plan_deposit_balance_cents: pkg.plan.depositBalanceCents,
       plan_monthly_cents: pkg.plan.monthlyCents,

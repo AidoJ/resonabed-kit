@@ -12,13 +12,8 @@
  */
 import Stripe from "stripe";
 import { z } from "zod";
-import {
-  PACKAGES,
-  PACKAGE_KEYS,
-  ORDER_DEPOSIT_CENTS,
-  money,
-  type PackageKey,
-} from "@/lib/packages";
+import { PACKAGES, PACKAGE_KEYS, money, type PackageKey } from "@/lib/packages";
+import { resolveKitPricing } from "@/lib/pricing.server";
 import {
   createOrderDraft,
   getOrderByToken,
@@ -187,7 +182,8 @@ export async function resolvePromo(
 ): Promise<AppliedPromo | null> {
   const code = rawCode?.trim().toUpperCase() || null;
   if (!code) return null;
-  const pkg = PACKAGES[packageKey];
+  const pricing = await resolveKitPricing();
+  const pkg = pricing.packages[packageKey];
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: promo, error } = await supabaseAdmin
     .from("promo_codes")
@@ -218,7 +214,9 @@ export async function createDepositCheckout(data: z.infer<typeof DepositCheckout
   const secret = process.env["STRIPE_SECRET_KEY"];
   if (!secret) throw new Error("Stripe is not configured");
   const stripe = new Stripe(secret);
-  const pkg = PACKAGES[data.package as PackageKey];
+  const pricing = await resolveKitPricing();
+  const pkg = pricing.packages[data.package as PackageKey];
+  const depositCents = pricing.depositCents;
   const addr = data.shippingAddress;
 
   const shipping: ShippingChoice = data.pickup
@@ -271,11 +269,11 @@ export async function createDepositCheckout(data: z.infer<typeof DepositCheckout
           currency: "aud",
           product_data: {
             name: `${pkg.label}, order deposit`,
-            description: `Order deposit of ${money(ORDER_DEPOSIT_CENTS)} incl. GST for ${pkg.label}. Secures your order for 30 days. Shipping${
+            description: `Order deposit of ${money(depositCents)} incl. GST for ${pkg.label}. Secures your order for 30 days. Shipping${
               shipping.amount > 0 ? ` of ${money(shipping.amount)}` : ""
             } and the balance are paid at the next step, and nothing ships until that clears.`,
           },
-          unit_amount: ORDER_DEPOSIT_CENTS,
+          unit_amount: depositCents,
         },
         quantity: 1,
       },
@@ -298,7 +296,7 @@ export async function createDepositCheckout(data: z.infer<typeof DepositCheckout
   return {
     clientSecret: session.client_secret,
     orderNumber: order.order_number,
-    depositCents: ORDER_DEPOSIT_CENTS,
+    depositCents,
     appliedPromo: promo,
     shipping,
   };
@@ -310,26 +308,28 @@ export async function createDepositCheckout(data: z.infer<typeof DepositCheckout
  * One reusable Stripe Price per package for the plan monthlies, so plans are
  * visible and auditable in the Stripe dashboard rather than inline amounts.
  */
-export async function ensureMonthlyPrice(stripe: Stripe, pkgKey: PackageKey): Promise<string> {
-  const pkg = PACKAGES[pkgKey];
-  const lookupKey = `resonabed_${pkgKey}_monthly_${pkg.plan.monthlyCents}`;
+export async function ensureMonthlyPrice(
+  stripe: Stripe,
+  opts: { pkgKey: PackageKey; label: string; monthlyCents: number; months: number },
+): Promise<string> {
+  const lookupKey = `resonabed_${opts.pkgKey}_monthly_${opts.monthlyCents}`;
   const existing = await stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 });
   if (existing.data[0]) return existing.data[0].id;
 
   const product = await stripe.products.create({
-    name: `${pkg.label}, monthly payment`,
-    description: `${pkg.plan.months} monthly payments of ${money(
-      pkg.plan.monthlyCents,
+    name: `${opts.label}, monthly payment`,
+    description: `${opts.months} monthly payments of ${money(
+      opts.monthlyCents,
     )} incl. GST following the deposit balance.`,
-    metadata: { package: pkgKey, purpose: "plan_monthly" },
+    metadata: { package: opts.pkgKey, purpose: "plan_monthly" },
   });
   const price = await stripe.prices.create({
     product: product.id,
     currency: "aud",
-    unit_amount: pkg.plan.monthlyCents,
+    unit_amount: opts.monthlyCents,
     recurring: { interval: "month" },
     lookup_key: lookupKey,
-    metadata: { package: pkgKey },
+    metadata: { package: opts.pkgKey },
   });
   return price.id;
 }
@@ -418,8 +418,13 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
     );
   }
   const pkgKey = order.package_key as PackageKey;
-  const pkg = PACKAGES[pkgKey];
+  const pricing = await resolveKitPricing();
+  const pkg = pricing.packages[pkgKey];
   if (!pkg) throw new Error("Unknown package on this order");
+  // Plan terms frozen on the order at sale time win over today's price list.
+  const planMonths = order.plan_months ?? pkg.plan.months;
+  const planMonthlyCents = order.plan_monthly_cents ?? pkg.plan.monthlyCents;
+  const planDepositCents = order.plan_deposit_balance_cents ?? pkg.plan.depositBalanceCents;
 
   const baseMetadata = {
     order_id: order.id,
@@ -490,7 +495,12 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
 
   // Plan: deposit balance now, then exactly `months` monthly cycles. The trial
   // keeps the first monthly off today's invoice, so the count stays exact.
-  const priceId = await ensureMonthlyPrice(stripe, pkgKey);
+  const priceId = await ensureMonthlyPrice(stripe, {
+    pkgKey,
+    label: pkg.label,
+    monthlyCents: planMonthlyCents,
+    months: planMonths,
+  });
   const trialEnd = addMonths(new Date(), 1);
 
   const session = await stripe.checkout.sessions.create({
@@ -505,11 +515,11 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
           currency: "aud",
           product_data: {
             name: `${pkg.label}, deposit balance`,
-            description: `Deposit balance for order ${order.order_number}, followed by ${pkg.plan.months} monthly payments of ${money(
-              pkg.plan.monthlyCents,
+            description: `Deposit balance for order ${order.order_number}, followed by ${planMonths} monthly payments of ${money(
+              planMonthlyCents,
             )}.${shippingDue > 0 ? " Shipping is charged in full with this payment." : ""}`,
           },
-          unit_amount: order.plan_deposit_balance_cents ?? pkg.plan.depositBalanceCents,
+          unit_amount: planDepositCents,
         },
         quantity: 1,
       },
@@ -517,9 +527,9 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
       { price: priceId, quantity: 1 },
     ],
     subscription_data: {
-      description: `${pkg.label}, ${pkg.plan.months} month payment plan for order ${order.order_number}`,
+      description: `${pkg.label}, ${planMonths} month payment plan for order ${order.order_number}`,
       trial_end: Math.floor(trialEnd.getTime() / 1000),
-      metadata: { ...baseMetadata, months: String(pkg.plan.months) },
+      metadata: { ...baseMetadata, months: String(planMonths) },
     },
     allow_promotion_codes: false,
     metadata: { ...baseMetadata, stage: "balance_plan" },
@@ -528,7 +538,7 @@ export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckout
   await updateOrder(order.id, { stripe_balance_session_id: session.id });
   await logOrderEvent(order.id, "balance_checkout_opened", {
     stripeRef: session.id,
-    detail: { path: "plan", months: pkg.plan.months, shipping_cents: shippingDue },
+    detail: { path: "plan", months: planMonths, shipping_cents: shippingDue },
   });
   return { clientSecret: session.client_secret, path: "plan" as const };
 }

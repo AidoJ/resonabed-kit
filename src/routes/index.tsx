@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,15 @@ import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { KitCard, kitImages } from "@/components/kit-card";
 import { HomeOrderPanel } from "@/components/home-order-panel";
-import { PACKAGES, planTotalCents, money } from "@/lib/packages";
+import {
+  ORDER_DEPOSIT_CENTS,
+  PACKAGES,
+  gstSplitLine,
+  money,
+  planTotalCents,
+  type PackageDef,
+} from "@/lib/packages";
+import { getKitPricing } from "@/lib/pricing.functions";
 
 
 import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
@@ -153,6 +162,16 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Super-admin editable kit pricing; static defaults render until this lands.
+  const fetchPricing = useServerFn(getKitPricing);
+  const { data: pricing } = useQuery({
+    queryKey: ["kit-pricing"],
+    queryFn: () => fetchPricing(),
+    staleTime: 5 * 60_000,
+  });
+  const pkgs = pricing?.packages ?? PACKAGES;
+  const orderDepositCents = pricing?.depositCents ?? ORDER_DEPOSIT_CENTS;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
@@ -672,7 +691,8 @@ function LandingPage() {
           <PackageCard
             name="Basic"
             packageKey="essentials"
-            price="$1,199"
+            pkg={pkgs.essentials}
+            depositCents={orderDepositCents}
             tagline="The Essential Starter Kit"
             description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
             features={[
@@ -687,7 +707,8 @@ function LandingPage() {
           <PackageCard
             name="Pro"
             packageKey="pro"
-            price="$1,399"
+            pkg={pkgs.pro}
+            depositCents={orderDepositCents}
             highlighted
             tagline="The Complete Upgrade Kit"
             description="Everything in Basic, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room."
@@ -701,7 +722,8 @@ function LandingPage() {
           <PackageCard
             name="Platinum"
             packageKey="platinum"
-            price="$1,799"
+            pkg={pkgs.platinum}
+            depositCents={orderDepositCents}
             tagline="The Total Business in a Box"
             description="Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives."
             features={[
@@ -738,7 +760,7 @@ function LandingPage() {
             </p>
           </div>
           <div className="mx-auto mt-12 max-w-md">
-            <HomeOrderPanel />
+            <HomeOrderPanel pkg={pkgs.home} depositCents={orderDepositCents} />
           </div>
         </div>
       </section>
@@ -1339,16 +1361,11 @@ function ContactForm() {
 
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
 
-const PACKAGE_META: Record<BusinessPackageKey, { cents: number; gstLine: string }> = {
-  essentials: { cents: 119900, gstLine: "$1,090 + $109 GST = $1,199" },
-  pro: { cents: 139900, gstLine: "$1,272 + $127 GST = $1,399" },
-  platinum: { cents: 179900, gstLine: "$1,635.45 + $163.55 GST = $1,799" },
-};
-
 function PackageCard({
   name,
   packageKey,
-  price,
+  pkg,
+  depositCents,
   tagline,
   description,
   features,
@@ -1356,7 +1373,9 @@ function PackageCard({
 }: {
   name: string;
   packageKey: BusinessPackageKey;
-  price: string;
+  /** Resolved pricing for this package (editable by super admins). */
+  pkg: PackageDef;
+  depositCents: number;
   tagline: string;
   description: string;
   features: string[];
@@ -1378,9 +1397,11 @@ function PackageCard({
   const [buyerOpen, setBuyerOpen] = useState(false);
   const [buyer, setBuyer] = useState<BuyerTypeContinuePayload | null>(null);
 
-  const pkgDef = PACKAGES[packageKey];
-  const planTotal = planTotalCents(pkgDef);
-  const packagePriceCents = PACKAGE_META[packageKey].cents;
+  const pkgDef = pkg;
+  const price = money(pkgDef.listCents);
+  const deposit = money(depositCents);
+  const planTotal = money(planTotalCents(pkgDef, depositCents));
+  const packagePriceCents = pkgDef.listCents;
 
 
   const runCheckout = async (
@@ -1536,7 +1557,7 @@ function PackageCard({
           </span>
         </div>
         <p className={"mt-1 text-xs " + (highlighted ? "text-white/55" : "text-muted-foreground")}>
-          {PACKAGE_META[packageKey].gstLine}
+          {gstSplitLine(pkgDef.listCents)}
         </p>
         <p
           className={
@@ -1584,7 +1605,7 @@ function PackageCard({
                 : "bg-brand-indigo text-white hover:bg-brand-indigo/90")
             }
           >
-            {loading ? "Preparing checkout…" : "Secure your order, $100 deposit"}
+            {loading ? "Preparing checkout…" : `Secure your order, ${deposit} deposit`}
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
 
@@ -1600,7 +1621,7 @@ function PackageCard({
             <p className="mt-1">
               Pay {money(pkgDef.balanceCents)} in full, or {money(pkgDef.plan.depositBalanceCents)}{" "}
               now and {pkgDef.plan.months} monthly payments of {money(pkgDef.plan.monthlyCents)}{" "}
-              (plan total {money(planTotal)}). Your shipping quote is added to that balance
+              (plan total {planTotal}). Your shipping quote is added to that balance
               payment.
             </p>
           </div>
@@ -1611,7 +1632,7 @@ function PackageCard({
               (highlighted ? "text-white/55" : "text-muted-foreground")
             }
           >
-            Today you pay the $100 deposit only, which holds your order for 30 days and is
+            Today you pay the {deposit} deposit only, which holds your order for 30 days and is
             refundable if you do not go ahead. Shipping is quoted upfront and charged with your
             balance. Nothing ships until the balance clears. Promo codes apply to the balance.
             Secure checkout by Stripe.
@@ -1641,6 +1662,8 @@ function PackageCard({
         packagePriceCents={packagePriceCents}
         packageKey={packageKey}
         shippingScope={pkgDef.shippingScope}
+        depositCents={depositCents}
+        pkg={pkgDef}
         onCancel={() => {
           setShippingOpen(false);
           setPendingPlan(null);

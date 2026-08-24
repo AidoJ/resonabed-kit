@@ -14,12 +14,6 @@ const PACKAGE_LABELS: Record<string, string> = {
   platinum: "Resonabed Platinum",
   home: "Resonabed for Home",
 };
-const LIST_PRICE_CENTS: Record<string, number> = {
-  essentials: 119900,
-  pro: 139900,
-  platinum: 179900,
-  home: 149900,
-};
 
 
 const gstOf = (inclusiveCents: number) => Math.round(inclusiveCents / 11);
@@ -70,7 +64,9 @@ export async function recordStripeKitSale(
   const discountCents = Number(meta(session, "amount_discounted_cents") ?? 0) || 0;
   const shippingCents = Number(meta(session, "shipping_amount_cents") ?? 0) || 0;
   const shippingRegion = meta(session, "shipping_region");
-  const listCents = LIST_PRICE_CENTS[packageKey] ?? 0;
+  const { resolveKitPricing } = await import("@/lib/pricing.server");
+  const pricing = await resolveKitPricing();
+  const listCents = pricing.packages[packageKey as keyof typeof pricing.packages]?.listCents ?? 0;
   const collectedCents = session.amount_total ?? 0;
 
   let shippingGstInclusive = false;

@@ -92,11 +92,9 @@ export function isPackageKey(value: unknown): value is PackageKey {
   return typeof value === "string" && value in PACKAGES;
 }
 
-/** Total contract value of a plan: $100 deposit + deposit balance + monthlies. */
-export function planTotalCents(pkg: PackageDef) {
-  return (
-    ORDER_DEPOSIT_CENTS + pkg.plan.depositBalanceCents + pkg.plan.monthlyCents * pkg.plan.months
-  );
+/** Total contract value of a plan: order deposit + deposit balance + monthlies. */
+export function planTotalCents(pkg: PackageDef, depositCents = ORDER_DEPOSIT_CENTS) {
+  return depositCents + pkg.plan.depositBalanceCents + pkg.plan.monthlyCents * pkg.plan.months;
 }
 
 /** GST is 1/11 of a GST-inclusive amount (Australia, 10%). */
@@ -109,4 +107,55 @@ export function money(cents: number) {
     minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+/** "$1,090 + $109 GST = $1,199" for a GST-inclusive price. */
+export function gstSplitLine(cents: number) {
+  const gst = gstOf(cents);
+  return `${money(cents - gst)} + ${money(gst)} GST = ${money(cents)}`;
+}
+
+/* ------------------------------------------------------- editable pricing */
+
+/**
+ * Prices are editable by super admins and stored in `kit_package_prices` (plus
+ * the `order_deposit_cents` app setting). The constants above are the defaults;
+ * `applyPricing` merges saved rows over them. Browser-safe.
+ */
+export type KitPriceRow = {
+  packageKey: PackageKey;
+  listCents: number;
+  planDepositBalanceCents: number;
+  planMonthlyCents: number;
+  planMonths: number;
+};
+
+export type KitPricing = {
+  depositCents: number;
+  packages: Record<PackageKey, PackageDef>;
+};
+
+export function applyPricing(
+  rows: KitPriceRow[],
+  depositCents: number = ORDER_DEPOSIT_CENTS,
+): KitPricing {
+  const byKey = new Map(rows.map((r) => [r.packageKey, r]));
+  const packages = Object.fromEntries(
+    Object.values(PACKAGES).map((p) => {
+      const row = byKey.get(p.key);
+      if (!row) return [p.key, p];
+      const def: PackageDef = {
+        ...p,
+        listCents: row.listCents,
+        balanceCents: Math.max(0, row.listCents - depositCents),
+        plan: {
+          depositBalanceCents: row.planDepositBalanceCents,
+          monthlyCents: row.planMonthlyCents,
+          months: row.planMonths,
+        },
+      };
+      return [p.key, def];
+    }),
+  ) as Record<PackageKey, PackageDef>;
+  return { depositCents, packages };
 }

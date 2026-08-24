@@ -21,6 +21,7 @@ import {
   ClipboardCheck,
   Megaphone,
   AlertTriangle,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ const SUPER_TABS: Tab[] = [
   { to: "/audio", label: "Global audio", icon: Music },
   { to: "/admin/promo-codes", label: "Promo codes", icon: Tag },
   { to: "/admin/shipping", label: "Shipping rates", icon: Truck },
+  { to: "/admin/pricing", label: "Kit pricing", icon: Wallet },
   { to: "/admin/sales", label: "Kit purchases", icon: Receipt },
   { to: "/admin/arrears", label: "Payment plans", icon: AlertTriangle },
   { to: "/admin/onboarding", label: "Clinic onboarding", icon: ClipboardCheck },

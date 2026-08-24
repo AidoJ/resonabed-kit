@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getShippingRates, type ShippingRateRow } from "@/lib/shipping.functions";
 import { getGoogleMapsBrowserConfig } from "@/lib/google-maps.functions";
-import { ORDER_DEPOSIT_CENTS, PACKAGES, money, type PackageKey } from "@/lib/packages";
+import { ORDER_DEPOSIT_CENTS, PACKAGES, money, type PackageDef, type PackageKey } from "@/lib/packages";
 import { CheckCircle2, Loader2, MapPin, PackageCheck, Search, Truck } from "lucide-react";
 
 export type EnteredShippingAddress = {
@@ -134,6 +134,8 @@ export function ShippingAddressStepDialog({
   packagePriceCents,
   packageKey,
   shippingScope = "essentials",
+  depositCents = ORDER_DEPOSIT_CENTS,
+  pkg: pkgProp,
   onCancel,
   onContinue,
 }: {
@@ -143,6 +145,10 @@ export function ShippingAddressStepDialog({
   packageKey?: PackageKey;
   /** Package key: each package has its own freight bands in shipping_rates. */
   shippingScope?: PackageKey;
+  /** Order deposit charged today; falls back to the static default. */
+  depositCents?: number;
+  /** Resolved package pricing (from the editable price list); defaults apply when omitted. */
+  pkg?: PackageDef;
   onCancel: () => void;
   onContinue: (payload: ShippingContinuePayload) => void;
 }) {
@@ -299,12 +305,12 @@ export function ShippingAddressStepDialog({
 
   const shippingCents = pickup ? 0 : matchedRate?.amount_cents ?? 0;
   const totalCents = packagePriceCents + shippingCents;
-  const pkg = packageKey ? PACKAGES[packageKey] : null;
+  const pkg = pkgProp ?? (packageKey ? PACKAGES[packageKey] : null);
 
   /**
-   * Deposit-first summary: $100 secures the order today, and the freight quote
-   * is locked now but collected with the balance, so nothing to refund if the
-   * hold lapses.
+   * Deposit-first summary: the order deposit secures the order today, and the
+   * freight quote is locked now but collected with the balance, so nothing to
+   * refund if the hold lapses.
    */
   const Breakdown = ({ shippingLine }: { shippingLine: React.ReactNode }) => (
     <div className="rounded-2xl border border-brand-indigo/15 bg-white p-3 text-sm">
@@ -323,7 +329,7 @@ export function ShippingAddressStepDialog({
       <div className="mt-3 space-y-1 border-t border-brand-indigo/10 pt-3">
         <div className="flex justify-between font-medium text-brand-indigo">
           <span>Pay today, order deposit</span>
-          <span>{fmt(ORDER_DEPOSIT_CENTS)}</span>
+          <span>{fmt(depositCents)}</span>
         </div>
         {shippingCents > 0 ? (
           <p className="text-xs text-muted-foreground">
