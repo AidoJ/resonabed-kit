@@ -95,17 +95,20 @@ export function CheckinPanel({
                   {isTouched ? values[k] : "–"}
                 </span>
               </div>
-              <input
-                type="range"
+              <Slider
                 min={0}
                 max={10}
                 step={1}
-                value={values[k]}
+                value={[values[k]]}
                 aria-label={meta.label}
-                className="h-12 w-full cursor-pointer accent-primary"
-                style={isTouched ? { accentColor: wellbeingColor(values[k]) } : undefined}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
+                className="py-2 [&_[role=slider]]:h-8 [&_[role=slider]]:w-8"
+                style={{
+                  "--slider-thumb-color": isTouched
+                    ? wellbeingThumbColor(values[k])
+                    : undefined,
+                } as CSSProperties}
+                onValueChange={(nv) => {
+                  const v = nv[0] ?? 0;
                   setValues((s) => ({ ...s, [k]: v }));
                   setTouched((s) => new Set(s).add(k));
                 }}
