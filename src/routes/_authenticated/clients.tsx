@@ -237,12 +237,20 @@ function ClientsPage() {
 
       {/* History dialog */}
       <Dialog open={!!historyOf} onOpenChange={(o) => !o && setHistoryOf(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-3xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Session history, {historyOf?.first_name} {historyOf?.last_name}
             </DialogTitle>
           </DialogHeader>
+          {historyOf ? (
+            <div className="mb-4">
+              <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
+                Wellbeing trend
+              </p>
+              <ClientCheckinTrends clientId={historyOf.id} />
+            </div>
+          ) : null}
           <Table>
             <TableHeader>
               <TableRow>
