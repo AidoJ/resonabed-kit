@@ -229,14 +229,6 @@ function SettingsAdmin() {
     permManageBookings !== (org.practitioners_can_manage_bookings ?? true) ||
     permCompleteUnpaid !== (org.practitioners_can_complete_unpaid ?? true)
   );
-  const orgCheckinItems = ((org?.checkin_items ?? []) as CheckinItemKey[]).length
-    ? ((org?.checkin_items ?? []) as CheckinItemKey[])
-    : [...DEFAULT_CHECKIN_ITEMS];
-  const checkinDirty =
-    !!org &&
-    (checkinItems.length !== orgCheckinItems.length ||
-      checkinItems.some((k) => !orgCheckinItems.includes(k)));
-
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
   const sidebarContrast = contrastRatio(themeSidebar, SIDEBAR_TEXT_FALLBACK);
   const primaryReadable = primaryContrast >= MIN_CONTRAST;
