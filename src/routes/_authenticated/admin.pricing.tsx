@@ -135,7 +135,7 @@ function KitPricingAdmin() {
     }
     setSaving("deposit");
     try {
-      await saveDeposit({ data: { cents } });
+      await saveDeposit({ data: { depositCents: cents } });
       toast.success("Order deposit saved. It applies to new orders from now on.");
       await invalidate();
     } catch (err) {
