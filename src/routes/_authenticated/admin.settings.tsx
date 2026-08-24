@@ -39,6 +39,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SignaturePad } from "@/components/session-wizard/signature-pad";
 import { PublicPageCard } from "@/components/settings/public-page-card";
+import {
+  CHECKIN_ITEMS,
+  CHECKIN_ITEM_KEYS,
+  DEFAULT_CHECKIN_ITEMS,
+  type CheckinItemKey,
+} from "@/lib/checkins";
 
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -107,14 +113,16 @@ function SettingsAdmin() {
   const [permViewAllClients, setPermViewAllClients] = useState(true);
   const [permManageBookings, setPermManageBookings] = useState(true);
   const [permCompleteUnpaid, setPermCompleteUnpaid] = useState(true);
+  const [checkinItems, setCheckinItems] = useState<CheckinItemKey[]>([...DEFAULT_CHECKIN_ITEMS]);
 
-  type SectionKey = "identity" | "theme" | "policies" | "permissions";
+  type SectionKey = "identity" | "theme" | "policies" | "permissions" | "checkin";
   const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
   const [savedAt, setSavedAt] = useState<Record<SectionKey, number | null>>({
     identity: null,
     theme: null,
     policies: null,
     permissions: null,
+    checkin: null,
   });
 
   const [ackName, setAckName] = useState("");
@@ -145,6 +153,11 @@ function SettingsAdmin() {
     setPermViewAllClients(org.practitioners_can_view_all_clients ?? true);
     setPermManageBookings(org.practitioners_can_manage_bookings ?? true);
     setPermCompleteUnpaid(org.practitioners_can_complete_unpaid ?? true);
+    setCheckinItems(
+      ((org.checkin_items ?? []) as CheckinItemKey[]).length > 0
+        ? ((org.checkin_items ?? []) as CheckinItemKey[])
+        : [...DEFAULT_CHECKIN_ITEMS],
+    );
   }, [org]);
 
   useEffect(() => {
