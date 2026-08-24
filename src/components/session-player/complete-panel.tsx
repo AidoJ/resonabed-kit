@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/select";
 import { completeSession, cancelSession } from "@/lib/sessions.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { getCheckinSettings, getSessionCheckins } from "@/lib/checkins.functions";
+import { CheckinPanel } from "@/components/checkin/checkin-panel";
+import type { CheckinRow } from "@/lib/checkins";
 import { toast } from "sonner";
 
 type PayMethod = "cash" | "eftpos" | "payid" | "other" | "unpaid" | "comp";
@@ -30,6 +33,21 @@ interface Props {
 export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props) {
   const ctxFn = useServerFn(getCurrentUserContext);
   const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
+
+  // Post-session check-in (optional client self-rating).
+  const checkinSettingsFn = useServerFn(getCheckinSettings);
+  const checkinsFn = useServerFn(getSessionCheckins);
+  const { data: checkinSettings } = useQuery({
+    queryKey: ["checkin-settings"],
+    queryFn: () => checkinSettingsFn(),
+  });
+  const { data: checkins, refetch: refetchCheckins } = useQuery({
+    queryKey: ["session-checkins", sessionId],
+    queryFn: () => checkinsFn({ data: { session_id: sessionId } }),
+  });
+  const afterCheckin =
+    (checkins?.find((c) => c.phase === "after") as CheckinRow | undefined) ?? null;
+  const [redoAfter, setRedoAfter] = useState(false);
 
   // A bare practitioner (no admin roles + not in support mode) is subject to
   // the org's "complete unpaid" toggle. Admins can always pick deferred outcomes.
@@ -102,6 +120,33 @@ export function CompletePanel({ sessionId, defaultAmount, defaultNotes }: Props)
 
   return (
     <div className="space-y-4 rounded-lg border bg-card p-4">
+      {/* Post-session check-in (optional) */}
+      {checkinSettings ? (
+        afterCheckin && !redoAfter ? (
+          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
+            <span>Post-session check-in recorded.</span>
+            <button
+              type="button"
+              className="underline underline-offset-2 hover:text-foreground"
+              onClick={() => setRedoAfter(true)}
+            >
+              Redo
+            </button>
+          </div>
+        ) : (
+          <CheckinPanel
+            sessionId={sessionId}
+            phase="after"
+            items={checkinSettings.items}
+            existing={afterCheckin}
+            onSaved={() => {
+              setRedoAfter(false);
+              refetchCheckins();
+            }}
+          />
+        )
+      ) : null}
+
       <h3 className="text-lg font-semibold">Complete session</h3>
       <p className="text-sm text-muted-foreground">
         A payment decision is required to complete every session. Record the

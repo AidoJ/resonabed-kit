@@ -2,6 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getSession } from "@/lib/sessions.functions";
+import { getSessionCheckins } from "@/lib/checkins.functions";
+import { CheckinShiftView } from "@/components/checkin/shift-view";
+import type { CheckinRow } from "@/lib/checkins";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -17,6 +20,15 @@ function SessionSummary() {
     queryKey: ["session", id],
     queryFn: () => fn({ data: { id } }),
   });
+  const checkinsFn = useServerFn(getSessionCheckins);
+  const { data: checkins } = useQuery({
+    queryKey: ["session-checkins", id],
+    queryFn: () => checkinsFn({ data: { session_id: id } }),
+  });
+  const beforeCheckin =
+    (checkins?.find((c) => c.phase === "before") as CheckinRow | undefined) ?? null;
+  const afterCheckin =
+    (checkins?.find((c) => c.phase === "after") as CheckinRow | undefined) ?? null;
 
   if (isLoading || !s) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
@@ -70,6 +82,10 @@ function SessionSummary() {
           <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Notes</p>
           <p className="whitespace-pre-wrap text-sm">{s.practitioner_notes}</p>
         </div>
+      ) : null}
+
+      {beforeCheckin || afterCheckin ? (
+        <CheckinShiftView before={beforeCheckin} after={afterCheckin} />
       ) : null}
 
       <Button asChild variant="outline">

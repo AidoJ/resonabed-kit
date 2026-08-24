@@ -39,6 +39,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SignaturePad } from "@/components/session-wizard/signature-pad";
 import { PublicPageCard } from "@/components/settings/public-page-card";
+import {
+  CHECKIN_ITEMS,
+  CHECKIN_ITEM_KEYS,
+  DEFAULT_CHECKIN_ITEMS,
+  type CheckinItemKey,
+} from "@/lib/checkins";
 
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -107,14 +113,16 @@ function SettingsAdmin() {
   const [permViewAllClients, setPermViewAllClients] = useState(true);
   const [permManageBookings, setPermManageBookings] = useState(true);
   const [permCompleteUnpaid, setPermCompleteUnpaid] = useState(true);
+  const [checkinItems, setCheckinItems] = useState<CheckinItemKey[]>([...DEFAULT_CHECKIN_ITEMS]);
 
-  type SectionKey = "identity" | "theme" | "policies" | "permissions";
+  type SectionKey = "identity" | "theme" | "policies" | "permissions" | "checkin";
   const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
   const [savedAt, setSavedAt] = useState<Record<SectionKey, number | null>>({
     identity: null,
     theme: null,
     policies: null,
     permissions: null,
+    checkin: null,
   });
 
   const [ackName, setAckName] = useState("");
@@ -145,6 +153,11 @@ function SettingsAdmin() {
     setPermViewAllClients(org.practitioners_can_view_all_clients ?? true);
     setPermManageBookings(org.practitioners_can_manage_bookings ?? true);
     setPermCompleteUnpaid(org.practitioners_can_complete_unpaid ?? true);
+    setCheckinItems(
+      ((org.checkin_items ?? []) as CheckinItemKey[]).length > 0
+        ? ((org.checkin_items ?? []) as CheckinItemKey[])
+        : [...DEFAULT_CHECKIN_ITEMS],
+    );
   }, [org]);
 
   useEffect(() => {
@@ -229,6 +242,13 @@ function SettingsAdmin() {
     permManageBookings !== (org.practitioners_can_manage_bookings ?? true) ||
     permCompleteUnpaid !== (org.practitioners_can_complete_unpaid ?? true)
   );
+  const orgCheckinItems = ((org?.checkin_items ?? []) as CheckinItemKey[]).length
+    ? ((org?.checkin_items ?? []) as CheckinItemKey[])
+    : [...DEFAULT_CHECKIN_ITEMS];
+  const checkinDirty =
+    !!org &&
+    (checkinItems.length !== orgCheckinItems.length ||
+      checkinItems.some((k) => !orgCheckinItems.includes(k)));
 
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
   const sidebarContrast = contrastRatio(themeSidebar, SIDEBAR_TEXT_FALLBACK);
@@ -253,6 +273,7 @@ function SettingsAdmin() {
     practitioners_can_view_all_clients?: boolean;
     practitioners_can_manage_bookings?: boolean;
     practitioners_can_complete_unpaid?: boolean;
+    checkin_items?: string[];
   };
   const save = async (payload: OrgPatch, successMsg = "Saved", section?: SectionKey) => {
     if (section) setSavingSection(section);
@@ -716,6 +737,57 @@ function SettingsAdmin() {
                   dirty={permissionsDirty}
                   saving={savingSection === "permissions"}
                   savedAt={savedAt.permissions}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Session check-in */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Session check-in</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Choose which wellbeing scales clients are shown before and after a session.
+                Two to four relevant scales per client works best. These ratings are a simple
+                record of how the client felt, they are never used to choose frequencies and
+                are not a medical measurement.
+              </p>
+              {CHECKIN_ITEM_KEYS.map((k) => (
+                <PermissionToggle
+                  key={k}
+                  label={`${CHECKIN_ITEMS[k].label} (${CHECKIN_ITEMS[k].low} → ${CHECKIN_ITEMS[k].high})`}
+                  description={
+                    CHECKIN_ITEMS[k].defaultOn
+                      ? "Shown by default."
+                      : "Optional, off by default."
+                  }
+                  checked={checkinItems.includes(k)}
+                  onChange={(on) =>
+                    setCheckinItems((cur) =>
+                      on ? [...cur, k] : cur.filter((x) => x !== k),
+                    )
+                  }
+                />
+              ))}
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  disabled={
+                    !checkinDirty || checkinItems.length === 0 || savingSection === "checkin"
+                  }
+                  onClick={() =>
+                    save({ checkin_items: checkinItems }, "Check-in scales saved", "checkin")
+                  }
+                >
+                  {savingSection === "checkin" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : checkinDirty ? "Save check-in scales" : "Saved"}
+                </Button>
+                <SaveStatus
+                  dirty={checkinDirty}
+                  saving={savingSection === "checkin"}
+                  savedAt={savedAt.checkin}
                 />
               </div>
             </CardContent>

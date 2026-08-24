@@ -1560,6 +1560,7 @@ export type Database = {
           address_state: string | null
           brand_color: string | null
           business_name: string | null
+          checkin_items: string[]
           clinic_type: string
           clinic_type_confirmed: boolean
           configured_acknowledgement_at: string | null
@@ -1617,6 +1618,7 @@ export type Database = {
           address_state?: string | null
           brand_color?: string | null
           business_name?: string | null
+          checkin_items?: string[]
           clinic_type?: string
           clinic_type_confirmed?: boolean
           configured_acknowledgement_at?: string | null
@@ -1674,6 +1676,7 @@ export type Database = {
           address_state?: string | null
           brand_color?: string | null
           business_name?: string | null
+          checkin_items?: string[]
           clinic_type?: string
           clinic_type_confirmed?: boolean
           configured_acknowledgement_at?: string | null
@@ -2009,6 +2012,86 @@ export type Database = {
             columns: ["source_global_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_checkins: {
+        Row: {
+          arousal: number | null
+          client_id: string
+          created_at: string
+          id: string
+          mood: number | null
+          org_id: string
+          pain: number | null
+          phase: string
+          physical_ease: number | null
+          pseudonym_id: string
+          recorded_by: string | null
+          relaxation: number | null
+          session_id: string
+          sleep_quality: number | null
+        }
+        Insert: {
+          arousal?: number | null
+          client_id: string
+          created_at?: string
+          id?: string
+          mood?: number | null
+          org_id: string
+          pain?: number | null
+          phase: string
+          physical_ease?: number | null
+          pseudonym_id: string
+          recorded_by?: string | null
+          relaxation?: number | null
+          session_id: string
+          sleep_quality?: number | null
+        }
+        Update: {
+          arousal?: number | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          mood?: number | null
+          org_id?: string
+          pain?: number | null
+          phase?: string
+          physical_ease?: number | null
+          pseudonym_id?: string
+          recorded_by?: string | null
+          relaxation?: number | null
+          session_id?: string
+          sleep_quality?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_checkins_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_checkins_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_checkins_pseudonym_id_fkey"
+            columns: ["pseudonym_id"]
+            isOneToOne: false
+            referencedRelation: "client_pseudonyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_checkins_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
             referencedColumns: ["id"]
           },
         ]

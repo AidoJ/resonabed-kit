@@ -5,9 +5,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Music, X } from "lucide-react";
 import { getSession, getAudioForFrequency, getSignedAudioUrl } from "@/lib/sessions.functions";
 import { getMyOrgLicence } from "@/lib/licence.functions";
+import { getCheckinSettings, getSessionCheckins } from "@/lib/checkins.functions";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
 import { AudioPlayer, type AudioPlayerHandle } from "@/components/session-player/audio-player";
 import { CompletePanel } from "@/components/session-player/complete-panel";
+import { CheckinPanel } from "@/components/checkin/checkin-panel";
+import type { CheckinRow } from "@/lib/checkins";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -50,6 +53,20 @@ function PlaySession() {
     queryFn: () => signFn({ data: { audio_file_id: audio!.id } }),
     enabled: !!audio?.id,
   });
+
+  const checkinSettingsFn = useServerFn(getCheckinSettings);
+  const checkinsFn = useServerFn(getSessionCheckins);
+  const { data: checkinSettings } = useQuery({
+    queryKey: ["checkin-settings"],
+    queryFn: () => checkinSettingsFn(),
+  });
+  const { data: checkins, refetch: refetchCheckins } = useQuery({
+    queryKey: ["session-checkins", id],
+    queryFn: () => checkinsFn({ data: { session_id: id } }),
+  });
+  const beforeCheckin =
+    (checkins?.find((c) => c.phase === "before") as CheckinRow | undefined) ?? null;
+  const [redoBefore, setRedoBefore] = useState(false);
 
   // If the timer was started before the audio finished loading, kick off
   // playback as soon as the signed URL is ready.
@@ -149,6 +166,35 @@ function PlaySession() {
               Confirm the client remains suitable before starting.
             </AlertDescription>
           </Alert>
+        ) : null}
+
+        {/* Pre-session check-in (optional, client self-rating) */}
+        {checkinSettings ? (
+          beforeCheckin && !redoBefore ? (
+            <div className="flex w-full max-w-2xl items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
+              <span>Pre-session check-in recorded.</span>
+              <button
+                type="button"
+                className="underline underline-offset-2 hover:text-foreground"
+                onClick={() => setRedoBefore(true)}
+              >
+                Redo
+              </button>
+            </div>
+          ) : (
+            <div className="w-full max-w-2xl">
+              <CheckinPanel
+                sessionId={session.id}
+                phase="before"
+                items={checkinSettings.items}
+                existing={beforeCheckin}
+                onSaved={() => {
+                  setRedoBefore(false);
+                  refetchCheckins();
+                }}
+              />
+            </div>
+          )
         ) : null}
 
         {/* Frequency badge */}
