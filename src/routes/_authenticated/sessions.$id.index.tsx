@@ -84,6 +84,10 @@ function SessionSummary() {
         </div>
       ) : null}
 
+      {beforeCheckin || afterCheckin ? (
+        <CheckinShiftView before={beforeCheckin} after={afterCheckin} />
+      ) : null}
+
       <Button asChild variant="outline">
         <Link to="/sessions">Back to sessions</Link>
       </Button>
