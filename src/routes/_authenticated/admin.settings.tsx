@@ -242,6 +242,13 @@ function SettingsAdmin() {
     permManageBookings !== (org.practitioners_can_manage_bookings ?? true) ||
     permCompleteUnpaid !== (org.practitioners_can_complete_unpaid ?? true)
   );
+  const orgCheckinItems = ((org?.checkin_items ?? []) as CheckinItemKey[]).length
+    ? ((org?.checkin_items ?? []) as CheckinItemKey[])
+    : [...DEFAULT_CHECKIN_ITEMS];
+  const checkinDirty =
+    !!org &&
+    (checkinItems.length !== orgCheckinItems.length ||
+      checkinItems.some((k) => !orgCheckinItems.includes(k)));
 
   const primaryContrast = contrastRatio(themePrimary, PRIMARY_TEXT_FALLBACK);
   const sidebarContrast = contrastRatio(themeSidebar, SIDEBAR_TEXT_FALLBACK);
@@ -266,6 +273,7 @@ function SettingsAdmin() {
     practitioners_can_view_all_clients?: boolean;
     practitioners_can_manage_bookings?: boolean;
     practitioners_can_complete_unpaid?: boolean;
+    checkin_items?: string[];
   };
   const save = async (payload: OrgPatch, successMsg = "Saved", section?: SectionKey) => {
     if (section) setSavingSection(section);
