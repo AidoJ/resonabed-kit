@@ -18,11 +18,7 @@ import {
   type ShippingContinuePayload,
   type EnteredShippingAddress,
 } from "@/components/shipping-address-step-dialog";
-import { PACKAGES, planTotalCents, money } from "@/lib/packages";
-
-const PRICE_CENTS = 149900;
-const PRICE = "$1,499";
-const HOME = PACKAGES.home;
+import { gstSplitLine, money, planTotalCents, type PackageDef } from "@/lib/packages";
 
 const INCLUDES = [
   "Therapy table, fully fitted and ready to lie on",
@@ -33,15 +29,21 @@ const INCLUDES = [
 ];
 
 /**
- * Buy panel for the $1,499 Resonabed for Home package.
+ * Buy panel for the Resonabed for Home package.
  *
  * Same checkout path as the clinic kits, with one difference: the buyer type is
  * fixed to "for home use", so payment always issues a home access code by email
  * through the Stripe webhook, never the clinic onboarding queue.
+ *
+ * Pricing arrives as props from the super-admin editable price list (with the
+ * static defaults as fallback), so a price change needs no code edit.
  */
-export function HomeOrderPanel() {
+export function HomeOrderPanel({ pkg, depositCents }: { pkg: PackageDef; depositCents: number }) {
   const startCheckout = useServerFn(createKitCheckoutSession);
   const requestInvoice = useServerFn(requestKitEftInvoice);
+
+  const price = money(pkg.listCents);
+  const deposit = money(depositCents);
 
   const [loading, setLoading] = useState<"full" | "installments" | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -145,11 +147,11 @@ export function HomeOrderPanel() {
       </h3>
       <div className="mt-5 flex items-baseline gap-2">
         <span className="text-4xl font-light tracking-tight text-brand-indigo md:text-5xl">
-          {PRICE}
+          {price}
         </span>
         <span className="text-sm text-muted-foreground">AUD · incl. GST</span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">$1,362.73 + $136.27 GST = $1,499</p>
+      <p className="mt-1 text-xs text-muted-foreground">{gstSplitLine(pkg.listCents)}</p>
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
         Shipping is calculated at checkout based on your location (typically $80 to $150).
       </p>
@@ -169,22 +171,23 @@ export function HomeOrderPanel() {
           disabled={loading !== null}
           className="h-11 w-full rounded-full bg-brand-indigo text-[14px] font-medium text-white hover:bg-brand-indigo/90"
         >
-          {loading ? "Preparing checkout…" : "Secure your order, $100 deposit"}
+          {loading ? "Preparing checkout…" : `Secure your order, ${deposit} deposit`}
           <ArrowRight className="ml-1.5 h-4 w-4" />
         </Button>
         <div className="rounded-2xl border border-border bg-brand-tint/50 px-4 py-3 text-[12px] leading-relaxed text-foreground/80">
           <p className="font-medium">Then choose how to pay the balance:</p>
           <p className="mt-1">
-            Pay {money(HOME.balanceCents)} in full, or {money(HOME.plan.depositBalanceCents)} now
-            and {HOME.plan.months} monthly payments of {money(HOME.plan.monthlyCents)} (plan total{" "}
-            {money(planTotalCents(HOME))}). Your shipping quote is added to that balance payment.
+            Pay {money(pkg.balanceCents)} in full, or {money(pkg.plan.depositBalanceCents)} now
+            and {pkg.plan.months} monthly payments of {money(pkg.plan.monthlyCents)} (plan total{" "}
+            {money(planTotalCents(pkg, depositCents))}). Your shipping quote is added to that
+            balance payment.
           </p>
         </div>
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-          Today you pay the $100 deposit only, which holds your order for 30 days and is refundable
-          if you do not go ahead. Shipping is quoted upfront and charged with your balance. Nothing
-          ships until the balance clears. You can also pay by bank transfer. Secure checkout by
-          Stripe.
+          Today you pay the {deposit} deposit only, which holds your order for 30 days and is
+          refundable if you do not go ahead. Shipping is quoted upfront and charged with your
+          balance. Nothing ships until the balance clears. You can also pay by bank transfer.
+          Secure checkout by Stripe.
         </p>
       </div>
 
@@ -199,9 +202,11 @@ export function HomeOrderPanel() {
       />
       <ShippingAddressStepDialog
         open={shippingOpen}
-        packagePriceCents={PRICE_CENTS}
+        packagePriceCents={pkg.listCents}
         packageKey="home"
         shippingScope="home"
+        depositCents={depositCents}
+        pkg={pkg}
         onCancel={() => {
           setShippingOpen(false);
           setPendingPlan(null);
@@ -211,7 +216,7 @@ export function HomeOrderPanel() {
       <PromoStepDialog
         open={promoOpen}
         packageKey={promoOpen ? "home" : null}
-        packagePrice={PRICE}
+        packagePrice={price}
         onCancel={() => setPromoOpen(false)}
         onContinue={(code) => {
           setPromoOpen(false);
@@ -221,7 +226,7 @@ export function HomeOrderPanel() {
       />
       <PaymentMethodStepDialog
         open={payMethodOpen}
-        price={PRICE}
+        price={price}
         submitting={eftSubmitting}
         onCancel={() => setPayMethodOpen(false)}
         onCard={() => {

@@ -1428,6 +1428,36 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_package_prices: {
+        Row: {
+          list_cents: number
+          package_key: string
+          plan_deposit_balance_cents: number
+          plan_monthly_cents: number
+          plan_months: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          list_cents: number
+          package_key: string
+          plan_deposit_balance_cents: number
+          plan_monthly_cents: number
+          plan_months: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          list_cents?: number
+          package_key?: string
+          plan_deposit_balance_cents?: number
+          plan_monthly_cents?: number
+          plan_months?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       kit_payments: {
         Row: {
           amount_cents: number

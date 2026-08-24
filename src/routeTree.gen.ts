@@ -52,6 +52,7 @@ import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminSalesRouteImport } from './routes/_authenticated/admin.sales'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminPromoCodesRouteImport } from './routes/_authenticated/admin.promo-codes'
+import { Route as AuthenticatedAdminPricingRouteImport } from './routes/_authenticated/admin.pricing'
 import { Route as AuthenticatedAdminPolicyTemplatesRouteImport } from './routes/_authenticated/admin.policy-templates'
 import { Route as AuthenticatedAdminPlatformAdminsRouteImport } from './routes/_authenticated/admin.platform-admins'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin.payments'
@@ -298,6 +299,12 @@ const AuthenticatedAdminPromoCodesRoute =
     path: '/promo-codes',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminPricingRoute =
+  AuthenticatedAdminPricingRouteImport.update({
+    id: '/pricing',
+    path: '/pricing',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminPolicyTemplatesRoute =
   AuthenticatedAdminPolicyTemplatesRouteImport.update({
     id: '/policy-templates',
@@ -454,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
   '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
+  '/admin/pricing': typeof AuthenticatedAdminPricingRoute
   '/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/sales': typeof AuthenticatedAdminSalesRoute
@@ -515,6 +523,7 @@ export interface FileRoutesByTo {
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
   '/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
+  '/admin/pricing': typeof AuthenticatedAdminPricingRoute
   '/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/sales': typeof AuthenticatedAdminSalesRoute
@@ -581,6 +590,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/platform-admins': typeof AuthenticatedAdminPlatformAdminsRoute
   '/_authenticated/admin/policy-templates': typeof AuthenticatedAdminPolicyTemplatesRoute
+  '/_authenticated/admin/pricing': typeof AuthenticatedAdminPricingRoute
   '/_authenticated/admin/promo-codes': typeof AuthenticatedAdminPromoCodesRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/sales': typeof AuthenticatedAdminSalesRoute
@@ -647,6 +657,7 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/platform-admins'
     | '/admin/policy-templates'
+    | '/admin/pricing'
     | '/admin/promo-codes'
     | '/admin/reports'
     | '/admin/sales'
@@ -708,6 +719,7 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/platform-admins'
     | '/admin/policy-templates'
+    | '/admin/pricing'
     | '/admin/promo-codes'
     | '/admin/reports'
     | '/admin/sales'
@@ -773,6 +785,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/platform-admins'
     | '/_authenticated/admin/policy-templates'
+    | '/_authenticated/admin/pricing'
     | '/_authenticated/admin/promo-codes'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/sales'
@@ -1128,6 +1141,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPromoCodesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/pricing': {
+      id: '/_authenticated/admin/pricing'
+      path: '/pricing'
+      fullPath: '/admin/pricing'
+      preLoaderRoute: typeof AuthenticatedAdminPricingRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/policy-templates': {
       id: '/_authenticated/admin/policy-templates'
       path: '/policy-templates'
@@ -1284,6 +1304,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminPlatformAdminsRoute: typeof AuthenticatedAdminPlatformAdminsRoute
   AuthenticatedAdminPolicyTemplatesRoute: typeof AuthenticatedAdminPolicyTemplatesRoute
+  AuthenticatedAdminPricingRoute: typeof AuthenticatedAdminPricingRoute
   AuthenticatedAdminPromoCodesRoute: typeof AuthenticatedAdminPromoCodesRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminSalesRoute: typeof AuthenticatedAdminSalesRoute
@@ -1308,6 +1329,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPlatformAdminsRoute: AuthenticatedAdminPlatformAdminsRoute,
   AuthenticatedAdminPolicyTemplatesRoute:
     AuthenticatedAdminPolicyTemplatesRoute,
+  AuthenticatedAdminPricingRoute: AuthenticatedAdminPricingRoute,
   AuthenticatedAdminPromoCodesRoute: AuthenticatedAdminPromoCodesRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminSalesRoute: AuthenticatedAdminSalesRoute,

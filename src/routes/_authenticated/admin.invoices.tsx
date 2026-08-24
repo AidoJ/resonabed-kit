@@ -11,6 +11,8 @@ import {
   type KitInvoice,
 } from "@/lib/invoices.functions";
 import { getBillingProfile, saveBillingProfile, EMPTY_BILLING_PROFILE } from "@/lib/billing-profile.functions";
+import { getKitPricing } from "@/lib/pricing.functions";
+import { PACKAGES as STATIC_PACKAGES } from "@/lib/packages";
 import { KitDocumentDialog } from "@/components/kit-document-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,12 +41,17 @@ export const Route = createFileRoute("/_authenticated/admin/invoices")({
 const money = (cents: number, currency = "AUD") =>
   new Intl.NumberFormat("en-AU", { style: "currency", currency }).format(cents / 100);
 
-const PACKAGES = [
-  { key: "essentials", label: "Resonabed Basic", cents: 119900 },
-  { key: "pro", label: "Resonabed Pro", cents: 139900 },
-  { key: "platinum", label: "Resonabed Platinum", cents: 179900 },
-  { key: "home", label: "Resonabed for Home", cents: 149900 },
-];
+/** Package list with fallback to the static defaults until pricing loads. */
+function usePackageOptions() {
+  const fetchPricing = useServerFn(getKitPricing);
+  const { data: pricing } = useQuery({
+    queryKey: ["kit-pricing"],
+    queryFn: () => fetchPricing(),
+    staleTime: 60_000,
+  });
+  const packages = pricing?.packages ?? STATIC_PACKAGES;
+  return Object.values(packages).map((p) => ({ key: p.key, label: p.label, cents: p.listCents }));
+}
 
 
 const STATUS_VARIANT: Record<string, "secondary" | "outline" | "default" | "destructive"> = {
@@ -268,7 +275,9 @@ function NewInvoiceDialog({
   pending: boolean;
   onSubmit: (payload: Record<string, unknown>) => void;
 }) {
-  const [pkg, setPkg] = useState(PACKAGES[0]);
+  const packages = usePackageOptions();
+  const [pkgKey, setPkgKey] = useState("essentials");
+  const pkg = packages.find((x) => x.key === pkgKey) ?? packages[0];
   const [form, setForm] = useState({
     customerName: "", customerEmail: "", customerPhone: "",
     billingAddress: "", shippingAddress: "",
@@ -293,10 +302,10 @@ function NewInvoiceDialog({
           <div className="sm:col-span-2"><Label>Shipping address</Label><Input value={form.shippingAddress} onChange={(e) => set({ shippingAddress: e.target.value })} /></div>
           <div>
             <Label>Package</Label>
-            <Select value={pkg.key} onValueChange={(v) => setPkg(PACKAGES.find((x) => x.key === v)!)}>
+            <Select value={pkg.key} onValueChange={setPkgKey}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {PACKAGES.map((x) => (
+                {packages.map((x) => (
                   <SelectItem key={x.key} value={x.key}>{x.label}, {money(x.cents)}</SelectItem>
                 ))}
               </SelectContent>
