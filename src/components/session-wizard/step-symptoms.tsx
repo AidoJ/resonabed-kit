@@ -13,6 +13,7 @@ import {
   CHECKIN_ITEMS,
   WELLBEING_SCALES,
   wellbeingColor,
+  wellbeingThumbColor,
   type CheckinItemKey,
 } from "@/lib/checkins";
 
