@@ -742,6 +742,57 @@ function SettingsAdmin() {
             </CardContent>
           </Card>
 
+          {/* Session check-in */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Session check-in</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Choose which wellbeing scales clients are shown before and after a session.
+                Two to four relevant scales per client works best. These ratings are a simple
+                record of how the client felt, they are never used to choose frequencies and
+                are not a medical measurement.
+              </p>
+              {CHECKIN_ITEM_KEYS.map((k) => (
+                <PermissionToggle
+                  key={k}
+                  label={`${CHECKIN_ITEMS[k].label} (${CHECKIN_ITEMS[k].low} → ${CHECKIN_ITEMS[k].high})`}
+                  description={
+                    CHECKIN_ITEMS[k].defaultOn
+                      ? "Shown by default."
+                      : "Optional, off by default."
+                  }
+                  checked={checkinItems.includes(k)}
+                  onChange={(on) =>
+                    setCheckinItems((cur) =>
+                      on ? [...cur, k] : cur.filter((x) => x !== k),
+                    )
+                  }
+                />
+              ))}
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  disabled={
+                    !checkinDirty || checkinItems.length === 0 || savingSection === "checkin"
+                  }
+                  onClick={() =>
+                    save({ checkin_items: checkinItems }, "Check-in scales saved", "checkin")
+                  }
+                >
+                  {savingSection === "checkin" ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : checkinDirty ? "Save check-in scales" : "Saved"}
+                </Button>
+                <SaveStatus
+                  dirty={checkinDirty}
+                  saving={savingSection === "checkin"}
+                  savedAt={savedAt.checkin}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Public page */}
           <PublicPageCard org={org as never} />
 
