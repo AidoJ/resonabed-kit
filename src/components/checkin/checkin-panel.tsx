@@ -101,7 +101,7 @@ export function CheckinPanel({
                 step={1}
                 value={[values[k]]}
                 aria-label={meta.label}
-                className="py-2 [&_[role=slider]]:h-8 [&_[role=slider]]:w-8"
+                className="py-2 [&_[role=slider]]:h-8 [&_[role=slider]]:w-8 [&_[role=slider]]:border-2"
                 style={{
                   "--slider-thumb-color": isTouched
                     ? wellbeingThumbColor(values[k])
