@@ -137,6 +137,13 @@ function PublicOrgPage() {
   const tz = org.timezone || DEFAULT_TIMEZONE;
   const bookable = org.public_booking_enabled && services.length > 0;
 
+  const navItems: ClinicNavItem[] = [
+    ...(org.public_blurb ? [{ label: "About Us", href: "#about" }] : []),
+    { label: "VAT Science", href: "#science" },
+    ...(services.length > 0 ? [{ label: "Services", href: "#services" }] : []),
+    ...(bookable ? [{ label: "Booking", href: "#request" }] : []),
+  ];
+
   return (
     <main className="min-h-screen bg-background text-foreground" style={theme}>
       {/* ---------------------------------------------------------------- LOGO BAND */}
@@ -196,6 +203,7 @@ function PublicOrgPage() {
         </div>
       </header>
 
+      <ClinicNav items={navItems} />
 
       {/* ---------------------------------------------------------------- HERO */}
       <section
