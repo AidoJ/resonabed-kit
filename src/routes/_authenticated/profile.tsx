@@ -8,11 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { User } from "lucide-react";
+
+const passwordRules = [
+  { label: "At least 8 characters", test: (s: string) => s.length >= 8 },
+  { label: "One uppercase letter (A–Z)", test: (s: string) => /[A-Z]/.test(s) },
+  { label: "One lowercase letter (a–z)", test: (s: string) => /[a-z]/.test(s) },
+  { label: "One number (0–9)", test: (s: string) => /[0-9]/.test(s) },
+  { label: "One symbol (e.g. ! @ # $ %)", test: (s: string) => /[^A-Za-z0-9]/.test(s) },
+];
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -51,6 +60,14 @@ function MyProfilePage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+
+  const pwRuleResults = passwordRules.map((r) => ({ ...r, ok: r.test(pw) }));
+  const pwAllPass = pwRuleResults.every((r) => r.ok);
+  const canChangePw = pwAllPass && pw === pw2 && !pwBusy;
+
   useEffect(() => {
     if (!data) return;
     setDisplayName(data.displayName ?? "");
@@ -61,6 +78,29 @@ function MyProfilePage() {
   const onFile = (f: File | null) => {
     setFile(f);
     setPreview(f ? URL.createObjectURL(f) : null);
+  };
+
+  const onChangePassword = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (!pwAllPass || pw !== pw2) return;
+    setPwBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pw });
+      if (error) {
+        if (error.code === "same_password") {
+          throw new Error("Choose a password that is different from your current password.");
+        }
+        throw new Error(error.message);
+      }
+      await supabase.auth.refreshSession();
+      toast.success("Password updated");
+      setPw("");
+      setPw2("");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setPwBusy(false);
+    }
   };
 
   const onSave = async () => {
@@ -184,6 +224,60 @@ function MyProfilePage() {
               {saving ? "Saving…" : "Save changes"}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Password</CardTitle>
+          <CardDescription>
+            Choose a new password for your account. It takes effect immediately.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onChangePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new_password">New password</Label>
+              <PasswordInput
+                id="new_password"
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <div className="rounded-md border p-3 text-sm space-y-1 bg-muted/30">
+              <div className="font-medium mb-1">Password must include:</div>
+              <ul className="space-y-1">
+                {pwRuleResults.map((r) => (
+                  <li key={r.label} className={r.ok ? "text-green-600" : "text-muted-foreground"}>
+                    <span aria-hidden className="inline-block w-4">{r.ok ? "✓" : "○"}</span>
+                    {r.label}
+                  </li>
+                ))}
+                <li className={pw.length > 0 && pw === pw2 ? "text-green-600" : "text-muted-foreground"}>
+                  <span aria-hidden className="inline-block w-4">{pw.length > 0 && pw === pw2 ? "✓" : "○"}</span>
+                  Passwords match
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Confirm password</Label>
+              <PasswordInput
+                id="confirm_password"
+                value={pw2}
+                onChange={(e) => setPw2(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="submit" disabled={!canChangePw}>
+                {pwBusy ? "Updating…" : "Update password"}
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>
