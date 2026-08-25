@@ -228,7 +228,21 @@ function KitPricingAdmin() {
               inputMode="decimal"
               className="w-32"
               value={deposit}
-              onChange={(e) => setDeposit(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setDeposit(value);
+                const dep = centsOf(value) ?? ORDER_DEPOSIT_CENTS;
+                setDrafts((prev) =>
+                  prev
+                    ? (Object.fromEntries(
+                        (Object.keys(prev) as PackageKey[]).map((k) => [
+                          k,
+                          rebalance(prev[k], "list", dep),
+                        ]),
+                      ) as Record<PackageKey, Draft>)
+                    : prev,
+                );
+              }}
             />
           </div>
           <p className="pb-2 text-xs text-muted-foreground">
@@ -269,9 +283,7 @@ function KitPricingAdmin() {
                     <Input
                       inputMode="decimal"
                       value={d.list}
-                      onChange={(e) =>
-                        setDrafts({ ...drafts, [key]: { ...d, list: e.target.value } })
-                      }
+                      onChange={(e) => updateDraft(key, "list", e.target.value)}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -279,12 +291,7 @@ function KitPricingAdmin() {
                     <Input
                       inputMode="decimal"
                       value={d.planDepositBalance}
-                      onChange={(e) =>
-                        setDrafts({
-                          ...drafts,
-                          [key]: { ...d, planDepositBalance: e.target.value },
-                        })
-                      }
+                      onChange={(e) => updateDraft(key, "planDepositBalance", e.target.value)}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -292,9 +299,7 @@ function KitPricingAdmin() {
                     <Input
                       inputMode="decimal"
                       value={d.planMonthly}
-                      onChange={(e) =>
-                        setDrafts({ ...drafts, [key]: { ...d, planMonthly: e.target.value } })
-                      }
+                      onChange={(e) => updateDraft(key, "planMonthly", e.target.value)}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -302,9 +307,7 @@ function KitPricingAdmin() {
                     <Input
                       inputMode="numeric"
                       value={d.planMonths}
-                      onChange={(e) =>
-                        setDrafts({ ...drafts, [key]: { ...d, planMonths: e.target.value } })
-                      }
+                      onChange={(e) => updateDraft(key, "planMonths", e.target.value)}
                     />
                   </div>
                 </div>
@@ -313,9 +316,19 @@ function KitPricingAdmin() {
                     Website shows {money(list)} incl. GST ({money(list - gst)} + {money(gst)} GST).
                   </p>
                   <p className="mt-1">
-                    Pay in full balance: {money(balance)}. Plan: {money(planDb)} + {months} ×{" "}
-                    {money(planM)} = {money(planTotal)} total.
+                    Pay in full balance: {money(balance)}. Plan: {money(depositCents)} deposit +{" "}
+                    {money(planDb)} + {months} × {money(planM)} = {money(planTotal)} total.
                   </p>
+                  {planTotal === list ? (
+                    <p className="mt-1 font-medium text-emerald-700">
+                      Adds up: the plan total matches the {money(list)} list price exactly.
+                    </p>
+                  ) : (
+                    <p className="mt-1 font-medium text-destructive">
+                      Does not add up: plan total is {money(planTotal)} but the list price is{" "}
+                      {money(list)}. Adjust the figures before saving.
+                    </p>
+                  )}
                 </div>
                 <Button
                   onClick={() => void handleSavePackage(key)}
