@@ -20,6 +20,7 @@ import {
 } from "@/components/public-clinic/clinic-content";
 import { StickyBookCta } from "@/components/public-clinic/sticky-book-cta";
 import { ScienceSection } from "@/components/public-clinic/science-section";
+import { ClinicNav, type ClinicNavItem } from "@/components/public-clinic/clinic-nav";
 import heroWide from "@/assets/resonabed-hero-1536.webp.asset.json";
 import heroSmall from "@/assets/resonabed-hero-768.webp.asset.json";
 
