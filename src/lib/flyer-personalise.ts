@@ -507,30 +507,9 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     await drawWhiteLogoCard(pdf, page, deepC);
   }
 
-  // Redraw the intro block with the embedded font.
+  // Remove the generic Resonabed/practitioner prompt so this area is reserved
+  // solely for the clinic's personalised details and booking QR code.
   page.drawRectangle({ x: 0, y: 17.9, width: 280, height: 187, color: PAPER });
-  page.drawText("Resonabed", {
-    x: 26,
-    y: 191.92,
-    size: 13,
-    font: regular,
-    color: INK,
-  });
-
-  page.drawText("Ask your practitioner about adding a", {
-    x: 26,
-    y: 169.92,
-    size: 8.6,
-    font: regular,
-    color: MUTED,
-  });
-  page.drawText("vibroacoustic session to your visit.", {
-    x: 26,
-    y: 156.92,
-    size: 8.6,
-    font: regular,
-    color: MUTED,
-  });
 
   // Cover the printed placeholder ("Clinic details:" + dashed box).
   page.drawRectangle({ ...PANEL, color: PAPER });
