@@ -20,6 +20,7 @@ import {
 } from "@/components/public-clinic/clinic-content";
 import { StickyBookCta } from "@/components/public-clinic/sticky-book-cta";
 import { ScienceSection } from "@/components/public-clinic/science-section";
+import { ClinicNav, type ClinicNavItem } from "@/components/public-clinic/clinic-nav";
 import heroWide from "@/assets/resonabed-hero-1536.webp.asset.json";
 import heroSmall from "@/assets/resonabed-hero-768.webp.asset.json";
 
@@ -136,6 +137,13 @@ function PublicOrgPage() {
   const tz = org.timezone || DEFAULT_TIMEZONE;
   const bookable = org.public_booking_enabled && services.length > 0;
 
+  const navItems: ClinicNavItem[] = [
+    ...(org.public_blurb ? [{ label: "About Us", href: "#about" }] : []),
+    { label: "VAT Science", href: "#science" },
+    ...(services.length > 0 ? [{ label: "Services", href: "#services" }] : []),
+    ...(bookable ? [{ label: "Booking", href: "#request" }] : []),
+  ];
+
   return (
     <main className="min-h-screen bg-background text-foreground" style={theme}>
       {/* ---------------------------------------------------------------- LOGO BAND */}
@@ -195,6 +203,7 @@ function PublicOrgPage() {
         </div>
       </header>
 
+      <ClinicNav items={navItems} />
 
       {/* ---------------------------------------------------------------- HERO */}
       <section
@@ -457,7 +466,7 @@ function PublicOrgPage() {
 
       {/* ---------------------------------------------------------------- ABOUT */}
       {org.public_blurb ? (
-        <section className="border-t">
+        <section id="about" className="scroll-mt-16 border-t">
           <div className="mx-auto max-w-3xl px-6 py-20 md:px-10 md:py-24">
             <Eyebrow>About</Eyebrow>
             <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">
@@ -519,7 +528,7 @@ function PublicOrgPage() {
       ) : null}
 
       {/* ------------------------------------------------------- SESSIONS + BOOK */}
-      <section className="border-t" style={{ background: "var(--clinic-tint-soft)" }}>
+      <section id="services" className="scroll-mt-16 border-t" style={{ background: "var(--clinic-tint-soft)" }}>
         <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
           <div className="mx-auto max-w-2xl text-center">
             <Eyebrow>Sessions</Eyebrow>
@@ -565,7 +574,7 @@ function PublicOrgPage() {
 
 
           {bookable ? (
-            <div id="request" className="mx-auto mt-12 max-w-2xl scroll-mt-8">
+            <div id="request" className="mx-auto mt-12 max-w-2xl scroll-mt-20">
               <p className="mb-4 text-center text-sm text-muted-foreground">
                 You&rsquo;ll request a time and {org.name} will confirm it with you. Payment is
                 made at your appointment.

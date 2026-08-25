@@ -50,7 +50,7 @@ export function ScienceSection() {
   return (
     <section
       id="science"
-      className="border-y"
+      className="scroll-mt-16 border-y"
       style={{ background: "var(--clinic-tint-soft)" }}
     >
       <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
