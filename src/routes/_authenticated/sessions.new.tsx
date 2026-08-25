@@ -93,6 +93,8 @@ function NewSession() {
   const [safety, setSafety] = useState<SafetyState>({
     contraindications: [],
     noneApply: false,
+    otherHealth: null,
+    otherHealthDetails: "",
     notes: "",
     consentGiven: false,
     signature: null,
@@ -146,7 +148,8 @@ function NewSession() {
         safety.consentGiven &&
         !!safety.signature &&
         !!safety.practitionerSignature &&
-        (safety.noneApply || safety.contraindications.length > 0)
+        (safety.noneApply || safety.contraindications.length > 0) &&
+        safety.otherHealth !== null
       );
     if (step === 4) return !!activeFreqId;
     return false;
@@ -154,6 +157,17 @@ function NewSession() {
 
   const submitScreeningFn = useServerFn(submitScreening);
   const declineFn = useServerFn(declineSessionForScreening);
+
+  // The client's "anything else about your health" details are folded into the
+  // practitioner notes so they persist with the signed screening record.
+  const combinedNotes = (() => {
+    const parts: string[] = [];
+    if (safety.otherHealth && safety.otherHealthDetails.trim()) {
+      parts.push(`Client flagged additional health info: ${safety.otherHealthDetails.trim()}`);
+    }
+    if (safety.notes.trim()) parts.push(safety.notes.trim());
+    return parts.join("\n\n") || undefined;
+  })();
 
   /**
    * The screening is signed and stored BEFORE any session row exists, the
@@ -169,7 +183,7 @@ function NewSession() {
           booking_id: booking_id ?? null,
           none_apply: safety.noneApply,
           flagged_items: safety.contraindications,
-          practitioner_notes: safety.notes || undefined,
+          practitioner_notes: combinedNotes,
           client_signature: safety.signature!,
           practitioner_signature: safety.practitionerSignature!,
           is_reattestation: false,
@@ -197,7 +211,7 @@ function NewSession() {
           screening_id: screeningId,
           service_id: service?.id ?? null,
           booking_id: booking_id ?? null,
-          notes: safety.notes || undefined,
+          notes: combinedNotes,
         },
       });
       toast.success("Refusal recorded, session cancelled and logged");
@@ -222,7 +236,7 @@ function NewSession() {
         primary_goals: symptoms.goals,
         health_concerns: [],
         contraindications: safety.contraindications,
-        practitioner_notes: safety.notes || undefined,
+        practitioner_notes: combinedNotes,
         consent_given: true as const,
         client_signature: safety.signature ?? undefined,
         recommended_frequency_id: activeFreqId,
