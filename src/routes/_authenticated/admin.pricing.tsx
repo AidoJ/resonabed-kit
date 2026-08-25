@@ -52,6 +52,40 @@ type Draft = {
   planMonths: string;
 };
 
+/**
+ * Auto-balance rules: the plan must always reconcile exactly with the list
+ * price, i.e. orderDeposit + planDepositBalance + monthly × months = list.
+ *
+ * - Editing list price, plan deposit or months recalculates the monthly
+ *   payment; any cents remainder is folded into the plan deposit.
+ * - Editing the monthly payment recalculates the plan deposit.
+ */
+function rebalance(
+  d: Draft,
+  changed: "list" | "planDepositBalance" | "planMonthly" | "planMonths",
+  depositCents: number,
+): Draft {
+  const list = centsOf(d.list);
+  const planDb = centsOf(d.planDepositBalance);
+  const monthly = centsOf(d.planMonthly);
+  const months = Math.max(1, Math.round(Number(d.planMonths) || 0));
+  if (changed === "planMonthly") {
+    if (list === null || monthly === null) return d;
+    const nextPlanDb = Math.max(0, list - depositCents - monthly * months);
+    return { ...d, planDepositBalance: dollarsOf(nextPlanDb) };
+  }
+  if (list === null || planDb === null) return d;
+  const remainder = list - depositCents - planDb;
+  if (remainder <= 0) return { ...d, planMonthly: "0" };
+  const perMonth = Math.floor(remainder / months);
+  const leftover = remainder - perMonth * months;
+  return {
+    ...d,
+    planMonthly: dollarsOf(perMonth),
+    planDepositBalance: dollarsOf(planDb + leftover),
+  };
+}
+
 function KitPricingAdmin() {
   const fetchPricing = useServerFn(getKitPricing);
   const savePackage = useServerFn(setKitPackagePricing);
@@ -87,6 +121,19 @@ function KitPricingAdmin() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["kit-pricing"] });
 
+  const updateDraft = (
+    key: PackageKey,
+    field: "list" | "planDepositBalance" | "planMonthly" | "planMonths",
+    value: string,
+  ) => {
+    setDrafts((prev) => {
+      if (!prev) return prev;
+      const current = { ...prev[key], [field]: value };
+      const dep = centsOf(deposit) ?? ORDER_DEPOSIT_CENTS;
+      return { ...prev, [key]: rebalance(current, field, dep) };
+    });
+  };
+
   const handleSavePackage = async (key: PackageKey) => {
     const d = drafts?.[key];
     if (!d) return;
@@ -94,6 +141,7 @@ function KitPricingAdmin() {
     const planDepositBalanceCents = centsOf(d.planDepositBalance);
     const planMonthlyCents = centsOf(d.planMonthly);
     const planMonths = Number(d.planMonths);
+    const depCents = centsOf(deposit) ?? ORDER_DEPOSIT_CENTS;
     if (
       listCents === null ||
       listCents <= 0 ||
@@ -105,6 +153,12 @@ function KitPricingAdmin() {
       planMonths > 36
     ) {
       toast.error("Check the figures: prices must be positive and months between 1 and 36.");
+      return;
+    }
+    if (depCents + planDepositBalanceCents + planMonthlyCents * planMonths !== listCents) {
+      toast.error(
+        `The plan does not add up: deposit + plan deposit + ${planMonths} payments must equal the list price exactly.`,
+      );
       return;
     }
     setSaving(key);
