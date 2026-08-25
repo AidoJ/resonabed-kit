@@ -67,6 +67,26 @@ export const setKitPackagePricing = createServerFn({ method: "POST" })
       _user_id: context.userId,
     });
     if (!isAdmin) throw new Error("Only super admins can change kit pricing");
+    // The plan must reconcile exactly with the list price:
+    // order deposit + plan deposit balance + monthly × months = list price.
+    const { data: dep } = await context.supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "order_deposit_cents")
+      .maybeSingle();
+    const parsed = Number(dep?.value);
+    const depositCents =
+      Number.isInteger(parsed) && parsed > 0 ? parsed : ORDER_DEPOSIT_CENTS;
+    const planTotal =
+      depositCents + data.planDepositBalanceCents + data.planMonthlyCents * data.planMonths;
+    if (planTotal !== data.listCents) {
+      throw new Error(
+        `Plan figures do not add up: $${(depositCents / 100).toFixed(2)} deposit + ` +
+          `$${(data.planDepositBalanceCents / 100).toFixed(2)} + ${data.planMonths} × ` +
+          `$${(data.planMonthlyCents / 100).toFixed(2)} = $${(planTotal / 100).toFixed(2)}, ` +
+          `but the list price is $${(data.listCents / 100).toFixed(2)}.`,
+      );
+    }
     const { error } = await context.supabase
       .from("kit_package_prices")
       .update({
