@@ -115,14 +115,14 @@ function FlyerPage() {
           <div className="relative">
             <img
               src={"/resonabed-flyer-outside.jpg"}
-              alt="Outside of the Resonabed client flyer: cover panel, common questions, and what to expect in a session"
+              alt="Outside of the Resonabed client flyer: what to expect in a session, common questions, and the cover panel"
               className="h-auto w-full"
               loading="lazy"
             />
             {/* Sample of the personalised clinic details panel, for illustration only. */}
             <div
               className="absolute flex items-end gap-[3%] overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
-              style={{ left: "2.6%", right: "69.6%", bottom: "5.3%", top: "76.1%" }}
+              style={{ left: "35.93%", right: "36.27%", bottom: "5.3%", top: "76.1%" }}
             >
               <div className="flex min-w-0 flex-1 flex-col justify-end">
                 <p className="truncate text-[clamp(7px,1.1vw,13px)] font-semibold leading-tight text-brand-indigo">
@@ -148,7 +148,8 @@ function FlyerPage() {
             </div>
           </div>
           <figcaption className="border-t border-border px-6 py-4 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-            Outside, cover, common questions, what to expect. Clinic details shown are a sample
+            Outside, what to expect, common questions and clinic details, cover. Clinic details
+            shown are a sample
           </figcaption>
         </figure>
 

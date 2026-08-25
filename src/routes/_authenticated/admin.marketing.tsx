@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import QRCode from "qrcode";
 
 import { getOrgSettings, getSignedLogoUrl } from "@/lib/admin.functions";
-import { buildPersonalisedFlyer } from "@/lib/flyer-personalise";
+import { buildBlankFlyer, buildPersonalisedFlyer } from "@/lib/flyer-personalise";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -128,23 +128,27 @@ function MarketingPage() {
 
 
   const download = async (personalised: boolean) => {
-    if (!personalised) {
-      window.open("/resonabed-flyer.pdf", "_blank", "noreferrer");
-      return;
-    }
     setBusy(true);
     try {
-      const blob = await buildPersonalisedFlyer(details);
+      const blob = personalised
+        ? await buildPersonalisedFlyer(details)
+        : await buildBlankFlyer();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `resonabed-flyer-${(details.name || "clinic")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")}.pdf`;
+      a.download = personalised
+        ? `resonabed-flyer-${(details.name || "clinic")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "")}.pdf`
+        : "resonabed-flyer-blank.pdf";
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Your personalised flyer has been downloaded.");
+      toast.success(
+        personalised
+          ? "Your personalised flyer has been downloaded."
+          : "The blank flyer has been downloaded.",
+      );
     } catch {
       toast.error("Sorry, the flyer could not be generated. Please try again.");
     } finally {
@@ -333,6 +337,7 @@ function MarketingPage() {
                 type="button"
                 variant="outline"
                 className="w-full"
+                disabled={busy}
                 onClick={() => download(false)}
               >
                 <Printer className="mr-2 h-4 w-4" />
@@ -349,14 +354,14 @@ function MarketingPage() {
           <div className="relative overflow-hidden rounded-xl border bg-card">
             <img
               src={"/resonabed-flyer-outside.jpg"}
-              alt="Outside of the Resonabed client flyer, showing the panel reserved for clinic details"
+              alt="Outside of the Resonabed client flyer, with the clinic details panel in the middle"
               className="h-auto w-full"
               loading="lazy"
             />
             {/* Live preview of the stamped panel, positioned over the artwork. */}
             <div
               className="absolute flex items-end gap-[3%] overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
-              style={{ left: "2.6%", right: "69.6%", bottom: "5.3%", top: "76.1%" }}
+              style={{ left: "35.93%", right: "36.27%", bottom: "5.3%", top: "76.1%" }}
             >
               <div className="flex min-w-0 flex-1 flex-col justify-end">
                 {details.logoUrl ? (
