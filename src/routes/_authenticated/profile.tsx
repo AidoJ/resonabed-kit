@@ -15,6 +15,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { User } from "lucide-react";
 
+const passwordRules = [
+  { label: "At least 8 characters", test: (s: string) => s.length >= 8 },
+  { label: "One uppercase letter (A–Z)", test: (s: string) => /[A-Z]/.test(s) },
+  { label: "One lowercase letter (a–z)", test: (s: string) => /[a-z]/.test(s) },
+  { label: "One number (0–9)", test: (s: string) => /[0-9]/.test(s) },
+  { label: "One symbol (e.g. ! @ # $ %)", test: (s: string) => /[^A-Za-z0-9]/.test(s) },
+];
+
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
