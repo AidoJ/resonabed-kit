@@ -28,6 +28,10 @@ import { SignaturePad } from "./signature-pad";
 export interface SafetyState {
   contraindications: string[];
   noneApply: boolean;
+  /** "Anything else I should know about your health today?" — null = unanswered. */
+  otherHealth: boolean | null;
+  /** Details captured when otherHealth is yes. */
+  otherHealthDetails: string;
   notes: string;
   consentGiven: boolean;
   signature: string | null;
@@ -173,6 +177,47 @@ export function StepSafety({ value, onChange, clientId, onBlockingChange }: Prop
               <p className="text-muted-foreground mt-2 text-xs">
                 An answer is required: tick every item that applies, or tick “None of these apply”.
                 Leaving everything blank is not a valid screening.
+              </p>
+            )}
+          </div>
+
+          <div className="border-t pt-3">
+            <p className="text-sm font-medium">
+              Before we start, is there anything else I should know about your health today?
+            </p>
+            <div className="mt-2 flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={value.otherHealth === true ? "default" : "outline"}
+                onClick={() => onChange({ ...value, otherHealth: true })}
+              >
+                Yes
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={value.otherHealth === false ? "default" : "outline"}
+                onClick={() =>
+                  onChange({ ...value, otherHealth: false, otherHealthDetails: "" })
+                }
+              >
+                No
+              </Button>
+            </div>
+            {value.otherHealth === true ? (
+              <Textarea
+                className="mt-3"
+                rows={3}
+                value={value.otherHealthDetails}
+                onChange={(e) => onChange({ ...value, otherHealthDetails: e.target.value })}
+                placeholder="Add the details here, recorded with this screening"
+                autoFocus
+              />
+            ) : null}
+            {value.otherHealth === null && (
+              <p className="text-muted-foreground mt-2 text-xs">
+                Please answer yes or no before signing.
               </p>
             )}
           </div>
