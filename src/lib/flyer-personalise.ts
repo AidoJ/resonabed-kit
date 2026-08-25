@@ -164,7 +164,7 @@ export async function reimposeOutsidePage(doc: PDFDocument): Promise<PDFDocument
       clip(),
       endPath(),
     );
-    reimposed.drawPage(outside!, { x: -src * PANEL_W, y: 0, width: TRIM_W, height: TRIM_H });
+    reimposed.drawPage(outside!, { x: (i - src) * PANEL_W, y: 0, width: TRIM_W, height: TRIM_H });
     reimposed.pushOperators(popGraphicsState());
   }
 
