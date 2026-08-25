@@ -5,7 +5,14 @@ import {
   PDFName,
   PDFPage,
   PDFRawStream,
+  clip,
+  closePath,
   decodePDFRawStream,
+  endPath,
+  lineTo,
+  moveTo,
+  popGraphicsState,
+  pushGraphicsState,
   rgb,
 } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
@@ -130,6 +137,55 @@ function drawCropMarks(
   }
 }
 
+/**
+ * The source artwork's outside page was imposed for the wrong fold: its panels
+ * read [questions + clinic details, cover, what to expect] left to right.
+ * Correct trifold imposition is [what to expect, questions + details, cover],
+ * so the panels are rotated one slot: new panel i shows source panel (i + 2) % 3.
+ * Stamping happens in source coordinates BEFORE this runs, so the clinic
+ * details (source-left panel) end up in the middle and the cover moves right.
+ */
+export async function reimposeOutsidePage(doc: PDFDocument): Promise<PDFDocument> {
+  const PANEL_W = TRIM_W / 3;
+  const bytes = await doc.save();
+  const out = await PDFDocument.create();
+  const [outside, inside] = await out.embedPdf(bytes, [0, 1]);
+
+  const reimposed = out.addPage([TRIM_W, TRIM_H]);
+  for (let i = 0; i < 3; i++) {
+    const src = (i + 2) % 3;
+    reimposed.pushOperators(
+      pushGraphicsState(),
+      moveTo(i * PANEL_W, 0),
+      lineTo((i + 1) * PANEL_W, 0),
+      lineTo((i + 1) * PANEL_W, TRIM_H),
+      lineTo(i * PANEL_W, TRIM_H),
+      closePath(),
+      clip(),
+      endPath(),
+    );
+    reimposed.drawPage(outside!, { x: (i - src) * PANEL_W, y: 0, width: TRIM_W, height: TRIM_H });
+    reimposed.pushOperators(popGraphicsState());
+  }
+
+  const insidePage = out.addPage([TRIM_W, TRIM_H]);
+  insidePage.drawPage(inside!, { x: 0, y: 0, width: TRIM_W, height: TRIM_H });
+
+  return out;
+}
+
+/**
+ * The unpersonalised flyer with its panels reimposed into the correct fold
+ * order. Used for the "blank flyer" download; the clinic-details placeholder
+ * box is intentionally left visible for hand-written details.
+ */
+export async function buildBlankFlyer(): Promise<Blob> {
+  const src = await fetch(FLYER_PDF_URL).then((r) => r.arrayBuffer());
+  const pdf = await PDFDocument.load(src);
+  const imposed = await reimposeOutsidePage(pdf);
+  const bytes = await imposed.save();
+  return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
+}
 
 /** Rasterises any image (incl. SVG) to PNG bytes via a same-origin blob. */
 async function toPngBytes(url: string, maxPx = 320): Promise<Uint8Array | null> {
@@ -566,7 +622,10 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   }
 
 
-  const bleedPdf = await addPrintBleed(pdf);
+  // Rotate the outside page's panels into the correct trifold fold order
+  // AFTER all stamping, which uses the source artwork's coordinates.
+  const imposed = await reimposeOutsidePage(pdf);
+  const bleedPdf = await addPrintBleed(imposed);
   const bytes = await bleedPdf.save();
   return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
 }
