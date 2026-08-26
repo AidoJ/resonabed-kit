@@ -68,11 +68,17 @@ export function PublicBookingForm({
   availability = [],
   practitioners = [],
   practitionerAvailability = [],
+  preselectedServiceId = null,
 }: {
   slug: string;
   services: PublicService[];
   timezone: string;
   clinicName: string;
+  /**
+   * Set by a "Book now" button on a service card; the form switches to that
+   * session instead of showing its own selector.
+   */
+  preselectedServiceId?: string | null;
   /**
    * Only populated when the clinic has opted in to letting visitors name a
    * preferred practitioner. Empty means the selector is never rendered.
