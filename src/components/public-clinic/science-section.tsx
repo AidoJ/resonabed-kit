@@ -108,8 +108,7 @@ export function ScienceSection() {
               {BENEFITS.map((b) => (
                 <li
                   key={b}
-                  className="flex gap-3 rounded-xl border px-5 py-4 text-sm leading-relaxed"
-                  style={{ background: "var(--clinic-tint-soft)" }}
+                  className="flex gap-3 rounded-xl border bg-card px-5 py-4 text-sm leading-relaxed"
                 >
                   <span
                     aria-hidden
