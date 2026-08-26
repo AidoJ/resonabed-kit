@@ -5,7 +5,7 @@
  * may be sourced from an operator-editable field.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type PartId = "waves" | "squeeze" | "doors" | "fuel" | "frame" | "tug" | "repair";
 
@@ -68,17 +68,43 @@ const CSS = `
 
 function CellVibrationAnimation() {
   const [i, setI] = useState(0);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const id = setInterval(() => setI((p) => (p + 1) % STEPS.length), 4600);
-    return () => clearInterval(id);
+    const root = rootRef.current;
+    if (!root) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const stop = () => {
+      if (timer !== undefined) clearTimeout(timer);
+      timer = undefined;
+    };
+    const start = () => {
+      stop();
+      timer = setTimeout(function advance() {
+        setI((p) => (p + 1) % STEPS.length);
+        timer = setTimeout(advance, 4600);
+      }, 4600);
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(root);
+    return () => {
+      observer.disconnect();
+      stop();
+    };
   }, []);
 
   const step = STEPS[i]!;
   const dim = (id: PartId) => (step.on.includes(id) ? 1 : 0.16);
 
   return (
-    <div className="mx-auto mt-14 max-w-3xl">
+    <div ref={rootRef} className="mx-auto mt-14 max-w-3xl">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div
