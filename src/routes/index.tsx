@@ -33,6 +33,7 @@ import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero from "@/assets/resonabed-hero.png.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { ScienceSection } from "@/components/public-clinic/science-section";
+import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
 import { KitCard, kitImages } from "@/components/kit-card";
 import { HomeOrderPanel } from "@/components/home-order-panel";
 import {
@@ -626,6 +627,7 @@ function LandingPage() {
       {/* SCIENCE */}
       <div style={clinicThemeVars(null, null)}>
         <ScienceSection />
+        <CellularResponseSection />
       </div>
 
 
