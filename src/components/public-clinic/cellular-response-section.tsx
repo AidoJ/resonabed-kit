@@ -80,8 +80,8 @@ function CellVibrationAnimation() {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div
-        className="rounded-2xl border p-2"
-        style={{ background: "#F5F1FB", borderColor: "#E4DBF2" }}
+        className="rounded-2xl border bg-card p-2"
+        style={{ borderColor: "#E4DBF2" }}
       >
         <svg
           viewBox="0 0 680 340"
