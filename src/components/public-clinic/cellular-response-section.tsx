@@ -290,7 +290,7 @@ export function CellularResponseSection() {
     <section
       id="cellular-response"
       className="scroll-mt-16 border-b"
-      style={{ background: "var(--clinic-accent-tint)" }}
+      style={{ background: "#EDF6F3" }}
     >
       <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
@@ -313,3 +313,4 @@ export function CellularResponseSection() {
     </section>
   );
 }
+
