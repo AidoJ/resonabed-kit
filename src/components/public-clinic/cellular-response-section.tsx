@@ -155,44 +155,37 @@ function CellVibrationAnimation() {
             rx="250"
             ry="118"
             fill="#B9A6E0"
-            fillOpacity=".30"
+            fillOpacity=".22"
             stroke="#8A54C4"
             strokeWidth="2.5"
           />
 
           <g
             id="rb-frame"
-            className={`rb-part${step.on.includes("frame") && step.n === 4 ? " rb-tighten" : ""}`}
+            className={`rb-part${step.n === 4 ? " rb-tighten" : ""}`}
             opacity={dim("frame")}
           >
-            <path
-              d="M175 190Q270 150,340 190"
-              fill="none"
-              stroke="#7A3CB0"
-              strokeWidth="2.5"
-              opacity=".75"
-            />
-            <path
-              d="M175 190Q270 230,340 190"
-              fill="none"
-              stroke="#7A3CB0"
-              strokeWidth="2.5"
-              opacity=".75"
-            />
-            <path
-              d="M205 145Q285 172,352 182"
-              fill="none"
-              stroke="#7A3CB0"
-              strokeWidth="2.5"
-              opacity=".5"
-            />
-            <path
-              d="M205 235Q285 208,352 198"
-              fill="none"
-              stroke="#7A3CB0"
-              strokeWidth="2.5"
-              opacity=".5"
-            />
+            <line x1="130" y1="190" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".7"/>
+            <line x1="590" y1="190" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".7"/>
+            <line x1="185" y1="120" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".65"/>
+            <line x1="185" y1="260" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".65"/>
+            <line x1="535" y1="120" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".65"/>
+            <line x1="535" y1="260" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".65"/>
+            <line x1="290" y1="80" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".6"/>
+            <line x1="430" y1="80" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".6"/>
+            <line x1="290" y1="300" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".6"/>
+            <line x1="430" y1="300" x2="360" y2="190" stroke="#7A3CB0" stroke-width="1.8" opacity=".6"/>
+            <path d="M235 155 L300 110 L420 110 L485 155 L500 190 L485 225 L420 270 L300 270 L235 225 L220 190 Z" fill="none" stroke="#7A3CB0" stroke-width="1.6" opacity=".55"/>
+            <circle cx="130" cy="190" r="3.2" fill="#7A3CB0" opacity=".8"/>
+            <circle cx="590" cy="190" r="3.2" fill="#7A3CB0" opacity=".8"/>
+            <circle cx="185" cy="120" r="3" fill="#7A3CB0" opacity=".75"/>
+            <circle cx="185" cy="260" r="3" fill="#7A3CB0" opacity=".75"/>
+            <circle cx="535" cy="120" r="3" fill="#7A3CB0" opacity=".75"/>
+            <circle cx="535" cy="260" r="3" fill="#7A3CB0" opacity=".75"/>
+            <circle cx="290" cy="80" r="3" fill="#7A3CB0" opacity=".7"/>
+            <circle cx="430" cy="80" r="3" fill="#7A3CB0" opacity=".7"/>
+            <circle cx="290" cy="300" r="3" fill="#7A3CB0" opacity=".7"/>
+            <circle cx="430" cy="300" r="3" fill="#7A3CB0" opacity=".7"/>
           </g>
 
           <g className="rb-part" opacity={dim("doors")}>
