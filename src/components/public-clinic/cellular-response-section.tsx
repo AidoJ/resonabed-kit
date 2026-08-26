@@ -60,8 +60,8 @@ const STEPS: { n: number; c: string; t: string; x: string; on: PartId[] }[] = [
 const CSS = `
 @keyframes rbFlow { 0%{transform:translateX(0);opacity:1} 70%{opacity:1} 100%{transform:translateX(14px);opacity:0} }
 .rb-flow circle { animation: rbFlow 1.4s linear infinite; }
-@keyframes rbTighten { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(0.82)} }
-.rb-tighten { transform-box:fill-box; transform-origin:center; animation:rbTighten 1.4s ease-in-out infinite; }
+@keyframes rbTighten { 0%,100% { transform: scale(1); } 50% { transform: scale(0.94); } }
+.rb-tighten { transform-box: fill-box; transform-origin: center; animation: rbTighten 1.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .rb-flow circle { animation: none; } .rb-tighten { animation: none; } }
 .rb-part { transition: opacity .5s ease; }
 `;
