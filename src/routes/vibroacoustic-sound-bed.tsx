@@ -23,7 +23,7 @@ const DESCRIPTION =
   "Turn the therapy table you already own into a professional vibroacoustic sound bed. Tactile transducers, Bluetooth amplifier, session player app and nine Solfeggio frequencies.";
 const URL = "https://resonabed.com/vibroacoustic-sound-bed";
 
-const FAQS: { q: string; a: string }[] = [
+export const FAQS: { q: string; a: string }[] = [
   {
     q: "What is a vibroacoustic sound bed?",
     a: "A vibroacoustic sound bed is a treatment table fitted with tactile transducers that transmit low-frequency sound through the body as gentle vibration. The client hears the music and feels it at the same time, which is why sessions are often described as deeply restful.",
