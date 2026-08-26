@@ -9,7 +9,8 @@ import { useEffect, useState } from "react";
 
 type PartId = "waves" | "squeeze" | "doors" | "fuel" | "frame" | "tug" | "repair";
 
-const ALL_PARTS: PartId[] = ["waves", "squeeze", "doors", "fuel", "frame", "tug", "repair"];
+
+
 
 const STEPS: { n: number; c: string; t: string; x: string; on: PartId[] }[] = [
   {
