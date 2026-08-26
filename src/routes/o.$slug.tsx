@@ -571,6 +571,19 @@ function PublicOrgPage() {
                         {s.description}
                       </p>
                     ) : null}
+                    {bookable ? (
+                      <a
+                        href="#request"
+                        onClick={() => setPreselectedServiceId(s.id)}
+                        className="mt-5 flex h-11 w-full items-center justify-center rounded-full text-sm font-medium transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                        style={{
+                          background: "var(--clinic-accent)",
+                          color: "var(--clinic-accent-fg)",
+                        }}
+                      >
+                        Book now
+                      </a>
+                    ) : null}
                   </div>
                 </article>
               ))}
@@ -589,6 +602,7 @@ function PublicOrgPage() {
                 slug={org.slug}
                 services={services}
                 timezone={tz}
+                preselectedServiceId={preselectedServiceId}
                 clinicName={org.name}
                 availability={availability}
                 practitioners={
