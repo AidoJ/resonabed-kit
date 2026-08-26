@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 
 type PartId = "waves" | "squeeze" | "doors" | "fuel" | "frame" | "tug" | "repair";
 
+const ALL_PARTS: PartId[] = ["waves", "squeeze", "doors", "fuel", "frame", "tug", "repair"];
+
 const STEPS: { n: number; c: string; t: string; x: string; on: PartId[] }[] = [
   {
     n: 1,
@@ -47,7 +49,7 @@ const STEPS: { n: number; c: string; t: string; x: string; on: PartId[] }[] = [
   },
   {
     n: 6,
-    c: "#159B84",
+    c: "#C8871A",
     t: "Repair helpers get made",
     x: "The nucleus reads the tug as a signal to build repair helpers and calm things down.",
     on: ["repair"],
@@ -55,27 +57,17 @@ const STEPS: { n: number; c: string; t: string; x: string; on: PartId[] }[] = [
 ];
 
 const CSS = `
-@keyframes cellFlow { 0%{transform:translateX(0);opacity:1} 70%{opacity:1} 100%{transform:translateX(14px);opacity:0} }
-.cell-flow circle { animation: cellFlow 1.4s linear infinite; }
-@keyframes cellWave { 0%{opacity:.15;transform:translateX(-4px)} 50%{opacity:1;transform:translateX(0)} 100%{opacity:.15;transform:translateX(-4px)} }
-.cell-wave path { animation: cellWave 1.8s ease-in-out infinite; }
-@keyframes cellSqueeze { 0%,100%{transform:scale(1,1)} 50%{transform:scale(.955,1.045)} }
-.cell-squeeze { animation: cellSqueeze 2.2s ease-in-out infinite; transform-origin: 200px 130px; }
-@keyframes cellTug { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-6px)} }
-.cell-tug { animation: cellTug 2.2s ease-in-out infinite; }
-@keyframes cellRepair { 0%{r:2;opacity:.2} 50%{opacity:1} 100%{r:4.5;opacity:0} }
-.cell-repair circle { animation: cellRepair 1.9s ease-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .cell-flow circle, .cell-wave path, .cell-squeeze, .cell-tug, .cell-repair circle { animation: none; }
-}
-.cell-part { transition: opacity .5s ease; }
+@keyframes rbFlow { 0%{transform:translateX(0);opacity:1} 70%{opacity:1} 100%{transform:translateX(14px);opacity:0} }
+.rb-flow circle { animation: rbFlow 1.4s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .rb-flow circle { animation: none; } }
+.rb-part { transition: opacity .5s ease; }
 `;
 
 function CellVibrationAnimation() {
   const [i, setI] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setI((p) => (p + 1) % STEPS.length), 2600);
+    const id = setInterval(() => setI((p) => (p + 1) % STEPS.length), 4600);
     return () => clearInterval(id);
   }, []);
 
@@ -86,146 +78,206 @@ function CellVibrationAnimation() {
     <div className="mx-auto mt-14 max-w-3xl">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      <div className="rounded-3xl border bg-card p-6 shadow-soft md:p-8">
+      <div
+        className="rounded-2xl border p-2"
+        style={{ background: "#F5F1FB", borderColor: "#E4DBF2" }}
+      >
         <svg
-          viewBox="0 0 400 260"
+          viewBox="0 0 680 340"
           className="w-full"
           role="img"
-          aria-label="Illustration of how a cell responds to low-frequency vibration"
+          aria-label="A cell responding to gentle vibration in six stages: sound waves press the cell, doors open, teal fuel flows in, the inner frame tightens, the nucleus is tugged, and gold repair helpers are made."
         >
-          {/* sound waves */}
-          <g className="cell-part cell-wave" opacity={dim("waves")} stroke="#6C30A8" fill="none">
-            <path d="M18 130 q14 -34 0 -68 M18 130 q14 34 0 68" strokeWidth="3" opacity=".5" />
-            <path d="M38 130 q16 -28 0 -56 M38 130 q16 28 0 56" strokeWidth="3" opacity=".7" />
-            <path d="M58 130 q18 -22 0 -44 M58 130 q18 22 0 44" strokeWidth="3" />
-          </g>
-
-          {/* cell body */}
-          <g className={step.on.includes("squeeze") ? "cell-squeeze" : undefined}>
-            <ellipse
-              cx="200"
-              cy="130"
-              rx="118"
-              ry="88"
-              fill="#F3ECFA"
-              stroke="#5A2488"
+          <g className="rb-part" opacity={dim("waves")}>
+            <path
+              d="M30 120Q46 155,30 190Q46 225,30 260"
+              fill="none"
+              stroke="#6C30A8"
               strokeWidth="3"
             />
-
-            {/* membrane doors */}
-            <g className="cell-part" opacity={dim("doors")}>
-              {[
-                [96, 72],
-                [88, 130],
-                [96, 188],
-                [304, 72],
-                [312, 130],
-                [304, 188],
-              ].map(([x, y]) => (
-                <g key={`${x}-${y}`}>
-                  <rect
-                    x={(x as number) - 7}
-                    y={(y as number) - 9}
-                    width="14"
-                    height="18"
-                    rx="4"
-                    fill="#ffffff"
-                    stroke="#159B84"
-                    strokeWidth="2.5"
-                  />
-                  <line
-                    x1={(x as number) - 7}
-                    y1={(y as number) - 9}
-                    x2={(x as number) + 7}
-                    y2={(y as number) - 9}
-                    stroke="#159B84"
-                    strokeWidth="2.5"
-                  />
-                </g>
-              ))}
-            </g>
-
-            {/* cytoskeleton frame */}
-            <g
-              className="cell-part"
-              opacity={dim("frame")}
-              stroke="#7A3CB0"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <line x1="104" y1="86" x2="184" y2="122" />
-              <line x1="104" y1="176" x2="184" y2="142" />
-              <line x1="296" y1="86" x2="220" y2="120" />
-              <line x1="296" y1="176" x2="220" y2="144" />
-              <line x1="200" y1="46" x2="200" y2="102" />
-              <line x1="200" y1="214" x2="200" y2="160" />
-            </g>
-
-            {/* nucleus */}
-            <g className={step.on.includes("tug") ? "cell-tug" : undefined}>
-              <circle cx="200" cy="130" r="34" fill="#3B1E78" opacity=".92" />
-              <circle cx="200" cy="130" r="14" fill="#8B5CD6" opacity=".85" />
-              <text
-                x="200"
-                y="184"
-                textAnchor="middle"
-                fontSize="11"
-                fill="#3B1E78"
-                fontWeight="600"
-              >
-                Nucleus
-              </text>
-              <text x="200" y="198" textAnchor="middle" fontSize="9" fill="#6b6580">
-                Control center
-              </text>
-
-              {/* repair proteins */}
-              <g className="cell-part cell-repair" opacity={dim("repair")} fill="#159B84">
-                <circle cx="168" cy="100" r="3" />
-                <circle cx="236" cy="104" r="3" />
-                <circle cx="170" cy="162" r="3" />
-                <circle cx="234" cy="158" r="3" />
-              </g>
-            </g>
-
-            {/* fuel entering */}
-            <g className="cell-part cell-flow" opacity={dim("fuel")} fill="#159B84">
-              <circle cx="104" cy="72" r="4" />
-              <circle cx="98" cy="130" r="4" />
-              <circle cx="104" cy="188" r="4" />
-            </g>
+            <path
+              d="M48 120Q64 155,48 190Q64 225,48 260"
+              fill="none"
+              stroke="#8A54C4"
+              strokeWidth="3"
+              opacity=".7"
+            />
+            <path
+              d="M66 120Q82 155,66 190Q82 225,66 260"
+              fill="none"
+              stroke="#8A54C4"
+              strokeWidth="3"
+              opacity=".45"
+            />
           </g>
+
+          <g className="rb-part" opacity={dim("squeeze")} fill="#6C30A8">
+            <path d="M300 66l-7 14 14 0z" />
+            <path d="M360 60l-7 14 14 0z" />
+            <path d="M420 66l-7 14 14 0z" />
+            <path d="M300 314l-7 -14 14 0z" />
+            <path d="M360 320l-7 -14 14 0z" />
+            <path d="M420 314l-7 -14 14 0z" />
+          </g>
+
+          <ellipse
+            cx="360"
+            cy="190"
+            rx="250"
+            ry="118"
+            fill="#B9A6E0"
+            fillOpacity=".30"
+            stroke="#8A54C4"
+            strokeWidth="2.5"
+          />
+
+          <g className="rb-part" opacity={dim("frame")}>
+            <path
+              d="M175 190Q270 150,340 190"
+              fill="none"
+              stroke="#7A3CB0"
+              strokeWidth="2.5"
+              opacity=".75"
+            />
+            <path
+              d="M175 190Q270 230,340 190"
+              fill="none"
+              stroke="#7A3CB0"
+              strokeWidth="2.5"
+              opacity=".75"
+            />
+            <path
+              d="M205 145Q285 172,352 182"
+              fill="none"
+              stroke="#7A3CB0"
+              strokeWidth="2.5"
+              opacity=".5"
+            />
+            <path
+              d="M205 235Q285 208,352 198"
+              fill="none"
+              stroke="#7A3CB0"
+              strokeWidth="2.5"
+              opacity=".5"
+            />
+          </g>
+
+          <g className="rb-part" opacity={dim("doors")}>
+            <rect
+              x="112"
+              y="170"
+              width="17"
+              height="17"
+              rx="4"
+              fill="#9B6BD0"
+              stroke="#5A2488"
+              strokeWidth="1.5"
+            />
+            <rect
+              x="112"
+              y="193"
+              width="17"
+              height="17"
+              rx="4"
+              fill="#9B6BD0"
+              stroke="#5A2488"
+              strokeWidth="1.5"
+            />
+          </g>
+
+          <g
+            className={`rb-part${step.on.includes("fuel") ? " rb-flow" : ""}`}
+            opacity={dim("fuel")}
+          >
+            <circle cx="150" cy="182" r="8" fill="#159B84" />
+            <circle cx="186" cy="192" r="8" fill="#159B84" />
+            <circle cx="220" cy="182" r="7" fill="#4FC2AC" />
+          </g>
+
+          <circle
+            cx="360"
+            cy="190"
+            r="60"
+            fill="#3B1E78"
+            fillOpacity=".82"
+            stroke="#1A0C54"
+            strokeWidth="2.5"
+          />
+          <path d="M337 168Q360 180,383 168" fill="none" stroke="#C9B6ED" strokeWidth="2.5" />
+          <path d="M337 190Q360 202,383 190" fill="none" stroke="#C9B6ED" strokeWidth="2.5" />
+          <path d="M337 212Q360 224,383 212" fill="none" stroke="#C9B6ED" strokeWidth="2.5" />
+
+          <g className="rb-part" opacity={dim("tug")}>
+            <path
+              d="M300 174l-14 -5M300 190l-16 0M300 206l-14 5"
+              stroke="#5A2488"
+              strokeWidth="2.5"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </g>
+
+          <g className="rb-part" opacity={dim("repair")}>
+            <circle cx="470" cy="190" r="8" fill="#E0A030" />
+            <circle cx="505" cy="175" r="8" fill="#E0A030" />
+            <circle cx="505" cy="205" r="8" fill="#E0A030" />
+            <circle cx="540" cy="190" r="8" fill="#F0C060" />
+          </g>
+
+          <text
+            x="360"
+            y="126"
+            textAnchor="middle"
+            fill="#5A2488"
+            fontSize="13"
+            fontWeight="500"
+          >
+            Nucleus
+          </text>
+          <text
+            x="360"
+            y="262"
+            textAnchor="middle"
+            fill="#3B1E78"
+            fontSize="13"
+            fontWeight="500"
+          >
+            Control center
+          </text>
         </svg>
       </div>
 
       {/* progress dots */}
-      <div className="mt-6 flex items-center justify-center gap-2">
+      <div className="mt-3.5 mb-3 flex items-center justify-center gap-[7px]">
         {STEPS.map((s, j) => (
           <button
             key={s.n}
             type="button"
             aria-label={`Step ${s.n}: ${s.t}`}
             onClick={() => setI(j)}
-            className="h-2 rounded-full transition-all"
+            className="h-[9px] w-[9px] rounded-full transition-all duration-300"
             style={{
-              width: j === i ? 28 : 8,
-              background: j === i ? step.c : "color-mix(in oklab, #3B1E78 22%, #ffffff)",
+              background: j === i ? "#6C30A8" : "#D4C9E8",
+              transform: j === i ? "scale(1.4)" : "scale(1)",
             }}
           />
         ))}
       </div>
 
       {/* caption */}
-      <div className="mt-6 flex items-start gap-4">
+      <div
+        className="flex min-h-[78px] items-start gap-3.5 rounded-2xl border px-4 py-3.5"
+        style={{ background: "#F5F1FB", borderColor: "#E4DBF2" }}
+      >
         <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+          className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full text-base font-medium text-white transition-colors duration-500"
           style={{ background: step.c }}
         >
           {step.n}
         </span>
         <div aria-live="polite">
           <h3 className="text-base font-medium tracking-tight">{step.t}</h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.x}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.x}</p>
         </div>
       </div>
     </div>
