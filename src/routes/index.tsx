@@ -627,6 +627,7 @@ function LandingPage() {
       {/* SCIENCE */}
       <div style={clinicThemeVars(null, null)}>
         <ScienceSection />
+        <CellularResponseSection />
       </div>
 
 

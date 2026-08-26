@@ -430,6 +430,7 @@ function PublicOrgPage() {
 
       {/* ------------------------------------------------- SCIENCE (non-editable) */}
       <ScienceSection />
+      <CellularResponseSection />
 
 
 
