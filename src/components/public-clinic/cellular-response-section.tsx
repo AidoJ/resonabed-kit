@@ -52,7 +52,7 @@ const STEPS: { n: number; c: string; t: string; x: string; on: PartId[] }[] = [
     n: 6,
     c: "#C8871A",
     t: "Repair helpers get made",
-    x: "The nucleus reads the tug as a signal to build repair helpers and calm things down.",
+    x: "The nucleus reads the tug as a signal to build repair helpers and  calm things down.",
     on: ["repair"],
   },
 ];
@@ -326,7 +326,7 @@ export function CellularResponseSection() {
             The Cellular Response
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">
-            Vibroacoustic therapy (VAT)... a gentle wake-up call and a cellular workout.
+            Vibroacoustic therapy .. a gentle wake-up call and a cellular workout.
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             Gentle vibrations give your cells a tiny wake-up call.
