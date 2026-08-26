@@ -56,10 +56,9 @@ export function CellularResponseSection() {
           {CELLULAR_STEPS.map((s, i) => (
             <div
               key={s.title}
-              className="rounded-2xl border p-6"
+              className="rounded-2xl border bg-card p-6 shadow-soft"
               style={{
-                background: "var(--clinic-tint)",
-                borderColor: "color-mix(in oklab, var(--clinic-accent) 25%, transparent)",
+                borderColor: "color-mix(in oklab, var(--clinic-accent) 20%, transparent)",
               }}
             >
               <div className="flex items-center gap-3">
