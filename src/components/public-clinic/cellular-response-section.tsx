@@ -52,7 +52,7 @@ const STEPS: { n: number; c: string; t: string; x: string; on: PartId[] }[] = [
     n: 6,
     c: "#C8871A",
     t: "Repair helpers get made",
-    x: "The nucleus reads the tug as a signal to build repair helpers and calm things down.",
+    x: "The nucleus reads the tug as a signal to build repair helpers and  calm things down.",
     on: ["repair"],
   },
 ];
