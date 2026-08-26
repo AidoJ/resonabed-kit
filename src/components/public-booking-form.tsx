@@ -96,6 +96,13 @@ export function PublicBookingForm({
   const tz = timezone || DEFAULT_TIMEZONE;
 
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
+
+  // A "Book now" tap on a service card switches the form to that session.
+  useEffect(() => {
+    if (preselectedServiceId && services.some((s) => s.id === preselectedServiceId)) {
+      setServiceId(preselectedServiceId);
+    }
+  }, [preselectedServiceId, services]);
   const [practitionerId, setPractitionerId] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
