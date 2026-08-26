@@ -68,11 +68,17 @@ export function PublicBookingForm({
   availability = [],
   practitioners = [],
   practitionerAvailability = [],
+  preselectedServiceId = null,
 }: {
   slug: string;
   services: PublicService[];
   timezone: string;
   clinicName: string;
+  /**
+   * Set by a "Book now" button on a service card; the form switches to that
+   * session instead of showing its own selector.
+   */
+  preselectedServiceId?: string | null;
   /**
    * Only populated when the clinic has opted in to letting visitors name a
    * preferred practitioner. Empty means the selector is never rendered.
@@ -90,6 +96,13 @@ export function PublicBookingForm({
   const tz = timezone || DEFAULT_TIMEZONE;
 
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
+
+  // A "Book now" tap on a service card switches the form to that session.
+  useEffect(() => {
+    if (preselectedServiceId && services.some((s) => s.id === preselectedServiceId)) {
+      setServiceId(preselectedServiceId);
+    }
+  }, [preselectedServiceId, services]);
   const [practitionerId, setPractitionerId] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -223,38 +236,27 @@ export function PublicBookingForm({
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={onSubmit} className="grid gap-4">
-          <fieldset className="grid gap-3">
-            <legend className="mb-1 text-sm font-medium">Choose your session</legend>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {services.map((s) => {
-                const selected = s.id === serviceId;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setServiceId(s.id)}
-                    aria-pressed={selected}
-                    className={cn(
-                      "flex items-start justify-between gap-3 rounded-xl border p-4 text-left transition-colors hover:border-primary/60",
-                      selected && "border-primary bg-primary/5",
-                    )}
-                  >
-                    <span className="min-w-0">
-                      <span className="block font-medium leading-snug">{s.name}</span>
-                      <span className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" />
-                        {s.duration_minutes} min
-                        {s.price !== null && s.price !== undefined
-                          ? ` · ${money(Number(s.price))}`
-                          : ""}
-                      </span>
-                    </span>
-                    {selected ? <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" /> : null}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
+          {(() => {
+            const chosen = services.find((s) => s.id === serviceId);
+            return chosen ? (
+              <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/30 p-4">
+                <span className="min-w-0">
+                  <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Your session
+                  </span>
+                  <span className="mt-0.5 block font-medium leading-snug">{chosen.name}</span>
+                  <span className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    {chosen.duration_minutes} min
+                    {chosen.price !== null && chosen.price !== undefined
+                      ? ` · ${money(Number(chosen.price))}`
+                      : ""}
+                  </span>
+                </span>
+                <Check className="h-5 w-5 shrink-0 text-primary" />
+              </div>
+            ) : null;
+          })()}
 
           {practitioners.length > 0 ? (
             <div className="grid gap-2">
