@@ -1,4 +1,5 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { Mail, Phone, MapPin, Clock, Waves, ArrowRight, ShieldCheck, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -137,6 +138,9 @@ function PublicOrgPage() {
   const theme = clinicThemeVars(org.theme_sidebar, org.theme_primary);
   const tz = org.timezone || DEFAULT_TIMEZONE;
   const bookable = org.public_booking_enabled && services.length > 0;
+  // Set when a visitor taps "Book now" on a service card; the form below
+  // picks it up and no longer shows its own service selector.
+  const [preselectedServiceId, setPreselectedServiceId] = useState<string | null>(null);
 
   const navItems: ClinicNavItem[] = [
     ...(org.public_blurb ? [{ label: "About Us", href: "#about" }] : []),
