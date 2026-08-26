@@ -86,10 +86,9 @@ export function ScienceSection() {
               slower breathing, lower perceived stress, and improved relaxation.
             </p>
             <div
-              className="rounded-2xl border p-6"
+              className="rounded-2xl border bg-card p-6 shadow-soft"
               style={{
-                background: "var(--clinic-tint)",
-                borderColor: "color-mix(in oklab, var(--clinic-accent) 25%, transparent)",
+                borderColor: "color-mix(in oklab, var(--clinic-accent) 20%, transparent)",
               }}
             >
               <p className="text-foreground">
