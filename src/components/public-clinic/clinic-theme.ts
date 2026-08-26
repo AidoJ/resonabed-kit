@@ -43,9 +43,10 @@ export function clinicThemeVars(
     // Accent role: buttons, eyebrows, small accents.
     "--clinic-accent": primary,
     "--clinic-accent-fg": fgFor(primary),
-    // Derived tints, same color-mix approach as --sidebar-accent in the shell.
-    "--clinic-tint": `color-mix(in oklab, ${sidebar} 22%, transparent)`,
-    "--clinic-tint-soft": `color-mix(in oklab, ${sidebar} 8%, transparent)`,
-    "--clinic-accent-tint": `color-mix(in oklab, ${primary} 22%, transparent)`,
+    // Derived tints. Mixed against white (not transparent) so panels stay light
+    // and text keeps strong contrast on the public pages.
+    "--clinic-tint": `color-mix(in oklab, ${sidebar} 7%, #ffffff)`,
+    "--clinic-tint-soft": `color-mix(in oklab, ${sidebar} 3%, #ffffff)`,
+    "--clinic-accent-tint": `color-mix(in oklab, ${primary} 9%, #ffffff)`,
   } as React.CSSProperties;
 }

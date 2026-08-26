@@ -86,10 +86,9 @@ export function ScienceSection() {
               slower breathing, lower perceived stress, and improved relaxation.
             </p>
             <div
-              className="rounded-2xl border p-6"
+              className="rounded-2xl border bg-card p-6 shadow-soft"
               style={{
-                background: "var(--clinic-tint)",
-                borderColor: "color-mix(in oklab, var(--clinic-accent) 25%, transparent)",
+                borderColor: "color-mix(in oklab, var(--clinic-accent) 20%, transparent)",
               }}
             >
               <p className="text-foreground">
@@ -109,8 +108,7 @@ export function ScienceSection() {
               {BENEFITS.map((b) => (
                 <li
                   key={b}
-                  className="flex gap-3 rounded-xl border px-5 py-4 text-sm leading-relaxed"
-                  style={{ background: "var(--clinic-tint-soft)" }}
+                  className="flex gap-3 rounded-xl border bg-card px-5 py-4 text-sm leading-relaxed"
                 >
                   <span
                     aria-hidden
