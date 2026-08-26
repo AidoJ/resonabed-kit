@@ -32,7 +32,7 @@ const SPECS: { label: string; value: string }[] = [
   { label: "Install", value: "Wiring, fittings and step-by-step guide, around an hour" },
 ];
 
-const FAQS: { q: string; a: string }[] = [
+export const FAQS: { q: string; a: string }[] = [
   {
     q: "What is a vibroacoustic therapy bed?",
     a: "A vibroacoustic therapy bed is a treatment table fitted with tactile transducers that transmit low-frequency sound through the body as gentle vibration. The client hears the music and feels it at the same time, which is why sessions are often described as deeply restful.",
