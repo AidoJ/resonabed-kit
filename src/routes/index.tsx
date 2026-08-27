@@ -136,23 +136,23 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
+      { title: "Resonabed | Vibroacoustic Therapy for Your Practice" },
       {
         name: "description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
+          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
       },
-      { property: "og:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
+      { property: "og:title", content: "Resonabed | Vibroacoustic Therapy for Your Practice" },
       {
         property: "og:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
+          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
       },
-      { name: "twitter:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
+      { name: "twitter:title", content: "Resonabed | Vibroacoustic Therapy for Your Practice" },
       {
         name: "twitter:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
+          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
