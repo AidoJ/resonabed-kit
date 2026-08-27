@@ -82,6 +82,15 @@ export function KitCard({
           {linkLabel}
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
+      ) : actionLabel && onAction ? (
+        <button
+          type="button"
+          onClick={onAction}
+          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
+        >
+          {actionLabel}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </button>
       ) : null}
       {cta ? (
         <p className="mt-auto pt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-violet-strong">
