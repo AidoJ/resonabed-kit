@@ -21,7 +21,13 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, ImageIcon, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/services")({
-  head: () => ({ meta: [{ title: "Services, Admin, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Services, Admin, ResonaBed" },
+      { name: "description", content: "Manage your clinic's services: pricing, duration, buffers and display order." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ServicesAdmin,
 });
 

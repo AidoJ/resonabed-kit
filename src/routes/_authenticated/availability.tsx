@@ -26,7 +26,13 @@ import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { tzAbbrev } from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/availability")({
-  head: () => ({ meta: [{ title: "Availability, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Availability, ResonaBed" },
+      { name: "description", content: "Set your weekly working hours so clients only see bookable times." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: AvailabilityPage,
 });
 

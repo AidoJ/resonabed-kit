@@ -9,7 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/sessions/$id/")({
-  head: () => ({ meta: [{ title: "Session summary, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Session summary, ResonaBed" },
+      { name: "description", content: "Review a completed session: client, frequency, wellbeing ratings and payment status." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: SessionSummary,
 });
 

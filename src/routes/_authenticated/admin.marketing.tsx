@@ -15,7 +15,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/_authenticated/admin/marketing")({
-  head: () => ({ meta: [{ title: "Marketing, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Marketing, ResonaBed" },
+      { name: "description", content: "Download flyers and brochures personalised with your clinic's details and booking QR code." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: MarketingPage,
 });
 

@@ -17,7 +17,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/_authenticated/admin/policy-templates")({
-  head: () => ({ meta: [{ title: "Policy templates, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Policy templates, ResonaBed" },
+      { name: "description", content: "Edit the policy wording templates new clinics start from." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: PolicyTemplatesAdmin,
 });
 

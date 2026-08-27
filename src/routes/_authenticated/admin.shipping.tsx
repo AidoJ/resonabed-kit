@@ -44,7 +44,13 @@ import { Plus, Trash2, Truck } from "lucide-react";
 import { PACKAGE_LABELS } from "@/lib/packages";
 
 export const Route = createFileRoute("/_authenticated/admin/shipping")({
-  head: () => ({ meta: [{ title: "Shipping rates, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Shipping rates, ResonaBed" },
+      { name: "description", content: "Manage shipping rates applied to kit orders at checkout." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ShippingRatesPage,
 });
 

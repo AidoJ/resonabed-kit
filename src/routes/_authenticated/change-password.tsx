@@ -10,7 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/_authenticated/change-password")({
-  head: () => ({ meta: [{ title: "Change password, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Change password, ResonaBed" },
+      { name: "description", content: "Change the password on your Resonabed account." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ChangePassword,
 });
 

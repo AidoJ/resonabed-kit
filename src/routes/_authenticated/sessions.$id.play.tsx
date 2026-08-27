@@ -16,7 +16,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/sessions/$id/play")({
-  head: () => ({ meta: [{ title: "Session, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Session, ResonaBed" },
+      { name: "description", content: "Live vibroacoustic session player with timer, frequency audio and session controls." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: PlaySession,
 });
 

@@ -23,7 +23,13 @@ import { Pencil, Plus, History, MailWarning } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_authenticated/admin/clients")({
-  head: () => ({ meta: [{ title: "Clients, Admin, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Clients, Admin, ResonaBed" },
+      { name: "description", content: "Client administration: history, screening records and contact details." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ClientsAdmin,
 });
 

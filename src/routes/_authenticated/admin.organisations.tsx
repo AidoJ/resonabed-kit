@@ -52,7 +52,13 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
-  head: () => ({ meta: [{ title: "Organisations, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Organisations, ResonaBed" },
+      { name: "description", content: "Platform administration: every organisation, licence status and onboarding progress." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: OrganisationsPage,
 });
 

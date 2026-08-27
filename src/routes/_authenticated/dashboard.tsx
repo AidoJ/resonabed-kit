@@ -25,7 +25,13 @@ import {
 } from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard, Resonabed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Dashboard, Resonabed" },
+      { name: "description", content: "Your clinic at a glance: today's bookings, recent sessions and quick actions." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: DashboardPage,
 });
 

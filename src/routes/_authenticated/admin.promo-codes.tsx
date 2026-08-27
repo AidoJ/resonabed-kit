@@ -35,7 +35,13 @@ import {
 import { Plus, Tag, Copy, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/promo-codes")({
-  head: () => ({ meta: [{ title: "Promo codes, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Promo codes, ResonaBed" },
+      { name: "description", content: "Create and manage promotional discount codes for kit checkout." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: PromoCodesPage,
 });
 

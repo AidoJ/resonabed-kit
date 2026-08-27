@@ -27,7 +27,13 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/onboarding")({
-  head: () => ({ meta: [{ title: "Clinic onboarding, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Clinic onboarding, ResonaBed" },
+      { name: "description", content: "Onboard a new clinic: organisation setup, admin account and go-live steps." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: OnboardingPage,
 });
 

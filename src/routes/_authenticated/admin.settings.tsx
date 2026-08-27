@@ -42,7 +42,13 @@ import { PublicPageCard } from "@/components/settings/public-page-card";
 
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
-  head: () => ({ meta: [{ title: "Settings, Admin, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Settings, Admin, ResonaBed" },
+      { name: "description", content: "Clinic settings: identity, branding, contact details, policies and go-live checklist." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: SettingsAdmin,
 });
 

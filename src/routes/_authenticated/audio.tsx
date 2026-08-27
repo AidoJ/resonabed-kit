@@ -42,7 +42,13 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/audio")({
-  head: () => ({ meta: [{ title: "Audio library, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Audio library, ResonaBed" },
+      { name: "description", content: "Your clinic's audio library: upload tracks and assign them to frequencies." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: AudioPage,
 });
 

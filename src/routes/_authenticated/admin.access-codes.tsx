@@ -37,7 +37,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_authenticated/admin/access-codes")({
-  head: () => ({ meta: [{ title: "Home access codes, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Home access codes, ResonaBed" },
+      { name: "description", content: "Home access codes issued with personal kit purchases." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: AccessCodesPage,
 });
 
