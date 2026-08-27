@@ -538,6 +538,8 @@ function LandingPage() {
                 cta: "A library of therapeutic sound",
                 image: kitImages.solfeggio,
                 imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
+                actionLabel: "Read more",
+                onAction: () => setShowFrequencies(true),
               },
               {
                 icon: FileText,
