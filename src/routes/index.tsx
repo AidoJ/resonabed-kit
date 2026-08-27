@@ -584,7 +584,8 @@ function LandingPage() {
       </section>
 
       {showFrequencies ? (
-        <div style={clinicThemeVars(null, null)}>
+        <div id="solfeggio-detail" style={clinicThemeVars(null, null)} className="scroll-mt-24">
+
           <SolfeggioFrequenciesSection />
           <div className="mx-auto max-w-7xl px-6 pb-8 md:px-10">
             <button
