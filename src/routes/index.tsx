@@ -538,8 +538,17 @@ function LandingPage() {
                 cta: "A library of therapeutic sound",
                 image: kitImages.solfeggio,
                 imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
-                actionLabel: "Read more",
-                onAction: () => setShowFrequencies(true),
+                actionLabel: showFrequencies ? "Show less" : "Read more",
+                onAction: () => {
+                  setShowFrequencies((v) => !v);
+                  if (!showFrequencies) {
+                    window.setTimeout(() => {
+                      document
+                        .getElementById("solfeggio-detail")
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 80);
+                  }
+                },
               },
               {
                 icon: FileText,
@@ -575,7 +584,8 @@ function LandingPage() {
       </section>
 
       {showFrequencies ? (
-        <div style={clinicThemeVars(null, null)}>
+        <div id="solfeggio-detail" style={clinicThemeVars(null, null)} className="scroll-mt-24">
+
           <SolfeggioFrequenciesSection />
           <div className="mx-auto max-w-7xl px-6 pb-8 md:px-10">
             <button
