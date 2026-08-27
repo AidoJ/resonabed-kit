@@ -574,6 +574,21 @@ function LandingPage() {
         </div>
       </section>
 
+      {showFrequencies ? (
+        <div style={clinicThemeVars(null, null)}>
+          <SolfeggioFrequenciesSection />
+          <div className="mx-auto max-w-7xl px-6 pb-8 md:px-10">
+            <button
+              type="button"
+              onClick={() => setShowFrequencies(false)}
+              className="text-sm font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
+            >
+              Show less
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {/* HOW IT WORKS */}
       <section id="how" className="bg-secondary/40 py-24 md:py-28">
         <div className="mx-auto max-w-7xl px-6 md:px-10">
