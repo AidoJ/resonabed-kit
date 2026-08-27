@@ -42,6 +42,8 @@ export function KitCard({
   pair,
   linkTo,
   linkLabel,
+  actionLabel,
+  onAction,
 }: KitItem) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-8 transition hover:-translate-y-0.5 hover:shadow-lift">
