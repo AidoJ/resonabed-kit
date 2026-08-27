@@ -34,6 +34,7 @@ import hero from "@/assets/resonabed-hero.png.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
+import { SolfeggioFrequenciesSection } from "@/components/public-clinic/solfeggio-frequencies-section";
 import { KitCard, kitImages } from "@/components/kit-card";
 import { HomeOrderPanel } from "@/components/home-order-panel";
 import {
@@ -163,6 +164,7 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showFrequencies, setShowFrequencies] = useState(false);
 
   // Super-admin editable kit pricing; static defaults render until this lands.
   const fetchPricing = useServerFn(getKitPricing);
@@ -536,6 +538,8 @@ function LandingPage() {
                 cta: "A library of therapeutic sound",
                 image: kitImages.solfeggio,
                 imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
+                actionLabel: "Read more",
+                onAction: () => setShowFrequencies(true),
               },
               {
                 icon: FileText,
@@ -569,6 +573,21 @@ function LandingPage() {
           </div>
         </div>
       </section>
+
+      {showFrequencies ? (
+        <div style={clinicThemeVars(null, null)}>
+          <SolfeggioFrequenciesSection />
+          <div className="mx-auto max-w-7xl px-6 pb-8 md:px-10">
+            <button
+              type="button"
+              onClick={() => setShowFrequencies(false)}
+              className="text-sm font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
+            >
+              Show less
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* HOW IT WORKS */}
       <section id="how" className="bg-secondary/40 py-24 md:py-28">
