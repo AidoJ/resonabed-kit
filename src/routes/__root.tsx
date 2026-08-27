@@ -82,25 +82,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#26106c" },
       { name: "apple-mobile-web-app-title", content: "Resonabed" },
-      { title: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
+      { title: "Resonabed | Vibroacoustic Therapy for Your Practice" },
       {
         name: "description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
+          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
       },
-      { property: "og:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
+      { property: "og:title", content: "Resonabed | Vibroacoustic Therapy for Your Practice" },
       {
         property: "og:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
+          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Resonabed | Vibroacoustic Therapy Kits for Clinics" },
+      { name: "twitter:title", content: "Resonabed | Vibroacoustic Therapy for Your Practice" },
       {
         name: "twitter:description",
         content:
-          "Convert the massage, chiropractic or osteopathic table you already own into a vibroacoustic therapy table. Kit, app and music licence included.",
+          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
       },
       { property: "og:image", content: "https://resonabed.com/__l5e/assets-v1/4c98a945-1707-458f-9997-2172e42adacc/resonabed-og.png" },
       { property: "og:image:width", content: "1200" },
