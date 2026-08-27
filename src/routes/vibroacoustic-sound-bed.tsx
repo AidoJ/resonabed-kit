@@ -18,9 +18,9 @@ import {
 } from "lucide-react";
 
 
-const TITLE = "Vibroacoustic Sound Bed Kit | Resonabed";
+const TITLE = "Vibroacoustic Therapy System | Resonabed";
 const DESCRIPTION =
-  "Turn the therapy table you already own into a professional vibroacoustic sound bed. Tactile transducers, Bluetooth amplifier, session player app and nine Solfeggio frequencies.";
+  "A complete vibroacoustic therapy system for your practice — tactile sound, session software, client booking and nine licensed Solfeggio frequencies, ready to add to your treatment room.";
 const URL = "https://resonabed.com/vibroacoustic-sound-bed";
 
 export const FAQS: { q: string; a: string }[] = [
