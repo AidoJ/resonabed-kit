@@ -16,9 +16,9 @@ import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
 import {
   EXPECT_STEPS,
   REASONS,
-  SOLFEGGIO,
   QUICK_FACTS,
 } from "@/components/public-clinic/clinic-content";
+import { SolfeggioFrequenciesSection } from "@/components/public-clinic/solfeggio-frequencies-section";
 import { StickyBookCta } from "@/components/public-clinic/sticky-book-cta";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
