@@ -28,6 +28,8 @@ export type KitItem = {
   pair?: boolean;
   linkTo?: string;
   linkLabel?: string;
+  actionLabel?: string;
+  onAction?: () => void;
 };
 
 export function KitCard({
