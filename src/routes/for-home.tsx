@@ -4,7 +4,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/for-home")({
   head: () => ({
     meta: [
-      { title: "Resonabed" },
+      { title: "Resonabed for Home | Personal Vibroacoustic Kit" },
       { name: "description", content: "Resonabed for home: a personal vibroacoustic kit with a simple app for running sessions in your own space." },
     ],
   }),
