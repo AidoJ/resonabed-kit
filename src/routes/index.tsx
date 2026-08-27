@@ -104,7 +104,7 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Full business app", true, true, true, false],
   ["Full business webpage", true, true, true, false],
   ["Home use app", false, false, false, true],
-  ["9 Solfeggio frequencies", false, false, false, true],
+  ["9 Solfeggio frequencies", true, true, true, true],
   ["Fully fitted out table", false, false, true, true],
 ];
 
