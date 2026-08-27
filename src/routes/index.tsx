@@ -164,6 +164,7 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showFrequencies, setShowFrequencies] = useState(false);
 
   // Super-admin editable kit pricing; static defaults render until this lands.
   const fetchPricing = useServerFn(getKitPricing);
