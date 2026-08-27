@@ -6,6 +6,13 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
  * signed-in pages.
  */
 export const Route = createFileRoute("/home")({
+  head: () => ({
+    meta: [
+      { title: "Resonabed Home App" },
+      { name: "description", content: "Your personal Resonabed app for vibroacoustic sessions at home." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   ssr: false,
   component: () => <Outlet />,
 });

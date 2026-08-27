@@ -43,7 +43,13 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/sessions/new")({
-  head: () => ({ meta: [{ title: "New session, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "New session, ResonaBed" },
+      { name: "description", content: "Start a guided vibroacoustic session: intake, wellbeing check, safety screening and frequency selection." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   validateSearch: zodValidator(searchSchema),
   component: NewSession,
 });

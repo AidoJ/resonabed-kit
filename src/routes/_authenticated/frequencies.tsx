@@ -38,7 +38,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/frequencies")({
-  head: () => ({ meta: [{ title: "Frequencies, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Frequencies, ResonaBed" },
+      { name: "description", content: "The nine Solfeggio wellbeing frequencies available in the Resonabed session player." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: FrequenciesPage,
 });
 

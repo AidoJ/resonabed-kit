@@ -24,7 +24,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ClientCheckinTrends } from "@/components/checkin/trend-chart";
 
 export const Route = createFileRoute("/_authenticated/clients")({
-  head: () => ({ meta: [{ title: "Clients, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Clients, ResonaBed" },
+      { name: "description", content: "Your clinic's client list: intake details, screening history and session records." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ClientsPage,
 });
 

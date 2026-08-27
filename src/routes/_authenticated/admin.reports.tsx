@@ -12,7 +12,13 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
-  head: () => ({ meta: [{ title: "Reports, Admin, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Reports, Admin, ResonaBed" },
+      { name: "description", content: "Clinic reports: sessions, revenue and booking trends over time." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ReportsAdmin,
 });
 

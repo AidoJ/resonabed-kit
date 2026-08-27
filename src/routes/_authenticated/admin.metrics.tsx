@@ -15,7 +15,13 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/admin/metrics")({
-  head: () => ({ meta: [{ title: "Platform metrics, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Platform metrics, ResonaBed" },
+      { name: "description", content: "Platform metrics: organisations, sessions and revenue across Resonabed." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: PlatformMetricsPage,
 });
 

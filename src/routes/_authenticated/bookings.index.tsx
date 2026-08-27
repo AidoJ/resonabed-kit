@@ -41,7 +41,13 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/bookings/")({
-  head: () => ({ meta: [{ title: "Bookings, ResonaBed" }] }),
+  head: () => ({
+    meta: [
+      { title: "Bookings, ResonaBed" },
+      { name: "description", content: "Your clinic's booking calendar: view, confirm and manage client appointments." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   validateSearch: zodValidator(searchSchema),
   component: BookingsPage,
 });
