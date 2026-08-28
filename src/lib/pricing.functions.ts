@@ -16,7 +16,7 @@ import {
 import { mapPriceRows } from "@/lib/pricing.server";
 
 const PRICE_SELECT =
-  "package_key, list_cents, plan_deposit_balance_cents, plan_monthly_cents, plan_months";
+  "package_key, list_cents, plan_list_cents, plan_deposit_balance_cents, plan_monthly_cents, plan_months";
 
 /** Public: current kit prices for the website. Falls back to static defaults. */
 export const getKitPricing = createServerFn({ method: "GET" }).handler(
@@ -53,6 +53,7 @@ export const getKitPricing = createServerFn({ method: "GET" }).handler(
 const PriceInput = z.object({
   packageKey: z.enum(["essentials", "pro", "platinum", "home"]),
   listCents: z.number().int().min(1000).max(100_000_00),
+  planListCents: z.number().int().min(1000).max(100_000_00),
   planDepositBalanceCents: z.number().int().min(1000).max(100_000_00),
   planMonthlyCents: z.number().int().min(1000).max(100_000_00),
   planMonths: z.number().int().min(1).max(36),
@@ -67,8 +68,9 @@ export const setKitPackagePricing = createServerFn({ method: "POST" })
       _user_id: context.userId,
     });
     if (!isAdmin) throw new Error("Only super admins can change kit pricing");
-    // The plan must reconcile exactly with the list price:
-    // order deposit + plan deposit balance + monthly × months = list price.
+    // The plan must reconcile exactly with the PLAN price (which may sit above
+    // the pay-in-full list price):
+    // order deposit + plan deposit balance + monthly × months = plan price.
     const { data: dep } = await context.supabase
       .from("app_settings")
       .select("value")
@@ -79,18 +81,22 @@ export const setKitPackagePricing = createServerFn({ method: "POST" })
       Number.isInteger(parsed) && parsed > 0 ? parsed : ORDER_DEPOSIT_CENTS;
     const planTotal =
       depositCents + data.planDepositBalanceCents + data.planMonthlyCents * data.planMonths;
-    if (planTotal !== data.listCents) {
+    if (data.planListCents < data.listCents) {
+      throw new Error("The payment plan price cannot be below the pay-in-full price.");
+    }
+    if (planTotal !== data.planListCents) {
       throw new Error(
         `Plan figures do not add up: $${(depositCents / 100).toFixed(2)} deposit + ` +
           `$${(data.planDepositBalanceCents / 100).toFixed(2)} + ${data.planMonths} × ` +
           `$${(data.planMonthlyCents / 100).toFixed(2)} = $${(planTotal / 100).toFixed(2)}, ` +
-          `but the list price is $${(data.listCents / 100).toFixed(2)}.`,
+          `but the payment plan price is $${(data.planListCents / 100).toFixed(2)}.`,
       );
     }
     const { error } = await context.supabase
       .from("kit_package_prices")
       .update({
         list_cents: data.listCents,
+        plan_list_cents: data.planListCents,
         plan_deposit_balance_cents: data.planDepositBalanceCents,
         plan_monthly_cents: data.planMonthlyCents,
         plan_months: data.planMonths,
