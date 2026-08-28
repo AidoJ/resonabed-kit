@@ -60,33 +60,48 @@ type Field = "list" | "planList" | "planDepositBalance" | "planMonthly" | "planM
  * PLAN price (which normally sits above the pay-in-full list price), i.e.
  * orderDeposit + planDepositBalance + monthly × months = plan price.
  *
+ * - Editing the pay-in-full price carries the plan price with it, keeping the
+ *   existing plan premium, then rebalances the plan figures.
  * - Editing the plan price, plan deposit or months recalculates the monthly
  *   payment; any cents remainder is folded into the plan deposit.
  * - Editing the monthly payment recalculates the plan deposit.
- * - The pay-in-full list price is edited independently.
  */
-function rebalance(d: Draft, changed: Field, depositCents: number): Draft {
-  if (changed === "list") return d;
-  const list = centsOf(d.planList);
-  const planDb = centsOf(d.planDepositBalance);
-  const monthly = centsOf(d.planMonthly);
-  const months = Math.max(1, Math.round(Number(d.planMonths) || 0));
-  if (changed === "planMonthly") {
-    if (list === null || monthly === null) return d;
-    const nextPlanDb = Math.max(0, list - depositCents - monthly * months);
-    return { ...d, planDepositBalance: dollarsOf(nextPlanDb) };
+function rebalance(
+  d: Draft,
+  changed: Field,
+  depositCents: number,
+  prevListCents?: number | null,
+): Draft {
+  let draft = d;
+  if (changed === "list") {
+    const nextList = centsOf(d.list);
+    const planList = centsOf(d.planList);
+    if (nextList === null || planList === null || prevListCents == null) return d;
+    // Keep the premium the plan currently carries over the pay-in-full price.
+    const premium = Math.max(0, planList - prevListCents);
+    draft = { ...d, planList: dollarsOf(nextList + premium) };
   }
-  if (list === null || planDb === null) return d;
+  const list = centsOf(draft.planList);
+  const planDb = centsOf(draft.planDepositBalance);
+  const monthly = centsOf(draft.planMonthly);
+  const months = Math.max(1, Math.round(Number(draft.planMonths) || 0));
+  if (changed === "planMonthly") {
+    if (list === null || monthly === null) return draft;
+    const nextPlanDb = Math.max(0, list - depositCents - monthly * months);
+    return { ...draft, planDepositBalance: dollarsOf(nextPlanDb) };
+  }
+  if (list === null || planDb === null) return draft;
   const remainder = list - depositCents - planDb;
-  if (remainder <= 0) return { ...d, planMonthly: "0" };
+  if (remainder <= 0) return { ...draft, planMonthly: "0" };
   const perMonth = Math.floor(remainder / months);
   const leftover = remainder - perMonth * months;
   return {
-    ...d,
+    ...draft,
     planMonthly: dollarsOf(perMonth),
     planDepositBalance: dollarsOf(planDb + leftover),
   };
 }
+
 
 function KitPricingAdmin() {
   const fetchPricing = useServerFn(getKitPricing);
