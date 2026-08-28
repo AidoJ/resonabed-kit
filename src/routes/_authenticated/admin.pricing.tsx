@@ -142,9 +142,10 @@ function KitPricingAdmin() {
   const updateDraft = (key: PackageKey, field: Field, value: string) => {
     setDrafts((prev) => {
       if (!prev) return prev;
+      const prevList = centsOf(prev[key].list);
       const current = { ...prev[key], [field]: value };
       const dep = centsOf(deposit) ?? ORDER_DEPOSIT_CENTS;
-      return { ...prev, [key]: rebalance(current, field, dep) };
+      return { ...prev, [key]: rebalance(current, field, dep, prevList) };
     });
   };
 
