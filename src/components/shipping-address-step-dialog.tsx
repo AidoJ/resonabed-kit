@@ -343,10 +343,10 @@ export function ShippingAddressStepDialog({
         )}
         {pkg ? (
           <p className="text-xs text-muted-foreground">
-            Balance after the deposit: {money(pkg.balanceCents + shippingCents)} in full, or{" "}
-            {money(pkg.plan.depositBalanceCents + shippingCents)} then {pkg.plan.months} monthly
-            payments of {money(pkg.plan.monthlyCents)}. Shipping is collected once, with that
-            balance payment.
+            Balance after the deposit: {money(pkg.balanceCents + shippingCents)} in full (kit
+            total {money(pkg.listCents)}), or {money(pkg.plan.depositBalanceCents + shippingCents)}{" "}
+            then {pkg.plan.months} monthly payments of {money(pkg.plan.monthlyCents)} (plan total{" "}
+            {money(pkg.planListCents)}). Shipping is collected once, with that balance payment.
           </p>
         ) : null}
       </div>

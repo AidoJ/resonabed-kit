@@ -1650,11 +1650,17 @@ function PackageCard({
           >
             <p className="font-medium">Then choose how to pay the balance:</p>
             <p className="mt-1">
-              Pay {money(pkgDef.balanceCents)} in full, or {money(pkgDef.plan.depositBalanceCents)}{" "}
-              now and {pkgDef.plan.months} monthly payments of {money(pkgDef.plan.monthlyCents)}{" "}
-              (plan total {planTotal}). Your shipping quote is added to that balance
-              payment.
+              <span className="font-medium">Pay in full,</span> {money(pkgDef.balanceCents)} once,
+              so the kit costs {money(pkgDef.listCents)} incl. GST.
             </p>
+            <p className="mt-1">
+              <span className="font-medium">Or pay over time,</span>{" "}
+              {money(pkgDef.plan.depositBalanceCents)} now and {pkgDef.plan.months} monthly
+              payments of {money(pkgDef.plan.monthlyCents)}, a plan total of {planTotal} incl. GST
+              ({money(Math.max(0, pkgDef.planListCents - pkgDef.listCents))} more than paying in
+              full).
+            </p>
+            <p className="mt-1">Your shipping quote is added to that balance payment.</p>
           </div>
 
           <p
