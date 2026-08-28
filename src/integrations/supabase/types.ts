@@ -1433,6 +1433,7 @@ export type Database = {
           list_cents: number
           package_key: string
           plan_deposit_balance_cents: number
+          plan_list_cents: number
           plan_monthly_cents: number
           plan_months: number
           updated_at: string
@@ -1442,6 +1443,7 @@ export type Database = {
           list_cents: number
           package_key: string
           plan_deposit_balance_cents: number
+          plan_list_cents: number
           plan_monthly_cents: number
           plan_months: number
           updated_at?: string
@@ -1451,6 +1453,7 @@ export type Database = {
           list_cents?: number
           package_key?: string
           plan_deposit_balance_cents?: number
+          plan_list_cents?: number
           plan_monthly_cents?: number
           plan_months?: number
           updated_at?: string
