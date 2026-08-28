@@ -177,11 +177,17 @@ export function HomeOrderPanel({ pkg, depositCents }: { pkg: PackageDef; deposit
         <div className="rounded-2xl border border-border bg-brand-tint/50 px-4 py-3 text-[12px] leading-relaxed text-foreground/80">
           <p className="font-medium">Then choose how to pay the balance:</p>
           <p className="mt-1">
-            Pay {money(pkg.balanceCents)} in full, or {money(pkg.plan.depositBalanceCents)} now
-            and {pkg.plan.months} monthly payments of {money(pkg.plan.monthlyCents)} (plan total{" "}
-            {money(planTotalCents(pkg, depositCents))}). Your shipping quote is added to that
-            balance payment.
+            <span className="font-medium">Pay in full,</span> {money(pkg.balanceCents)} once, so
+            the kit costs {money(pkg.listCents)} incl. GST.
           </p>
+          <p className="mt-1">
+            <span className="font-medium">Or pay over time,</span>{" "}
+            {money(pkg.plan.depositBalanceCents)} now and {pkg.plan.months} monthly payments of{" "}
+            {money(pkg.plan.monthlyCents)}, a plan total of{" "}
+            {money(planTotalCents(pkg, depositCents))} incl. GST (
+            {money(Math.max(0, pkg.planListCents - pkg.listCents))} more than paying in full).
+          </p>
+          <p className="mt-1">Your shipping quote is added to that balance payment.</p>
         </div>
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
           Today you pay the {deposit} deposit only, which holds your order for 30 days and is

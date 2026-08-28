@@ -20,6 +20,8 @@ export type PackageDef = {
   listCents: number;
   /** Pay-in-full price minus the $100 order deposit. */
   balanceCents: number;
+  /** Total payable when the customer spreads payments (a premium over list). */
+  planListCents: number;
   /** Plan: paid straight after the $100 deposit, then 10 monthlies. */
   plan: { depositBalanceCents: number; monthlyCents: number; months: number };
   /** Freight band key: each package has its own shipping_rates rows. */
@@ -35,9 +37,10 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
   essentials: {
     key: "essentials",
     label: "Resonabed Basic",
-    listCents: 119900,
-    balanceCents: 109900,
-    plan: { depositBalanceCents: 29900, monthlyCents: 9000, months: 10 },
+    listCents: 129900,
+    balanceCents: 119900,
+    planListCents: 139900,
+    plan: { depositBalanceCents: 29900, monthlyCents: 10000, months: 10 },
     shippingScope: "essentials",
     shipsTable: false,
     personalOnly: false,
@@ -47,9 +50,10 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
   pro: {
     key: "pro",
     label: "Resonabed Pro",
-    listCents: 139900,
-    balanceCents: 129900,
-    plan: { depositBalanceCents: 29900, monthlyCents: 11000, months: 10 },
+    listCents: 149900,
+    balanceCents: 139900,
+    planListCents: 159900,
+    plan: { depositBalanceCents: 39900, monthlyCents: 11000, months: 10 },
     shippingScope: "pro",
     shipsTable: false,
     personalOnly: false,
@@ -59,9 +63,10 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
   platinum: {
     key: "platinum",
     label: "Resonabed Platinum",
-    listCents: 179900,
-    balanceCents: 169900,
-    plan: { depositBalanceCents: 49900, monthlyCents: 13000, months: 10 },
+    listCents: 199900,
+    balanceCents: 189900,
+    planListCents: 209900,
+    plan: { depositBalanceCents: 59900, monthlyCents: 14000, months: 10 },
     shippingScope: "platinum",
     shipsTable: true,
     personalOnly: false,
@@ -71,9 +76,10 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
   home: {
     key: "home",
     label: "Resonabed for Home",
-    listCents: 149900,
-    balanceCents: 139900,
-    plan: { depositBalanceCents: 39900, monthlyCents: 11000, months: 10 },
+    listCents: 159900,
+    balanceCents: 149900,
+    planListCents: 169900,
+    plan: { depositBalanceCents: 49900, monthlyCents: 11000, months: 10 },
     shippingScope: "home",
     shipsTable: true,
     personalOnly: true,
@@ -125,6 +131,7 @@ export function gstSplitLine(cents: number) {
 export type KitPriceRow = {
   packageKey: PackageKey;
   listCents: number;
+  planListCents: number;
   planDepositBalanceCents: number;
   planMonthlyCents: number;
   planMonths: number;
@@ -148,6 +155,7 @@ export function applyPricing(
         ...p,
         listCents: row.listCents,
         balanceCents: Math.max(0, row.listCents - depositCents),
+        planListCents: row.planListCents,
         plan: {
           depositBalanceCents: row.planDepositBalanceCents,
           monthlyCents: row.planMonthlyCents,

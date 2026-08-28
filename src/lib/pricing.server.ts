@@ -18,6 +18,7 @@ export function mapPriceRows(
     | {
         package_key: string;
         list_cents: number;
+        plan_list_cents: number;
         plan_deposit_balance_cents: number;
         plan_monthly_cents: number;
         plan_months: number;
@@ -27,6 +28,7 @@ export function mapPriceRows(
   return (rows ?? []).map((r) => ({
     packageKey: r.package_key as PackageKey,
     listCents: r.list_cents,
+    planListCents: r.plan_list_cents,
     planDepositBalanceCents: r.plan_deposit_balance_cents,
     planMonthlyCents: r.plan_monthly_cents,
     planMonths: r.plan_months,
@@ -38,7 +40,9 @@ export async function resolveKitPricing(): Promise<KitPricing> {
   const [{ data: rows }, { data: dep }] = await Promise.all([
     supabaseAdmin
       .from("kit_package_prices")
-      .select("package_key, list_cents, plan_deposit_balance_cents, plan_monthly_cents, plan_months"),
+      .select(
+        "package_key, list_cents, plan_list_cents, plan_deposit_balance_cents, plan_monthly_cents, plan_months",
+      ),
     supabaseAdmin
       .from("app_settings")
       .select("value")
