@@ -457,8 +457,8 @@ function LandingPage() {
             },
             {
               icon: Radio,
-              title: "Upgrades the table you own",
-              body: "Two 50W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic, osteopathic or any therapeutic treatment table already in your room.",
+               title: "Upgrades the table* you own",
+               body: "Two 50W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic, osteopathic or any therapeutic treatment table already in your room.\n*Table must have a timber base",
             },
             {
               icon: ClipboardList,
