@@ -30,7 +30,6 @@ import {
 } from "@/components/buyer-type-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
-import hero from "@/assets/resonabed-hero.png.asset.json";
 import hero1536 from "@/assets/resonabed-hero-1536.webp.asset.json";
 import hero768 from "@/assets/resonabed-hero-768.webp.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
@@ -158,6 +157,16 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: hero1536.url,
+        imagesrcset: `${hero768.url} 768w, ${hero1536.url} 1536w`,
+        imagesizes: "(min-width: 1024px) 48vw, 100vw",
+        fetchpriority: "high",
+      },
     ],
   }),
   component: LandingPage,
