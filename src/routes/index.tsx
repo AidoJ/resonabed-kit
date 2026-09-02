@@ -31,7 +31,6 @@ import {
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import hero1536 from "@/assets/resonabed-hero-1536.webp.asset.json";
-import hero768 from "@/assets/resonabed-hero-768.webp.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
