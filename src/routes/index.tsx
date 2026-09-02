@@ -93,14 +93,6 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
   },
 ];
 
-const DEMO_AREAS = [
-  { id: "brisbane", label: "Brisbane" },
-  { id: "gold-coast", label: "Gold Coast" },
-  { id: "sunshine-coast", label: "Sunshine Coast" },
-  { id: "other", label: "Somewhere else" },
-] as const;
-
-type DemoAreaId = (typeof DEMO_AREAS)[number]["id"];
 
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Tactile speakers", true, true, true, true],
@@ -897,47 +889,9 @@ function LandingPage() {
           <p>No pressure, no obligation. Just book a demo and experience it today.</p>
         </div>
 
-        <div className="mt-10 rounded-2xl border border-border bg-card p-6 shadow-soft md:p-8">
-          <p className="text-center text-sm font-medium text-brand-indigo">Where are you located?</p>
-          <div className="mt-4 flex flex-wrap justify-center gap-3">
-            {DEMO_AREAS.map((area) => (
-              <button
-                key={area.id}
-                type="button"
-                onClick={() => setDemoArea(area.id)}
-                className={cn(
-                  "h-11 rounded-full border px-6 text-sm font-medium transition-colors",
-                  demoArea === area.id
-                    ? "border-transparent bg-brand-indigo text-white"
-                    : "border-brand-indigo/20 bg-white text-brand-indigo hover:bg-brand-tint",
-                )}
-              >
-                {area.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-8">
-            {demoArea === "brisbane" || demoArea === "gold-coast" || demoArea === "sunshine-coast" ? (
-              <div className="overflow-hidden rounded-xl border border-brand-violet/20">
-                <CalendlyWidget />
-              </div>
-            ) : demoArea === "other" ? (
-              <div className="rounded-xl border border-border bg-background p-6 md:p-8">
-                <h3 className="text-lg font-medium text-brand-indigo">Request an online demo</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Tell us a little about your practice and we will be in touch to arrange a video
-                  walkthrough.
-                </p>
-                <div className="mt-6">
-                  <OnlineDemoForm />
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-sm text-muted-foreground">
-                Choose your location above to continue.
-              </p>
-            )}
+        <div className="mt-10 rounded-3xl border border-brand-violet/20 bg-gradient-to-b from-brand-tint/60 to-card p-2 shadow-soft md:p-3">
+          <div className="overflow-hidden rounded-2xl">
+            <CalendlyWidget />
           </div>
         </div>
       </section>
