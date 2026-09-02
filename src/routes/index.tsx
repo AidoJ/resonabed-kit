@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 import { createKitCheckoutSession, requestKitEftInvoice } from "@/lib/checkout.functions";
 import { sendContactFormEmail, getContactCaptcha } from "@/lib/emails.functions";
@@ -90,9 +91,16 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
     label: "About",
     children: [{ href: "#contact", label: "Contact" }],
   },
-
 ];
 
+const DEMO_AREAS = [
+  { id: "brisbane", label: "Brisbane" },
+  { id: "gold-coast", label: "Gold Coast" },
+  { id: "sunshine-coast", label: "Sunshine Coast" },
+  { id: "other", label: "Somewhere else" },
+] as const;
+
+type DemoAreaId = (typeof DEMO_AREAS)[number]["id"];
 
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Tactile speakers", true, true, true, true],
@@ -172,6 +180,7 @@ function LandingPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFrequencies, setShowFrequencies] = useState(false);
+  const [demoArea, setDemoArea] = useState<DemoAreaId | "">("");
 
   // Super-admin editable kit pricing; static defaults render until this lands.
   const fetchPricing = useServerFn(getKitPricing);
@@ -881,32 +890,55 @@ function LandingPage() {
             whole body. So we would rather show you.
           </p>
           <p>
-            For the demo, we will come to you with a working model and walk you through the Resonabed system. Learn how it fits a table you already own, how a session runs, and the simple app that guides it. You will feel a session yourself, ask anything you like, and see whether it is the right fit for your practice.
+            We are based in Brisbane and can easily travel to the Gold Coast and Sunshine Coast for
+            in-person demos. If you are outside those areas, we will arrange an online demo and walk
+            you through the system over a video call.
           </p>
           <p>No pressure, no obligation. Just book a demo and experience it today.</p>
         </div>
 
-        <div className="mt-10 rounded-2xl border border-border bg-card p-8 text-center shadow-soft">
-          <Button size="lg" asChild>
-            <a
-              href="https://calendly.com/aidan-rejuvenators/demo"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Book your free demo
-            </a>
-          </Button>
-          <p className="mt-5 text-sm text-muted-foreground">
-            Prefer to talk first? Email{" "}
-            <a className="underline underline-offset-2" href="mailto:info@resonabed.com">
-              info@resonabed.com
-            </a>{" "}
-            or call{" "}
-            <a className="underline underline-offset-2" href="tel:+61494825281">
-              0494 825 281
-            </a>
-            .
-          </p>
+        <div className="mt-10 rounded-2xl border border-border bg-card p-6 shadow-soft md:p-8">
+          <p className="text-center text-sm font-medium text-brand-indigo">Where are you located?</p>
+          <div className="mt-4 flex flex-wrap justify-center gap-3">
+            {DEMO_AREAS.map((area) => (
+              <button
+                key={area.id}
+                type="button"
+                onClick={() => setDemoArea(area.id)}
+                className={cn(
+                  "h-11 rounded-full border px-6 text-sm font-medium transition-colors",
+                  demoArea === area.id
+                    ? "border-transparent bg-brand-indigo text-white"
+                    : "border-brand-indigo/20 bg-white text-brand-indigo hover:bg-brand-tint",
+                )}
+              >
+                {area.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8">
+            {demoArea === "brisbane" || demoArea === "gold-coast" || demoArea === "sunshine-coast" ? (
+              <div className="overflow-hidden rounded-xl border border-brand-violet/20">
+                <CalendlyWidget />
+              </div>
+            ) : demoArea === "other" ? (
+              <div className="rounded-xl border border-border bg-background p-6 md:p-8">
+                <h3 className="text-lg font-medium text-brand-indigo">Request an online demo</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Tell us a little about your practice and we will be in touch to arrange a video
+                  walkthrough.
+                </p>
+                <div className="mt-6">
+                  <OnlineDemoForm />
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-sm text-muted-foreground">
+                Choose your location above to continue.
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
@@ -1404,8 +1436,256 @@ function ContactForm() {
   );
 }
 
+function CalendlyWidget() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof window === "undefined" || !containerRef.current) return;
+    const existing = document.getElementById("calendly-widget-script");
+    if (!existing) {
+      const script = document.createElement("script");
+      script.id = "calendly-widget-script";
+      script.src = "https://assets.calendly.com/assets/external/widget.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+  return (
+    <div
+      ref={containerRef}
+      className="calendly-inline-widget"
+      data-url="https://calendly.com/d/dz68-qcs-9q3?background_color=bc97e6&text_color=f9f6f6&primary_color=4d1391"
+      style={{ minWidth: "320px", height: "700px" }}
+    />
+  );
+}
 
+function OnlineDemoForm() {
+  const send = useServerFn(sendContactFormEmail);
+  const loadCaptcha = useServerFn(getContactCaptcha);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", location: "", message: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [captcha, setCaptcha] = useState<{ question: string; token: string } | null>(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
+  const [honeypot, setHoneypot] = useState("");
 
+  const refreshCaptcha = async () => {
+    try {
+      const next = await loadCaptcha();
+      setCaptcha(next);
+      setCaptchaAnswer("");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    void refreshCaptcha();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const update = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting) return;
+
+    const nextErrors: Record<string, string> = {};
+    if (!form.name.trim()) nextErrors.name = "Please enter your name";
+    if (!form.email.trim()) {
+      nextErrors.email = "Please enter your email";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      nextErrors.email = "Please enter a valid email";
+    }
+    if (form.phone.trim().length < 6) nextErrors.phone = "Please enter your phone number";
+    if (!form.location.trim()) nextErrors.location = "Please enter your city or region";
+    if (!form.message.trim()) nextErrors.message = "Please enter a message";
+    if (!captchaAnswer.trim()) nextErrors.captcha = "Please answer the security check";
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    const fullMessage = `[Online demo request]\nLocation: ${form.location.trim()}\n\n${form.message.trim()}`;
+
+    setSubmitting(true);
+    try {
+      await send({
+        data: {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          message: fullMessage,
+          captchaToken: captcha?.token ?? "",
+          captchaAnswer,
+          website: honeypot,
+        },
+      });
+      setSent(true);
+      setForm({ name: "", email: "", phone: "", location: "", message: "" });
+      void refreshCaptcha();
+      toast.success("Request sent. We will be in touch to arrange your online demo.");
+    } catch (err) {
+      console.error(err);
+      void refreshCaptcha();
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not send your request. Please try again or email us directly.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+          <CheckCircle2 className="h-7 w-7" />
+        </div>
+        <h3 className="mt-5 text-lg font-medium text-brand-indigo">Request sent</h3>
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          Thanks for your interest. We will email you shortly to arrange a video walkthrough.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="demo-name">Name</Label>
+          <Input
+            id="demo-name"
+            type="text"
+            placeholder="Your name"
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            aria-invalid={!!errors.name}
+            className="rounded-xl"
+          />
+          {errors.name ? <p className="text-xs text-destructive">{errors.name}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="demo-email">Email</Label>
+          <Input
+            id="demo-email"
+            type="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+            aria-invalid={!!errors.email}
+            className="rounded-xl"
+          />
+          {errors.email ? <p className="text-xs text-destructive">{errors.email}</p> : null}
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="demo-phone">Phone</Label>
+          <Input
+            id="demo-phone"
+            type="tel"
+            placeholder="0494 825 281"
+            value={form.phone}
+            onChange={(e) => update("phone", e.target.value)}
+            aria-invalid={!!errors.phone}
+            className="rounded-xl"
+          />
+          {errors.phone ? <p className="text-xs text-destructive">{errors.phone}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="demo-location">City / region</Label>
+          <Input
+            id="demo-location"
+            type="text"
+            placeholder="e.g. Melbourne"
+            value={form.location}
+            onChange={(e) => update("location", e.target.value)}
+            aria-invalid={!!errors.location}
+            className="rounded-xl"
+          />
+          {errors.location ? <p className="text-xs text-destructive">{errors.location}</p> : null}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="demo-message">Tell us about your practice</Label>
+        <Textarea
+          id="demo-message"
+          placeholder="What kind of practice do you run? What would you like to see in the demo?"
+          value={form.message}
+          onChange={(e) => update("message", e.target.value)}
+          aria-invalid={!!errors.message}
+          rows={4}
+          className="rounded-xl"
+        />
+        {errors.message ? <p className="text-xs text-destructive">{errors.message}</p> : null}
+      </div>
+
+      {/* Honeypot, hidden from real users */}
+      <div className="hidden" aria-hidden>
+        <label htmlFor="demo-website">Website</label>
+        <input
+          id="demo-website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="demo-captcha">
+          Security check{captcha ? ` · ${captcha.question}` : ""}
+        </Label>
+        <Input
+          id="demo-captcha"
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          placeholder={captcha ? "Type the answer" : "Loading security check..."}
+          disabled={!captcha}
+          value={captchaAnswer}
+          onChange={(e) => {
+            setCaptchaAnswer(e.target.value);
+            if (errors.captcha) {
+              setErrors((prev) => {
+                const next = { ...prev };
+                delete next.captcha;
+                return next;
+              });
+            }
+          }}
+          aria-invalid={!!errors.captcha}
+          className="rounded-xl"
+        />
+        {errors.captcha ? <p className="text-xs text-destructive">{errors.captcha}</p> : null}
+      </div>
+
+      <Button
+        type="submit"
+        disabled={submitting || !captcha}
+        className="h-12 w-full rounded-full text-[15px] font-medium"
+      >
+        {submitting ? "Sending..." : "Request online demo"}
+        <Send className="ml-1.5 h-4 w-4" />
+      </Button>
+    </form>
+  );
+}
 
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
 
