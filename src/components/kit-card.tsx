@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import transducerAsset from "@/assets/kit-transducer.png.asset.json";
-import amplifierAsset from "@/assets/kit-amplifier.png.asset.json";
-import tabletAsset from "@/assets/kit-tablet.png.asset.json";
-import solfeggioAsset from "@/assets/kit-solfeggio.jpg.asset.json";
-import headphonesAsset from "@/assets/kit-headphones.png.asset.json";
-import brochureAsset from "@/assets/kit-brochure.png.asset.json";
+import transducerUrl from "@/assets/kit-transducer.webp";
+import amplifierUrl from "@/assets/kit-amplifier.webp";
+import tabletUrl from "@/assets/kit-tablet.webp";
+import solfeggioUrl from "@/assets/kit-solfeggio.webp";
+import headphonesUrl from "@/assets/kit-headphones.webp";
+import brochureUrl from "@/assets/kit-brochure.webp";
 
 export const kitImages = {
   transducer: transducerAsset.url,
