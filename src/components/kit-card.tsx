@@ -9,12 +9,12 @@ import headphonesUrl from "@/assets/kit-headphones.webp";
 import brochureUrl from "@/assets/kit-brochure.webp";
 
 export const kitImages = {
-  transducer: transducerAsset.url,
-  amplifier: amplifierAsset.url,
-  tablet: tabletAsset.url,
-  solfeggio: solfeggioAsset.url,
-  headphones: headphonesAsset.url,
-  brochure: brochureAsset.url,
+  transducer: transducerUrl,
+  amplifier: amplifierUrl,
+  tablet: tabletUrl,
+  solfeggio: solfeggioUrl,
+  headphones: headphonesUrl,
+  brochure: brochureUrl,
 };
 
 export type KitItem = {
