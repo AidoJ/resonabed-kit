@@ -889,10 +889,8 @@ function LandingPage() {
           <p>No pressure, no obligation. Just book a demo and experience it today.</p>
         </div>
 
-        <div className="mt-10 rounded-3xl border border-brand-violet/20 bg-gradient-to-b from-brand-tint/60 to-card p-2 shadow-soft md:p-3">
-          <div className="overflow-hidden rounded-2xl">
-            <CalendlyWidget />
-          </div>
+        <div className="mt-10 overflow-hidden rounded-2xl border border-brand-violet/20 bg-background shadow-soft">
+          <CalendlyWidget />
         </div>
       </section>
 
@@ -1407,8 +1405,12 @@ function CalendlyWidget() {
     <div
       ref={containerRef}
       className="calendly-inline-widget"
-      data-url="https://calendly.com/d/dz68-qcs-9q3?background_color=bc97e6&text_color=f9f6f6&primary_color=4d1391"
-      style={{ minWidth: "320px", height: "700px" }}
+      data-url={
+        "https://calendly.com/d/dz68-qcs-9q3" +
+        "?hide_landing_page_details=1&hide_event_type_details=1" +
+        "&background_color=faf9fc&text_color=100a2e&primary_color=884bc7"
+      }
+      style={{ minWidth: "320px", height: "600px" }}
     />
   );
 }
