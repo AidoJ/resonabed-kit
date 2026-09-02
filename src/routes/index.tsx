@@ -881,32 +881,55 @@ function LandingPage() {
             whole body. So we would rather show you.
           </p>
           <p>
-            For the demo, we will come to you with a working model and walk you through the Resonabed system. Learn how it fits a table you already own, how a session runs, and the simple app that guides it. You will feel a session yourself, ask anything you like, and see whether it is the right fit for your practice.
+            We are based in Brisbane and can easily travel to the Gold Coast and Sunshine Coast for
+            in-person demos. If you are outside those areas, we will arrange an online demo and walk
+            you through the system over a video call.
           </p>
           <p>No pressure, no obligation. Just book a demo and experience it today.</p>
         </div>
 
-        <div className="mt-10 rounded-2xl border border-border bg-card p-8 text-center shadow-soft">
-          <Button size="lg" asChild>
-            <a
-              href="https://calendly.com/aidan-rejuvenators/demo"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Book your free demo
-            </a>
-          </Button>
-          <p className="mt-5 text-sm text-muted-foreground">
-            Prefer to talk first? Email{" "}
-            <a className="underline underline-offset-2" href="mailto:info@resonabed.com">
-              info@resonabed.com
-            </a>{" "}
-            or call{" "}
-            <a className="underline underline-offset-2" href="tel:+61494825281">
-              0494 825 281
-            </a>
-            .
-          </p>
+        <div className="mt-10 rounded-2xl border border-border bg-card p-6 shadow-soft md:p-8">
+          <p className="text-center text-sm font-medium text-brand-indigo">Where are you located?</p>
+          <div className="mt-4 flex flex-wrap justify-center gap-3">
+            {DEMO_AREAS.map((area) => (
+              <button
+                key={area.id}
+                type="button"
+                onClick={() => setDemoArea(area.id)}
+                className={cn(
+                  "h-11 rounded-full border px-6 text-sm font-medium transition-colors",
+                  demoArea === area.id
+                    ? "border-transparent bg-brand-indigo text-white"
+                    : "border-brand-indigo/20 bg-white text-brand-indigo hover:bg-brand-tint",
+                )}
+              >
+                {area.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8">
+            {demoArea === "brisbane" || demoArea === "gold-coast" || demoArea === "sunshine-coast" ? (
+              <div className="overflow-hidden rounded-xl border border-brand-violet/20">
+                <CalendlyWidget />
+              </div>
+            ) : demoArea === "other" ? (
+              <div className="rounded-xl border border-border bg-background p-6 md:p-8">
+                <h3 className="text-lg font-medium text-brand-indigo">Request an online demo</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Tell us a little about your practice and we will be in touch to arrange a video
+                  walkthrough.
+                </p>
+                <div className="mt-6">
+                  <OnlineDemoForm />
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-sm text-muted-foreground">
+                Choose your location above to continue.
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
