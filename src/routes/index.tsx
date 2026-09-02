@@ -432,8 +432,6 @@ function LandingPage() {
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-2xl">
               <img
                 src={hero1536.url}
-                srcSet={`${hero768.url} 768w, ${hero1536.url} 1536w`}
-                sizes="(min-width: 1024px) 48vw, 100vw"
                 width={1536}
                 height={1024}
                 fetchPriority="high"
