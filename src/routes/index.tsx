@@ -1411,14 +1411,26 @@ function CalendlyWidget() {
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof window === "undefined" || !containerRef.current) return;
-    const existing = document.getElementById("calendly-widget-script");
-    if (!existing) {
-      const script = document.createElement("script");
-      script.id = "calendly-widget-script";
-      script.src = "https://assets.calendly.com/assets/external/widget.js";
-      script.async = true;
-      document.body.appendChild(script);
+
+    const init = () => {
+      const cal = (window as typeof window & { Calendly?: { initInlineWidgets: () => void } }).Calendly;
+      if (cal?.initInlineWidgets) {
+        cal.initInlineWidgets();
+      }
+    };
+
+    const existing = document.getElementById("calendly-widget-script") as HTMLScriptElement | null;
+    if (existing) {
+      init();
+      return;
     }
+
+    const script = document.createElement("script");
+    script.id = "calendly-widget-script";
+    script.src = "https://assets.calendly.com/assets/external/widget.js";
+    script.async = true;
+    script.onload = init;
+    document.body.appendChild(script);
   }, []);
   return (
     <div
