@@ -134,7 +134,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
 
 
 export const Route = createFileRoute("/")({
-  ssr: false,
+  
   head: () => ({
     meta: [
       { title: "Resonabed | Vibroacoustic Therapy for Your Practice" },
