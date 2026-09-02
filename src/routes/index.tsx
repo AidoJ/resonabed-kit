@@ -1402,43 +1402,68 @@ function ContactForm() {
   );
 }
 
-function CalendlyWidget() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (typeof window === "undefined" || !containerRef.current) return;
+const CALENDLY_URL =
+  "https://calendly.com/d/dz68-qcs-9q3" +
+  "?hide_gdpr_banner=1&background_color=bc97e6&text_color=f9f6f6&primary_color=4d1391";
 
-    const init = () => {
-      const cal = (window as typeof window & { Calendly?: { initInlineWidgets: () => void } }).Calendly;
-      if (cal?.initInlineWidgets) {
-        cal.initInlineWidgets();
-      }
-    };
+type CalendlyApi = {
+  initBadgeWidget: (opts: {
+    url: string;
+    text: string;
+    color: string;
+    textColor: string;
+  }) => void;
+  initPopupWidget: (opts: { url: string }) => void;
+};
 
-    const existing = document.getElementById("calendly-widget-script") as HTMLScriptElement | null;
-    if (existing) {
-      init();
+function getCalendly(): CalendlyApi | undefined {
+  return (window as typeof window & { Calendly?: CalendlyApi }).Calendly;
+}
+
+let calendlyLoadPromise: Promise<void> | null = null;
+function loadCalendly(): Promise<void> {
+  if (calendlyLoadPromise) return calendlyLoadPromise;
+  calendlyLoadPromise = new Promise((resolve, reject) => {
+    if (getCalendly()) {
+      resolve();
       return;
     }
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://assets.calendly.com/assets/external/widget.css";
+    document.head.appendChild(link);
 
     const script = document.createElement("script");
     script.id = "calendly-widget-script";
     script.src = "https://assets.calendly.com/assets/external/widget.js";
     script.async = true;
-    script.onload = init;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Failed to load Calendly"));
     document.body.appendChild(script);
+  });
+  return calendlyLoadPromise;
+}
+
+function openCalendlyPopup() {
+  loadCalendly()
+    .then(() => getCalendly()?.initPopupWidget({ url: CALENDLY_URL }))
+    .catch(() => toast.error("Could not load the booking form. Please try again."));
+}
+
+function CalendlyBadge() {
+  useEffect(() => {
+    loadCalendly()
+      .then(() =>
+        getCalendly()?.initBadgeWidget({
+          url: CALENDLY_URL,
+          text: "Book A demo",
+          color: "#6309b3",
+          textColor: "#ffffff",
+        }),
+      )
+      .catch(() => {});
   }, []);
-  return (
-    <div
-      ref={containerRef}
-      className="calendly-inline-widget"
-      data-url={
-        "https://calendly.com/d/dz68-qcs-9q3" +
-        "?hide_landing_page_details=1&hide_event_type_details=1" +
-        "&background_color=faf9fc&text_color=100a2e&primary_color=884bc7"
-      }
-      style={{ minWidth: "320px", height: "600px" }}
-    />
-  );
+  return null;
 }
 
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
