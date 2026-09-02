@@ -891,8 +891,25 @@ function LandingPage() {
           <p>No pressure, no obligation. Just book a demo and experience it today.</p>
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-2xl border border-brand-violet/20 bg-background shadow-soft">
-          <CalendlyWidget />
+        <div className="mt-10">
+          {!showCalendly ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-brand-violet/20 bg-background p-10 shadow-soft">
+              <p className="mb-6 text-center text-muted-foreground">
+                Choose a time that works for you. The form will open right here.
+              </p>
+              <Button
+                onClick={() => setShowCalendly(true)}
+                className="h-12 rounded-full bg-brand-violet px-8 text-[15px] font-medium text-white hover:bg-brand-violet-strong"
+              >
+                Book a demo
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-brand-violet/20 bg-background shadow-soft">
+              <CalendlyWidget />
+            </div>
+          )}
         </div>
       </section>
 
