@@ -30,7 +30,7 @@ import {
 } from "@/components/buyer-type-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
-import hero from "@/assets/resonabed-hero.png.asset.json";
+import hero1536 from "@/assets/resonabed-hero-1536.webp.asset.json";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
@@ -133,7 +133,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
 
 
 export const Route = createFileRoute("/")({
-  ssr: false,
+  
   head: () => ({
     meta: [
       { title: "Resonabed | Vibroacoustic Therapy for Your Practice" },
@@ -156,6 +156,13 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: hero1536.url,
+      },
     ],
   }),
   component: LandingPage,
@@ -423,7 +430,11 @@ function LandingPage() {
             />
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-2xl">
               <img
-                src={hero.url}
+                src={hero1536.url}
+                width={1536}
+                height={1024}
+                fetchPriority="high"
+                decoding="async"
                 alt="Client resting on a Resonabed vibroacoustic therapy table"
                 className="h-auto w-full"
                 draggable={false}
