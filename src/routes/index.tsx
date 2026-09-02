@@ -1404,7 +1404,7 @@ function ContactForm() {
 
 const CALENDLY_URL =
   "https://calendly.com/d/dz68-qcs-9q3" +
-  "?hide_gdpr_banner=1&background_color=bc97e6&text_color=f9f6f6&primary_color=4d1391";
+  "?hide_gdpr_banner=1&background_color=faf9fc&text_color=100a2e&primary_color=884bc7";
 
 type CalendlyApi = {
   initBadgeWidget: (opts: {
@@ -1457,7 +1457,7 @@ function CalendlyBadge() {
         getCalendly()?.initBadgeWidget({
           url: CALENDLY_URL,
           text: "Book A demo",
-          color: "#6309b3",
+          color: "#884bc7",
           textColor: "#ffffff",
         }),
       )
