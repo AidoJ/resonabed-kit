@@ -1457,7 +1457,7 @@ function CalendlyBadge() {
         getCalendly()?.initBadgeWidget({
           url: CALENDLY_URL,
           text: "Book A demo",
-          color: "#6309b3",
+          color: "#884bc7",
           textColor: "#ffffff",
         }),
       )
