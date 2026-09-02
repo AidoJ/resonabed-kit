@@ -23,11 +23,11 @@ import { StickyBookCta } from "@/components/public-clinic/sticky-book-cta";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
 import { ClinicNav, type ClinicNavItem } from "@/components/public-clinic/clinic-nav";
-import heroWide from "@/assets/resonabed-hero-1536.webp.asset.json";
+import heroWide from "@/assets/resonabed-hero-1536-img.webp";
 import heroSmall from "@/assets/resonabed-hero-768.webp.asset.json";
 
 const SITE = "https://resonabed.com";
-const HERO_OG = `${SITE}${heroWide.url}`;
+const HERO_OG = `${SITE}${heroWide}`;
 
 async function loadPublicPage(slug: string) {
   const res = await getPublicOrgPage({ data: { slug } });
@@ -324,9 +324,9 @@ function PublicOrgPage() {
             >
               <picture>
                 <source media="(max-width: 767px)" srcSet={heroSmall.url} type="image/webp" />
-                <source srcSet={heroWide.url} type="image/webp" />
+                <source srcSet={heroWide} type="image/webp" />
                 <img
-                  src={heroWide.url}
+                  src={heroWide}
                   alt="A client resting on a vibroacoustic therapy table as sound resonates through it"
                   className="h-auto w-full"
                   width={1536}
