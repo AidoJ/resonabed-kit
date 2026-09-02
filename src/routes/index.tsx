@@ -354,7 +354,7 @@ function LandingPage() {
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
               Resonabed is a complete vibroacoustic therapy system: low frequency sound delivered
               through the table so the body feels the music, guided by an app that runs the whole
-              session. Choose a complete setup with a fitted table, or fit the system to the table
+              session. Choose a complete setup with a fitted table, or fit the system to the table*
               you already use.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
