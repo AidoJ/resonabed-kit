@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
-import hero from "@/assets/resonabed-hero-1536.webp.asset.json";
+import hero from "@/assets/resonabed-hero-1536-img.webp";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { KitCard, kitImages } from "@/components/kit-card";
 import {
@@ -174,7 +174,7 @@ function SoundBedPage() {
             />
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-2xl">
               <img
-                src={hero.url}
+                src={hero}
                 alt="Client resting on a Resonabed vibroacoustic sound bed"
                 className="h-auto w-full"
                 draggable={false}

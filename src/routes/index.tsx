@@ -30,7 +30,7 @@ import {
 } from "@/components/buyer-type-step-dialog";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
-import hero1536 from "@/assets/resonabed-hero-1536.webp.asset.json";
+import hero1536 from "@/assets/resonabed-hero-1536-img.webp";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
@@ -161,7 +161,7 @@ export const Route = createFileRoute("/")({
       {
         rel: "preload",
         as: "image",
-        href: hero1536.url,
+        href: hero1536,
       },
     ],
   }),
@@ -430,7 +430,7 @@ function LandingPage() {
             />
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-2xl">
               <img
-                src={hero1536.url}
+                src={hero1536}
                 width={1536}
                 height={1024}
                 fetchPriority="high"
