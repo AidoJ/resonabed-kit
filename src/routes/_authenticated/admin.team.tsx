@@ -41,10 +41,29 @@ async function callManageTeam(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke("manage-team-member", {
     body,
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    // supabase-js hides the response body on non-2xx; recover the real reason.
+    let msg = error.message;
+    const raw = (error as { context?: { body?: unknown } }).context?.body;
+    try {
+      if (raw instanceof ReadableStream) {
+        const parsed = JSON.parse(await new Response(raw).text()) as { error?: string };
+        if (parsed.error) msg = parsed.error;
+      } else if (typeof raw === "string") {
+        const parsed = JSON.parse(raw) as { error?: string };
+        if (parsed.error) msg = parsed.error;
+      } else if (raw && typeof raw === "object" && "error" in raw) {
+        msg = String((raw as { error: unknown }).error);
+      }
+    } catch {
+      /* keep generic message */
+    }
+    throw new Error(msg);
+  }
   if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
   return data as Record<string, unknown>;
 }
+
 
 function TeamAdmin() {
   const fetchTeam = useServerFn(listTeam);
