@@ -101,27 +101,40 @@ Deno.serve(async (req) => {
         }
         if (!(await authorize(body.org_id))) return json(403, { error: "Forbidden" });
 
+        const email = (body.email ?? "").trim().toLowerCase();
+        if (!email || !email.includes("@")) return json(400, { error: "Enter a valid email address" });
+
         const password = generatePassword(20);
         const { data: created, error: createErr } = await admin.auth.admin.createUser({
-          email: body.email,
+          email,
           password,
           email_confirm: true,
           user_metadata: { display_name: body.display_name ?? null },
           app_metadata: { must_change_password: true },
         });
-        if (createErr || !created.user) return json(400, { error: createErr?.message ?? "Create failed" });
+        if (createErr || !created.user) {
+          const raw = createErr?.message ?? "Create failed";
+          const friendly = /already been registered|already exists|duplicate/i.test(raw)
+            ? "That email address already has a Resonabed account. Ask them to sign in, or use a different email."
+            : raw;
+          return json(400, { error: friendly });
+        }
 
-        // Attach org + role. handle_new_user() already created the profile row.
+        // Attach org + role. handle_new_user() already created the profile row,
+        // but upsert so a missing row cannot silently leave the user org-less.
         const uid = created.user.id;
         const { error: profileErr } = await admin
           .from("profiles")
-          .update({ org_id: body.org_id, display_name: body.display_name ?? null, is_active: true })
-          .eq("id", uid);
+          .upsert(
+            { id: uid, org_id: body.org_id, display_name: body.display_name ?? null, is_active: true },
+            { onConflict: "id" },
+          );
         if (profileErr) {
           // Cleanup on failure
           await admin.auth.admin.deleteUser(uid);
           return json(400, { error: profileErr.message });
         }
+
         const { error: roleErr } = await admin
           .from("user_roles")
           .insert({ user_id: uid, org_id: body.org_id, role: body.role });
