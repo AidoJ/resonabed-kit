@@ -30,6 +30,7 @@ import {
   KeyRound,
   ClipboardCheck,
   Megaphone,
+  BookOpen,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -162,7 +163,10 @@ function buildNav(
           { to: "/admin/settings", label: "Settings", icon: Settings },
         ],
       },
-
+      {
+        label: "Support",
+        items: [{ to: "/help", label: "Help guide", icon: BookOpen }],
+      },
     ];
   }
 
@@ -181,6 +185,10 @@ function buildNav(
         { to: "/bookings", label: "My bookings", icon: Calendar },
         { to: "/availability", label: "My availability", icon: Clock },
       ],
+    },
+    {
+      label: "Support",
+      items: [{ to: "/help", label: "Help guide", icon: BookOpen }],
     },
   ];
 }
