@@ -69,7 +69,11 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     const el = audioRef.current;
     if (!el) return;
     el.loop = loop;
-    void el.play().catch(() => {});
+    el.muted = false;
+    void el
+      .play()
+      .then(() => setBlocked(false))
+      .catch(() => setBlocked(true));
   };
   const doPause = () => {
     audioRef.current?.pause();
