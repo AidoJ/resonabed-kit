@@ -905,7 +905,7 @@ function LandingPage() {
             </Button>
           </div>
         </div>
-        <CalendlyBadge />
+        
       </section>
 
 
@@ -1407,12 +1407,6 @@ const CALENDLY_URL =
   "?hide_gdpr_banner=1&background_color=faf9fc&text_color=100a2e&primary_color=884bc7";
 
 type CalendlyApi = {
-  initBadgeWidget: (opts: {
-    url: string;
-    text: string;
-    color: string;
-    textColor: string;
-  }) => void;
   initPopupWidget: (opts: { url: string }) => void;
 };
 
@@ -1450,21 +1444,6 @@ function openCalendlyPopup() {
     .catch(() => toast.error("Could not load the booking form. Please try again."));
 }
 
-function CalendlyBadge() {
-  useEffect(() => {
-    loadCalendly()
-      .then(() =>
-        getCalendly()?.initBadgeWidget({
-          url: CALENDLY_URL,
-          text: "Book A demo",
-          color: "#884bc7",
-          textColor: "#ffffff",
-        }),
-      )
-      .catch(() => {});
-  }, []);
-  return null;
-}
 
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
 

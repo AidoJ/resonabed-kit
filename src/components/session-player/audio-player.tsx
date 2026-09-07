@@ -37,6 +37,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   const [time, setTime] = useState(0);
   const [dur, setDur] = useState(0);
   const [vol, setVol] = useState(0.8);
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -69,7 +70,11 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     const el = audioRef.current;
     if (!el) return;
     el.loop = loop;
-    void el.play().catch(() => {});
+    el.muted = false;
+    void el
+      .play()
+      .then(() => setBlocked(false))
+      .catch(() => setBlocked(true));
   };
   const doPause = () => {
     audioRef.current?.pause();
@@ -142,7 +147,16 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
           {fmt(time)} / {fmt(dur)}
         </span>
       </div>
-      <audio ref={audioRef} src={src} preload="metadata" loop={loop} />
+      <audio ref={audioRef} src={src} preload="auto" loop={loop} playsInline />
+      {blocked ? (
+        <button
+          type="button"
+          onClick={doPlay}
+          className="w-full rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-left text-sm text-amber-200"
+        >
+          Sound is blocked by this device. Tap here to start the music.
+        </button>
+      ) : null}
       <Slider
         min={0}
         max={dur || 1}
