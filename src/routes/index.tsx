@@ -1407,12 +1407,6 @@ const CALENDLY_URL =
   "?hide_gdpr_banner=1&background_color=faf9fc&text_color=100a2e&primary_color=884bc7";
 
 type CalendlyApi = {
-  initBadgeWidget: (opts: {
-    url: string;
-    text: string;
-    color: string;
-    textColor: string;
-  }) => void;
   initPopupWidget: (opts: { url: string }) => void;
 };
 
