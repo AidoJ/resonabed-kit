@@ -37,6 +37,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   const [time, setTime] = useState(0);
   const [dur, setDur] = useState(0);
   const [vol, setVol] = useState(0.8);
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     const el = audioRef.current;
