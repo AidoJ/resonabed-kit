@@ -905,7 +905,7 @@ function LandingPage() {
             </Button>
           </div>
         </div>
-        <CalendlyBadge />
+        
       </section>
 
 
