@@ -1444,21 +1444,6 @@ function openCalendlyPopup() {
     .catch(() => toast.error("Could not load the booking form. Please try again."));
 }
 
-function CalendlyBadge() {
-  useEffect(() => {
-    loadCalendly()
-      .then(() =>
-        getCalendly()?.initBadgeWidget({
-          url: CALENDLY_URL,
-          text: "Book A demo",
-          color: "#884bc7",
-          textColor: "#ffffff",
-        }),
-      )
-      .catch(() => {});
-  }, []);
-  return null;
-}
 
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
 
