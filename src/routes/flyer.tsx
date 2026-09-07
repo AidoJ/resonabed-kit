@@ -158,7 +158,7 @@ function FlyerPage() {
 
         <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
           <img
-            src={"/resonabed-flyer-inside.jpg"}
+            src={flyerInside.url}
             alt="Inside of the Resonabed client flyer: what vibroacoustic therapy is, why people come back, and the nine Solfeggio frequencies"
             className="h-auto w-full"
             loading="lazy"
