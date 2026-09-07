@@ -8,6 +8,8 @@ import QRCode from "qrcode";
 
 import { getOrgSettings, getSignedLogoUrl } from "@/lib/admin.functions";
 import { buildBlankFlyer, buildPersonalisedFlyer } from "@/lib/flyer-personalise";
+import flyerOutside from "@/assets/resonabed-flyer-outside.jpg.asset.json";
+import flyerInside from "@/assets/resonabed-flyer-inside.jpg.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -359,7 +361,7 @@ function MarketingPage() {
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-xl border bg-card">
             <img
-              src={"/resonabed-flyer-outside.jpg"}
+              src={flyerOutside.url}
               alt="Outside of the Resonabed client flyer, with the clinic details panel in the middle"
               className="h-auto w-full"
               loading="lazy"
@@ -404,7 +406,7 @@ function MarketingPage() {
           </div>
           <div className="overflow-hidden rounded-xl border bg-card">
             <img
-              src={"/resonabed-flyer-inside.jpg"}
+              src={flyerInside.url}
               alt="Inside of the Resonabed client flyer"
               className="h-auto w-full"
               loading="lazy"

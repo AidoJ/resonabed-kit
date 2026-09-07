@@ -18,10 +18,14 @@ import {
 import fontkit from "@pdf-lib/fontkit";
 import QRCode from "qrcode";
 
-/** Print artwork, served from /public so wording fixes ship with the app. */
-const FLYER_PDF_URL = "/resonabed-flyer.pdf";
+/** Print artwork, fingerprinted and CDN-cached. */
+import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
+import whiteLogoUrl from "@/assets/resonabed-logo-flyer-white.png";
+
+const FLYER_PDF_URL = flyerPdf.url;
+
 /** All-white Resonabed mark, used when the flyer is re-skinned to clinic colours. */
-const WHITE_LOGO_URL = "/resonabed-logo-flyer-white.png";
+const WHITE_LOGO_URL = whiteLogoUrl;
 
 /** Clinic brand colours used to re-skin the flyer artwork. */
 export interface FlyerBrand {
