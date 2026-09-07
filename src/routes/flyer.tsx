@@ -4,6 +4,8 @@ import { ArrowLeft, Download } from "lucide-react";
 import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
+import flyerOutside from "@/assets/resonabed-flyer-outside.jpg.asset.json";
+import flyerInside from "@/assets/resonabed-flyer-inside.jpg.asset.json";
 
 
 export const Route = createFileRoute("/flyer")({
@@ -114,7 +116,7 @@ function FlyerPage() {
         <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
           <div className="relative">
             <img
-              src={"/resonabed-flyer-outside.jpg"}
+              src={flyerOutside.url}
               alt="Outside of the Resonabed client flyer: what to expect in a session, common questions, and the cover panel"
               className="h-auto w-full"
               loading="lazy"

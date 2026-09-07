@@ -361,7 +361,7 @@ function MarketingPage() {
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-xl border bg-card">
             <img
-              src={"/resonabed-flyer-outside.jpg"}
+              src={flyerOutside.url}
               alt="Outside of the Resonabed client flyer, with the clinic details panel in the middle"
               className="h-auto w-full"
               loading="lazy"
@@ -406,7 +406,7 @@ function MarketingPage() {
           </div>
           <div className="overflow-hidden rounded-xl border bg-card">
             <img
-              src={"/resonabed-flyer-inside.jpg"}
+              src={flyerInside.url}
               alt="Inside of the Resonabed client flyer"
               className="h-auto w-full"
               loading="lazy"
