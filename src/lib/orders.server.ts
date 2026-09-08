@@ -265,8 +265,15 @@ export async function createOrderDraft(
   const order = data as unknown as KitOrderRow;
   await logOrderEvent(order.id, "order_created", {
     toState: "draft",
-    detail: { package: pkg.key, channel: input.paymentChannel },
+    detail: { package: pkg.key, channel: input.paymentChannel, prefix },
   });
+  if (prefix === "XX") {
+    console.error("Order created with unrecognised package, prefix XX", order.order_number, pkg.key);
+    await logOrderEvent(order.id, "order_number_prefix_unknown", {
+      detail: { package: pkg.key, order_number: order.order_number },
+    });
+  }
+
   return { order, token };
 }
 
