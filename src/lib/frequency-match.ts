@@ -39,6 +39,7 @@ export interface FrequencyRow {
   name: string;
   description: string | null;
   benefits: string | null;
+  traditional_associations?: string | null;
   color: string | null;
   goal_tags: string[];
   body_area_tags: string[];
