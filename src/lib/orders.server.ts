@@ -189,6 +189,12 @@ export async function createOrderDraft(
   const { data: numberRow, error: numErr } = await db.rpc("next_kit_order_number");
   if (numErr) throw new Error(numErr.message);
 
+  // The order number carries a two-letter package prefix so fulfilment staff can
+  // tell what to pack from the number alone. Derived from the package, never typed.
+  const prefix = packagePrefix(pkg.key);
+  const orderNumber = applyPackagePrefix(numberRow as unknown as string, prefix);
+
+
   const discount = input.promo?.amountDiscounted ?? 0;
   const buyerType = pkg.personalOnly ? "personal" : input.buyerType;
 
