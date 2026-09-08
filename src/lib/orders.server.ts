@@ -156,7 +156,32 @@ export async function logOrderEvent(
   });
 }
 
+/* ------------------------------------------------- order number prefixing */
+
+/** Two-letter package prefix; "XX" for anything unrecognised, never throws. */
+export function packagePrefix(packageKey: string | null | undefined): string {
+  switch ((packageKey ?? "").trim().toLowerCase()) {
+    case "home":
+      return "HO";
+    case "essentials":
+      return "BA";
+    case "pro":
+      return "PR";
+    case "platinum":
+      return "PL";
+    default:
+      return "XX";
+  }
+}
+
+/** "ORD-00042" + "PL" -> "PL00042". Falls back to the raw number if unparsable. */
+export function applyPackagePrefix(rawNumber: string, prefix: string): string {
+  const digits = (rawNumber.match(/\d+/g) ?? []).join("");
+  return digits ? `${prefix}${digits}` : rawNumber;
+}
+
 /* ------------------------------------------------------------------ create */
+
 
 export type CreateOrderInput = {
   packageKey: PackageKey;
@@ -189,13 +214,19 @@ export async function createOrderDraft(
   const { data: numberRow, error: numErr } = await db.rpc("next_kit_order_number");
   if (numErr) throw new Error(numErr.message);
 
+  // The order number carries a two-letter package prefix so fulfilment staff can
+  // tell what to pack from the number alone. Derived from the package, never typed.
+  const prefix = packagePrefix(pkg.key);
+  const orderNumber = applyPackagePrefix(numberRow as unknown as string, prefix);
+
+
   const discount = input.promo?.amountDiscounted ?? 0;
   const buyerType = pkg.personalOnly ? "personal" : input.buyerType;
 
   const { data, error } = await db
     .from("kit_orders")
     .insert({
-      order_number: numberRow as unknown as string,
+      order_number: orderNumber,
       token_hash: tokenHash,
       state: "draft",
       package_key: pkg.key,
@@ -234,8 +265,15 @@ export async function createOrderDraft(
   const order = data as unknown as KitOrderRow;
   await logOrderEvent(order.id, "order_created", {
     toState: "draft",
-    detail: { package: pkg.key, channel: input.paymentChannel },
+    detail: { package: pkg.key, channel: input.paymentChannel, prefix },
   });
+  if (prefix === "XX") {
+    console.error("Order created with unrecognised package, prefix XX", order.order_number, pkg.key);
+    await logOrderEvent(order.id, "order_number_prefix_unknown", {
+      detail: { package: pkg.key, order_number: order.order_number },
+    });
+  }
+
   return { order, token };
 }
 
