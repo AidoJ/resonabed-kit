@@ -156,7 +156,32 @@ export async function logOrderEvent(
   });
 }
 
+/* ------------------------------------------------- order number prefixing */
+
+/** Two-letter package prefix; "XX" for anything unrecognised, never throws. */
+export function packagePrefix(packageKey: string | null | undefined): string {
+  switch ((packageKey ?? "").trim().toLowerCase()) {
+    case "home":
+      return "HO";
+    case "essentials":
+      return "BA";
+    case "pro":
+      return "PR";
+    case "platinum":
+      return "PL";
+    default:
+      return "XX";
+  }
+}
+
+/** "ORD-00042" + "PL" -> "PL00042". Falls back to the raw number if unparsable. */
+export function applyPackagePrefix(rawNumber: string, prefix: string): string {
+  const digits = (rawNumber.match(/\d+/g) ?? []).join("");
+  return digits ? `${prefix}${digits}` : rawNumber;
+}
+
 /* ------------------------------------------------------------------ create */
+
 
 export type CreateOrderInput = {
   packageKey: PackageKey;
