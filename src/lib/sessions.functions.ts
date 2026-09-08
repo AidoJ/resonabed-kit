@@ -109,7 +109,8 @@ export const listMyOrgServices = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
-const FREQ_COLUMNS = "id, hz, name, description, benefits, color, goal_tags, body_area_tags";
+const FREQ_COLUMNS =
+  "id, hz, name, description, benefits, traditional_associations, color, goal_tags, body_area_tags";
 
 export const listFrequencies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -146,6 +147,7 @@ const frequencyInput = z.object({
   name: z.string().min(1).max(80),
   description: z.string().max(1000).nullable().optional(),
   benefits: z.string().max(1000).nullable().optional(),
+  traditional_associations: z.string().max(2000).nullable().optional(),
   color: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
@@ -164,6 +166,7 @@ export const upsertFrequency = createServerFn({ method: "POST" })
       name: data.name,
       description: data.description ?? null,
       benefits: data.benefits ?? null,
+      traditional_associations: data.traditional_associations ?? null,
       color: data.color ?? null,
       goal_tags: data.goal_tags,
       body_area_tags: data.body_area_tags,

@@ -97,9 +97,22 @@ export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange
           </p>
         ) : null}
         <TagSummary frequency={selected.frequency} className="mt-3" />
-
-
+        {selected.frequency.traditional_associations ? (
+          <details className="mt-4 rounded-md border border-dashed bg-background/60 p-3">
+            <summary className="cursor-pointer text-xs font-medium">
+              Traditional associations (practitioner reference)
+            </summary>
+            <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+              {selected.frequency.traditional_associations}
+            </p>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              Background from Solfeggio tradition, not clinical evidence. Do not repeat this as a
+              health claim, promise of a result, or advice to a client.
+            </p>
+          </details>
+        ) : null}
       </div>
+
 
       <div>
         <p className="mb-3 text-sm font-medium">Or choose another</p>
