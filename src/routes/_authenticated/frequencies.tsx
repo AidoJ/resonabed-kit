@@ -54,6 +54,7 @@ interface FrequencyEditable {
   name: string;
   description: string;
   benefits: string;
+  traditional_associations: string;
   color: string;
   goal_tags: string[];
   body_area_tags: string[];
@@ -64,6 +65,7 @@ const EMPTY: FrequencyEditable = {
   name: "",
   description: "",
   benefits: "",
+  traditional_associations: "",
   color: "#7B8FC7",
   goal_tags: [],
   body_area_tags: [],
@@ -136,6 +138,7 @@ function FrequenciesAdmin() {
           name: v.name,
           description: v.description || null,
           benefits: v.benefits || null,
+          traditional_associations: v.traditional_associations || null,
           color: v.color || null,
           goal_tags: v.goal_tags,
           body_area_tags: v.body_area_tags,
@@ -254,6 +257,7 @@ function FrequenciesAdmin() {
                           name: f.name,
                           description: f.description ?? "",
                           benefits: f.benefits ?? "",
+                          traditional_associations: f.traditional_associations ?? "",
                           color: f.color ?? "#7B8FC7",
                           goal_tags: f.goal_tags ?? [],
                           body_area_tags: f.body_area_tags ?? [],
@@ -347,6 +351,26 @@ function FrequenciesAdmin() {
                 />
               </div>
 
+
+              <div>
+                <Label htmlFor="traditional">
+                  Traditional associations (practitioner reference only)
+                </Label>
+                <Textarea
+                  id="traditional"
+                  rows={4}
+                  value={editing.traditional_associations}
+                  onChange={(e) =>
+                    setEditing({ ...editing, traditional_associations: e.target.value })
+                  }
+                  placeholder="Traditionally described as…"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Shown only to signed-in practitioners in the session wizard, never on public
+                  clinic pages. Write it as tradition and background, not as an outcome a client
+                  can expect.
+                </p>
+              </div>
 
               <ChipGroup
                 label="Goal tags (used as a tiebreak when frequencies are within 10 Hz of the target)"
