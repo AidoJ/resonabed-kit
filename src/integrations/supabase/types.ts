@@ -802,6 +802,7 @@ export type Database = {
           pain_affinity: number
           sleep_affinity: number
           stress_affinity: number
+          traditional_associations: string | null
         }
         Insert: {
           benefits?: string | null
@@ -816,6 +817,7 @@ export type Database = {
           pain_affinity?: number
           sleep_affinity?: number
           stress_affinity?: number
+          traditional_associations?: string | null
         }
         Update: {
           benefits?: string | null
@@ -830,6 +832,7 @@ export type Database = {
           pain_affinity?: number
           sleep_affinity?: number
           stress_affinity?: number
+          traditional_associations?: string | null
         }
         Relationships: []
       }

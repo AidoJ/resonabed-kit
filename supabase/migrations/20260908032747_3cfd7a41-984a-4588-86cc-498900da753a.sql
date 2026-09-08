@@ -1,0 +1,1 @@
+ALTER TABLE public.frequencies ADD COLUMN IF NOT EXISTS traditional_associations text;
