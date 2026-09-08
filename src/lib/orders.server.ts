@@ -226,7 +226,7 @@ export async function createOrderDraft(
   const { data, error } = await db
     .from("kit_orders")
     .insert({
-      order_number: numberRow as unknown as string,
+      order_number: orderNumber,
       token_hash: tokenHash,
       state: "draft",
       package_key: pkg.key,
