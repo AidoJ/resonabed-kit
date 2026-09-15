@@ -44,12 +44,52 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+// Long-lived caching ("Expires headers") for fixed-URL static files in /public.
+// Build-fingerprinted assets and CDN assets already carry immutable caching; these
+// few files sit at stable paths and ship without any cache-control today.
+const STATIC_CACHE_RULES: Array<{ test: RegExp; value: string }> = [
+  // Fonts never change content at these paths.
+  { test: /^\/fonts\/[^/]+\.(?:ttf|otf|woff2?)$/i, value: "public, max-age=31536000, immutable" },
+  // Icons / manifest may be swapped occasionally: cache a week, revalidate after.
+  {
+    test: /^\/(?:favicon\.png|icon-192\.png|icon-512\.png|apple-touch-icon\.png|manifest\.json)$/i,
+    value: "public, max-age=604800, stale-while-revalidate=86400",
+  },
+  { test: /^\/robots\.txt$/i, value: "public, max-age=86400" },
+];
+
+function withStaticCacheHeaders(request: Request, response: Response): Response {
+  if (request.method !== "GET" && request.method !== "HEAD") return response;
+  if (!response.ok) return response;
+
+  let pathname: string;
+  try {
+    pathname = new URL(request.url).pathname;
+  } catch {
+    return response;
+  }
+
+  const rule = STATIC_CACHE_RULES.find((r) => r.test.test(pathname));
+  if (!rule) return response;
+
+  const existing = response.headers.get("cache-control");
+  if (existing && !/no-cache|no-store|max-age=0/i.test(existing)) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set("cache-control", rule.value);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return withStaticCacheHeaders(request, await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
@@ -59,3 +99,4 @@ export default {
     }
   },
 };
+
