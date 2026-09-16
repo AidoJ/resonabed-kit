@@ -7,6 +7,7 @@ import {
   createKitInvoice,
   setKitInvoiceStatus,
   deleteKitInvoice,
+  updateKitInvoiceDetails,
   recordKitPayment,
   type KitInvoice,
 } from "@/lib/invoices.functions";
@@ -26,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { FileText, Plus, Trash2, Banknote } from "lucide-react";
+import { FileText, Plus, Trash2, Banknote, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/invoices")({
   head: () => ({
@@ -70,6 +71,7 @@ function InvoicesAdmin() {
   const setStatus = useServerFn(setKitInvoiceStatus);
   const removeInvoice = useServerFn(deleteKitInvoice);
   const pay = useServerFn(recordKitPayment);
+  const updateDetails = useServerFn(updateKitInvoiceDetails);
 
   const { data, isLoading, error } = useQuery({ queryKey: ["kit-invoices"], queryFn: () => fetchAll() });
   const { data: profile } = useQuery({ queryKey: ["billing-profile"], queryFn: () => fetchProfile() });
@@ -77,6 +79,7 @@ function InvoicesAdmin() {
   const [openNew, setOpenNew] = useState(false);
   const [viewing, setViewing] = useState<KitInvoice | null>(null);
   const [payingFor, setPayingFor] = useState<KitInvoice | null>(null);
+  const [editing, setEditing] = useState<KitInvoice | null>(null);
   const [profileForm, setProfileForm] = useState<typeof EMPTY_BILLING_PROFILE | null>(null);
 
   const invalidate = () => {
@@ -87,6 +90,11 @@ function InvoicesAdmin() {
   const createMut = useMutation({
     mutationFn: (input: Parameters<typeof create>[0]) => create(input),
     onSuccess: () => { toast.success("Invoice created"); setOpenNew(false); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const editMut = useMutation({
+    mutationFn: (input: Parameters<typeof updateDetails>[0]) => updateDetails(input),
+    onSuccess: () => { toast.success("Invoice details updated"); setEditing(null); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
   const payMut = useMutation({
@@ -213,6 +221,9 @@ function InvoicesAdmin() {
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1">
+                      <Button size="sm" variant="outline" title="Edit details" onClick={() => setEditing(inv)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => setViewing(inv)}>
                         <FileText className="h-4 w-4" />
                       </Button>
@@ -257,6 +268,13 @@ function InvoicesAdmin() {
         onSubmit={(payload) => payMut.mutate({ data: payload } as any)}
       />
 
+      <EditInvoiceDialog
+        invoice={editing}
+        pending={editMut.isPending}
+        onClose={() => setEditing(null)}
+        onSubmit={(payload) => editMut.mutate({ data: payload } as any)}
+      />
+
       <KitDocumentDialog
         open={!!viewing}
         onClose={() => setViewing(null)}
@@ -279,7 +297,8 @@ function NewInvoiceDialog({
   const [pkgKey, setPkgKey] = useState("essentials");
   const pkg = packages.find((x) => x.key === pkgKey) ?? packages[0];
   const [form, setForm] = useState({
-    customerName: "", customerEmail: "", customerPhone: "",
+    customerName: "", businessName: "", abn: "",
+    customerEmail: "", customerPhone: "",
     billingAddress: "", shippingAddress: "",
     discount: "0", shipping: "0", shippingRegion: "",
     gstFreeShipping: false, paymentTerms: "eft", dueDate: "", notes: "",
@@ -293,9 +312,18 @@ function NewInvoiceDialog({
         <DialogHeader><DialogTitle>New kit invoice</DialogTitle></DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label>Customer name *</Label>
+            <Label>Contact name *</Label>
             <Input value={form.customerName} onChange={(e) => set({ customerName: e.target.value })} />
           </div>
+          <div>
+            <Label>Business name (billed entity)</Label>
+            <Input
+              placeholder="Legal or registered name, if different"
+              value={form.businessName}
+              onChange={(e) => set({ businessName: e.target.value })}
+            />
+          </div>
+          <div><Label>ABN</Label><Input value={form.abn} onChange={(e) => set({ abn: e.target.value })} /></div>
           <div><Label>Email</Label><Input value={form.customerEmail} onChange={(e) => set({ customerEmail: e.target.value })} /></div>
           <div><Label>Phone</Label><Input value={form.customerPhone} onChange={(e) => set({ customerPhone: e.target.value })} /></div>
           <div className="sm:col-span-2"><Label>Billing address</Label><Input value={form.billingAddress} onChange={(e) => set({ billingAddress: e.target.value })} /></div>
@@ -338,6 +366,8 @@ function NewInvoiceDialog({
             onClick={() =>
               onSubmit({
                 customerName: form.customerName.trim(),
+                businessName: form.businessName.trim() || null,
+                abn: form.abn.trim() || null,
                 customerEmail: form.customerEmail.trim() || null,
                 customerPhone: form.customerPhone.trim() || null,
                 billingAddress: form.billingAddress.trim() || null,
@@ -417,6 +447,89 @@ function RecordPaymentDialog({
             }
           >
             {pending ? "Saving…" : "Record payment & issue receipt"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditInvoiceDialog({
+  invoice, onClose, onSubmit, pending,
+}: {
+  invoice: KitInvoice | null;
+  pending: boolean;
+  onClose: () => void;
+  onSubmit: (payload: Record<string, unknown>) => void;
+}) {
+  const [form, setForm] = useState<Record<string, string>>({});
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+
+  if (invoice && loadedId !== invoice.id) {
+    setLoadedId(invoice.id);
+    setForm({
+      customerName: invoice.customer_name ?? "",
+      businessName: invoice.business_name ?? "",
+      abn: invoice.abn ?? "",
+      customerEmail: invoice.customer_email ?? "",
+      customerPhone: invoice.customer_phone ?? "",
+      billingAddress: invoice.billing_address ?? "",
+      shippingAddress: invoice.shipping_address ?? "",
+      dueDate: invoice.due_date ?? "",
+      notes: invoice.notes ?? "",
+    });
+  }
+
+  const set = (patch: Record<string, string>) => setForm((f) => ({ ...f, ...patch }));
+  const v = (k: string) => form[k] ?? "";
+
+  return (
+    <Dialog open={!!invoice} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit invoice details{invoice ? `, ${invoice.invoice_number}` : ""}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Label>Contact name *</Label>
+            <Input value={v("customerName")} onChange={(e) => set({ customerName: e.target.value })} />
+          </div>
+          <div>
+            <Label>Business name (billed entity)</Label>
+            <Input
+              placeholder="Legal or registered name, if different"
+              value={v("businessName")}
+              onChange={(e) => set({ businessName: e.target.value })}
+            />
+          </div>
+          <div><Label>ABN</Label><Input value={v("abn")} onChange={(e) => set({ abn: e.target.value })} /></div>
+          <div><Label>Email</Label><Input value={v("customerEmail")} onChange={(e) => set({ customerEmail: e.target.value })} /></div>
+          <div><Label>Phone</Label><Input value={v("customerPhone")} onChange={(e) => set({ customerPhone: e.target.value })} /></div>
+          <div className="sm:col-span-2"><Label>Billing address</Label><Input value={v("billingAddress")} onChange={(e) => set({ billingAddress: e.target.value })} /></div>
+          <div className="sm:col-span-2"><Label>Shipping address</Label><Input value={v("shippingAddress")} onChange={(e) => set({ shippingAddress: e.target.value })} /></div>
+          <div><Label>Due date</Label><Input type="date" value={v("dueDate")} onChange={(e) => set({ dueDate: e.target.value })} /></div>
+          <div className="sm:col-span-2"><Label>Notes</Label><Textarea rows={2} value={v("notes")} onChange={(e) => set({ notes: e.target.value })} /></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            disabled={pending || !invoice || !v("customerName").trim()}
+            onClick={() =>
+              onSubmit({
+                id: invoice!.id,
+                customerName: v("customerName").trim(),
+                businessName: v("businessName").trim() || null,
+                abn: v("abn").trim() || null,
+                customerEmail: v("customerEmail").trim() || null,
+                customerPhone: v("customerPhone").trim() || null,
+                billingAddress: v("billingAddress").trim() || null,
+                shippingAddress: v("shippingAddress").trim() || null,
+                dueDate: v("dueDate") || null,
+                notes: v("notes").trim() || null,
+              })
+            }
+          >
+            {pending ? "Saving…" : "Save details"}
           </Button>
         </DialogFooter>
       </DialogContent>
