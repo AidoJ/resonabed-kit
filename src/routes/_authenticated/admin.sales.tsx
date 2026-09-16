@@ -262,15 +262,22 @@ function SalesAdmin() {
                       "—"
                     )}
                   </TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
-                    <div>{r.shippingCents > 0 ? money(r.shippingCents, r.currency) : "Pickup"}</div>
-                    <div className="text-xs text-muted-foreground">
+                  <TableCell className="text-right">
+                    <div className="whitespace-nowrap">
+                      {r.pickup ? "Pickup" : r.shippingCents > 0 ? money(r.shippingCents, r.currency) : "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground whitespace-nowrap">
                       {r.shippingRegion
                         ? r.shippingGstInclusive
                           ? `${r.shippingRegion.toUpperCase()} · incl. GST`
                           : `${r.shippingRegion.toUpperCase()} · GST-free`
                         : ""}
                     </div>
+                    {!r.pickup && r.shippingAddress ? (
+                      <div className="mt-1 max-w-56 text-left text-xs text-muted-foreground whitespace-pre-line">
+                        {r.shippingAddress}
+                      </div>
+                    ) : null}
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap font-medium">
                     {money(r.collectedCents, r.currency)}
