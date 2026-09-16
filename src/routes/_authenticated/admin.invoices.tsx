@@ -79,6 +79,7 @@ function InvoicesAdmin() {
   const [openNew, setOpenNew] = useState(false);
   const [viewing, setViewing] = useState<KitInvoice | null>(null);
   const [payingFor, setPayingFor] = useState<KitInvoice | null>(null);
+  const [editing, setEditing] = useState<KitInvoice | null>(null);
   const [profileForm, setProfileForm] = useState<typeof EMPTY_BILLING_PROFILE | null>(null);
 
   const invalidate = () => {
