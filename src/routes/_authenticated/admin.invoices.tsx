@@ -268,6 +268,13 @@ function InvoicesAdmin() {
         onSubmit={(payload) => payMut.mutate({ data: payload } as any)}
       />
 
+      <EditInvoiceDialog
+        invoice={editing}
+        pending={editMut.isPending}
+        onClose={() => setEditing(null)}
+        onSubmit={(payload) => editMut.mutate({ data: payload } as any)}
+      />
+
       <KitDocumentDialog
         open={!!viewing}
         onClose={() => setViewing(null)}
