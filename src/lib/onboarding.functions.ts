@@ -141,3 +141,53 @@ export const createOnboardingOrderManually = createServerFn({ method: "POST" })
     });
     return result;
   });
+
+/**
+ * Backfill: queues every clinic (business) order whose deposit has cleared but
+ * which never reached the onboarding queue, because queueing used to wait for
+ * the balance. Idempotent on (source, order number).
+ */
+export const queueDepositPaidClinicOrders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { recordOnboardingOrder } = await import("@/lib/onboarding.server");
+
+    const { data, error } = await supabaseAdmin
+      .from("kit_orders")
+      .select(
+        "order_number, business_name, abn, contact_name, contact_email, contact_phone, package_key, path, shipping_address, contract_cents, state",
+      )
+      .eq("buyer_type", "business")
+      .not("deposit_paid_at", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+
+    let queued = 0;
+    let skipped = 0;
+    for (const row of data ?? []) {
+      if (!row.contact_email) {
+        skipped += 1;
+        continue;
+      }
+      const result = await recordOnboardingOrder({
+        source: "order",
+        sourceRef: row.order_number,
+        businessName: row.business_name,
+        abn: row.abn,
+        contactName: row.contact_name,
+        contactEmail: row.contact_email,
+        contactPhone: row.contact_phone,
+        packageKey: row.package_key,
+        plan: row.path === "plan" ? "installments" : "full",
+        shippingAddress: row.shipping_address,
+        amountCents: row.contract_cents,
+        notes: `Order ${row.order_number}, deposit paid (${row.state}).`,
+      });
+      if (result.alreadyExisted) skipped += 1;
+      else queued += 1;
+    }
+    return { queued, skipped };
+  });

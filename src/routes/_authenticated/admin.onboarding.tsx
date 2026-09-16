@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   createOnboardingOrderManually,
   listOnboardingOrders,
+  queueDepositPaidClinicOrders,
   markOnboardingOrderProvisioned,
   updateOnboardingOrder,
   type OnboardingOrderRow,
@@ -97,6 +98,21 @@ function OnboardingPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const syncFn = useServerFn(queueDepositPaidClinicOrders);
+  const syncDeposits = useMutation({
+    mutationFn: () => syncFn(),
+    onSuccess: (r) => {
+      const { queued, skipped } = r as { queued: number; skipped: number };
+      toast.success(
+        queued > 0
+          ? `${queued} deposit-paid clinic order${queued === 1 ? "" : "s"} added to the queue`
+          : `Nothing new to add (${skipped} already here)`,
+      );
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const pending = orders.filter((o) => o.status === "pending");
   const done = orders.filter((o) => o.status !== "pending");
 
@@ -111,9 +127,19 @@ function OnboardingPage() {
             address can ever appear publicly.
           </p>
         </div>
-        <Button variant="outline" onClick={() => setAddOpen(true)}>
-          Add order by hand
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            disabled={syncDeposits.isPending}
+            onClick={() => syncDeposits.mutate()}
+          >
+            {syncDeposits.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Find deposit-paid clinics
+          </Button>
+          <Button variant="outline" onClick={() => setAddOpen(true)}>
+            Add order by hand
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (

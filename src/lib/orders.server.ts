@@ -369,6 +369,32 @@ export async function markDepositPaid(
     detail: { amount_cents: opts.amountCents },
   });
 
+  // Clinic buyers enter the onboarding queue as soon as the deposit clears, so
+  // the org, slug and branded flyers can be prepared while the balance is
+  // outstanding. Nothing ships until fulfilment; the queue entry is idempotent
+  // on (source, source_ref) so fulfilment will not duplicate it.
+  if (updated.buyer_type === "business" && updated.contact_email) {
+    try {
+      const { recordOnboardingOrder } = await import("@/lib/onboarding.server");
+      await recordOnboardingOrder({
+        source: "order",
+        sourceRef: updated.order_number,
+        businessName: updated.business_name,
+        abn: updated.abn,
+        contactName: updated.contact_name,
+        contactEmail: updated.contact_email,
+        contactPhone: updated.contact_phone,
+        packageKey: updated.package_key,
+        plan: updated.path === "plan" ? "installments" : "full",
+        shippingAddress: updated.shipping_address,
+        amountCents: updated.contract_cents,
+        notes: `Order ${updated.order_number}, deposit paid, balance outstanding.`,
+      });
+    } catch (err) {
+      console.error("Could not queue clinic onboarding at deposit", updated.order_number, err);
+    }
+  }
+
   const balanceToken = await sendDepositReceivedEmail(updated);
   return { order: updated, balanceToken };
 }
