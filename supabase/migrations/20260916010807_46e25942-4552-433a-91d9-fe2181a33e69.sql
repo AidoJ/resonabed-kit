@@ -1,0 +1,2 @@
+ALTER TABLE public.kit_onboarding_orders DROP CONSTRAINT kit_onboarding_orders_source_chk;
+ALTER TABLE public.kit_onboarding_orders ADD CONSTRAINT kit_onboarding_orders_source_chk CHECK (source = ANY (ARRAY['stripe'::text, 'eft'::text, 'manual'::text, 'order'::text]));
