@@ -7,6 +7,7 @@ import {
   createKitInvoice,
   setKitInvoiceStatus,
   deleteKitInvoice,
+  updateKitInvoiceDetails,
   recordKitPayment,
   type KitInvoice,
 } from "@/lib/invoices.functions";
