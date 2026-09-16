@@ -37,6 +37,7 @@ import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
 import { SolfeggioFrequenciesSection } from "@/components/public-clinic/solfeggio-frequencies-section";
 import { KitCard, kitImages } from "@/components/kit-card";
+import { RoiCalculator } from "@/components/roi-calculator";
 import { HomeOrderPanel } from "@/components/home-order-panel";
 import {
   ORDER_DEPOSIT_CENTS,
@@ -1671,6 +1672,7 @@ function PackageCard({
             </li>
           ))}
         </ul>
+        <RoiCalculator listCents={pkgDef.listCents} highlighted={highlighted} />
         <div className="mt-9 space-y-3">
           <Button
             onClick={() => handleOrder("full")}
