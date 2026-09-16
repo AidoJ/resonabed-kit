@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
-import { listKitSales, syncKitSalesToLedger } from "@/lib/sales.functions";
+import { listKitSales, resendOrderBalanceLink, syncKitSalesToLedger } from "@/lib/sales.functions";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 function SalesAdmin() {
   const fetchSales = useServerFn(listKitSales);
   const runSync = useServerFn(syncKitSalesToLedger);
+  const doResend = useServerFn(resendOrderBalanceLink);
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["kit-sales"],
@@ -81,6 +82,11 @@ function SalesAdmin() {
       void queryClient.invalidateQueries({ queryKey: ["kit-invoices"] });
     },
   });
+  const resend = useMutation({
+    mutationFn: (orderId: string) => doResend({ data: { orderId } }),
+  });
+
+
 
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading sales…</p>;
@@ -182,12 +188,13 @@ function SalesAdmin() {
               <TableHead className="text-right">Collected</TableHead>
               <TableHead className="text-right">GST</TableHead>
               <TableHead className="text-right">Contract total</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-sm text-muted-foreground">
+                <TableCell colSpan={12} className="text-sm text-muted-foreground">
                   No completed kit orders yet.
                 </TableCell>
               </TableRow>
@@ -262,6 +269,31 @@ function SalesAdmin() {
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap">
                     {money(r.contractCents, r.currency)}
+                  </TableCell>
+                  <TableCell className="text-right whitespace-nowrap">
+                    {r.state === "deposit_paid" ? (
+                      <div className="flex flex-col items-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={resend.isPending && resend.variables === r.id}
+                          onClick={() => resend.mutate(r.id)}
+                        >
+                          {resend.isPending && resend.variables === r.id
+                            ? "Sending…"
+                            : "Resend balance link"}
+                        </Button>
+                        {resend.variables === r.id && resend.data ? (
+                          <span className="text-xs text-muted-foreground">
+                            Sent to {resend.data.email}
+                          </span>
+                        ) : resend.variables === r.id && resend.error ? (
+                          <span className="text-xs text-destructive">
+                            {(resend.error as Error).message}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ))
