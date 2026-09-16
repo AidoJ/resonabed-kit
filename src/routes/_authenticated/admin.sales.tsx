@@ -70,12 +70,18 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 function SalesAdmin() {
   const fetchSales = useServerFn(listKitSales);
   const runSync = useServerFn(syncKitSalesToLedger);
+  const doResend = useServerFn(resendOrderBalanceLink);
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["kit-sales"],
     queryFn: () => fetchSales(),
   });
   const sync = useMutation({
+    mutationFn: () => runSync(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["kit-invoices"] });
+    },
+  });
     mutationFn: () => runSync(),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["kit-invoices"] });
