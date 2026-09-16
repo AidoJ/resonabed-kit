@@ -23,11 +23,10 @@ import { StickyBookCta } from "@/components/public-clinic/sticky-book-cta";
 import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
 import { ClinicNav, type ClinicNavItem } from "@/components/public-clinic/clinic-nav";
-import heroWide from "@/assets/resonabed-hero-1536-img.webp";
-import heroSmall from "@/assets/resonabed-hero-768.webp.asset.json";
+import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 
 const SITE = "https://resonabed.com";
-const HERO_OG = `${SITE}${heroWide}`;
+const HERO_OG = `${SITE}${heroPosterUrl}`;
 
 async function loadPublicPage(slug: string) {
   const res = await getPublicOrgPage({ data: { slug } });
@@ -322,20 +321,7 @@ function PublicOrgPage() {
               className="relative overflow-hidden rounded-[1.75rem] border shadow-2xl"
               style={{ borderColor: "color-mix(in oklab, var(--clinic-ink-fg) 12%, transparent)" }}
             >
-              <picture>
-                <source media="(max-width: 767px)" srcSet={heroSmall.url} type="image/webp" />
-                <source srcSet={heroWide} type="image/webp" />
-                <img
-                  src={heroWide}
-                  alt="A client resting on a vibroacoustic therapy table as sound resonates through it"
-                  className="h-auto w-full"
-                  width={1536}
-                  height={1024}
-                  loading="eager"
-                  fetchPriority="high"
-                  draggable={false}
-                />
-              </picture>
+              <HeroVideo />
             </div>
           </div>
         </div>
