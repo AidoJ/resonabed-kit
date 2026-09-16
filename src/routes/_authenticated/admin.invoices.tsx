@@ -71,6 +71,7 @@ function InvoicesAdmin() {
   const setStatus = useServerFn(setKitInvoiceStatus);
   const removeInvoice = useServerFn(deleteKitInvoice);
   const pay = useServerFn(recordKitPayment);
+  const updateDetails = useServerFn(updateKitInvoiceDetails);
 
   const { data, isLoading, error } = useQuery({ queryKey: ["kit-invoices"], queryFn: () => fetchAll() });
   const { data: profile } = useQuery({ queryKey: ["billing-profile"], queryFn: () => fetchProfile() });
