@@ -223,7 +223,11 @@ export function KitDocumentDialog({
               <div className="kit-doc-panel">
                 <div className="kit-doc-panel-title">Bill to</div>
                 <div className="kit-doc-panel-body">
-                  <div className="kit-doc-name">{invoice.customer_name}</div>
+                  <div className="kit-doc-name">{invoice.business_name || invoice.customer_name}</div>
+                  {invoice.business_name && invoice.customer_name && (
+                    <DetailLine>Attn: {invoice.customer_name}</DetailLine>
+                  )}
+                  {invoice.abn && <DetailLine>ABN {invoice.abn}</DetailLine>}
                   {invoice.billing_address && <DetailLine><span className="kit-doc-address">{invoice.billing_address}</span></DetailLine>}
                   {invoice.customer_email && <DetailLine>{invoice.customer_email}</DetailLine>}
                   {invoice.customer_phone && <DetailLine>{invoice.customer_phone}</DetailLine>}
