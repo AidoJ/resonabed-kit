@@ -92,6 +92,11 @@ function InvoicesAdmin() {
     onSuccess: () => { toast.success("Invoice created"); setOpenNew(false); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
+  const editMut = useMutation({
+    mutationFn: (input: Parameters<typeof updateDetails>[0]) => updateDetails(input),
+    onSuccess: () => { toast.success("Invoice details updated"); setEditing(null); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const payMut = useMutation({
     mutationFn: (input: Parameters<typeof pay>[0]) => pay(input),
     onSuccess: () => { toast.success("Payment recorded, receipt issued"); setPayingFor(null); invalidate(); },
