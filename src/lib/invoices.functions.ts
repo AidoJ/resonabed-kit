@@ -7,6 +7,8 @@ export type KitInvoice = {
   invoice_number: string;
   stripe_session_id: string | null;
   customer_name: string;
+  business_name: string | null;
+  abn: string | null;
   customer_email: string | null;
   customer_phone: string | null;
   billing_address: string | null;
