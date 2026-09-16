@@ -142,6 +142,48 @@ export const createKitInvoice = createServerFn({ method: "POST" })
     return row as KitInvoice;
   });
 
+/** Edit the customer-facing details on an invoice (trading name vs legal entity, ABN, addresses). */
+export const updateKitInvoiceDetails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        customerName: z.string().min(1),
+        businessName: z.string().max(200).optional().nullable(),
+        abn: z.string().max(40).optional().nullable(),
+        customerEmail: z.string().email().optional().nullable().or(z.literal("")),
+        customerPhone: z.string().max(40).optional().nullable(),
+        billingAddress: z.string().max(500).optional().nullable(),
+        shippingAddress: z.string().max(500).optional().nullable(),
+        dueDate: z.string().optional().nullable(),
+        notes: z.string().max(2000).optional().nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuper(context);
+    const sb = context.supabase as any;
+    const { data: row, error } = await sb
+      .from("kit_invoices")
+      .update({
+        customer_name: data.customerName,
+        business_name: data.businessName || null,
+        abn: data.abn || null,
+        customer_email: data.customerEmail || null,
+        customer_phone: data.customerPhone || null,
+        billing_address: data.billingAddress || null,
+        shipping_address: data.shippingAddress || null,
+        due_date: data.dueDate || null,
+        notes: data.notes || null,
+      })
+      .eq("id", data.id)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return row as KitInvoice;
+  });
+
 export const setKitInvoiceStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
