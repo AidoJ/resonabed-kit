@@ -82,11 +82,11 @@ function SalesAdmin() {
       void queryClient.invalidateQueries({ queryKey: ["kit-invoices"] });
     },
   });
-    mutationFn: () => runSync(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["kit-invoices"] });
-    },
+  const resend = useMutation({
+    mutationFn: (orderId: string) => doResend({ data: { orderId } }),
   });
+
+
 
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading sales…</p>;
