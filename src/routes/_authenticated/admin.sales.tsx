@@ -207,13 +207,24 @@ function SalesAdmin() {
                       month: "short",
                       year: "numeric",
                     })}
+                    {r.orderNumber ? (
+                      <div className="text-xs font-medium text-muted-foreground">{r.orderNumber}</div>
+                    ) : null}
                   </TableCell>
                   <TableCell>
                     <div className="min-w-40">
                       <div>{r.customerName ?? "—"}</div>
                       <div className="text-xs text-muted-foreground">{r.customerEmail ?? ""}</div>
+                      {r.customerPhone ? (
+                        <div className="text-xs text-muted-foreground">{r.customerPhone}</div>
+                      ) : null}
                       {r.businessName ? (
-                        <div className="text-xs text-muted-foreground">{r.businessName}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {r.businessName}
+                          {r.abn ? ` · ABN ${r.abn}` : ""}
+                        </div>
+                      ) : r.abn ? (
+                        <div className="text-xs text-muted-foreground">ABN {r.abn}</div>
                       ) : null}
                     </div>
                   </TableCell>
@@ -251,15 +262,22 @@ function SalesAdmin() {
                       "—"
                     )}
                   </TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
-                    <div>{r.shippingCents > 0 ? money(r.shippingCents, r.currency) : "Pickup"}</div>
-                    <div className="text-xs text-muted-foreground">
+                  <TableCell className="text-right">
+                    <div className="whitespace-nowrap">
+                      {r.pickup ? "Pickup" : r.shippingCents > 0 ? money(r.shippingCents, r.currency) : "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground whitespace-nowrap">
                       {r.shippingRegion
                         ? r.shippingGstInclusive
                           ? `${r.shippingRegion.toUpperCase()} · incl. GST`
                           : `${r.shippingRegion.toUpperCase()} · GST-free`
                         : ""}
                     </div>
+                    {!r.pickup && r.shippingAddress ? (
+                      <div className="mt-1 max-w-56 text-left text-xs text-muted-foreground whitespace-pre-line">
+                        {r.shippingAddress}
+                      </div>
+                    ) : null}
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap font-medium">
                     {money(r.collectedCents, r.currency)}

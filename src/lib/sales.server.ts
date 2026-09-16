@@ -34,6 +34,13 @@ export type KitSaleRow = {
   /** Refined once a business order is provisioned into an organisation. */
   buyerCategory: BuyerCategory;
   businessName: string | null;
+  customerPhone: string | null;
+  abn: string | null;
+  /** True when the buyer chose pickup instead of delivery. */
+  pickup: boolean;
+  /** Full delivery address as entered at checkout. */
+  shippingAddress: string | null;
+  orderNumber: string;
 };
 
 export type BuyerCategory =
@@ -180,6 +187,11 @@ export async function fetchKitSales(_secret?: string): Promise<{
           ? "business_pending"
           : "private",
       businessName: matched?.businessName ?? o.business_name ?? null,
+      customerPhone: o.contact_phone ?? null,
+      abn: o.abn ?? null,
+      pickup: !!o.pickup,
+      shippingAddress: o.shipping_address ?? null,
+      orderNumber: o.order_number ?? "",
     };
   });
 
