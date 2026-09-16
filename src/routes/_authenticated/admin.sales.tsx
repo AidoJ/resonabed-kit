@@ -270,6 +270,31 @@ function SalesAdmin() {
                   <TableCell className="text-right whitespace-nowrap">
                     {money(r.contractCents, r.currency)}
                   </TableCell>
+                  <TableCell className="text-right whitespace-nowrap">
+                    {r.state === "deposit_paid" ? (
+                      <div className="flex flex-col items-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={resend.isPending && resend.variables === r.id}
+                          onClick={() => resend.mutate(r.id)}
+                        >
+                          {resend.isPending && resend.variables === r.id
+                            ? "Sending…"
+                            : "Resend balance link"}
+                        </Button>
+                        {resend.variables === r.id && resend.data ? (
+                          <span className="text-xs text-muted-foreground">
+                            Sent to {resend.data.email}
+                          </span>
+                        ) : resend.variables === r.id && resend.error ? (
+                          <span className="text-xs text-destructive">
+                            {(resend.error as Error).message}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </TableCell>
                 </TableRow>
               ))
             )}
