@@ -173,7 +173,7 @@ export const queueDepositPaidClinicOrders = createServerFn({ method: "POST" })
         continue;
       }
       const result = await recordOnboardingOrder({
-        source: "order",
+        source: row.payment_channel === "eft" ? "eft" : "stripe",
         sourceRef: row.order_number,
         businessName: row.business_name,
         abn: row.abn,
