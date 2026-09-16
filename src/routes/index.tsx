@@ -1671,6 +1671,7 @@ function PackageCard({
             </li>
           ))}
         </ul>
+        <RoiCalculator listCents={pkgDef.listCents} highlighted={highlighted} />
         <div className="mt-9 space-y-3">
           <Button
             onClick={() => handleOrder("full")}
