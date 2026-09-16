@@ -98,6 +98,21 @@ function OnboardingPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const syncFn = useServerFn(queueDepositPaidClinicOrders);
+  const syncDeposits = useMutation({
+    mutationFn: () => syncFn(),
+    onSuccess: (r) => {
+      const { queued, skipped } = r as { queued: number; skipped: number };
+      toast.success(
+        queued > 0
+          ? `${queued} deposit-paid clinic order${queued === 1 ? "" : "s"} added to the queue`
+          : `Nothing new to add (${skipped} already here)`,
+      );
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const pending = orders.filter((o) => o.status === "pending");
   const done = orders.filter((o) => o.status !== "pending");
 
