@@ -188,12 +188,13 @@ function SalesAdmin() {
               <TableHead className="text-right">Collected</TableHead>
               <TableHead className="text-right">GST</TableHead>
               <TableHead className="text-right">Contract total</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-sm text-muted-foreground">
+                <TableCell colSpan={12} className="text-sm text-muted-foreground">
                   No completed kit orders yet.
                 </TableCell>
               </TableRow>
