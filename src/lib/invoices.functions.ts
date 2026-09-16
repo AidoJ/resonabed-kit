@@ -58,6 +58,8 @@ async function assertSuper(context: any) {
 
 const invoiceInput = z.object({
   customerName: z.string().min(1),
+  businessName: z.string().max(200).optional().nullable(),
+  abn: z.string().max(40).optional().nullable(),
   customerEmail: z.string().email().optional().nullable(),
   customerPhone: z.string().max(40).optional().nullable(),
   billingAddress: z.string().max(500).optional().nullable(),
