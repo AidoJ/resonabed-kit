@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
@@ -67,6 +67,7 @@ const DOCUMENT_CSS = `
   .kit-doc-address { white-space: pre-line; }
   .kit-doc-line { margin-top: 3px; color: var(--doc-muted); overflow-wrap: anywhere; }
   .kit-doc-facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+  .kit-doc-facts-after-address { margin-top: 12px; }
   .kit-doc-facts dt { color: var(--doc-muted); font-weight: 700; }
   .kit-doc-facts dd { margin: 0; text-align: right; }
   .kit-doc-table { width: 100%; margin-top: 22px; border-collapse: collapse; table-layout: fixed; }
@@ -125,7 +126,7 @@ function printNode(id: string, title: string) {
   });
 }
 
-function DetailLine({ children }: { children: React.ReactNode }) {
+function DetailLine({ children }: { children: ReactNode }) {
   return <div className="kit-doc-line">{children}</div>;
 }
 
@@ -237,7 +238,7 @@ export function KitDocumentDialog({
                       <DetailLine><span className="kit-doc-address">{invoice.shipping_address}</span></DetailLine>
                     </>
                   )}
-                  <dl className="kit-doc-facts" style={{ marginTop: invoice.shipping_address ? 12 : 0 }}>
+                  <dl className={`kit-doc-facts${invoice.shipping_address ? " kit-doc-facts-after-address" : ""}`}>
                     <dt>{issuedLabel}</dt><dd>{date(issuedDate)}</dd>
                     {!isReceipt && <><dt>Payment due</dt><dd>{date(invoice.due_date)}</dd></>}
                     <dt>Payment method</dt><dd>{(payment?.method ?? invoice.payment_terms).toUpperCase()}</dd>
