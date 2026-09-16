@@ -221,6 +221,9 @@ function InvoicesAdmin() {
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1">
+                      <Button size="sm" variant="outline" title="Edit details" onClick={() => setEditing(inv)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => setViewing(inv)}>
                         <FileText className="h-4 w-4" />
                       </Button>
