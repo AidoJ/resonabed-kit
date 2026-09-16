@@ -348,6 +348,8 @@ function NewInvoiceDialog({
             onClick={() =>
               onSubmit({
                 customerName: form.customerName.trim(),
+                businessName: form.businessName.trim() || null,
+                abn: form.abn.trim() || null,
                 customerEmail: form.customerEmail.trim() || null,
                 customerPhone: form.customerPhone.trim() || null,
                 billingAddress: form.billingAddress.trim() || null,
