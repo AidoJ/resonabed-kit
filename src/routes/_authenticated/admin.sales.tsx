@@ -207,13 +207,24 @@ function SalesAdmin() {
                       month: "short",
                       year: "numeric",
                     })}
+                    {r.orderNumber ? (
+                      <div className="text-xs font-medium text-muted-foreground">{r.orderNumber}</div>
+                    ) : null}
                   </TableCell>
                   <TableCell>
                     <div className="min-w-40">
                       <div>{r.customerName ?? "—"}</div>
                       <div className="text-xs text-muted-foreground">{r.customerEmail ?? ""}</div>
+                      {r.customerPhone ? (
+                        <div className="text-xs text-muted-foreground">{r.customerPhone}</div>
+                      ) : null}
                       {r.businessName ? (
-                        <div className="text-xs text-muted-foreground">{r.businessName}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {r.businessName}
+                          {r.abn ? ` · ABN ${r.abn}` : ""}
+                        </div>
+                      ) : r.abn ? (
+                        <div className="text-xs text-muted-foreground">ABN {r.abn}</div>
                       ) : null}
                     </div>
                   </TableCell>
