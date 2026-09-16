@@ -114,6 +114,8 @@ export const createKitInvoice = createServerFn({ method: "POST" })
       .insert({
         invoice_number: numberRow as string,
         customer_name: data.customerName,
+        business_name: data.businessName ?? null,
+        abn: data.abn ?? null,
         customer_email: data.customerEmail ?? null,
         customer_phone: data.customerPhone ?? null,
         billing_address: data.billingAddress ?? null,
