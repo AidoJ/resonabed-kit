@@ -238,7 +238,7 @@ export function KitDocumentDialog({
                 <div className="kit-doc-panel-body">
                   {invoice.shipping_address && (
                     <>
-                      <div className="kit-doc-name">{invoice.customer_name}</div>
+                      <div className="kit-doc-name">{invoice.business_name || invoice.customer_name}</div>
                       <DetailLine><span className="kit-doc-address">{invoice.shipping_address}</span></DetailLine>
                     </>
                   )}
