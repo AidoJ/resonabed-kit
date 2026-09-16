@@ -61,7 +61,7 @@ export function RoiCalculator({
 
         <div>
           <div className="flex items-baseline justify-between text-sm">
-            <span className={subCls}>Your price per session</span>
+            <span className={subCls}>Your average price per session</span>
             <span className={"font-semibold tabular-nums " + strongCls}>${pricePerSession}</span>
           </div>
           <input
