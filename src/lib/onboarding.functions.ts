@@ -157,7 +157,7 @@ export const queueDepositPaidClinicOrders = createServerFn({ method: "POST" })
     const { data, error } = await supabaseAdmin
       .from("kit_orders")
       .select(
-        "order_number, business_name, abn, contact_name, contact_email, contact_phone, package_key, path, shipping_address, contract_cents, state, payment_channel",
+        "order_number, business_name, abn, contact_name, contact_email, contact_phone, package_key, path, shipping_address, contract_cents, state",
       )
       .eq("buyer_type", "business")
       .not("deposit_paid_at", "is", null)
@@ -173,7 +173,7 @@ export const queueDepositPaidClinicOrders = createServerFn({ method: "POST" })
         continue;
       }
       const result = await recordOnboardingOrder({
-        source: row.payment_channel === "eft" ? "eft" : "stripe",
+        source: "order",
         sourceRef: row.order_number,
         businessName: row.business_name,
         abn: row.abn,
