@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   createOnboardingOrderManually,
   listOnboardingOrders,
+  queueDepositPaidClinicOrders,
   markOnboardingOrderProvisioned,
   updateOnboardingOrder,
   type OnboardingOrderRow,
@@ -111,9 +112,19 @@ function OnboardingPage() {
             address can ever appear publicly.
           </p>
         </div>
-        <Button variant="outline" onClick={() => setAddOpen(true)}>
-          Add order by hand
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            disabled={syncDeposits.isPending}
+            onClick={() => syncDeposits.mutate()}
+          >
+            {syncDeposits.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Find deposit-paid clinics
+          </Button>
+          <Button variant="outline" onClick={() => setAddOpen(true)}>
+            Add order by hand
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
