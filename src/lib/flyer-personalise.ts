@@ -21,8 +21,10 @@ import QRCode from "qrcode";
 /** Print artwork, fingerprinted and CDN-cached. */
 import flyerPdf from "@/assets/resonabed-flyer.pdf.asset.json";
 import whiteLogoUrl from "@/assets/resonabed-logo-flyer-white.png";
+import heroPoster from "@/assets/resonabed-poster.jpg.asset.json";
 
 const FLYER_PDF_URL = flyerPdf.url;
+const HERO_POSTER_URL = heroPoster.url;
 
 /** All-white Resonabed mark, used when the flyer is re-skinned to clinic colours. */
 const WHITE_LOGO_URL = whiteLogoUrl;
@@ -72,6 +74,21 @@ const SHEET_W = TRIM_W + BLEED_PT * 2;
 const SHEET_H = TRIM_H + BLEED_PT * 2;
 const CROP_MARK_LEN = 5 * MM_TO_PT; // 5mm registration marks
 const BLACK = rgb(0, 0, 0);
+
+/** Replaces the client-facing photo with the still used by the website hero video. */
+async function replaceHeroPhoto(pdf: PDFDocument) {
+  const page = pdf.getPages()[0];
+  if (!page) return;
+
+  const bytes = await fetch(HERO_POSTER_URL).then((response) =>
+    response.ok ? response.arrayBuffer() : null,
+  );
+  if (!bytes) return;
+
+  const image = await pdf.embedJpg(bytes);
+  // Keep a fine edge of the original rounded frame visible around the new image.
+  page.drawImage(image, { x: 600, y: 79, width: 203, height: 120 });
+}
 
 /** Wraps each source page in a 3mm bleed and draws crop marks. */
 async function addPrintBleed(source: PDFDocument): Promise<PDFDocument> {
@@ -186,6 +203,7 @@ export async function reimposeOutsidePage(doc: PDFDocument): Promise<PDFDocument
 export async function buildBlankFlyer(): Promise<Blob> {
   const src = await fetch(FLYER_PDF_URL).then((r) => r.arrayBuffer());
   const pdf = await PDFDocument.load(src);
+  await replaceHeroPhoto(pdf);
   const imposed = await reimposeOutsidePage(pdf);
   const bytes = await imposed.save();
   return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
@@ -479,6 +497,8 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   const src = await fetch(FLYER_PDF_URL).then((r) => r.arrayBuffer());
   const pdf = await PDFDocument.load(src);
   const page = pdf.getPages()[0]!;
+
+  await replaceHeroPhoto(pdf);
 
   const map = makeRecolour(details.brand);
   const deepC = shiftHex(BASE_DEEP, map);
