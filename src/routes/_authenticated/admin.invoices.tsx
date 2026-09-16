@@ -294,9 +294,18 @@ function NewInvoiceDialog({
         <DialogHeader><DialogTitle>New kit invoice</DialogTitle></DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label>Customer name *</Label>
+            <Label>Contact name *</Label>
             <Input value={form.customerName} onChange={(e) => set({ customerName: e.target.value })} />
           </div>
+          <div>
+            <Label>Business name (billed entity)</Label>
+            <Input
+              placeholder="Legal or registered name, if different"
+              value={form.businessName}
+              onChange={(e) => set({ businessName: e.target.value })}
+            />
+          </div>
+          <div><Label>ABN</Label><Input value={form.abn} onChange={(e) => set({ abn: e.target.value })} /></div>
           <div><Label>Email</Label><Input value={form.customerEmail} onChange={(e) => set({ customerEmail: e.target.value })} /></div>
           <div><Label>Phone</Label><Input value={form.customerPhone} onChange={(e) => set({ customerPhone: e.target.value })} /></div>
           <div className="sm:col-span-2"><Label>Billing address</Label><Input value={form.billingAddress} onChange={(e) => set({ billingAddress: e.target.value })} /></div>
