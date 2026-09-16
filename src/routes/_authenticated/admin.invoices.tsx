@@ -279,7 +279,8 @@ function NewInvoiceDialog({
   const [pkgKey, setPkgKey] = useState("essentials");
   const pkg = packages.find((x) => x.key === pkgKey) ?? packages[0];
   const [form, setForm] = useState({
-    customerName: "", customerEmail: "", customerPhone: "",
+    customerName: "", businessName: "", abn: "",
+    customerEmail: "", customerPhone: "",
     billingAddress: "", shippingAddress: "",
     discount: "0", shipping: "0", shippingRegion: "",
     gstFreeShipping: false, paymentTerms: "eft", dueDate: "", notes: "",
