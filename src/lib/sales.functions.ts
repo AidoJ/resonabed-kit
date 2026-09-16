@@ -37,11 +37,15 @@ export const syncKitSalesToLedger = createServerFn({ method: "POST" })
  * plan). A new token is minted, so any earlier link stops working.
  */
 export const resendOrderBalanceLink = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => {
+    const orderId = (input as { orderId?: unknown })?.orderId;
+    if (typeof orderId !== "string" || !orderId) throw new Error("orderId is required");
+    return { orderId };
+  })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context, data }: { context: unknown; data: { orderId: string } }) => {
-    const ctx = context as { supabase: { rpc: Function }; userId: string };
-    const { data: isSuper } = await ctx.supabase.rpc("is_super_admin", {
-      _user_id: ctx.userId,
+  .handler(async ({ context, data }) => {
+    const { data: isSuper } = await context.supabase.rpc("is_super_admin", {
+      _user_id: context.userId,
     });
     if (!isSuper) throw new Error("Forbidden");
 
@@ -57,8 +61,7 @@ export const resendOrderBalanceLink = createServerFn({ method: "POST" })
     const sent = await sendDepositReceivedEmail(order);
     if (!sent) throw new Error(`Could not email ${order.contact_email ?? "the customer"}.`);
     await logOrderEvent(order.id, "balance_link_resent", {
-      by: ctx.userId,
-      detail: { email: order.contact_email },
+      detail: { email: order.contact_email, by: context.userId },
     });
     return { ok: true, email: order.contact_email };
   });
