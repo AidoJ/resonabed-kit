@@ -37,6 +37,24 @@ const EQUIPMENT = [
     image: kitImages.tablet,
     imageAlt: "10 inch IQU tablet showing the Resonabed session app",
   },
+  {
+    name: "9 Solfeggio frequencies",
+    description:
+      "Nine wellbeing-focused tones matched to how clients describe what they want, licensed and ready to play.",
+    inclusion: "Included in Basic, Pro, Platinum and Home",
+    image: kitImages.solfeggio,
+    imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
+  },
+  {
+    name: "Marketing made easy",
+    description:
+      "Your own bookable clinic webpage plus 100 Resonabed customised marketing flyers carrying your clinic details.",
+    inclusion: "Included in Basic, Pro and Platinum",
+    image: kitImages.brochure,
+    imageAlt: "Resonabed marketing flyer included with business kits",
+    linkTo: "/flyer",
+    linkLabel: "See the flyer",
+  },
 ] as const;
 
 export function KitShowcase() {
