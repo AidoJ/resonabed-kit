@@ -506,7 +506,7 @@ function LandingPage() {
             Basic, Pro and Platinum.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every business package includes the tactile speakers, the amplifier, 100 professionally
+            Every business package includes the tactile speakers, amplifier, headphones, 100 professionally
             designed{" "}
             <Link
               to="/flyer"
@@ -727,6 +727,19 @@ function LandingPage() {
           diagnose, treat, cure or prevent any disease. If you have a health condition, speak with a
           qualified health professional before use.
         </p>
+      </section>
+
+      {/* CLOSING ACTION */}
+      <section className="bg-brand-ink py-20 text-white md:py-24">
+        <div className="mx-auto max-w-4xl px-6 text-left md:px-10">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">A complete new service</p>
+          <h2 className="mt-3 max-w-2xl text-3xl font-light md:text-4xl">Ready to see Resonabed in your treatment room?</h2>
+          <p className="mt-4 max-w-xl text-white/70">Explore the business packages or book a free, no-obligation demonstration.</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="#packages"><Button className="rounded-full bg-white text-brand-indigo hover:bg-white/90">Explore packages</Button></a>
+            <Button type="button" onClick={openCalendlyPopup} variant="outline" className="rounded-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">Book a free demo</Button>
+          </div>
+        </div>
       </section>
 
 

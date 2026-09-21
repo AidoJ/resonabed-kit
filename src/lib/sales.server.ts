@@ -110,10 +110,10 @@ const PACKAGE_LABELS: Record<string, string> = {
 };
 
 const LIST_PRICE_CENTS: Record<string, number> = {
-  essentials: 119900,
-  pro: 139900,
-  platinum: 179900,
-  home: 149900,
+  essentials: 139900,
+  pro: 159900,
+  platinum: 199900,
+  home: 169900,
 };
 
 

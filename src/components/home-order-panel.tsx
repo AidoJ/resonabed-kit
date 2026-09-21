@@ -18,14 +18,14 @@ import {
   type ShippingContinuePayload,
   type EnteredShippingAddress,
 } from "@/components/shipping-address-step-dialog";
-import { gstSplitLine, money, planTotalCents, type PackageDef } from "@/lib/packages";
+import { money, planTotalCents, type PackageDef } from "@/lib/packages";
 
 const INCLUDES = [
   "Therapy table, fully fitted and ready to lie on",
   "Two 50W tactile transducers, amplifier, wiring and fittings",
   "Audio-Technica ATH-M30x headphones",
-  "Personal Resonabed app with a perpetual licence",
-  "The 9 Solfeggio frequencies, yours to keep",
+  '10" tablet with the personal Resonabed app',
+  "App and music access included for home use without renewal",
 ];
 
 /**
@@ -151,9 +151,8 @@ export function HomeOrderPanel({ pkg, depositCents }: { pkg: PackageDef; deposit
         </span>
         <span className="text-sm text-muted-foreground">AUD · incl. GST</span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">{gstSplitLine(pkg.listCents)}</p>
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-        Shipping is calculated at checkout based on your location (typically $80 to $150).
+        Shipping is quoted when you reserve and charged with your balance.
       </p>
 
       <ul className="mt-7 space-y-3">
