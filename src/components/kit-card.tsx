@@ -6,7 +6,8 @@ import amplifierUrl from "@/assets/kit-amplifier.webp";
 import tabletUrl from "@/assets/kit-tablet.webp";
 import solfeggioUrl from "@/assets/kit-solfeggio.webp";
 import headphonesUrl from "@/assets/jbl-tune-530-headphones-transparent.png";
-import brochureUrl from "@/assets/kit-brochure.webp";
+import posterAsset from "@/assets/resonabed-poster.jpg.asset.json";
+const brochureUrl = posterAsset.url;
 
 export const kitImages = {
   transducer: transducerUrl,
