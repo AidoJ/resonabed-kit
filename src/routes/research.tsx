@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { VatBenefitCards } from "@/components/research/benefit-cards";
 
 // The canvas model is heavy; keep it off the first paint and off the homepage.
 const CellularResponseSection = lazy(() =>
@@ -31,10 +30,7 @@ export const Route = createFileRoute("/research")({
   component: ResearchPage,
 });
 
-type View = "mechanisms" | "benefits";
-
 function ResearchPage() {
-  const [view, setView] = useState<View>("mechanisms");
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -52,96 +48,28 @@ function ResearchPage() {
             What the research actually says.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/75">
-            Two separate bodies of evidence. How cells respond to mechanical movement in the
-            laboratory, and what small human studies have explored about vibroacoustic therapy.
-            Neither establishes outcomes for Resonabed.
+            How cells respond to mechanical movement in the laboratory, and what small human
+            studies have explored about vibroacoustic therapy. Neither establishes outcomes for
+            Resonabed.
           </p>
         </div>
       </section>
 
-      <div className="border-b border-border bg-secondary/40">
-        <div
-          role="tablist"
-          aria-label="Research views"
-          className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 py-4 md:px-10"
-        >
-          {(
-            [
-              ["mechanisms", "View A · How cells sense movement"],
-              ["benefits", "View B · Potential benefits studied in VAT"],
-            ] as [View, string][]
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              role="tab"
-              type="button"
-              id={`tab-${id}`}
-              aria-selected={view === id}
-              aria-controls={`panel-${id}`}
-              tabIndex={view === id ? 0 : -1}
-              onClick={() => setView(id)}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-                  e.preventDefault();
-                  setView((v) => (v === "mechanisms" ? "benefits" : "mechanisms"));
-                }
-              }}
-              className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-sm font-medium transition ${
-                view === id
-                  ? "border-brand-violet bg-brand-violet text-white"
-                  : "border-border bg-background text-muted-foreground hover:bg-secondary"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div
-        role="tabpanel"
-        id="panel-mechanisms"
-        aria-labelledby="tab-mechanisms"
-        hidden={view !== "mechanisms"}
-      >
-        {view === "mechanisms" &&
-          (mounted ? (
-            <Suspense
-              fallback={
-                <div className="mx-auto max-w-6xl px-6 py-24 text-sm text-muted-foreground md:px-10">
-                  Loading the cell model…
-                </div>
-              }
-            >
-              <CellularResponseSection />
-            </Suspense>
-          ) : (
+      {mounted ? (
+        <Suspense
+          fallback={
             <div className="mx-auto max-w-6xl px-6 py-24 text-sm text-muted-foreground md:px-10">
               Loading the cell model…
             </div>
-          ))}
-      </div>
-
-      <div
-        role="tabpanel"
-        id="panel-benefits"
-        aria-labelledby="tab-benefits"
-        hidden={view !== "benefits"}
-      >
-        {view === "benefits" && (
-          <section aria-label="Potential benefits studied in VAT">
-            <div className="mx-auto max-w-6xl px-6 pt-14 md:px-10">
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-                View B
-              </p>
-              <h2 className="mt-3 text-3xl font-light text-brand-indigo md:text-4xl">
-                Potential benefits studied in VAT.
-              </h2>
-            </div>
-            <VatBenefitCards />
-          </section>
-        )}
-      </div>
+          }
+        >
+          <CellularResponseSection />
+        </Suspense>
+      ) : (
+        <div className="mx-auto max-w-6xl px-6 py-24 text-sm text-muted-foreground md:px-10">
+          Loading the cell model…
+        </div>
+      )}
 
       <section className="bg-brand-ink py-16 text-white md:py-20">
         <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 md:flex-row md:items-center md:justify-between md:px-10">
