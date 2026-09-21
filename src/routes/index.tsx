@@ -69,11 +69,11 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
 
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Douk Audio tactile transducers (pair)", true, true, true, true],
-  ["100W amplifier", true, true, true, true],
-  ['10" tablet', false, true, true, true],
+  ["100W Nobo Sound Amplifier", true, true, true, true],
+  ['10" IQU Tablet', false, true, true, true],
   ["JBL Tune 530 headphones", true, true, true, true],
   ["100 disposable headphone covers", true, true, true, false],
-  ["100 marketing flyers", true, true, true, false],
+  ["100 Resonabed Customised Marketing Flyers", true, true, true, false],
   ["Full business app", true, true, true, false],
   ["Full business webpage", true, true, true, false],
   ["Home use app", false, false, false, true],
