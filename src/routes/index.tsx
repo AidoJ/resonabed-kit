@@ -663,16 +663,35 @@ function LandingPage() {
               Sound, vibration and the evidence behind VAT.
             </h2>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Explore how tabletop-mounted transducers create low-frequency vibration, how cells
-              sense mechanical movement, and what early VAT studies do — and do not — establish.
+              Two separate bodies of evidence: laboratory work on how cells sense mechanical
+              movement, and small human studies of vibroacoustic therapy. Research has explored VAT
+              for pain-related outcomes, but stronger controlled studies are needed, and none of this
+              research tested Resonabed.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              For background on the equipment itself, read about our{" "}
+              <Link
+                to="/vibroacoustic-therapy-bed"
+                className="text-brand-violet-strong underline underline-offset-4"
+              >
+                vibroacoustic therapy bed
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/vibroacoustic-sound-bed"
+                className="text-brand-violet-strong underline underline-offset-4"
+              >
+                vibroacoustic sound bed
+              </Link>
+              .
             </p>
           </div>
-          <Link to="/vibroacoustic-therapy-bed">
+          <Link to="/research">
             <Button
               variant="outline"
               className="rounded-full border-brand-indigo/20 text-brand-indigo"
             >
-              Explore how it works <ArrowRight className="ml-2 h-4 w-4" />
+              Explore the research <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>

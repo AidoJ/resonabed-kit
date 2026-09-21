@@ -13,6 +13,7 @@ import { Route as VibroacousticTherapyBedRouteImport } from './routes/vibroacous
 import { Route as VibroacousticSoundBedRouteImport } from './routes/vibroacoustic-sound-bed'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ResearchRouteImport } from './routes/research'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ForHomeRouteImport } from './routes/for-home'
@@ -93,6 +94,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchRoute = ResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -434,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/home': typeof HomeRouteWithChildren
+  '/research': typeof ResearchRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
@@ -499,6 +506,7 @@ export interface FileRoutesByTo {
   '/flyer': typeof FlyerRoute
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/research': typeof ResearchRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
@@ -565,6 +573,7 @@ export interface FileRoutesById {
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/home': typeof HomeRouteWithChildren
+  '/research': typeof ResearchRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vibroacoustic-sound-bed': typeof VibroacousticSoundBedRoute
@@ -633,6 +642,7 @@ export interface FileRouteTypes {
     | '/for-home'
     | '/forgot-password'
     | '/home'
+    | '/research'
     | '/reset-password'
     | '/sitemap.xml'
     | '/vibroacoustic-sound-bed'
@@ -698,6 +708,7 @@ export interface FileRouteTypes {
     | '/flyer'
     | '/for-home'
     | '/forgot-password'
+    | '/research'
     | '/reset-password'
     | '/sitemap.xml'
     | '/vibroacoustic-sound-bed'
@@ -763,6 +774,7 @@ export interface FileRouteTypes {
     | '/for-home'
     | '/forgot-password'
     | '/home'
+    | '/research'
     | '/reset-password'
     | '/sitemap.xml'
     | '/vibroacoustic-sound-bed'
@@ -831,6 +843,7 @@ export interface RootRouteChildren {
   ForHomeRoute: typeof ForHomeRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HomeRoute: typeof HomeRouteWithChildren
+  ResearchRoute: typeof ResearchRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VibroacousticSoundBedRoute: typeof VibroacousticSoundBedRoute
@@ -878,6 +891,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research': {
+      id: '/research'
+      path: '/research'
+      fullPath: '/research'
+      preLoaderRoute: typeof ResearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -1438,6 +1458,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForHomeRoute: ForHomeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HomeRoute: HomeRouteWithChildren,
+  ResearchRoute: ResearchRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VibroacousticSoundBedRoute: VibroacousticSoundBedRoute,
