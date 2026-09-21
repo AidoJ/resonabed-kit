@@ -40,7 +40,7 @@ const EQUIPMENT = [
   {
     name: "9 Solfeggio frequencies",
     description:
-      "Nine wellbeing-focused tones matched to how clients describe what they want, licensed and ready to play.",
+      "Nine uniquely curated solfeggio frequency based tones are used to facilitate your clients relaxation and ease pain.",
     inclusion: "Included in Basic, Pro, Platinum and Home",
     image: kitImages.solfeggio,
     imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
