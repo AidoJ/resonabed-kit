@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { money } from "@/lib/packages";
+import { Button } from "@/components/ui/button";
+import { money, type PackageDef, type PackageKey } from "@/lib/packages";
 
 /**
  * Interactive payback estimator shown inside each business package card.
@@ -97,5 +98,70 @@ export function RoiCalculator({
         </p>
       </div>
     </div>
+  );
+}
+
+type BusinessPackageKey = Extract<PackageKey, "essentials" | "pro" | "platinum">;
+
+export function BusinessRevenueCalculator({
+  packages,
+}: {
+  packages: Record<BusinessPackageKey, PackageDef>;
+}) {
+  const [selected, setSelected] = useState<BusinessPackageKey>("pro");
+  const [sessionsPerWeek, setSessionsPerWeek] = useState(10);
+  const [pricePerSession, setPricePerSession] = useState(80);
+  const pkg = packages[selected];
+  const weeklyRevenueCents = sessionsPerWeek * pricePerSession * 100;
+  const weeks = pkg.listCents / weeklyRevenueCents;
+
+  return (
+    <section aria-labelledby="revenue-calculator-title" className="mx-auto max-w-4xl px-6 py-20 md:px-10 md:py-24">
+      <div className="grid gap-10 border-y border-border py-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">Your numbers</p>
+          <h2 id="revenue-calculator-title" className="mt-3 text-3xl font-light text-brand-indigo md:text-4xl">
+            Explore your session revenue
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            Adjust the sessions you expect to offer and your average price. This estimates gross session revenue, not profit.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2" aria-label="Choose a business package">
+            {(["essentials", "pro", "platinum"] as const).map((key) => (
+              <Button
+                key={key}
+                type="button"
+                size="sm"
+                variant={selected === key ? "default" : "outline"}
+                aria-pressed={selected === key}
+                onClick={() => setSelected(key)}
+                className="rounded-full"
+              >
+                {packages[key].label.replace("Resonabed ", "")}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-6 shadow-soft">
+          <label className="flex items-center justify-between gap-4 text-sm" htmlFor="revenue-sessions">
+            <span>Sessions per week</span>
+            <strong className="text-brand-indigo">{sessionsPerWeek}</strong>
+          </label>
+          <input id="revenue-sessions" className="roi-slider mt-2 w-full" type="range" min="1" max="40" value={sessionsPerWeek} onChange={(event) => setSessionsPerWeek(Number(event.target.value))} />
+          <label className="mt-5 flex items-center justify-between gap-4 text-sm" htmlFor="revenue-price">
+            <span>Your average price per session</span>
+            <strong className="text-brand-indigo">${pricePerSession}</strong>
+          </label>
+          <input id="revenue-price" className="roi-slider mt-2 w-full" type="range" min="40" max="200" step="5" value={pricePerSession} onChange={(event) => setPricePerSession(Number(event.target.value))} />
+          <div className="mt-6 grid gap-4 border-t border-border pt-5 sm:grid-cols-2">
+            <div><p className="text-xs text-muted-foreground">Estimated gross revenue / week</p><p className="mt-1 text-2xl font-medium text-brand-indigo">{money(weeklyRevenueCents)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Package price covered in</p><p className="mt-1 text-2xl font-medium text-brand-indigo">About {Math.ceil(weeks)} weeks</p></div>
+          </div>
+          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+            Illustrative only. Operating costs, tax treatment, utilisation and actual demand affect take-home returns. This is not a guarantee of income.
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
