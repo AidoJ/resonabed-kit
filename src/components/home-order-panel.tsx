@@ -22,7 +22,7 @@ import { money, planTotalCents, type PackageDef } from "@/lib/packages";
 
 const INCLUDES = [
   "Therapy table, fully fitted and ready to lie on",
-  "Two 50W tactile transducers, amplifier, wiring and fittings",
+  "Two Douk Audio tactile transducers and 100W amplifier",
   "JBL Tune 530 Headphones",
   '10" tablet with the personal Resonabed app',
   "App and music access included for home use without renewal",
