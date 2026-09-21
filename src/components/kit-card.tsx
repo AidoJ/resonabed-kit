@@ -5,7 +5,7 @@ import transducerUrl from "@/assets/kit-transducer.webp";
 import amplifierUrl from "@/assets/kit-amplifier.webp";
 import tabletUrl from "@/assets/kit-tablet.webp";
 import solfeggioUrl from "@/assets/kit-solfeggio.webp";
-import headphonesUrl from "@/assets/kit-headphones.webp";
+import headphonesAsset from "@/assets/jbl-tune-530-headphones-white.jpg.asset.json";
 import brochureUrl from "@/assets/kit-brochure.webp";
 
 export const kitImages = {
@@ -13,7 +13,7 @@ export const kitImages = {
   amplifier: amplifierUrl,
   tablet: tabletUrl,
   solfeggio: solfeggioUrl,
-  headphones: headphonesUrl,
+  headphones: headphonesAsset.url,
   brochure: brochureUrl,
 };
 

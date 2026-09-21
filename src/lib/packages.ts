@@ -84,7 +84,7 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     shipsTable: true,
     personalOnly: true,
     description:
-      'Complete home package: therapy table fully fitted with 2x 50W tactile speakers, Bluetooth amplifier, wiring and fittings, a 10" tablet, Audio-Technica ATH-M30x headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies.',
+      'Complete home package: therapy table fully fitted with 2x 50W tactile speakers, Bluetooth amplifier, wiring and fittings, a 10" tablet, JBL Tune 530 Headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies.',
   },
 };
 
