@@ -122,6 +122,14 @@ export function KitShowcase() {
                 {item.description}
               </p>
               <p className="mt-3 text-xs font-medium text-brand-violet-strong">{item.inclusion}</p>
+              {"linkTo" in item && item.linkTo ? (
+                <Link
+                  to={item.linkTo}
+                  className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
+                >
+                  {item.linkLabel}
+                </Link>
+              ) : null}
             </article>
           ))}
 
