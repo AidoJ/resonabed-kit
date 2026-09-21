@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -34,11 +34,9 @@ import logoWhite from "@/assets/resonabed-logo-white.svg";
 import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { BusinessRevenueCalculator } from "@/components/roi-calculator";
-import { HomeOrderPanel } from "@/components/home-order-panel";
 import {
   ORDER_DEPOSIT_CENTS,
   PACKAGES,
-  gstSplitLine,
   money,
   planTotalCents,
   type PackageDef,
@@ -46,25 +44,12 @@ import {
 import { getKitPricing } from "@/lib/pricing.functions";
 
 
-import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
-
-
 import {
   ArrowRight,
   CheckCircle2,
   Waves,
-  Radio,
-  Sparkles,
-  Clock,
-  ShieldCheck,
-  Music,
   Tablet,
   ClipboardList,
-  Speaker,
-  Headphones,
-  Volume2,
-  FileText,
-  Package,
   BedSingle,
   MapPin,
   Mail,
@@ -160,6 +145,8 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showMobileDemo, setShowMobileDemo] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
   
   
   
@@ -176,6 +163,17 @@ function LandingPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+  }, []);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowMobileDemo(!entry.isIntersecting),
+      { threshold: 0.05 },
+    );
+    observer.observe(hero);
+    return () => observer.disconnect();
   }, []);
 
   // Scroll to the #hash target on first load (external links, email links).
@@ -203,7 +201,7 @@ function LandingPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* HERO with integrated dark header */}
-      <section className="relative overflow-hidden bg-brand-ink text-white">
+      <section ref={heroRef} className="relative overflow-hidden bg-brand-ink text-white">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -274,6 +272,14 @@ function LandingPage() {
                   </a>
                 ),
               )}
+
+              <Button
+                type="button"
+                onClick={openCalendlyPopup}
+                className="hidden h-10 rounded-full bg-white px-5 text-sm font-medium text-brand-indigo hover:bg-white/90 lg:inline-flex"
+              >
+                Book a demo
+              </Button>
 
               <Link to={loginHref} className="hidden sm:block">
                 <Button
@@ -386,6 +392,14 @@ function LandingPage() {
           </div>
         </div>
       </section>
+
+      {showMobileDemo ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 backdrop-blur md:hidden">
+          <Button type="button" onClick={openCalendlyPopup} className="h-12 w-full rounded-full">
+            Book a free demo
+          </Button>
+        </div>
+      ) : null}
 
       {/* VALUE PROPS */}
       <section className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
@@ -1291,9 +1305,6 @@ function PackageCard({
             AUD · incl. GST
           </span>
         </div>
-        <p className={"mt-1 text-xs " + (highlighted ? "text-white/55" : "text-muted-foreground")}>
-          {gstSplitLine(pkgDef.listCents)}
-        </p>
         <p
           className={
             "mt-5 text-sm leading-relaxed " +
@@ -1344,7 +1355,7 @@ function PackageCard({
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
 
-          <div
+          <details
             className={
               "rounded-2xl border px-4 py-3 text-[12px] leading-relaxed " +
               (highlighted
@@ -1352,7 +1363,7 @@ function PackageCard({
                 : "border-border bg-brand-tint/50 text-foreground/80")
             }
           >
-            <p className="font-medium">Then choose how to pay the balance:</p>
+            <summary className="cursor-pointer font-medium">Payment plans &amp; delivery</summary>
             <p className="mt-1">
               <span className="font-medium">Pay in full,</span> {money(pkgDef.balanceCents)} once,
               so the kit costs {money(pkgDef.listCents)} incl. GST.
@@ -1365,7 +1376,7 @@ function PackageCard({
               full).
             </p>
             <p className="mt-1">Your shipping quote is added to that balance payment.</p>
-          </div>
+          </details>
 
           <p
             className={
