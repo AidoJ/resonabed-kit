@@ -61,7 +61,7 @@ import {
 const NAV_LINKS: { href: string; label: string; children?: { href: string; label: string }[] }[] = [
   { href: "#how", label: "How it works" },
   { href: "#packages", label: "Packages", children: [{ href: "#compare", label: "Compare" }] },
-  { href: "#research", label: "Research" },
+  { href: "/research", label: "Research" },
   { href: "/for-home", label: "For home" },
   { href: "#contact", label: "Contact" },
 ];
