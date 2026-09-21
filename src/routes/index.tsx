@@ -72,7 +72,7 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Amplifier", true, true, true, true],
   ['10" tablet', false, true, true, true],
   ["Headphones", true, true, true, true],
-  ["100 disposable headphone covers", false, true, true, false],
+  ["100 disposable headphone covers", true, true, true, false],
   ["100 marketing flyers", true, true, true, false],
   ["Full business app", true, true, true, false],
   ["Full business webpage", true, true, true, false],
@@ -84,7 +84,7 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: "What is the difference between Basic, Pro and Platinum?",
-    a: "Basic uses your compatible timber-base table and device. Pro adds a dedicated 10 inch tablet and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. Headphones, the business app, clinic webpage and marketing material are included with all three.",
+    a: "Basic uses your compatible timber-base table and device. Pro adds a dedicated 10 inch tablet. Platinum adds a new therapy table with the system already fitted. Headphones, 100 disposable headphone covers, the business app, clinic webpage and marketing material are included with all three.",
   },
   {
     q: "Can I run a clinic on the Home package?",
@@ -551,7 +551,7 @@ function LandingPage() {
             description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
             features={[
               "Two 50W tactile speakers and Bluetooth amplifier",
-              "JBL Tune 530 Headphones",
+              "JBL Tune 530 Headphones and 100 disposable covers",
               "Full business app and bookable clinic webpage",
               "100 personalised marketing flyers",
               "Runs on your own phone, tablet or laptop",
