@@ -33,11 +33,7 @@ import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
-import { ScienceSection } from "@/components/public-clinic/science-section";
-import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
-import { SolfeggioFrequenciesSection } from "@/components/public-clinic/solfeggio-frequencies-section";
-import { KitCard, kitImages } from "@/components/kit-card";
-import { RoiCalculator } from "@/components/roi-calculator";
+import { BusinessRevenueCalculator } from "@/components/roi-calculator";
 import { HomeOrderPanel } from "@/components/home-order-panel";
 import {
   ORDER_DEPOSIT_CENTS,
@@ -56,20 +52,13 @@ import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
 import {
   ArrowRight,
   CheckCircle2,
-  Radio,
-  Sparkles,
   Waves,
   Clock,
   ShieldCheck,
   Music,
   Tablet,
   ClipboardList,
-  Speaker,
-  Headphones,
-
-  Volume2,
-  FileText,
-  Package,
+  BedSingle,
   MapPin,
   Mail,
   Phone,
@@ -79,19 +68,11 @@ import {
 } from "lucide-react";
 
 const NAV_LINKS: { href: string; label: string; children?: { href: string; label: string }[] }[] = [
-  {
-    href: "#packages",
-    label: "Packages",
-    children: [{ href: "#compare", label: "Compare" }],
-  },
   { href: "#how", label: "How it works" },
-  { href: "#demo", label: "Book a demo" },
-  { href: "#faq", label: "FAQ" },
-  {
-    href: "#about",
-    label: "About",
-    children: [{ href: "#contact", label: "Contact" }],
-  },
+  { href: "#packages", label: "Packages", children: [{ href: "#compare", label: "Compare" }] },
+  { href: "#research", label: "Research" },
+  { href: "#home-package", label: "For home" },
+  { href: "#contact", label: "Contact" },
 ];
 
 
@@ -99,7 +80,7 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Tactile speakers", true, true, true, true],
   ["Amplifier", true, true, true, true],
   ['10" tablet', false, true, true, true],
-  ["Headphones", false, true, true, true],
+  ["Headphones", true, true, true, true],
   ["100 disposable headphone covers", false, true, true, false],
   ["100 marketing flyers", true, true, true, false],
   ["Full business app", true, true, true, false],
@@ -113,7 +94,7 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: "What is the difference between Basic, Pro and Platinum?",
-    a: "Basic is the system fitted to your existing table, running on a device you already own. Pro adds a dedicated 10 inch tablet, headphones and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. The app, the clinic webpage and the marketing material are identical across all three.",
+    a: "Basic uses your compatible timber-base table and device. Pro adds a dedicated 10 inch tablet and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. Headphones, the business app, clinic webpage and marketing material are included with all three.",
 
   },
   {
@@ -122,7 +103,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "Is shipping included?",
-    a: "No. Shipping is always calculated at checkout based on your location, and is charged on top of the package price.",
+    a: "No. Shipping is quoted when you reserve your package, then charged with the balance rather than with the initial deposit.",
   },
   {
     q: "Do I need my own device or table?",
