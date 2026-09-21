@@ -24,8 +24,8 @@ const DESCRIPTION =
 const URL = "https://resonabed.com/vibroacoustic-therapy-bed";
 
 const SPECS: { label: string; value: string }[] = [
-  { label: "Transducers", value: "Two 80W tactile transducers, table-mounted" },
-  { label: "Amplifier", value: "Compact Bluetooth amplifier, clean professional power" },
+  { label: "Transducers", value: "Two Douk Audio tactile transducers, table-mounted" },
+  { label: "Amplifier", value: "100W amplifier, clean professional power" },
   { label: "Frequencies", value: "9 licensed Solfeggio wellbeing tracks" },
   { label: "Session length", value: "Typically 20 to 40 minutes, client fully clothed" },
   { label: "App", value: "Intake, frequency selection, playback, timer, records, bookings" },
@@ -149,7 +149,7 @@ function TherapyBedPage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              The Resonabed kit fits tactile transducers, a Bluetooth amplifier and a guided
+              The Resonabed kit fits tactile transducers, a 100W amplifier and a guided
               session app to the treatment table already in your room, giving you a
               professional vibroacoustic therapy bed for a fraction of the cost of dedicated
               equipment.
@@ -255,7 +255,7 @@ function TherapyBedPage() {
             {[
               {
                 icon: Speaker,
-                title: "Two 80W tactile transducers",
+                title: "Two Douk Audio tactile transducers",
                 body: "Premium transducers that send low-frequency sound as gentle vibration through your existing table, so clients do not just hear the music, they feel it moving through them.",
                 image: kitImages.transducer,
                 imageAlt: "Two tactile transducers included in the Resonabed kit",
@@ -263,10 +263,10 @@ function TherapyBedPage() {
               },
               {
                 icon: Volume2,
-                title: "Bluetooth amplifier",
-                body: "Compact wireless amp with clean, professional power. Pair, place and play. No audio engineering and no tangled wiring required.",
+                title: "100W amplifier",
+                body: "Compact 100W amplifier with clean, professional power. Simple controls, no audio engineering required.",
                 image: kitImages.amplifier,
-                imageAlt: "Bluetooth HiFi amplifier included in the Resonabed kit",
+                imageAlt: "100W amplifier included in the Resonabed kit",
               },
               {
                 icon: HeadphonesIcon,

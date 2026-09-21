@@ -45,7 +45,7 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     shipsTable: false,
     personalOnly: false,
     description:
-      "Business system with 2x tactile speakers, Bluetooth amplifier, headphones, wiring and fittings, the full Resonabed business app and clinic webpage, and 100 marketing flyers. Runs on a phone, tablet or laptop you already own.",
+      "Business system with 2x Douk Audio tactile transducers, 100W amplifier, JBL Tune 530 headphones, 100 disposable headphone covers, the full Resonabed business app and clinic webpage, and 100 marketing flyers. Runs on a phone, tablet or laptop you already own.",
   },
   pro: {
     key: "pro",
@@ -84,7 +84,7 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     shipsTable: true,
     personalOnly: true,
     description:
-      'Complete home package: therapy table fully fitted with 2x 50W tactile speakers, Bluetooth amplifier, wiring and fittings, a 10" tablet, JBL Tune 530 Headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies.',
+      'Complete home package: therapy table fully fitted with 2x Douk Audio tactile transducers, 100W amplifier, a 10" tablet, JBL Tune 530 Headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies.',
   },
 };
 
