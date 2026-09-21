@@ -61,7 +61,7 @@ import {
 const NAV_LINKS: { href: string; label: string; children?: { href: string; label: string }[] }[] = [
   { href: "#how", label: "How it works" },
   { href: "#packages", label: "Packages", children: [{ href: "#compare", label: "Compare" }] },
-  { href: "#research", label: "Research" },
+  { href: "/research", label: "Research" },
   { href: "/for-home", label: "For home" },
   { href: "#contact", label: "Contact" },
 ];
@@ -96,6 +96,34 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: "Do I need my own device or table?",
     a: "It depends on the package. Basic runs on a phone, tablet or laptop you already own, and fits to the treatment table you already use. Pro includes a dedicated 10 inch tablet, pre-configured to run sessions and nothing else, and also fits your existing table. Platinum and Home include both the tablet and a fully fitted out table, so nothing else is needed.",
+  },
+  {
+    q: "Which tables are compatible?",
+    a: "Any sturdy timber-base treatment table. The transducers mount to the underside of the tabletop so the vibration travels through the timber. Tables with a metal or heavily padded structural base do not transmit the vibration well. If you are unsure, send us a photo of your table before you order, or choose Platinum and start with a fully fitted table.",
+  },
+  {
+    q: "How long does setup take?",
+    a: "Allow one to two hours for a retrofit. The transducers mount under the tabletop, the amplifier and wiring are secured, and the app is signed in and tested. Platinum and Home arrive already fitted.",
+  },
+  {
+    q: "How do payments and dispatch work?",
+    a: "You reserve your package with a $100 refundable deposit. Shipping is quoted at that point and charged with the balance. You can then pay the balance in full, or choose the payment plan, which has a deposit balance followed by 10 monthly payments and costs $100 more overall. Your system is dispatched once your payment for that step has cleared.",
+  },
+  {
+    q: "What warranty and support are included?",
+    a: "Every system carries a 12 month warranty. We help you set up, and support questions about the equipment and the app are answered by us directly.",
+  },
+  {
+    q: "What about the app and music licence?",
+    a: "Business packages include the Resonabed business app and a 12 month music licence for the 9 Solfeggio tracks, renewable after that. The Home package includes the personal app and its music licence at no ongoing cost. There are no per-session fees.",
+  },
+  {
+    q: "Who should not use a session?",
+    a: "The app includes a screening step and safe-use guidance that you complete with each client before their first session. Sessions are not unattended treatment and do not replace your professional judgement. Resonabed is a wellbeing product, not a medical device.",
+  },
+  {
+    q: "Will the tablet go to sleep mid-session?",
+    a: "No. The app keeps your session playing uninterrupted while the screen is in use, so a session will not stop part way through.",
   },
 ];
 
@@ -663,16 +691,35 @@ function LandingPage() {
               Sound, vibration and the evidence behind VAT.
             </h2>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Explore how tabletop-mounted transducers create low-frequency vibration, how cells
-              sense mechanical movement, and what early VAT studies do — and do not — establish.
+              Two separate bodies of evidence: laboratory work on how cells sense mechanical
+              movement, and small human studies of vibroacoustic therapy. Research has explored VAT
+              for pain-related outcomes, but stronger controlled studies are needed, and none of this
+              research tested Resonabed.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              For background on the equipment itself, read about our{" "}
+              <Link
+                to="/vibroacoustic-therapy-bed"
+                className="text-brand-violet-strong underline underline-offset-4"
+              >
+                vibroacoustic therapy bed
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/vibroacoustic-sound-bed"
+                className="text-brand-violet-strong underline underline-offset-4"
+              >
+                vibroacoustic sound bed
+              </Link>
+              .
             </p>
           </div>
-          <Link to="/vibroacoustic-therapy-bed">
+          <Link to="/research">
             <Button
               variant="outline"
               className="rounded-full border-brand-indigo/20 text-brand-indigo"
             >
-              Explore how it works <ArrowRight className="ml-2 h-4 w-4" />
+              Explore the research <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>
