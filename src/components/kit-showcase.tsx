@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { kitImages } from "@/components/kit-card";
-import completeKitImage from "@/assets/resonabed-hero-1536-img.webp";
+import { heroPosterUrl } from "@/components/hero-video";
 import jblHeadphones from "@/assets/jbl-tune-530-headphones-transparent.png";
 
 const EQUIPMENT = [
