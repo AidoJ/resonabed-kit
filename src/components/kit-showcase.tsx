@@ -68,8 +68,8 @@ export function KitShowcase() {
               className="aspect-[3/2] w-full object-cover"
             />
             <figcaption className="px-5 py-3 text-xs leading-relaxed text-muted-foreground">
-              Fully fitted treatment table shown. The table is included with Platinum; Basic and
-              Pro fit a compatible timber-base table you already own.
+              Fully fitted treatment table shown. The table is included with Platinum and Home;
+              Basic and Pro fit a compatible timber-base table you already own.
             </figcaption>
           </figure>
         </div>
@@ -122,7 +122,7 @@ export function KitShowcase() {
               A new treatment table with the Resonabed system fitted and tested before dispatch.
             </p>
             <p className="mt-3 text-xs font-medium text-brand-violet-strong">
-              Included in Platinum only
+              Included in Platinum and Home
             </p>
           </article>
         </div>
