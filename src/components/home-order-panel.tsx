@@ -18,14 +18,14 @@ import {
   type ShippingContinuePayload,
   type EnteredShippingAddress,
 } from "@/components/shipping-address-step-dialog";
-import { gstSplitLine, money, planTotalCents, type PackageDef } from "@/lib/packages";
+import { money, planTotalCents, type PackageDef } from "@/lib/packages";
 
 const INCLUDES = [
   "Therapy table, fully fitted and ready to lie on",
   "Two 50W tactile transducers, amplifier, wiring and fittings",
   "Audio-Technica ATH-M30x headphones",
-  "Personal Resonabed app with a perpetual licence",
-  "The 9 Solfeggio frequencies, yours to keep",
+  '10" tablet with the personal Resonabed app',
+  "App and music access included for home use without renewal",
 ];
 
 /**
@@ -65,7 +65,11 @@ export function HomeOrderPanel({ pkg, depositCents }: { pkg: PackageDef; deposit
     setLoading(which);
     try {
       const address: EnteredShippingAddress | undefined = ship.pickup ? undefined : ship.address;
-      const { clientSecret: cs, appliedPromo, shipping } = await startCheckout({
+      const {
+        clientSecret: cs,
+        appliedPromo,
+        shipping,
+      } = await startCheckout({
         data: {
           package: "home",
           origin: window.location.origin,
@@ -151,9 +155,8 @@ export function HomeOrderPanel({ pkg, depositCents }: { pkg: PackageDef; deposit
         </span>
         <span className="text-sm text-muted-foreground">AUD · incl. GST</span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">{gstSplitLine(pkg.listCents)}</p>
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-        Shipping is calculated at checkout based on your location (typically $80 to $150).
+        Shipping is quoted when you reserve and charged with your balance.
       </p>
 
       <ul className="mt-7 space-y-3">
@@ -177,8 +180,8 @@ export function HomeOrderPanel({ pkg, depositCents }: { pkg: PackageDef; deposit
         <div className="rounded-2xl border border-border bg-brand-tint/50 px-4 py-3 text-[12px] leading-relaxed text-foreground/80">
           <p className="font-medium">Then choose how to pay the balance:</p>
           <p className="mt-1">
-            <span className="font-medium">Pay in full,</span> {money(pkg.balanceCents)} once, so
-            the kit costs {money(pkg.listCents)} incl. GST.
+            <span className="font-medium">Pay in full,</span> {money(pkg.balanceCents)} once, so the
+            kit costs {money(pkg.listCents)} incl. GST.
           </p>
           <p className="mt-1">
             <span className="font-medium">Or pay over time,</span>{" "}
@@ -192,8 +195,8 @@ export function HomeOrderPanel({ pkg, depositCents }: { pkg: PackageDef; deposit
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
           Today you pay the {deposit} deposit only, which holds your order for 30 days and is
           refundable if you do not go ahead. Shipping is quoted upfront and charged with your
-          balance. Nothing ships until the balance clears. You can also pay by bank transfer.
-          Secure checkout by Stripe.
+          balance. Nothing ships until the balance clears. You can also pay by bank transfer. Secure
+          checkout by Stripe.
         </p>
       </div>
 

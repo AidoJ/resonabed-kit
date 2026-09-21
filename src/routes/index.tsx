@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -33,43 +33,23 @@ import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
-import { ScienceSection } from "@/components/public-clinic/science-section";
-import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
-import { SolfeggioFrequenciesSection } from "@/components/public-clinic/solfeggio-frequencies-section";
-import { KitCard, kitImages } from "@/components/kit-card";
-import { RoiCalculator } from "@/components/roi-calculator";
-import { HomeOrderPanel } from "@/components/home-order-panel";
+import { BusinessRevenueCalculator } from "@/components/roi-calculator";
 import {
   ORDER_DEPOSIT_CENTS,
   PACKAGES,
-  gstSplitLine,
   money,
   planTotalCents,
   type PackageDef,
 } from "@/lib/packages";
 import { getKitPricing } from "@/lib/pricing.functions";
 
-
-import { clinicThemeVars } from "@/components/public-clinic/clinic-theme";
-
-
 import {
   ArrowRight,
   CheckCircle2,
-  Radio,
-  Sparkles,
   Waves,
-  Clock,
-  ShieldCheck,
-  Music,
   Tablet,
   ClipboardList,
-  Speaker,
-  Headphones,
-
-  Volume2,
-  FileText,
-  Package,
+  BedSingle,
   MapPin,
   Mail,
   Phone,
@@ -79,27 +59,18 @@ import {
 } from "lucide-react";
 
 const NAV_LINKS: { href: string; label: string; children?: { href: string; label: string }[] }[] = [
-  {
-    href: "#packages",
-    label: "Packages",
-    children: [{ href: "#compare", label: "Compare" }],
-  },
   { href: "#how", label: "How it works" },
-  { href: "#demo", label: "Book a demo" },
-  { href: "#faq", label: "FAQ" },
-  {
-    href: "#about",
-    label: "About",
-    children: [{ href: "#contact", label: "Contact" }],
-  },
+  { href: "#packages", label: "Packages", children: [{ href: "#compare", label: "Compare" }] },
+  { href: "#research", label: "Research" },
+  { href: "/for-home", label: "For home" },
+  { href: "#contact", label: "Contact" },
 ];
-
 
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Tactile speakers", true, true, true, true],
   ["Amplifier", true, true, true, true],
   ['10" tablet', false, true, true, true],
-  ["Headphones", false, true, true, true],
+  ["Headphones", true, true, true, true],
   ["100 disposable headphone covers", false, true, true, false],
   ["100 marketing flyers", true, true, true, false],
   ["Full business app", true, true, true, false],
@@ -109,12 +80,10 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Fully fitted out table", false, false, true, true],
 ];
 
-
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: "What is the difference between Basic, Pro and Platinum?",
-    a: "Basic is the system fitted to your existing table, running on a device you already own. Pro adds a dedicated 10 inch tablet, headphones and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. The app, the clinic webpage and the marketing material are identical across all three.",
-
+    a: "Basic uses your compatible timber-base table and device. Pro adds a dedicated 10 inch tablet and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. Headphones, the business app, clinic webpage and marketing material are included with all three.",
   },
   {
     q: "Can I run a clinic on the Home package?",
@@ -122,19 +91,15 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "Is shipping included?",
-    a: "No. Shipping is always calculated at checkout based on your location, and is charged on top of the package price.",
+    a: "No. Shipping is quoted when you reserve your package, then charged with the balance rather than with the initial deposit.",
   },
   {
     q: "Do I need my own device or table?",
     a: "It depends on the package. Basic runs on a phone, tablet or laptop you already own, and fits to the treatment table you already use. Pro includes a dedicated 10 inch tablet, pre-configured to run sessions and nothing else, and also fits your existing table. Platinum and Home include both the tablet and a fully fitted out table, so nothing else is needed.",
   },
-
 ];
 
-
-
 export const Route = createFileRoute("/")({
-  
   head: () => ({
     meta: [
       { title: "Resonabed | Vibroacoustic Therapy for Your Practice" },
@@ -172,10 +137,8 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showFrequencies, setShowFrequencies] = useState(false);
-  
-  
-  
+  const [showMobileDemo, setShowMobileDemo] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
 
   // Super-admin editable kit pricing; static defaults render until this lands.
   const fetchPricing = useServerFn(getKitPricing);
@@ -189,6 +152,17 @@ function LandingPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+  }, []);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowMobileDemo(!entry.isIntersecting),
+      { threshold: 0.05 },
+    );
+    observer.observe(hero);
+    return () => observer.disconnect();
   }, []);
 
   // Scroll to the #hash target on first load (external links, email links).
@@ -209,14 +183,13 @@ function LandingPage() {
     };
   }, []);
 
-
   const loginHref = signedIn ? "/dashboard" : "/auth";
   const loginLabel = signedIn ? "Open dashboard" : "Clinic login";
 
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* HERO with integrated dark header */}
-      <section className="relative overflow-hidden bg-brand-ink text-white">
+      <section ref={heroRef} className="relative overflow-hidden bg-brand-ink text-white">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -246,7 +219,6 @@ function LandingPage() {
                 draggable={false}
               />
               <p className="mt-1 w-full text-center text-[10px] font-medium uppercase tracking-[0.3em] text-white/70 sm:text-xs md:tracking-[0.35em] md:text-sm">
-
                 Feel. Rest. Restore.
               </p>
             </div>
@@ -275,8 +247,6 @@ function LandingPage() {
                       </div>
                     </div>
                   </div>
-
-
                 ) : (
                   <a
                     key={l.href}
@@ -287,6 +257,14 @@ function LandingPage() {
                   </a>
                 ),
               )}
+
+              <Button
+                type="button"
+                onClick={openCalendlyPopup}
+                className="hidden h-10 rounded-full bg-white px-5 text-sm font-medium text-brand-indigo hover:bg-white/90 lg:inline-flex"
+              >
+                Book a demo
+              </Button>
 
               <Link to={loginHref} className="hidden sm:block">
                 <Button
@@ -345,82 +323,45 @@ function LandingPage() {
           )}
         </header>
 
-
         <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-8 md:px-10 md:pb-28 md:pt-12 lg:grid-cols-2 lg:gap-8">
           <div className="flex flex-col justify-center">
-            <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-white/80 backdrop-blur">
+            <span className="mb-6 inline-flex w-fit items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-white/75">
               <Waves className="h-3.5 w-3.5" />
-              Vibroacoustic therapy
+              Vibroacoustic therapy for your practice
             </span>
-            <h1 className="max-w-[16ch] text-4xl font-light leading-[1.06] tracking-tight sm:text-5xl lg:text-5xl xl:text-6xl">
-              Sound you feel, delivered as a service you can offer.
+            <h1 className="max-w-[14ch] text-4xl font-light leading-[1.06] sm:text-5xl lg:text-5xl xl:text-6xl">
+              Turn your treatment table into a new service.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              Resonabed is a complete vibroacoustic therapy system: low frequency sound delivered
-              through the table so the body feels the music, guided by an app that runs the whole
-              session. Choose a complete setup with a fitted table, or fit the system to the table*
-              you already use.
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85">
+              Add VibroAcoustic Therapy (VAT) sessions to your practice with Resonabed.
+            </p>
+            <p className="mt-3 max-w-xl leading-relaxed text-white/70">
+              Equipment, session software and booking tools in one complete system.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <a href="#packages">
                 <Button className="h-12 rounded-full bg-white px-7 text-[15px] font-medium text-brand-indigo hover:bg-white/90">
-                  See packages for business
+                  Explore business packages
                 </Button>
               </a>
-              <a href="#home-package">
-                <Button
-                  variant="outline"
-                  className="h-12 rounded-full border-white/30 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
-                >
-                  See packages for in home use
-                </Button>
-              </a>
-              <a href="#demo">
-                <Button
-                  variant="outline"
-                  className="h-12 rounded-full border-white/30 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
-                >
-                  Book a demo
-                </Button>
-              </a>
+              <Button
+                type="button"
+                onClick={openCalendlyPopup}
+                variant="outline"
+                className="h-12 rounded-full border-white/30 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
+              >
+                Book a free demo
+              </Button>
             </div>
-
-
-
-            <p className="mt-2 text-sm text-white/60">
-              Looking for a{" "}
-              <Link
-                to="/vibroacoustic-sound-bed"
-                className="underline underline-offset-4 hover:text-white/85"
-              >
-                vibroacoustic sound bed
-              </Link>{" "}
-              or a{" "}
-              <Link
-                to="/vibroacoustic-therapy-bed"
-                className="underline underline-offset-4 hover:text-white/85"
-              >
-                vibroacoustic therapy bed
-              </Link>
-              ? See how the kit converts your table into one.
+            <p className="mt-5 max-w-xl text-sm text-white/65">
+              Retrofit a compatible timber-base table, or choose a fully fitted setup.
             </p>
-
-
-            <dl className="mt-12 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 text-left sm:grid-cols-4">
-              {[
-                { k: "Tactile transducers", v: "Your table becomes the instrument" },
-                { k: "Bluetooth amplifier", v: "Professional power, zero audio stress" },
-                { k: "Player + bookings", v: "One calm app for every session" },
-                { k: "9 Solfeggio frequencies", v: "Therapeutic tones ready to play" },
-              ].map((x) => (
-                <div key={x.k}>
-                  <dt className="text-xl font-medium tracking-tight">{x.k}</dt>
-                  <dd className="mt-1.5 text-xs uppercase tracking-[0.12em] text-white/55">
-                    {x.v}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            <Link
+              to="/for-home"
+              className="mt-4 w-fit text-sm text-white/75 underline underline-offset-4 hover:text-white"
+            >
+              Looking for Resonabed at home?
+            </Link>
           </div>
 
           <div className="relative flex items-center">
@@ -439,43 +380,45 @@ function LandingPage() {
         </div>
       </section>
 
+      {showMobileDemo ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 backdrop-blur md:hidden">
+          <Button type="button" onClick={openCalendlyPopup} className="h-12 w-full rounded-full">
+            Book a free demo
+          </Button>
+        </div>
+      ) : null}
+
       {/* VALUE PROPS */}
       <section className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
-        <div className="mx-auto max-w-2xl text-center">
+        <div className="max-w-2xl">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
             Built for practitioners
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            A new revenue stream in the room you already work in.
+            A complete new service for your existing treatment room.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            The kit arrives ready to install: speakers, amplifier, player app and booking tools.
-            Just fit it to the table you already own, open the app, and start offering sessions.
+            Choose a retrofit for your compatible table or a fully fitted setup, then run each
+            session through one guided system.
           </p>
         </div>
 
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
             {
-              icon: Sparkles,
-              title: "High-margin add-on",
-              body: "The kit turns your existing table into a revenue stream. Sell it as a standalone session, or add it to the end of a treatment for an easy uplift on every visit.",
+              icon: BedSingle,
+              title: "Use the room you already have.",
+              body: "Retrofit a compatible timber-base treatment table, or choose a fully fitted table as part of your package.",
             },
             {
-              icon: Radio,
-               title: "Upgrades the table* you own",
-               body: (
-                 <>
-                   Two 50W tactile transducers, Bluetooth amp, wiring and fittings. Designed to fit the massage, chiropractic, osteopathic or any therapeutic treatment table already in your room.
-                   <br />
-                   <strong className="font-bold italic">*Table must have a timber base</strong>
-                 </>
-               ),
+              icon: Tablet,
+              title: "Run sessions with a guided app.",
+              body: "Manage session selection, playback and timing in one place. Screening and safe-use guidance support — never replace — practitioner judgement.",
             },
             {
               icon: ClipboardList,
-              title: "Guided by the Resonabed app",
-              body: "Client intake, tuned frequency selection, timer, playback and session records, one calm tool your practitioners can pick up in minutes.",
+              title: "Tools to help launch your service.",
+              body: "Business packages include a bookable clinic webpage and professionally designed marketing flyers personalised for your practice.",
             },
           ].map(({ icon: Icon, title, body }) => (
             <div
@@ -492,135 +435,16 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* WHAT'S IN THE KIT */}
-      <section className="py-24 md:py-28">
-        <div className="mx-auto max-w-7xl px-6 md:px-10">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-              What's in the kit
-            </p>
-            <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-              Everything you need to turn your therapy table into a new revenue stream.
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              No sourcing parts, no music licences, no app subscriptions. The Resonabed kit arrives
-              ready to install and within 60 minutes you are ready to sell.
-            </p>
-          </div>
-
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                icon: Speaker,
-                title: "Tactile transducers",
-                body: "Two premium 50w speakers that send low-frequency sound as gentle vibration through your existing table. Your clients don't just hear the music, they feel it moving through them.",
-                cta: "Your table becomes the instrument",
-                image: kitImages.transducer,
-                imageAlt: "Two tactile transducers included in the Resonabed kit",
-                pair: true,
-              },
-              {
-                icon: Volume2,
-                title: "Bluetooth amplifier",
-                body: "Compact, wireless amp with clean, professional power. Pair, place, and play. No audio engineering degree and no tangled wiring required.",
-                cta: "Plug-and-play power",
-                image: kitImages.amplifier,
-                imageAlt: "Bluetooth HiFi amplifier included in the Resonabed kit",
-              },
-              {
-                icon: Headphones,
-                title: "Audio-Technica ATH-M30x professional headphones",
-                body: "To complete the experience, every kit includes a pair of Audio-Technica ATH-M30x professional monitor headphones. Where the table delivers sound you feel, these deliver sound you hear in full studio-quality detail, sealing out distraction so your client is held entirely within the session. The same headphones professionals rely on, now part of yours.",
-                cta: "Studio-quality listening",
-                image: kitImages.headphones,
-                imageAlt: "Audio-Technica ATH-M30x professional monitor headphones",
-              },
-              {
-                icon: Tablet,
-                title: "Session player + booking app",
-                body: "One calm app for intake, frequency selection, playback, timer, session records and diary booking. Your practitioners can pick it up in minutes.",
-                cta: "Your session command centre",
-                image: kitImages.tablet,
-                imageAlt: "Resonabed session player app running on a tablet",
-              },
-              {
-                icon: Music,
-                title: "9 Solfeggio frequencies",
-                body: "Nine therapeutic, wellbeing-focused tones matched to feelings your clients will ask for by name. No separate music licence to negotiate.",
-                cta: "A library of therapeutic sound",
-                image: kitImages.solfeggio,
-                imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
-                actionLabel: showFrequencies ? "Show less" : "Read more",
-                onAction: () => {
-                  setShowFrequencies((v) => !v);
-                  if (!showFrequencies) {
-                    window.setTimeout(() => {
-                      document
-                        .getElementById("solfeggio-detail")
-                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }, 80);
-                  }
-                },
-              },
-              {
-                icon: FileText,
-                title: "Marketing made easy",
-                body: "Your own customisable webpage where clients discover your service and book online, plus 100 professionally designed DL flyers carrying your clinic details and a QR code that links straight to your page. Ready to promote from the day your kit arrives.",
-                cta: "Ready-to-print promotion",
-                image: kitImages.brochure,
-                imageAlt: "Personalised Resonabed clinic brochure with booking QR code",
-                linkTo: "/flyer" as const,
-                linkLabel: "View the flyer",
-              },
-              {
-                icon: Package,
-                title: "Fittings & setup guide",
-                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or any therapeutic treatment table you already own.",
-                cta: "Everything in the box",
-              },
-            ].map((item) => (
-              <KitCard key={item.title} {...item} />
-            ))}
-          </div>
-
-
-          <div className="mt-14 flex flex-col items-center justify-center gap-4 text-center sm:flex-row">
-            <p className="text-sm text-muted-foreground">
-              Questions? Email{" "}
-              <a href="mailto:info@resonabed.com" className="text-brand-indigo hover:underline">
-                info@resonabed.com
-              </a>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {showFrequencies ? (
-        <div id="solfeggio-detail" style={clinicThemeVars(null, null)} className="scroll-mt-24">
-
-          <SolfeggioFrequenciesSection />
-          <div className="mx-auto max-w-7xl px-6 pb-8 md:px-10">
-            <button
-              type="button"
-              onClick={() => setShowFrequencies(false)}
-              className="text-sm font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
-            >
-              Show less
-            </button>
-          </div>
-        </div>
-      ) : null}
-
       {/* HOW IT WORKS */}
       <section id="how" className="bg-secondary/40 py-24 md:py-28">
         <div className="mx-auto max-w-7xl px-6 md:px-10">
           <div className="grid gap-10 md:grid-cols-2 md:items-end">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-                What a session feels like
+                How it works
               </p>
               <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-                A calm space to unwind, with almost none of your hands-on time.
+                Three clear steps from setup to session.
               </h2>
             </div>
             <p className="text-muted-foreground md:text-right">
@@ -630,27 +454,22 @@ function LandingPage() {
             </p>
           </div>
 
-          <ol className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <ol className="mt-14 grid gap-6 md:grid-cols-3">
             {[
               {
                 n: "01",
-                title: "Short intake",
-                body: "The app screens for a few conditions and guides your practitioner through a two-minute check-in.",
+                title: "Set up your system",
+                body: "Fit the tactile transducers beneath a compatible timber-base table in around 1–2 hours, or choose a fully fitted setup.",
               },
               {
                 n: "02",
-                title: "Tuned frequency",
-                body: "The app selects a low-frequency tone matched to how the client wants to feel.",
+                title: "Choose a session",
+                body: "Use the guided app for screening, session selection, playback and timing while retaining practitioner judgement.",
               },
               {
                 n: "03",
-                title: "Experience the session",
-                body: "The table delivers gentle vibration through the speakers while the app manages playback, timer and wake lock.",
-              },
-              {
-                n: "04",
-                title: "Close and record",
-                body: "One-tap session close with payment logged, ready for next client. Records saved for the clinic.",
+                title: "Welcome your client.",
+                body: "Low-frequency vibration travels through the tabletop-mounted transducers while music plays through the included headphones.",
               },
             ].map((s) => (
               <li key={s.n} className="rounded-2xl bg-card p-7 shadow-soft">
@@ -665,45 +484,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* SCIENCE */}
-      <div style={clinicThemeVars(null, null)}>
-        <ScienceSection />
-        <CellularResponseSection />
-      </div>
-
-
-
-      {/* TWO WAYS IN */}
-      <section className="mx-auto max-w-7xl px-6 pt-24 md:px-10 md:pt-28">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-            Two ways in
-          </p>
-          <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            Start complete, or fit it to the room you already have.
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            The system is the same either way. The only question is whether a table comes with it.
-          </p>
-        </div>
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-card p-8 shadow-soft">
-            <h3 className="text-lg font-medium text-brand-indigo">Complete setup</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              A new therapy table arrives with the system already installed and tested. Nothing to
-              mount, nothing to wire. This is Platinum for clinics, and Home for personal use.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-border bg-card p-8 shadow-soft">
-            <h3 className="text-lg font-medium text-brand-indigo">Fit your existing table</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Keep the massage, chiropractic or osteopathic table you already work on. The speakers
-              and amplifier mount underneath in an afternoon. This is Basic and Pro.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* PACKAGES */}
       <section id="packages" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
@@ -714,8 +494,8 @@ function LandingPage() {
             Basic, Pro and Platinum.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every business package includes the tactile speakers, the amplifier, 100 professionally
-            designed{" "}
+            Every business package includes the tactile speakers, amplifier, headphones, 100
+            professionally designed{" "}
             <Link
               to="/flyer"
               className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
@@ -725,8 +505,8 @@ function LandingPage() {
             , the full business app and your own bookable clinic webpage.
           </p>
           <p className="mt-4 rounded-2xl bg-secondary/60 px-5 py-4 text-sm leading-relaxed text-foreground/90">
-            The Resonabed app runs on any phone, tablet or laptop. Basic uses a device you
-            already own. Pro and Platinum include a dedicated 10 inch tablet.
+            The Resonabed app runs on any phone, tablet or laptop. Basic uses a device you already
+            own. Pro and Platinum include a dedicated 10 inch tablet.
           </p>
         </div>
 
@@ -736,14 +516,13 @@ function LandingPage() {
             packageKey="essentials"
             pkg={pkgs.essentials}
             depositCents={orderDepositCents}
-            tagline="The Essential Starter Kit"
+            tagline="Use your own table and device."
             description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
             features={[
-              "Two 50W tactile speakers",
-              "Bluetooth amplifier, wiring and fittings",
-              "100 marketing flyers, professionally designed",
-              "Full business app: intake, screening, sessions, payments",
-              "Your own bookable Resonabed clinic webpage",
+              "Two 50W tactile speakers and Bluetooth amplifier",
+              "Audio-Technica ATH-M30x headphones",
+              "Full business app and bookable clinic webpage",
+              "100 personalised marketing flyers",
               "Runs on your own phone, tablet or laptop",
             ]}
           />
@@ -753,13 +532,14 @@ function LandingPage() {
             pkg={pkgs.pro}
             depositCents={orderDepositCents}
             highlighted
-            tagline="The Complete Upgrade Kit"
+            tagline="Upgrade your table with a dedicated tablet and headphones."
             description="Everything in Basic, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room."
             features={[
               "Everything included in Basic",
               '10" tablet, pre-configured for sessions',
               "Audio-Technica ATH-M30x headphones",
               "100 disposable headphone covers",
+              "Fits your compatible timber-base table",
             ]}
           />
           <PackageCard
@@ -767,11 +547,12 @@ function LandingPage() {
             packageKey="platinum"
             pkg={pkgs.platinum}
             depositCents={orderDepositCents}
-            tagline="The Total Business in a Box"
+            tagline="Start with a fully fitted table."
             description="Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives."
             features={[
               "Everything included in Pro",
               "New therapy table, fully fitted out",
+              "Dedicated tablet and headphones",
               "Tested as a complete system before dispatch",
             ]}
           />
@@ -779,35 +560,10 @@ function LandingPage() {
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
           Basic and Pro fit the table you already use. It must have a solid timber base so the
-          equipment can be mounted securely. Shipping is calculated at checkout by destination.
+          equipment can be mounted securely. Shipping is quoted when you reserve and charged with
+          your balance.
         </p>
       </section>
-
-
-      {/* HOME PACKAGE */}
-      <section
-        id="home-package"
-        className="scroll-mt-24 border-y border-border bg-secondary/40 py-24 md:py-28"
-      >
-        <div className="mx-auto max-w-5xl px-6 md:px-10">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-              For in home use
-            </p>
-            <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-              The Home package.
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              A complete fitted table for personal use, with the home app for running your own
-              sessions. No bookings, no client records and no clinic webpage.
-            </p>
-          </div>
-          <div className="mx-auto mt-12 max-w-md">
-            <HomeOrderPanel pkg={pkgs.home} depositCents={orderDepositCents} />
-          </div>
-        </div>
-      </section>
-
 
       {/* COMPARE */}
       <section id="compare" className="bg-secondary/40 py-24 md:py-28">
@@ -837,7 +593,6 @@ function LandingPage() {
                   <tr key={label as string} className="border-b border-border/60 last:border-0">
                     <td className="px-5 py-3.5 text-foreground/90">{label}</td>
                     {[ess, pro, plat, home].map((v, i) => (
-
                       <td
                         key={i}
                         className={`px-5 py-3.5 text-center ${
@@ -855,6 +610,74 @@ function LandingPage() {
         </div>
       </section>
 
+      <BusinessRevenueCalculator
+        packages={{ essentials: pkgs.essentials, pro: pkgs.pro, platinum: pkgs.platinum }}
+      />
+
+      {/* PRACTITIONER PERSPECTIVE — factual until approved testimonials are supplied */}
+      <section
+        aria-labelledby="practitioner-perspective-title"
+        className="bg-secondary/40 py-20 md:py-24"
+      >
+        <div className="mx-auto grid max-w-6xl gap-10 px-6 md:grid-cols-[0.8fr_1.2fr] md:items-center md:px-10">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              Practitioner perspective
+            </p>
+            <h2
+              id="practitioner-perspective-title"
+              className="mt-3 text-3xl font-light text-brand-indigo md:text-4xl"
+            >
+              See how the system fits into a working practice.
+            </h2>
+          </div>
+          <div className="border-l-2 border-brand-violet pl-6 md:pl-8">
+            <p className="text-xl font-light leading-relaxed text-brand-indigo">
+              “The table does the work while you prepare, reset, or simply give your client time to
+              unwind.”
+            </p>
+            <p className="mt-4 text-sm text-muted-foreground">
+              How Resonabed is designed to support a practitioner workflow — not a customer
+              testimonial.
+            </p>
+            <Button
+              type="button"
+              onClick={openCalendlyPopup}
+              variant="outline"
+              className="mt-6 rounded-full border-brand-indigo/20 text-brand-indigo"
+            >
+              See a product walkthrough
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* RESEARCH TEASER */}
+      <section id="research" className="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-24">
+        <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div className="max-w-3xl">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              How it works &amp; research
+            </p>
+            <h2 className="mt-3 text-3xl font-light text-brand-indigo md:text-4xl">
+              Sound, vibration and the evidence behind VAT.
+            </h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              Explore how tabletop-mounted transducers create low-frequency vibration, how cells
+              sense mechanical movement, and what early VAT studies do — and do not — establish.
+            </p>
+          </div>
+          <Link to="/vibroacoustic-therapy-bed">
+            <Button
+              variant="outline"
+              className="rounded-full border-brand-indigo/20 text-brand-indigo"
+            >
+              Explore how it works <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
       {/* BOOK A DEMO */}
       <section id="demo" className="mx-auto max-w-4xl px-6 py-24 md:px-10 md:py-28">
         <div className="text-center">
@@ -865,8 +688,8 @@ function LandingPage() {
             Feel it for yourself.
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            The best way to understand vibroacoustic therapy is to experience it. Book a free demo
-            and feel exactly what your clients would feel.
+            Choose an in-person demonstration in Brisbane, the Gold Coast or Sunshine Coast, or an
+            online product walkthrough.
           </p>
         </div>
 
@@ -877,8 +700,9 @@ function LandingPage() {
           </p>
           <p>
             We are based in Brisbane and can easily travel to the Gold Coast and Sunshine Coast for
-            in-person demos. If you are outside those areas, we will arrange an online demo and walk
-            you through the system over a video call.
+            in-person demos. If you are outside those areas, we can arrange an online product
+            walkthrough over a video call. An online walkthrough demonstrates operation, not the
+            physical sensation.
           </p>
           <p>No pressure, no obligation. Just book a demo and experience it today.</p>
         </div>
@@ -892,15 +716,12 @@ function LandingPage() {
               onClick={openCalendlyPopup}
               className="h-12 rounded-full bg-brand-violet px-8 text-[15px] font-medium text-white hover:bg-brand-violet-strong"
             >
-              Book a demo
+              Book a free demo
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
-        
       </section>
-
-
 
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl px-6 py-24 md:px-10 md:py-28">
@@ -932,129 +753,32 @@ function LandingPage() {
         </p>
       </section>
 
-
-      {/* WHY DEDICATED DEVICE */}
-      <section className="bg-brand-ink py-24 text-white md:py-28">
-        <div className="mx-auto grid max-w-7xl gap-12 px-6 md:grid-cols-[1.1fr_1fr] md:items-center md:px-10">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">
-              Why a dedicated device matters
-            </p>
-            <h2 className="mt-3 text-3xl font-light tracking-tight md:text-4xl">
-              A vibroacoustic session is about uninterrupted calm.
-            </h2>
-            <p className="mt-5 max-w-xl text-white/70">
-              A phone can ring mid-session. A laptop can chime with an email or reminder, and those
-              sounds carry straight through the table to your client. We recommend running Resonabed
-              on a device kept just for sessions. The Pro and Platinum packages include one ready to go, so
-              nothing breaks the stillness.
-            </p>
-            <ul className="mt-8 grid gap-3 text-sm text-white/80 sm:grid-cols-2">
-              {[
-                { icon: Tablet, t: "Session-only device" },
-                { icon: Music, t: "9 Solfeggio frequencies" },
-                { icon: Clock, t: "Screen wake-lock" },
-                { icon: ShieldCheck, t: "Encrypted client records" },
-              ].map(({ icon: Icon, t }) => (
-                <li key={t} className="flex items-center gap-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="relative">
-            <div
-              aria-hidden
-              className="absolute -inset-8 rounded-[2rem] opacity-60 blur-3xl"
-              style={{
-                background:
-                  "radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--brand-violet) 60%, transparent), transparent 70%)",
-              }}
-            />
-            <div className="relative rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-10 backdrop-blur">
-              <img
-                src={logo.url}
-                alt=""
-                aria-hidden
-                className="mx-auto h-24 w-auto opacity-90"
-                draggable={false}
-                style={{ filter: "brightness(0) invert(1)" }}
-              />
-              <p className="mt-8 text-center text-lg font-light leading-relaxed text-white/85">
-                "The table does the work while you prepare, reset, or simply give your client time
-                to unwind."
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="mx-auto max-w-5xl px-6 py-24 md:px-10 md:py-28">
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-10 text-center shadow-lift md:p-16">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-60"
-            style={{
-              background:
-                "radial-gradient(60% 60% at 50% 0%, color-mix(in oklab, var(--brand-violet) 20%, transparent), transparent 70%)",
-            }}
-          />
-          <div className="relative">
-            <h2 className="text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-              Ready to add a new revenue stream to your clinic?
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-              Choose the package that fits your clinic, complete checkout, and start offering
-              vibroacoustic sessions in the room you already use.
-            </p>
-            <div
-              id="home-use"
-              className="mx-auto mt-8 max-w-xl scroll-mt-24 rounded-2xl border border-border bg-muted/30 p-6 text-left"
+      {/* CLOSING ACTION */}
+      <section className="bg-brand-ink py-20 text-white md:py-24">
+        <div className="mx-auto max-w-4xl px-6 text-left md:px-10">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">
+            A complete new service
+          </p>
+          <h2 className="mt-3 max-w-2xl text-3xl font-light md:text-4xl">
+            Ready to see Resonabed in your treatment room?
+          </h2>
+          <p className="mt-4 max-w-xl text-white/70">
+            Explore the business packages or book a free, no-obligation demonstration.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="#packages">
+              <Button className="rounded-full bg-white text-brand-indigo hover:bg-white/90">
+                Explore packages
+              </Button>
+            </a>
+            <Button
+              type="button"
+              onClick={openCalendlyPopup}
+              variant="outline"
+              className="rounded-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
             >
-              <h3 className="text-lg font-medium text-brand-indigo">
-                Buying for your own home?
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Resonabed isn&rsquo;t just for clinics. The{" "}
-                <a
-                  href="#home-package"
-                  className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
-                >
-                  Home package
-                </a>{" "}
-
-                is a complete package for $1,499: a fully fitted table, headphones and the personal
-                app, no bookings and no clients, just you and your sessions. We email an access code
-                the moment you pay, and you set up at{" "}
-                <Link
-                  to="/home/signup"
-                  className="text-brand-indigo underline-offset-4 hover:underline"
-                >
-                  resonabed.com/home/signup
-                </Link>
-                . Same kit, same therapeutic frequencies, ready in minutes.
-              </p>
-            </div>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <a href="#packages">
-                <Button className="h-12 rounded-full px-7 text-[15px] font-medium">
-                  Order your kit
-                  <ArrowRight className="ml-1.5 h-4 w-4" />
-                </Button>
-              </a>
-              <Link to={loginHref}>
-                <Button
-                  variant="outline"
-                  className="h-12 rounded-full border-brand-indigo/20 px-7 text-[15px] font-medium text-brand-indigo hover:bg-brand-tint"
-                >
-                  {loginLabel}
-                </Button>
-              </Link>
-            </div>
+              Book a free demo
+            </Button>
           </div>
         </div>
       </section>
@@ -1074,14 +798,15 @@ function LandingPage() {
             <div className="space-y-5 text-muted-foreground">
               <p>
                 Resonabed exists to make vibroacoustic therapy simple for practitioners to offer and
-                easy for clients to feel. We pair a purpose-built kit that upgrades a treatment table
-                you already own with a platform that handles bookings, clients and your own branded
-                page, so you can add a genuinely different service without adding complexity.
+                easy for clients to feel. We pair a purpose-built kit that upgrades a treatment
+                table you already own with a platform that handles bookings, clients and your own
+                branded page, so you can add a genuinely different service without adding
+                complexity.
               </p>
               <p>
-                And if you would rather start fresh, our Platinum package is a complete business in a
-                box: a fully fitted-out new therapy table, the full platform, and everything you need
-                to start offering sessions from day one.
+                And if you would rather start fresh, our Platinum package is a complete business in
+                a box: a fully fitted-out new therapy table, the full platform, and everything you
+                need to start offering sessions from day one.
               </p>
               <p>
                 Based in Scarborough, Queensland, we are focused on one thing: helping wellness
@@ -1263,11 +988,7 @@ function ContactForm() {
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
           Thanks for reaching out. We have received your message and will reply as soon as we can.
         </p>
-        <Button
-          variant="outline"
-          className="mt-6 rounded-full"
-          onClick={() => setSent(false)}
-        >
+        <Button variant="outline" className="mt-6 rounded-full" onClick={() => setSent(false)}>
           Send another message
         </Button>
       </div>
@@ -1436,7 +1157,6 @@ function openCalendlyPopup() {
     .catch(() => toast.error("Could not load the booking form. Please try again."));
 }
 
-
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
 
 function PackageCard({
@@ -1480,7 +1200,6 @@ function PackageCard({
   const deposit = money(depositCents);
   const planTotal = money(planTotalCents(pkgDef, depositCents));
   const packagePriceCents = pkgDef.listCents;
-
 
   const runCheckout = async (
     which: "full" | "installments",
@@ -1634,9 +1353,6 @@ function PackageCard({
             AUD · incl. GST
           </span>
         </div>
-        <p className={"mt-1 text-xs " + (highlighted ? "text-white/55" : "text-muted-foreground")}>
-          {gstSplitLine(pkgDef.listCents)}
-        </p>
         <p
           className={
             "mt-5 text-sm leading-relaxed " +
@@ -1672,7 +1388,6 @@ function PackageCard({
             </li>
           ))}
         </ul>
-        <RoiCalculator listCents={pkgDef.listCents} highlighted={highlighted} />
         <div className="mt-9 space-y-3">
           <Button
             onClick={() => handleOrder("full")}
@@ -1688,7 +1403,7 @@ function PackageCard({
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
 
-          <div
+          <details
             className={
               "rounded-2xl border px-4 py-3 text-[12px] leading-relaxed " +
               (highlighted
@@ -1696,20 +1411,20 @@ function PackageCard({
                 : "border-border bg-brand-tint/50 text-foreground/80")
             }
           >
-            <p className="font-medium">Then choose how to pay the balance:</p>
+            <summary className="cursor-pointer font-medium">Payment plans &amp; delivery</summary>
             <p className="mt-1">
               <span className="font-medium">Pay in full,</span> {money(pkgDef.balanceCents)} once,
               so the kit costs {money(pkgDef.listCents)} incl. GST.
             </p>
             <p className="mt-1">
               <span className="font-medium">Or pay over time,</span>{" "}
-              {money(pkgDef.plan.depositBalanceCents)} now and {pkgDef.plan.months} monthly
-              payments of {money(pkgDef.plan.monthlyCents)}, a plan total of {planTotal} incl. GST
-              ({money(Math.max(0, pkgDef.planListCents - pkgDef.listCents))} more than paying in
+              {money(pkgDef.plan.depositBalanceCents)} now and {pkgDef.plan.months} monthly payments
+              of {money(pkgDef.plan.monthlyCents)}, a plan total of {planTotal} incl. GST (
+              {money(Math.max(0, pkgDef.planListCents - pkgDef.listCents))} more than paying in
               full).
             </p>
             <p className="mt-1">Your shipping quote is added to that balance payment.</p>
-          </div>
+          </details>
 
           <p
             className={
@@ -1722,7 +1437,6 @@ function PackageCard({
             balance. Nothing ships until the balance clears. Promo codes apply to the balance.
             Secure checkout by Stripe.
           </p>
-
         </div>
       </div>
 

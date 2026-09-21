@@ -77,7 +77,7 @@ export function HeroVideo({ className }: { className?: string }) {
           onClick={toggleSound}
           aria-label={muted ? "Turn music on" : "Turn music off"}
           aria-pressed={!muted}
-          className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full border border-white/40 bg-[#30243c]/85 px-4 py-2.5 text-xs font-medium text-white backdrop-blur-md transition-colors hover:bg-[#513961] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-violet"
+          className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full border border-white/40 bg-brand-ink/85 px-4 py-2.5 text-xs font-medium text-white backdrop-blur-md transition-colors hover:bg-brand-indigo focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-violet"
         >
           <svg
             viewBox="0 0 24 24"
