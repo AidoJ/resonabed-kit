@@ -68,10 +68,10 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
 ];
 
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
-  ["Tactile speakers", true, true, true, true],
-  ["Amplifier", true, true, true, true],
+  ["Douk Audio tactile transducers (pair)", true, true, true, true],
+  ["100W amplifier", true, true, true, true],
   ['10" tablet', false, true, true, true],
-  ["Headphones", true, true, true, true],
+  ["JBL Tune 530 headphones", true, true, true, true],
   ["100 disposable headphone covers", true, true, true, false],
   ["100 marketing flyers", true, true, true, false],
   ["Full business app", true, true, true, false],
@@ -525,7 +525,8 @@ function LandingPage() {
             Basic, Pro and Platinum.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every business package includes the tactile speakers, amplifier, headphones, 100
+            Every business package includes the tactile transducers, 100W amplifier, headphones,
+            100
             professionally designed{" "}
             <Link
               to="/flyer"
@@ -550,7 +551,7 @@ function LandingPage() {
             tagline="Use your own table and device."
             description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
             features={[
-              "Two 50W tactile speakers and Bluetooth amplifier",
+              "Two Douk Audio tactile transducers and 100W amplifier",
               "JBL Tune 530 Headphones and 100 disposable covers",
               "Full business app and bookable clinic webpage",
               "100 personalised marketing flyers",
