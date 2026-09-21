@@ -43,7 +43,6 @@ import {
 } from "@/lib/packages";
 import { getKitPricing } from "@/lib/pricing.functions";
 
-
 import {
   ArrowRight,
   CheckCircle2,
@@ -67,7 +66,6 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
   { href: "#contact", label: "Contact" },
 ];
 
-
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Tactile speakers", true, true, true, true],
   ["Amplifier", true, true, true, true],
@@ -82,12 +80,10 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Fully fitted out table", false, false, true, true],
 ];
 
-
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: "What is the difference between Basic, Pro and Platinum?",
     a: "Basic uses your compatible timber-base table and device. Pro adds a dedicated 10 inch tablet and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. Headphones, the business app, clinic webpage and marketing material are included with all three.",
-
   },
   {
     q: "Can I run a clinic on the Home package?",
@@ -101,13 +97,9 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
     q: "Do I need my own device or table?",
     a: "It depends on the package. Basic runs on a phone, tablet or laptop you already own, and fits to the treatment table you already use. Pro includes a dedicated 10 inch tablet, pre-configured to run sessions and nothing else, and also fits your existing table. Platinum and Home include both the tablet and a fully fitted out table, so nothing else is needed.",
   },
-
 ];
 
-
-
 export const Route = createFileRoute("/")({
-  
   head: () => ({
     meta: [
       { title: "Resonabed | Vibroacoustic Therapy for Your Practice" },
@@ -147,9 +139,6 @@ function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showMobileDemo, setShowMobileDemo] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
-  
-  
-  
 
   // Super-admin editable kit pricing; static defaults render until this lands.
   const fetchPricing = useServerFn(getKitPricing);
@@ -194,7 +183,6 @@ function LandingPage() {
     };
   }, []);
 
-
   const loginHref = signedIn ? "/dashboard" : "/auth";
   const loginLabel = signedIn ? "Open dashboard" : "Clinic login";
 
@@ -231,7 +219,6 @@ function LandingPage() {
                 draggable={false}
               />
               <p className="mt-1 w-full text-center text-[10px] font-medium uppercase tracking-[0.3em] text-white/70 sm:text-xs md:tracking-[0.35em] md:text-sm">
-
                 Feel. Rest. Restore.
               </p>
             </div>
@@ -260,8 +247,6 @@ function LandingPage() {
                       </div>
                     </div>
                   </div>
-
-
                 ) : (
                   <a
                     key={l.href}
@@ -338,7 +323,6 @@ function LandingPage() {
           )}
         </header>
 
-
         <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-8 md:px-10 md:pb-28 md:pt-12 lg:grid-cols-2 lg:gap-8">
           <div className="flex flex-col justify-center">
             <span className="mb-6 inline-flex w-fit items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-white/75">
@@ -372,7 +356,10 @@ function LandingPage() {
             <p className="mt-5 max-w-xl text-sm text-white/65">
               Retrofit a compatible timber-base table, or choose a fully fitted setup.
             </p>
-            <Link to="/for-home" className="mt-4 w-fit text-sm text-white/75 underline underline-offset-4 hover:text-white">
+            <Link
+              to="/for-home"
+              className="mt-4 w-fit text-sm text-white/75 underline underline-offset-4 hover:text-white"
+            >
               Looking for Resonabed at home?
             </Link>
           </div>
@@ -411,7 +398,8 @@ function LandingPage() {
             A complete new service for your existing treatment room.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Choose a retrofit for your compatible table or a fully fitted setup, then run each session through one guided system.
+            Choose a retrofit for your compatible table or a fully fitted setup, then run each
+            session through one guided system.
           </p>
         </div>
 
@@ -506,8 +494,8 @@ function LandingPage() {
             Basic, Pro and Platinum.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every business package includes the tactile speakers, amplifier, headphones, 100 professionally
-            designed{" "}
+            Every business package includes the tactile speakers, amplifier, headphones, 100
+            professionally designed{" "}
             <Link
               to="/flyer"
               className="font-medium text-brand-indigo underline underline-offset-4 hover:text-brand-violet-strong"
@@ -517,8 +505,8 @@ function LandingPage() {
             , the full business app and your own bookable clinic webpage.
           </p>
           <p className="mt-4 rounded-2xl bg-secondary/60 px-5 py-4 text-sm leading-relaxed text-foreground/90">
-            The Resonabed app runs on any phone, tablet or laptop. Basic uses a device you
-            already own. Pro and Platinum include a dedicated 10 inch tablet.
+            The Resonabed app runs on any phone, tablet or laptop. Basic uses a device you already
+            own. Pro and Platinum include a dedicated 10 inch tablet.
           </p>
         </div>
 
@@ -572,10 +560,10 @@ function LandingPage() {
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
           Basic and Pro fit the table you already use. It must have a solid timber base so the
-          equipment can be mounted securely. Shipping is quoted when you reserve and charged with your balance.
+          equipment can be mounted securely. Shipping is quoted when you reserve and charged with
+          your balance.
         </p>
       </section>
-
 
       {/* COMPARE */}
       <section id="compare" className="bg-secondary/40 py-24 md:py-28">
@@ -605,7 +593,6 @@ function LandingPage() {
                   <tr key={label as string} className="border-b border-border/60 last:border-0">
                     <td className="px-5 py-3.5 text-foreground/90">{label}</td>
                     {[ess, pro, plat, home].map((v, i) => (
-
                       <td
                         key={i}
                         className={`px-5 py-3.5 text-center ${
@@ -628,16 +615,39 @@ function LandingPage() {
       />
 
       {/* PRACTITIONER PERSPECTIVE — factual until approved testimonials are supplied */}
-      <section aria-labelledby="practitioner-perspective-title" className="bg-secondary/40 py-20 md:py-24">
+      <section
+        aria-labelledby="practitioner-perspective-title"
+        className="bg-secondary/40 py-20 md:py-24"
+      >
         <div className="mx-auto grid max-w-6xl gap-10 px-6 md:grid-cols-[0.8fr_1.2fr] md:items-center md:px-10">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">Practitioner perspective</p>
-            <h2 id="practitioner-perspective-title" className="mt-3 text-3xl font-light text-brand-indigo md:text-4xl">See how the system fits into a working practice.</h2>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              Practitioner perspective
+            </p>
+            <h2
+              id="practitioner-perspective-title"
+              className="mt-3 text-3xl font-light text-brand-indigo md:text-4xl"
+            >
+              See how the system fits into a working practice.
+            </h2>
           </div>
           <div className="border-l-2 border-brand-violet pl-6 md:pl-8">
-            <p className="text-xl font-light leading-relaxed text-brand-indigo">“The table does the work while you prepare, reset, or simply give your client time to unwind.”</p>
-            <p className="mt-4 text-sm text-muted-foreground">How Resonabed is designed to support a practitioner workflow — not a customer testimonial.</p>
-            <Button type="button" onClick={openCalendlyPopup} variant="outline" className="mt-6 rounded-full border-brand-indigo/20 text-brand-indigo">See a product walkthrough</Button>
+            <p className="text-xl font-light leading-relaxed text-brand-indigo">
+              “The table does the work while you prepare, reset, or simply give your client time to
+              unwind.”
+            </p>
+            <p className="mt-4 text-sm text-muted-foreground">
+              How Resonabed is designed to support a practitioner workflow — not a customer
+              testimonial.
+            </p>
+            <Button
+              type="button"
+              onClick={openCalendlyPopup}
+              variant="outline"
+              className="mt-6 rounded-full border-brand-indigo/20 text-brand-indigo"
+            >
+              See a product walkthrough
+            </Button>
           </div>
         </div>
       </section>
@@ -646,11 +656,25 @@ function LandingPage() {
       <section id="research" className="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-24">
         <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
           <div className="max-w-3xl">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">How it works &amp; research</p>
-            <h2 className="mt-3 text-3xl font-light text-brand-indigo md:text-4xl">Sound, vibration and the evidence behind VAT.</h2>
-            <p className="mt-4 leading-relaxed text-muted-foreground">Explore how tabletop-mounted transducers create low-frequency vibration, how cells sense mechanical movement, and what early VAT studies do — and do not — establish.</p>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              How it works &amp; research
+            </p>
+            <h2 className="mt-3 text-3xl font-light text-brand-indigo md:text-4xl">
+              Sound, vibration and the evidence behind VAT.
+            </h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              Explore how tabletop-mounted transducers create low-frequency vibration, how cells
+              sense mechanical movement, and what early VAT studies do — and do not — establish.
+            </p>
           </div>
-          <Link to="/vibroacoustic-therapy-bed"><Button variant="outline" className="rounded-full border-brand-indigo/20 text-brand-indigo">Explore how it works <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+          <Link to="/vibroacoustic-therapy-bed">
+            <Button
+              variant="outline"
+              className="rounded-full border-brand-indigo/20 text-brand-indigo"
+            >
+              Explore how it works <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </section>
 
@@ -664,7 +688,8 @@ function LandingPage() {
             Feel it for yourself.
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            Choose an in-person demonstration in Brisbane, the Gold Coast or Sunshine Coast, or an online product walkthrough.
+            Choose an in-person demonstration in Brisbane, the Gold Coast or Sunshine Coast, or an
+            online product walkthrough.
           </p>
         </div>
 
@@ -675,7 +700,9 @@ function LandingPage() {
           </p>
           <p>
             We are based in Brisbane and can easily travel to the Gold Coast and Sunshine Coast for
-            in-person demos. If you are outside those areas, we can arrange an online product walkthrough over a video call. An online walkthrough demonstrates operation, not the physical sensation.
+            in-person demos. If you are outside those areas, we can arrange an online product
+            walkthrough over a video call. An online walkthrough demonstrates operation, not the
+            physical sensation.
           </p>
           <p>No pressure, no obligation. Just book a demo and experience it today.</p>
         </div>
@@ -694,10 +721,7 @@ function LandingPage() {
             </Button>
           </div>
         </div>
-        
       </section>
-
-
 
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl px-6 py-24 md:px-10 md:py-28">
@@ -732,16 +756,32 @@ function LandingPage() {
       {/* CLOSING ACTION */}
       <section className="bg-brand-ink py-20 text-white md:py-24">
         <div className="mx-auto max-w-4xl px-6 text-left md:px-10">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">A complete new service</p>
-          <h2 className="mt-3 max-w-2xl text-3xl font-light md:text-4xl">Ready to see Resonabed in your treatment room?</h2>
-          <p className="mt-4 max-w-xl text-white/70">Explore the business packages or book a free, no-obligation demonstration.</p>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">
+            A complete new service
+          </p>
+          <h2 className="mt-3 max-w-2xl text-3xl font-light md:text-4xl">
+            Ready to see Resonabed in your treatment room?
+          </h2>
+          <p className="mt-4 max-w-xl text-white/70">
+            Explore the business packages or book a free, no-obligation demonstration.
+          </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#packages"><Button className="rounded-full bg-white text-brand-indigo hover:bg-white/90">Explore packages</Button></a>
-            <Button type="button" onClick={openCalendlyPopup} variant="outline" className="rounded-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">Book a free demo</Button>
+            <a href="#packages">
+              <Button className="rounded-full bg-white text-brand-indigo hover:bg-white/90">
+                Explore packages
+              </Button>
+            </a>
+            <Button
+              type="button"
+              onClick={openCalendlyPopup}
+              variant="outline"
+              className="rounded-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
+            >
+              Book a free demo
+            </Button>
           </div>
         </div>
       </section>
-
 
       {/* ABOUT */}
       <section id="about" className="bg-secondary/40 py-24 md:py-28">
@@ -758,14 +798,15 @@ function LandingPage() {
             <div className="space-y-5 text-muted-foreground">
               <p>
                 Resonabed exists to make vibroacoustic therapy simple for practitioners to offer and
-                easy for clients to feel. We pair a purpose-built kit that upgrades a treatment table
-                you already own with a platform that handles bookings, clients and your own branded
-                page, so you can add a genuinely different service without adding complexity.
+                easy for clients to feel. We pair a purpose-built kit that upgrades a treatment
+                table you already own with a platform that handles bookings, clients and your own
+                branded page, so you can add a genuinely different service without adding
+                complexity.
               </p>
               <p>
-                And if you would rather start fresh, our Platinum package is a complete business in a
-                box: a fully fitted-out new therapy table, the full platform, and everything you need
-                to start offering sessions from day one.
+                And if you would rather start fresh, our Platinum package is a complete business in
+                a box: a fully fitted-out new therapy table, the full platform, and everything you
+                need to start offering sessions from day one.
               </p>
               <p>
                 Based in Scarborough, Queensland, we are focused on one thing: helping wellness
@@ -947,11 +988,7 @@ function ContactForm() {
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
           Thanks for reaching out. We have received your message and will reply as soon as we can.
         </p>
-        <Button
-          variant="outline"
-          className="mt-6 rounded-full"
-          onClick={() => setSent(false)}
-        >
+        <Button variant="outline" className="mt-6 rounded-full" onClick={() => setSent(false)}>
           Send another message
         </Button>
       </div>
@@ -1120,7 +1157,6 @@ function openCalendlyPopup() {
     .catch(() => toast.error("Could not load the booking form. Please try again."));
 }
 
-
 type BusinessPackageKey = "essentials" | "pro" | "platinum";
 
 function PackageCard({
@@ -1164,7 +1200,6 @@ function PackageCard({
   const deposit = money(depositCents);
   const planTotal = money(planTotalCents(pkgDef, depositCents));
   const packagePriceCents = pkgDef.listCents;
-
 
   const runCheckout = async (
     which: "full" | "installments",
@@ -1383,9 +1418,9 @@ function PackageCard({
             </p>
             <p className="mt-1">
               <span className="font-medium">Or pay over time,</span>{" "}
-              {money(pkgDef.plan.depositBalanceCents)} now and {pkgDef.plan.months} monthly
-              payments of {money(pkgDef.plan.monthlyCents)}, a plan total of {planTotal} incl. GST
-              ({money(Math.max(0, pkgDef.planListCents - pkgDef.listCents))} more than paying in
+              {money(pkgDef.plan.depositBalanceCents)} now and {pkgDef.plan.months} monthly payments
+              of {money(pkgDef.plan.monthlyCents)}, a plan total of {planTotal} incl. GST (
+              {money(Math.max(0, pkgDef.planListCents - pkgDef.listCents))} more than paying in
               full).
             </p>
             <p className="mt-1">Your shipping quote is added to that balance payment.</p>
@@ -1402,7 +1437,6 @@ function PackageCard({
             balance. Nothing ships until the balance clears. Promo codes apply to the balance.
             Secure checkout by Stripe.
           </p>
-
         </div>
       </div>
 

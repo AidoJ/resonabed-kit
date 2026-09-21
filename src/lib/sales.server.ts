@@ -1,4 +1,3 @@
-
 export type KitSaleRow = {
   id: string;
   created: string;
@@ -95,7 +94,8 @@ export async function loadBuyerLookup(): Promise<BuyerLookup> {
     if (!ref) continue;
     const type = o.org_id ? clinicTypes.get(o.org_id as string) : null;
     lookup[ref] = {
-      category: type === "home" ? "home_business" : type === "retail" ? "clinic" : "business_pending",
+      category:
+        type === "home" ? "home_business" : type === "retail" ? "clinic" : "business_pending",
       businessName: (o.business_name as string | null) ?? null,
     };
   }
@@ -115,8 +115,6 @@ const LIST_PRICE_CENTS: Record<string, number> = {
   platinum: 199900,
   home: 169900,
 };
-
-
 
 /** GST is 1/11 of a GST-inclusive amount (Australia, 10%). */
 export function gstOf(inclusiveCents: number) {
@@ -151,7 +149,9 @@ export async function fetchKitSales(_secret?: string): Promise<{
   if (error) throw new Error(error.message);
 
   const rows: KitSaleRow[] = (data ?? []).map((o) => {
-    const matched = o.stripe_deposit_session_id ? buyerLookup[o.stripe_deposit_session_id] : undefined;
+    const matched = o.stripe_deposit_session_id
+      ? buyerLookup[o.stripe_deposit_session_id]
+      : undefined;
     const buyerType = o.buyer_type === "business" ? "business" : "personal";
     return {
       id: o.id,
@@ -203,15 +203,19 @@ export async function fetchKitSales(_secret?: string): Promise<{
     shippingCents: rows.reduce((a, r) => a + r.shippingCents, 0),
     gstCents: rows.reduce((a, r) => a + r.gstCents, 0),
     byPackage: Object.values(
-      rows.reduce<Record<string, { key: string; label: string; count: number; collectedCents: number }>>(
-        (acc, r) => {
-          acc[r.packageKey] ??= { key: r.packageKey, label: r.packageLabel, count: 0, collectedCents: 0 };
-          acc[r.packageKey].count += 1;
-          acc[r.packageKey].collectedCents += r.collectedCents;
-          return acc;
-        },
-        {},
-      ),
+      rows.reduce<
+        Record<string, { key: string; label: string; count: number; collectedCents: number }>
+      >((acc, r) => {
+        acc[r.packageKey] ??= {
+          key: r.packageKey,
+          label: r.packageLabel,
+          count: 0,
+          collectedCents: 0,
+        };
+        acc[r.packageKey].count += 1;
+        acc[r.packageKey].collectedCents += r.collectedCents;
+        return acc;
+      }, {}),
     ),
     byBuyer: (Object.keys(BUYER_CATEGORY_LABELS) as BuyerCategory[])
       .map((key) => {
