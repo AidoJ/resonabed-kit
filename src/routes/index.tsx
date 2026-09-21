@@ -84,7 +84,7 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: "What is the difference between Basic, Pro and Platinum?",
-    a: "Basic uses your compatible timber-base table and device. Pro adds a dedicated 10 inch tablet and 100 headphone covers. Platinum adds a new therapy table with the system already fitted. Headphones, the business app, clinic webpage and marketing material are included with all three.",
+    a: "Basic uses your compatible timber-base table and device. Pro adds a dedicated 10 inch tablet. Platinum adds a new therapy table with the system already fitted. Headphones, 100 disposable headphone covers, the business app, clinic webpage and marketing material are included with all three.",
   },
   {
     q: "Can I run a clinic on the Home package?",

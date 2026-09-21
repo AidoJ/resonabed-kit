@@ -58,7 +58,7 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     shipsTable: false,
     personalOnly: false,
     description:
-      'Everything in Basic, plus a dedicated 10" tablet pre-configured for sessions and 100 disposable headphone covers.',
+      'Everything in Basic, plus a dedicated 10" tablet pre-configured for sessions.',
   },
   platinum: {
     key: "platinum",
