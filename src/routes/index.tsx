@@ -33,6 +33,11 @@ import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
+import { ScienceSection } from "@/components/public-clinic/science-section";
+import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
+import { SolfeggioFrequenciesSection } from "@/components/public-clinic/solfeggio-frequencies-section";
+import { KitCard, kitImages } from "@/components/kit-card";
+import { RoiCalculator } from "@/components/roi-calculator";
 import { BusinessRevenueCalculator } from "@/components/roi-calculator";
 import { HomeOrderPanel } from "@/components/home-order-panel";
 import {
@@ -53,11 +58,18 @@ import {
   ArrowRight,
   CheckCircle2,
   Waves,
+  Radio,
+  Sparkles,
   Clock,
   ShieldCheck,
   Music,
   Tablet,
   ClipboardList,
+  Speaker,
+  Headphones,
+  Volume2,
+  FileText,
+  Package,
   BedSingle,
   MapPin,
   Mail,
