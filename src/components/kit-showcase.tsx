@@ -86,9 +86,9 @@ export function KitShowcase() {
               className="aspect-[3/2] w-full object-cover"
             />
             <figcaption className="px-5 py-3 text-xs leading-relaxed text-muted-foreground">
-              Fully fitted treatment table shown. The table is included with Platinum and Home;
-              Basic and Pro fit a compatible timber-base table you already own. The tablet shown
-              is included with Pro, Platinum and Home.
+              Fully fitted treatment table shown. The table is included with Platinum and Home
+              only. The Basic and Pro kits are designed to fit a compatible timber-base table you
+              already own.
             </figcaption>
           </figure>
         </div>
