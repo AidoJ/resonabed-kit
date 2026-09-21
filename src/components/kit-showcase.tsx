@@ -10,7 +10,7 @@ const EQUIPMENT = [
     name: "Douk Audio tactile transducers",
     description:
       "Mounted beneath the tabletop to transmit low-frequency vibration through the treatment surface.",
-    inclusion: "Included in Basic, Pro and Platinum",
+    inclusion: "Included in Basic, Pro, Platinum and Home",
     image: kitImages.transducer,
     imageAlt: "Douk Audio tactile transducer supplied with Resonabed business kits",
     pair: true,
@@ -18,7 +18,7 @@ const EQUIPMENT = [
   {
     name: "100W Nobsound amplifier",
     description: "Powers the transducers and controls the vibration level.",
-    inclusion: "Included in Basic, Pro and Platinum",
+    inclusion: "Included in Basic, Pro, Platinum and Home",
     image: kitImages.amplifier,
     imageAlt: "100W Nobsound amplifier supplied with Resonabed business kits",
   },
@@ -26,14 +26,14 @@ const EQUIPMENT = [
     name: "JBL Tune 530 Headphones",
     description:
       "Deliver powerful sound and long-lasting comfort in a lightweight on-ear design, featuring JBL Pure Bass sound.",
-    inclusion: "Included in Basic, Pro and Platinum",
+    inclusion: "Included in Basic, Pro, Platinum and Home",
     image: jblHeadphones,
     imageAlt: "White JBL Tune 530 on-ear headphones",
   },
   {
     name: '10" IQU tablet',
     description: "Provides access to session selection and playback controls.",
-    inclusion: "Included in Pro and Platinum",
+    inclusion: "Included in Pro, Platinum and Home",
     image: kitImages.tablet,
     imageAlt: "10 inch IQU tablet showing the Resonabed session app",
   },
@@ -69,7 +69,8 @@ export function KitShowcase() {
             />
             <figcaption className="px-5 py-3 text-xs leading-relaxed text-muted-foreground">
               Fully fitted treatment table shown. The table is included with Platinum and Home;
-              Basic and Pro fit a compatible timber-base table you already own.
+              Basic and Pro fit a compatible timber-base table you already own. The tablet shown
+              is included with Pro, Platinum and Home.
             </figcaption>
           </figure>
         </div>
