@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { kitImages } from "@/components/kit-card";
 import completeKitImage from "@/assets/resonabed-hero-1536-img.webp";
-import jblHeadphones from "@/assets/jbl-tune-530-headphones-white.jpg.asset.json";
+import jblHeadphones from "@/assets/jbl-tune-530-headphones-transparent.png";
 
 const EQUIPMENT = [
   {
@@ -27,7 +27,7 @@ const EQUIPMENT = [
     description:
       "Deliver powerful sound and long-lasting comfort in a lightweight on-ear design, featuring JBL Pure Bass sound.",
     inclusion: "Included in Basic, Pro and Platinum",
-    image: jblHeadphones.url,
+    image: jblHeadphones,
     imageAlt: "White JBL Tune 530 on-ear headphones",
   },
   {
@@ -36,13 +36,6 @@ const EQUIPMENT = [
     inclusion: "Included in Pro and Platinum",
     image: kitImages.tablet,
     imageAlt: "10 inch IQU tablet showing the Resonabed session app",
-  },
-  {
-    name: "Cables and mounting components",
-    description: "Connect and secure the system to a compatible treatment table.",
-    inclusion: "Included in Basic, Pro and Platinum",
-    image: null,
-    imageAlt: "",
   },
 ] as const;
 
@@ -103,11 +96,7 @@ export function KitShowcase() {
                       />
                     ) : null}
                   </div>
-                ) : (
-                  <p className="max-w-[15rem] text-center text-sm leading-relaxed text-muted-foreground">
-                    Speaker wire, banana plugs, well nuts, screws, cable ties and mounting pads.
-                  </p>
-                )}
+                ) : null}
               </div>
               <h3 className="mt-5 text-lg font-medium text-brand-indigo">{item.name}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
