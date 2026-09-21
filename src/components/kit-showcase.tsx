@@ -62,7 +62,7 @@ export function KitShowcase() {
 
           <figure className="overflow-hidden rounded-lg bg-brand-tint/60">
             <img
-              src={completeKitImage}
+              src={heroPosterUrl}
               alt="A client resting on a fully fitted Resonabed treatment table"
               loading="lazy"
               className="aspect-[3/2] w-full object-cover"
@@ -109,7 +109,7 @@ export function KitShowcase() {
           <article className="flex min-w-0 flex-col border-t border-border pt-5">
             <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg bg-brand-tint/45 p-6">
               <img
-                src={completeKitImage}
+                src={heroPosterUrl}
                 alt="Fully fitted Resonabed treatment table"
                 loading="lazy"
                 className="max-h-full max-w-full rounded-md object-contain"
