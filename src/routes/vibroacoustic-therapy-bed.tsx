@@ -255,7 +255,7 @@ function TherapyBedPage() {
             {[
               {
                 icon: Speaker,
-                title: "Two 80W tactile transducers",
+                title: "Two Douk Audio tactile transducers",
                 body: "Premium transducers that send low-frequency sound as gentle vibration through your existing table, so clients do not just hear the music, they feel it moving through them.",
                 image: kitImages.transducer,
                 imageAlt: "Two tactile transducers included in the Resonabed kit",
