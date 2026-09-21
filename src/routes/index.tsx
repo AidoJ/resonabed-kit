@@ -34,6 +34,7 @@ import logoWhite from "@/assets/resonabed-logo-white.svg";
 import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { BusinessRevenueCalculator } from "@/components/roi-calculator";
+import { KitShowcase } from "@/components/kit-showcase";
 import {
   ORDER_DEPOSIT_CENTS,
   PACKAGES,
@@ -512,6 +513,8 @@ function LandingPage() {
         </div>
       </section>
 
+      <KitShowcase />
+
       {/* PACKAGES */}
       <section id="packages" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
@@ -548,7 +551,7 @@ function LandingPage() {
             description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
             features={[
               "Two 50W tactile speakers and Bluetooth amplifier",
-              "Audio-Technica ATH-M30x headphones",
+              "JBL Tune 530 Headphones",
               "Full business app and bookable clinic webpage",
               "100 personalised marketing flyers",
               "Runs on your own phone, tablet or laptop",
@@ -565,7 +568,7 @@ function LandingPage() {
             features={[
               "Everything included in Basic",
               '10" tablet, pre-configured for sessions',
-              "Audio-Technica ATH-M30x headphones",
+              "JBL Tune 530 Headphones",
               "100 disposable headphone covers",
               "Fits your compatible timber-base table",
             ]}

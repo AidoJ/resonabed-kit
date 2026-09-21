@@ -270,10 +270,10 @@ function TherapyBedPage() {
               },
               {
                 icon: HeadphonesIcon,
-                title: "Audio-Technica ATH-M30x professional headphones",
-                body: "To complete the experience, every kit includes a pair of Audio-Technica ATH-M30x professional monitor headphones. Where the table delivers sound you feel, these deliver sound you hear in full studio-quality detail, sealing out distraction so your client is held entirely within the session. The same headphones professionals rely on, now part of yours.",
+                title: "JBL Tune 530 Headphones",
+                body: "The JBL Tune 530 Headphones deliver powerful sound and long-lasting comfort in a lightweight on-ear design, featuring JBL Pure Bass sound.",
                 image: kitImages.headphones,
-                imageAlt: "Audio-Technica ATH-M30x professional monitor headphones",
+                imageAlt: "White JBL Tune 530 on-ear headphones",
               },
               {
                 icon: Tablet,
