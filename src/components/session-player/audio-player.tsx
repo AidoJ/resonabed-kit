@@ -119,6 +119,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     void attempt();
   };
   const doPause = () => {
+    clearRetry();
     audioRef.current?.pause();
   };
   const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
