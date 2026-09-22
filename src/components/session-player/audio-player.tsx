@@ -66,17 +66,72 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     onPlayingChange?.(playing);
   }, [playing, onPlayingChange]);
 
+  // Start buffering as soon as a track is available, so the first Start tap
+  // has something decodable to play.
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !src) return;
+    try {
+      el.load();
+    } catch {
+      /* ignore */
+    }
+  }, [src]);
+
+  const retryRef = useRef<(() => void) | null>(null);
+
+  const clearRetry = () => {
+    retryRef.current?.();
+    retryRef.current = null;
+  };
+
   const doPlay = () => {
     const el = audioRef.current;
     if (!el) return;
+    clearRetry();
     el.loop = loop;
     el.muted = false;
-    void el
-      .play()
-      .then(() => setBlocked(false))
-      .catch(() => setBlocked(true));
+
+    const attempt = (): Promise<void> =>
+      el.play().then(
+        () => {
+          setBlocked(false);
+        },
+        () => {
+          // The very first tap often lands before the media is decodable, the
+          // browser rejects that play() even though the gesture was valid.
+          // Retry as soon as the element can actually play.
+          if (el.readyState < 3) {
+            const onReady = () => {
+              cleanup();
+              void el
+                .play()
+                .then(() => setBlocked(false))
+                .catch(() => setBlocked(true));
+            };
+            const cleanup = () => {
+              el.removeEventListener("canplay", onReady);
+              el.removeEventListener("loadeddata", onReady);
+              retryRef.current = null;
+            };
+            el.addEventListener("canplay", onReady, { once: true });
+            el.addEventListener("loadeddata", onReady, { once: true });
+            retryRef.current = cleanup;
+            try {
+              el.load();
+            } catch {
+              /* ignore */
+            }
+            return;
+          }
+          setBlocked(true);
+        },
+      );
+
+    void attempt();
   };
   const doPause = () => {
+    clearRetry();
     audioRef.current?.pause();
   };
   const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -116,6 +171,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
 
   const doStop = () => {
     clearFade();
+    clearRetry();
     const el = audioRef.current;
     if (!el) return;
     el.loop = false;
