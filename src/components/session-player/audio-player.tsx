@@ -159,6 +159,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
 
   const doStop = () => {
     clearFade();
+    clearRetry();
     const el = audioRef.current;
     if (!el) return;
     el.loop = false;
