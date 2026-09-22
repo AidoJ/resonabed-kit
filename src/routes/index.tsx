@@ -35,6 +35,11 @@ import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import { BusinessRevenueCalculator } from "@/components/roi-calculator";
 import { KitShowcase } from "@/components/kit-showcase";
+import { TestimonialSection } from "@/components/testimonial-section";
+import {
+  THERAPIST_TESTIMONIALS,
+  CLIENT_TESTIMONIALS,
+} from "@/lib/testimonials";
 import {
   ORDER_DEPOSIT_CENTS,
   PACKAGES,
@@ -683,6 +688,23 @@ function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* WHAT THE THERAPISTS SAY */}
+      <TestimonialSection
+        id="therapist-testimonials"
+        title="What the therapists say."
+        items={THERAPIST_TESTIMONIALS}
+        emptyNote="Therapist testimonials are on their way — check back soon."
+        tinted
+      />
+
+      {/* WHAT THE CLIENTS SAY */}
+      <TestimonialSection
+        id="client-testimonials"
+        title="What the clients say."
+        items={CLIENT_TESTIMONIALS}
+        emptyNote="Client testimonials are on their way — check back soon."
+      />
 
       {/* RESEARCH TEASER */}
       <section id="research" className="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-24">

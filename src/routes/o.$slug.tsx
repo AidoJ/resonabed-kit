@@ -24,6 +24,8 @@ import { ScienceSection } from "@/components/public-clinic/science-section";
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
 import { ClinicNav, type ClinicNavItem } from "@/components/public-clinic/clinic-nav";
 import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
+import { TestimonialSection } from "@/components/testimonial-section";
+import { CLIENT_TESTIMONIALS } from "@/lib/testimonials";
 
 const SITE = "https://resonabed.com";
 const HERO_OG = `${SITE}${heroPosterUrl}`;
@@ -489,6 +491,16 @@ function PublicOrgPage() {
           </div>
         </section>
       ) : null}
+
+      {/* WHAT THE CLIENTS SAY */}
+      <TestimonialSection
+        id="client-testimonials"
+        title="What the clients say."
+        items={CLIENT_TESTIMONIALS}
+        emptyNote="Client testimonials are on their way — check back soon."
+        variant="clinic"
+        className="border-t py-20 md:py-24"
+      />
 
       {/* ------------------------------------------------------- SESSIONS + BOOK */}
       <section id="services" className="scroll-mt-16 border-t" style={{ background: "var(--clinic-tint-soft)" }}>
