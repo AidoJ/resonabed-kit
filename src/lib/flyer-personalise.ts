@@ -589,8 +589,9 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   let cursor = PANEL.y + PANEL.height;
 
   if (logoImage) {
-    const maxH = 30;
-    const maxW = Math.min(maxWidth, 110);
+    const maxH = 60;
+    const maxW = Math.min(maxWidth, 220);
+
     const scale = Math.min(maxW / logoImage.width, maxH / logoImage.height);
     const w = logoImage.width * scale;
     const h = logoImage.height * scale;
