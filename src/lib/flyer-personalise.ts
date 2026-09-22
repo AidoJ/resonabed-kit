@@ -345,7 +345,7 @@ const BASE_DEEP = "#26106c";
 function makeRecolour(brand: FlyerBrand | null | undefined) {
   if (!brand) return (r: number, g: number, b: number) => ({ r, g, b });
   const base = hexToRgb01(BASE_DEEP);
-  const target = hexToRgb01(brand.sidebar || brand.primary);
+  const target = hexToRgb01(brand.primary || brand.sidebar);
   const baseHsl = rgbToHsl(base.r, base.g, base.b);
   const targetHsl = rgbToHsl(target.r, target.g, target.b);
   const dh = targetHsl.h - baseHsl.h;
@@ -501,7 +501,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   await replaceHeroPhoto(pdf);
 
   const map = makeRecolour(details.brand);
-  const deepC = shiftHex(BASE_DEEP, map);
+  const deepC = details.brand ? hexToRgb01(details.brand.sidebar) : shiftHex(BASE_DEEP, map);
   const paperC = shiftHex(PAPER_HEX, map);
   const inkC = shiftHex(INK_HEX, map);
   const mutedC = shiftHex(MUTED_HEX, map);

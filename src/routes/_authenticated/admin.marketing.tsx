@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BrandColorPicker } from "@/components/brand-color-picker";
+import { DEFAULT_THEME, isHex6 } from "@/lib/theme-colors";
 
 export const Route = createFileRoute("/_authenticated/admin/marketing")({
   head: () => ({
@@ -59,18 +61,13 @@ function MarketingPage() {
   const [busy, setBusy] = useState(false);
   const [qrPreview, setQrPreview] = useState("");
   const [useBrandColours, setUseBrandColours] = useState(false);
+  const [flyerPrimary, setFlyerPrimary] = useState<string>(DEFAULT_THEME.primary);
+  const [flyerSidebar, setFlyerSidebar] = useState<string>(DEFAULT_THEME.sidebar);
 
-  const HEX = /^#[0-9a-fA-F]{6}$/;
   const brand = useMemo(() => {
-    const primary = (org as { theme_primary?: string } | undefined)?.theme_primary ?? "";
-    const sidebar = (org as { theme_sidebar?: string } | undefined)?.theme_sidebar ?? "";
-    if (!HEX.test(primary) && !HEX.test(sidebar)) return null;
-    return {
-      primary: HEX.test(primary) ? primary : sidebar,
-      sidebar: HEX.test(sidebar) ? sidebar : primary,
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [org]);
+    if (!isHex6(flyerPrimary) || !isHex6(flyerSidebar)) return null;
+    return { primary: flyerPrimary, sidebar: flyerSidebar };
+  }, [flyerPrimary, flyerSidebar]);
 
 
   // Prefill from clinic settings once loaded, still editable per print run.
@@ -80,6 +77,13 @@ function MarketingPage() {
     setPhone(org.public_contact_phone ?? "");
     setEmail(org.public_contact_email ?? "");
     setWebsite(org.slug ? `resonabed.com/o/${org.slug}` : "");
+    const savedPrimary = isHex6(org.theme_primary)
+      ? org.theme_primary
+      : isHex6(org.brand_color)
+        ? org.brand_color
+        : DEFAULT_THEME.primary;
+    setFlyerPrimary(savedPrimary);
+    setFlyerSidebar(isHex6(org.theme_sidebar) ? org.theme_sidebar : DEFAULT_THEME.sidebar);
     setInclude((prev) => ({
       ...prev,
       phone: !!org.public_contact_phone,
@@ -305,9 +309,8 @@ function MarketingPage() {
                     Print in my brand colours
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    {brand
-                      ? "Re-skins the flyer artwork to your clinic palette. The Resonabed mark prints in white so it sits cleanly on your colours."
-                      : "Set your brand colours in Settings first."}
+                    Re-skins the flyer artwork to the colours selected below. The Resonabed mark
+                    prints in white so it sits cleanly on your colours.
                   </p>
                   {brand && (
                     <div className="flex items-center gap-1.5 pt-1">
@@ -319,6 +322,29 @@ function MarketingPage() {
                         className="h-5 w-5 rounded-full border"
                         style={{ backgroundColor: brand.primary }}
                       />
+                    </div>
+                  )}
+                  {useBrandColours && (
+                    <div className="space-y-4 border-t pt-3">
+                      <BrandColorPicker
+                        id="flyer-primary-colour"
+                        label="Main artwork colour"
+                        description="Used across the lighter branded areas of the flyer."
+                        value={flyerPrimary}
+                        onChange={setFlyerPrimary}
+                      />
+                      <BrandColorPicker
+                        id="flyer-sidebar-colour"
+                        label="Dark panel colour"
+                        description="Used for the darkest panels, white logo panel and booking QR code."
+                        value={flyerSidebar}
+                        onChange={setFlyerSidebar}
+                      />
+                      {!brand && (
+                        <p className="text-xs text-destructive">
+                          Enter two complete six-digit colour codes before downloading.
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
