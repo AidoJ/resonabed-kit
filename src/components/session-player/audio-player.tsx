@@ -66,6 +66,18 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     onPlayingChange?.(playing);
   }, [playing, onPlayingChange]);
 
+  // Start buffering as soon as a track is available, so the first Start tap
+  // has something decodable to play.
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !src) return;
+    try {
+      el.load();
+    } catch {
+      /* ignore */
+    }
+  }, [src]);
+
   const retryRef = useRef<(() => void) | null>(null);
 
   const clearRetry = () => {
