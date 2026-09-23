@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Mail, Phone, Search, X } from "lucide-react";
+
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,10 +63,25 @@ function StageBadge({ stage }: { stage: LeadStage }) {
 }
 
 function CrmPage() {
+  const fetchCtx = useServerFn(getCurrentUserContext);
   const fetchLeads = useServerFn(listDemoLeads);
+  const navigate = useNavigate();
+  const { data: ctx, isLoading: ctxLoading } = useQuery({
+    queryKey: ["user-context"],
+    queryFn: () => fetchCtx(),
+  });
+  const isSuperAdmin = !!ctx?.roles.includes("super_admin");
+
+  useEffect(() => {
+    if (ctx && !isSuperAdmin) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [ctx, isSuperAdmin, navigate]);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["demo-leads"],
     queryFn: () => fetchLeads(),
+    enabled: isSuperAdmin,
   });
 
   const [stageFilter, setStageFilter] = useState<LeadStage | "all" | "due">("all");
