@@ -165,7 +165,10 @@ function buildNav(
       },
       {
         label: "Support",
-        items: [{ to: "/help", label: "Help guide", icon: BookOpen }],
+        items: [
+          { to: "/table-setup", label: "Table setup", icon: MonitorPlay },
+          { to: "/help", label: "Help guide", icon: BookOpen },
+        ],
       },
     ];
   }
@@ -188,7 +191,10 @@ function buildNav(
     },
     {
       label: "Support",
-      items: [{ to: "/help", label: "Help guide", icon: BookOpen }],
+      items: [
+        { to: "/table-setup", label: "Table setup", icon: MonitorPlay },
+        { to: "/help", label: "Help guide", icon: BookOpen },
+      ],
     },
   ];
 }

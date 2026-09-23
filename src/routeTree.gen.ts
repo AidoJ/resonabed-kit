@@ -28,6 +28,7 @@ import { Route as OfferTokenRouteImport } from './routes/offer.$token'
 import { Route as OSlugRouteImport } from './routes/o.$slug'
 import { Route as HomeSignupRouteImport } from './routes/home.signup'
 import { Route as HomeLoginRouteImport } from './routes/home.login'
+import { Route as AuthenticatedTableSetupRouteImport } from './routes/_authenticated/table-setup'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -169,6 +170,11 @@ const HomeLoginRoute = HomeLoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => HomeRoute,
+} as any)
+const AuthenticatedTableSetupRoute = AuthenticatedTableSetupRouteImport.update({
+  id: '/table-setup',
+  path: '/table-setup',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
   id: '/sessions',
@@ -456,6 +462,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/table-setup': typeof AuthenticatedTableSetupRoute
   '/home/login': typeof HomeLoginRoute
   '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
@@ -520,6 +527,7 @@ export interface FileRoutesByTo {
   '/help': typeof AuthenticatedHelpRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/table-setup': typeof AuthenticatedTableSetupRoute
   '/home/login': typeof HomeLoginRoute
   '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
@@ -589,6 +597,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
+  '/_authenticated/table-setup': typeof AuthenticatedTableSetupRoute
   '/home/login': typeof HomeLoginRoute
   '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
@@ -658,6 +667,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/services'
     | '/sessions'
+    | '/table-setup'
     | '/home/login'
     | '/home/signup'
     | '/o/$slug'
@@ -722,6 +732,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/profile'
     | '/services'
+    | '/table-setup'
     | '/home/login'
     | '/home/signup'
     | '/o/$slug'
@@ -790,6 +801,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/services'
     | '/_authenticated/sessions'
+    | '/_authenticated/table-setup'
     | '/home/login'
     | '/home/signup'
     | '/o/$slug'
@@ -997,6 +1009,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/home/login'
       preLoaderRoute: typeof HomeLoginRouteImport
       parentRoute: typeof HomeRoute
+    }
+    '/_authenticated/table-setup': {
+      id: '/_authenticated/table-setup'
+      path: '/table-setup'
+      fullPath: '/table-setup'
+      preLoaderRoute: typeof AuthenticatedTableSetupRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/sessions': {
       id: '/_authenticated/sessions'
@@ -1413,6 +1432,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRouteWithChildren
+  AuthenticatedTableSetupRoute: typeof AuthenticatedTableSetupRoute
   AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
 }
@@ -1429,6 +1449,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRouteWithChildren,
+  AuthenticatedTableSetupRoute: AuthenticatedTableSetupRoute,
   AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
 }
