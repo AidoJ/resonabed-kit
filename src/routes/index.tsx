@@ -470,6 +470,86 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* WHAT IS VAT */}
+      <section id="what-is-vat" className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+              What is vibroacoustic therapy?
+            </p>
+            <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
+              Sound you can feel. A therapy studied for three decades.
+            </h2>
+            <p className="mt-5 leading-relaxed text-muted-foreground">
+              Vibroacoustic therapy (VAT) combines specially designed low-frequency sound with
+              calming music, delivered through a purpose-built table, so your client feels the
+              sound as gentle vibration while the music plays.
+            </p>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              VAT has been the subject of clinical research for more than three decades. A 2022{" "}
+              <span className="italic">BMJ Open</span> scoping review of 20 clinical studies
+              concluded that VAT shows considerable promise as a complementary intervention for
+              pain management and rehabilitation, while highlighting the need for larger,
+              high-quality clinical trials to strengthen the evidence base.
+            </p>
+            <Link to="/research" className="mt-7 inline-block">
+              <Button
+                variant="outline"
+                className="rounded-full border-brand-indigo/20 text-brand-indigo"
+              >
+                Explore the science <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+          <Link
+            to="/research"
+            aria-label="Explore the interactive cell model on the research page"
+            className="group relative block overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-soft"
+          >
+            <img
+              src={cellPoster}
+              alt="Interactive 3D model showing how a cell responds to gentle mechanical movement"
+              loading="lazy"
+              className="h-auto w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+            />
+            <span className="absolute bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand-ink/85 px-4 py-2 text-xs font-medium text-white backdrop-blur">
+              Explore the interactive cell model
+            </span>
+          </Link>
+        </div>
+
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              title: "Relaxation and stress",
+              body: "Small human studies have explored VAT for relaxation and perceived stress.",
+            },
+            {
+              title: "Muscle tension",
+              body: "Studies have explored perceived muscle tension and stiffness after VAT sessions.",
+            },
+            {
+              title: "Pain and comfort",
+              body: "VAT has been explored for pain-related outcomes and physical comfort.",
+            },
+            {
+              title: "Sleep quality",
+              body: "Early studies have explored sleep quality following vibroacoustic sessions.",
+            },
+          ].map((c) => (
+            <div key={c.title} className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+              <h3 className="text-base font-medium text-brand-indigo">{c.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{c.body}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
+          These are findings from research into vibroacoustic therapy generally. The studies did
+          not test Resonabed, stronger controlled studies are needed, and individual experiences
+          vary. Resonabed is a wellbeing product, not a medical device.
+        </p>
+      </section>
+
       {/* HOW IT WORKS */}
       <section id="how" className="bg-secondary/40 py-24 md:py-28">
         <div className="mx-auto max-w-7xl px-6 md:px-10">
