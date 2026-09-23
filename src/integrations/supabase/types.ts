@@ -793,12 +793,16 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          lost_reason: string | null
           name: string
+          next_follow_up_on: string | null
           notification_error: string | null
           notification_status: string
+          owner_id: string | null
           phone: string | null
           practice: string
           reference: string
+          stage: string
           suburb: string
           updated_at: string
           utm_campaign: string
@@ -810,12 +814,16 @@ export type Database = {
           created_at?: string
           email: string
           id: string
+          lost_reason?: string | null
           name: string
+          next_follow_up_on?: string | null
           notification_error?: string | null
           notification_status?: string
+          owner_id?: string | null
           phone?: string | null
           practice: string
           reference: string
+          stage?: string
           suburb: string
           updated_at?: string
           utm_campaign?: string
@@ -827,12 +835,16 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          lost_reason?: string | null
           name?: string
+          next_follow_up_on?: string | null
           notification_error?: string | null
           notification_status?: string
+          owner_id?: string | null
           phone?: string | null
           practice?: string
           reference?: string
+          stage?: string
           suburb?: string
           updated_at?: string
           utm_campaign?: string
@@ -841,6 +853,50 @@ export type Database = {
           utm_source?: string
         }
         Relationships: []
+      }
+      demo_enquiry_events: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          body: string | null
+          created_at: string
+          enquiry_id: string
+          from_stage: string | null
+          id: string
+          to_stage: string | null
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          body?: string | null
+          created_at?: string
+          enquiry_id: string
+          from_stage?: string | null
+          id?: string
+          to_stage?: string | null
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          body?: string | null
+          created_at?: string
+          enquiry_id?: string
+          from_stage?: string | null
+          id?: string
+          to_stage?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_enquiry_events_enquiry_id_fkey"
+            columns: ["enquiry_id"]
+            isOneToOne: false
+            referencedRelation: "demo_enquiries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       frequencies: {
         Row: {
