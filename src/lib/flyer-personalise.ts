@@ -326,9 +326,15 @@ const BASE_PRIMARY = "#884bc7";
 
 /**
  * Replaces the flyer's purple artwork with the clinic's two exact selections.
- * It deliberately does not generate tints, shades, or intermediate hues.
+ * It deliberately does not generate tints, shades, or intermediate hues:
+ *   - every other artwork purple (deep panels, primary accents) onto the
+ *     clinic's two selected brand colours by lightness.
+ *
+ * With `coverMode` the front cover's deep artwork is printed in the Main
+ * artwork colour instead of the Dark panel colour, so the white logo card
+ * (printed in the Dark panel colour) keeps its contrast against the cover.
  */
-function makeRecolour(brand: FlyerBrand | null | undefined) {
+function makeRecolour(brand: FlyerBrand | null | undefined, coverMode = false) {
   if (!brand) return (r: number, g: number, b: number) => ({ r, g, b });
   const sourceDeep = hexToRgb01(BASE_DEEP);
   const sourcePrimary = hexToRgb01(BASE_PRIMARY);
@@ -351,6 +357,7 @@ function makeRecolour(brand: FlyerBrand | null | undefined) {
     // Very pale purple is only the original paper tint or pale supporting
     // detail. Keep it neutral instead of inventing a third brand shade.
     if (l >= 0.72) return { r: 1, g: 1, b: 1 };
+    if (coverMode) return targetPrimary;
     return l <= lightnessCutoff ? targetDeep : targetPrimary;
   };
 }
@@ -368,7 +375,12 @@ const num = (n: number) => Math.max(0, Math.min(1, n)).toFixed(4);
  * turns the white logo card into a brand-coloured panel, so the artwork sits
  * in the clinic's palette rather than Resonabed purple.
  */
-function recolourPage(pdf: PDFDocument, page: PDFPage, map: ReturnType<typeof makeRecolour>) {
+function recolourPage(
+  pdf: PDFDocument,
+  page: PDFPage,
+  map: ReturnType<typeof makeRecolour>,
+  coverMap: ReturnType<typeof makeRecolour>,
+) {
   const ctx = pdf.context;
   const contents: unknown = page.node.Contents();
   const refs =
@@ -395,18 +407,21 @@ function recolourPage(pdf: PDFDocument, page: PDFPage, map: ReturnType<typeof ma
     );
   }
 
-  recolourPatternImages(pdf, page, map);
+  recolourPatternImages(pdf, page, map, coverMap);
 }
 
 /**
  * The deep purple panels are painted with tiling patterns that wrap a raw RGB
  * gradient image, so their colour lives in pixel data rather than in operators.
- * This walks those images and shifts every pixel onto the brand hue.
+ * This walks those images and shifts every pixel onto the brand hue. The one
+ * full-page pattern image is the front cover's background and is recoloured
+ * with `coverMap` (Main artwork colour) so the logo card contrasts against it.
  */
 function recolourPatternImages(
   pdf: PDFDocument,
   page: PDFPage,
   map: ReturnType<typeof makeRecolour>,
+  coverMap: ReturnType<typeof makeRecolour>,
 ) {
   const ctx = pdf.context;
   const patterns = page.node.Resources()?.lookup(PDFName.of("Pattern")) as PDFDict | undefined;
@@ -426,9 +441,14 @@ function recolourPatternImages(
       const cs = image.dict.get(PDFName.of("ColorSpace"));
       if (!cs || cs.toString() !== "/DeviceRGB") continue;
 
+      // The cover background is the only pattern image spanning the full page.
+      const w = Number(image.dict.get(PDFName.of("Width")) ?? 0);
+      const h = Number(image.dict.get(PDFName.of("Height")) ?? 0);
+      const isCoverBackground = w >= page.getWidth() - 2 && h >= page.getHeight() - 2;
+      const pixelMap = isCoverBackground ? coverMap : map;
       const pixels = decodePDFRawStream(image).decode();
       for (let i = 0; i + 2 < pixels.length; i += 3) {
-        const c = map(pixels[i]! / 255, pixels[i + 1]! / 255, pixels[i + 2]! / 255);
+        const c = pixelMap(pixels[i]! / 255, pixels[i + 1]! / 255, pixels[i + 2]! / 255);
         pixels[i] = Math.round(Math.max(0, Math.min(1, c.r)) * 255);
         pixels[i + 1] = Math.round(Math.max(0, Math.min(1, c.g)) * 255);
         pixels[i + 2] = Math.round(Math.max(0, Math.min(1, c.b)) * 255);
@@ -519,8 +539,9 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   stripBaseFontText(pdf, page);
 
   if (details.brand) {
+    const coverMap = makeRecolour(details.brand, true);
     for (const p of pdf.getPages()) {
-      recolourPage(pdf, p, map);
+      recolourPage(pdf, p, map, coverMap);
     }
     await drawWhiteLogoCard(pdf, page, deepC);
   }
