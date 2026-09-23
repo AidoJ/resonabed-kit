@@ -375,7 +375,12 @@ const num = (n: number) => Math.max(0, Math.min(1, n)).toFixed(4);
  * turns the white logo card into a brand-coloured panel, so the artwork sits
  * in the clinic's palette rather than Resonabed purple.
  */
-function recolourPage(pdf: PDFDocument, page: PDFPage, map: ReturnType<typeof makeRecolour>) {
+function recolourPage(
+  pdf: PDFDocument,
+  page: PDFPage,
+  map: ReturnType<typeof makeRecolour>,
+  coverMap: ReturnType<typeof makeRecolour>,
+) {
   const ctx = pdf.context;
   const contents: unknown = page.node.Contents();
   const refs =
@@ -402,18 +407,21 @@ function recolourPage(pdf: PDFDocument, page: PDFPage, map: ReturnType<typeof ma
     );
   }
 
-  recolourPatternImages(pdf, page, map);
+  recolourPatternImages(pdf, page, map, coverMap);
 }
 
 /**
  * The deep purple panels are painted with tiling patterns that wrap a raw RGB
  * gradient image, so their colour lives in pixel data rather than in operators.
- * This walks those images and shifts every pixel onto the brand hue.
+ * This walks those images and shifts every pixel onto the brand hue. The one
+ * full-page pattern image is the front cover's background and is recoloured
+ * with `coverMap` (Main artwork colour) so the logo card contrasts against it.
  */
 function recolourPatternImages(
   pdf: PDFDocument,
   page: PDFPage,
   map: ReturnType<typeof makeRecolour>,
+  coverMap: ReturnType<typeof makeRecolour>,
 ) {
   const ctx = pdf.context;
   const patterns = page.node.Resources()?.lookup(PDFName.of("Pattern")) as PDFDict | undefined;
