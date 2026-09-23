@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PlayCircle, Wrench } from "lucide-react";
-import introVideo from "@/assets/table-setup-intro.mp4.asset.json";
+import introVideo from "@/assets/table-setup-1-intro.mp4.asset.json";
+import cablesVideo from "@/assets/table-setup-2-cables.mp4.asset.json";
+import appVideo from "@/assets/table-setup-4-app.mp4.asset.json";
 
 export const Route = createFileRoute("/_authenticated/table-setup")({
   head: () => ({
@@ -30,7 +32,7 @@ const VIDEOS: TrainingVideo[] = [
     num: 2,
     title: "Preparing the cables and connectors",
     description: "Get the cables and connectors ready before fitting anything to the table.",
-    url: null,
+    url: cablesVideo.url,
   },
   {
     num: 3,
@@ -42,7 +44,7 @@ const VIDEOS: TrainingVideo[] = [
     num: 4,
     title: "Connecting the cables and the app",
     description: "Wire everything together and connect the app for your first session.",
-    url: null,
+    url: appVideo.url,
   },
 ];
 
