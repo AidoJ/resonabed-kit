@@ -11,6 +11,7 @@ import { listBookings } from "@/lib/bookings.functions";
 import { getMyOrgLicence } from "@/lib/licence.functions";
 import { getAppSetting, MUSIC_RENEWAL_PRICE_KEY } from "@/lib/app-settings.functions";
 import { getPlatformMetrics } from "@/lib/platform-metrics.functions";
+import { getDemoLeadSummary } from "@/lib/crm.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -407,9 +408,14 @@ function EmptyRow({ text, cta }: { text: string; cta?: React.ReactNode }) {
 
 function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
   const fetchMetrics = useServerFn(getPlatformMetrics);
+  const fetchLeadSummary = useServerFn(getDemoLeadSummary);
   const { data: metrics, isLoading } = useQuery({
     queryKey: ["platform-metrics-dashboard"],
     queryFn: () => fetchMetrics(),
+  });
+  const { data: leadSummary } = useQuery({
+    queryKey: ["demo-lead-summary"],
+    queryFn: () => fetchLeadSummary(),
   });
   const money = (n: number) =>
     new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 }).format(n);
