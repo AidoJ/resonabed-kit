@@ -110,7 +110,8 @@ function CrmPage() {
     });
   }, [data, stageFilter, unassignedOnly, search]);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading enquiries…</p>;
+  if (ctxLoading || !isSuperAdmin || isLoading)
+    return <p className="text-sm text-muted-foreground">Loading enquiries…</p>;
   if (error)
     return <p className="text-sm text-destructive">Could not load enquiries: {(error as Error).message}</p>;
 
