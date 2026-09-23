@@ -18,6 +18,7 @@ import { Route as HomeRouteImport } from './routes/home'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ForHomeRouteImport } from './routes/for-home'
 import { Route as FlyerRouteImport } from './routes/flyer'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -120,6 +121,11 @@ const ForHomeRoute = ForHomeRouteImport.update({
 const FlyerRoute = FlyerRouteImport.update({
   id: '/flyer',
   path: '/flyer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -442,6 +448,7 @@ const AuthenticatedSessionsIdPlayRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/demo': typeof DemoRoute
   '/flyer': typeof FlyerRoute
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -510,6 +517,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/demo': typeof DemoRoute
   '/flyer': typeof FlyerRoute
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -577,6 +585,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/demo': typeof DemoRoute
   '/flyer': typeof FlyerRoute
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -647,6 +656,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/demo'
     | '/flyer'
     | '/for-home'
     | '/forgot-password'
@@ -715,6 +725,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/demo'
     | '/flyer'
     | '/for-home'
     | '/forgot-password'
@@ -781,6 +792,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/demo'
     | '/flyer'
     | '/for-home'
     | '/forgot-password'
@@ -851,6 +863,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DemoRoute: typeof DemoRoute
   FlyerRoute: typeof FlyerRoute
   ForHomeRoute: typeof ForHomeRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -938,6 +951,13 @@ declare module '@tanstack/react-router' {
       path: '/flyer'
       fullPath: '/flyer'
       preLoaderRoute: typeof FlyerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1475,6 +1495,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  DemoRoute: DemoRoute,
   FlyerRoute: FlyerRoute,
   ForHomeRoute: ForHomeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
