@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import treatment from "@/assets/demo-treatment.webp.asset.json";
+import logo from "@/assets/resonabed-logo-signature.png.asset.json";
 import { getDemoCaptcha, submitDemoEnquiry } from "@/lib/demo-enquiries.functions";
 import "./demo.css";
 
@@ -43,7 +44,7 @@ function DemoPage() {
       <a className="demo-skip" href="#demo-main">Skip to content</a>
       <header className="demo-header">
         <Link className="demo-wordmark" to="/" aria-label="ResonaBed home">
-          ResonaBed<span className="demo-brand-sub">FEEL. REST. RESTORE.</span>
+          <img src={logo.url} alt="Resonabed. Feel. Rest. Restore." />
         </Link>
         <nav aria-label="Demo page navigation">
           <a className="demo-nav-link" href="#experience">The opportunity</a>
@@ -85,7 +86,7 @@ function DemoPage() {
         <section className="demo-form-section" id="request-demo"><div className="demo-wrap demo-grid"><div className="demo-copy"><p className="demo-eyebrow">EXPLORE THE OPPORTUNITY FOR YOUR PRACTICE</p><h2>See your next<br /><em>service in action.</em></h2><p>Request a free demonstration of the complete package. See what it takes to get started and assess the opportunity for your clinic or home practice.</p><ul><li><Check />See the therapy setup and booking system</li><li><Check />Explore the included marketing materials</li><li><Check />Discuss costs and support, with no obligation</li></ul><div className="demo-note"><strong>Wherever your practice is based</strong><p>Explore ResonaBed with an online demonstration at a time that suits you. We will talk through your space, your service offer and your questions.</p></div></div><DemoForm /></div></section>
         <section className="demo-section demo-wrap demo-faq"><div><p className="demo-eyebrow">A FEW HELPFUL ANSWERS</p><h2>Before your <em>demo.</em></h2></div><div>{FAQS.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
       </main>
-      <footer className="demo-wrap demo-footer"><Link className="demo-wordmark" to="/">ResonaBed</Link><p>A new therapy. A new opportunity for your practice.</p><a href="https://rejuvenators.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Privacy policy</a><span>© {new Date().getFullYear()} ResonaBed</span></footer>
+      <footer className="demo-wrap demo-footer"><Link className="demo-wordmark" to="/" aria-label="ResonaBed home"><img src={logo.url} alt="Resonabed. Feel. Rest. Restore." /></Link><p>A new therapy. A new opportunity for your practice.</p><a href="https://rejuvenators.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Privacy policy</a><span>© {new Date().getFullYear()} ResonaBed</span></footer>
       <a className="demo-button demo-mobile-cta" href="#request-demo">Request a free demo <ArrowUpRight size={18} /></a>
     </div>
   );
