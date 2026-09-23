@@ -345,9 +345,8 @@ function makeRecolour(brand: FlyerBrand | null | undefined) {
   return (r: number, g: number, b: number) => {
     const { h, s, l } = rgbToHsl(r, g, b);
     const isArtworkPurple =
-      s >= 0.1 &&
-      l < 0.9 &&
-      Math.min(hueDistance(h, sourceDeepHsl.h), hueDistance(h, sourcePrimaryHsl.h)) <= 0.12;
+      s >= 0.02 &&
+      Math.min(hueDistance(h, sourceDeepHsl.h), hueDistance(h, sourcePrimaryHsl.h)) <= 0.16;
     if (!isArtworkPurple) return { r, g, b };
     return l <= lightnessCutoff ? targetDeep : targetPrimary;
   };
