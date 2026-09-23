@@ -33,6 +33,7 @@ import logo from "@/assets/resonabed-logo.svg.asset.json";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
+import cellPoster from "@/assets/cell-poster.webp";
 import { BusinessRevenueCalculator } from "@/components/roi-calculator";
 import { KitShowcase } from "@/components/kit-showcase";
 import { TestimonialSection } from "@/components/testimonial-section";
