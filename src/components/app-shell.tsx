@@ -31,6 +31,7 @@ import {
   ClipboardCheck,
   Megaphone,
   BookOpen,
+  MonitorPlay,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
