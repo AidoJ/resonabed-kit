@@ -11,3 +11,11 @@
 - [x] Pass 3: polish FAQs, demo, contact, accessibility, performance, and responsive behaviour
 - [x] Acceptance testing on desktop and mobile without live bookings, enquiries, payments, or publishing
 - [ ] Owner to supply an approved practitioner testimonial (quote + name) to replace the labelled practitioner-perspective section
+
+## Demo landing page
+
+- [ ] Add the supplied therapist landing page at `/demo` without changing existing pages
+- [ ] Save validated enquiries privately with attribution and duplicate protection
+- [ ] Notify info@resonabed.com through the existing email setup
+- [ ] Verify desktop, mobile, direct refresh, validation, saved enquiry access, and delivery in preview
+- [ ] Leave production unpublished for owner review
