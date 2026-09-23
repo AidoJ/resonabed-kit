@@ -328,7 +328,14 @@ const BASE_PRIMARY = "#884bc7";
  * Replaces the flyer's purple artwork with the clinic's two exact selections.
  * It deliberately does not generate tints, shades, or intermediate hues.
  */
-function makeRecolour(brand: FlyerBrand | null | undefined) {
+ *   - every other artwork purple (deep panels, primary accents) onto the
+ *     clinic's two selected brand colours by lightness.
+ *
+ * With `coverMode` the front cover's deep artwork is printed in the Main
+ * artwork colour instead of the Dark panel colour, so the white logo card
+ * (printed in the Dark panel colour) keeps its contrast against the cover.
+ */
+function makeRecolour(brand: FlyerBrand | null | undefined, coverMode = false) {
   if (!brand) return (r: number, g: number, b: number) => ({ r, g, b });
   const sourceDeep = hexToRgb01(BASE_DEEP);
   const sourcePrimary = hexToRgb01(BASE_PRIMARY);
@@ -351,6 +358,7 @@ function makeRecolour(brand: FlyerBrand | null | undefined) {
     // Very pale purple is only the original paper tint or pale supporting
     // detail. Keep it neutral instead of inventing a third brand shade.
     if (l >= 0.72) return { r: 1, g: 1, b: 1 };
+    if (coverMode) return targetPrimary;
     return l <= lightnessCutoff ? targetDeep : targetPrimary;
   };
 }
