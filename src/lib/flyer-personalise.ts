@@ -319,31 +319,14 @@ function rgbToHsl(r: number, g: number, b: number) {
   return { h, s, l };
 }
 
-function hslToRgb(h: number, s: number, l: number) {
-  if (s === 0) return { r: l, g: l, b: l };
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const hue = (t: number) => {
-    let x = t;
-    if (x < 0) x += 1;
-    if (x > 1) x -= 1;
-    if (x < 1 / 6) return p + (q - p) * 6 * x;
-    if (x < 1 / 2) return q;
-    if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
-    return p;
-  };
-  return { r: hue(h + 1 / 3), g: hue(h), b: hue(h - 1 / 3) };
-}
-
 /** Resonabed's own deep purple, the reference hue for the artwork. */
 const BASE_DEEP = "#26106c";
 /** Resonabed's original main violet, paired with the deep artwork colour. */
 const BASE_PRIMARY = "#884bc7";
 
 /**
- * Builds a mapper that moves the flyer's purple family between the two exact
- * clinic colours. Both hue and brightness are transformed: preserving the
- * source purple's lightness made bright brand colours print much too dark.
+ * Replaces the flyer's purple artwork with the clinic's two exact selections.
+ * It deliberately does not generate tints, shades, or intermediate hues.
  */
 function makeRecolour(brand: FlyerBrand | null | undefined) {
   if (!brand) return (r: number, g: number, b: number) => ({ r, g, b });
@@ -353,40 +336,22 @@ function makeRecolour(brand: FlyerBrand | null | undefined) {
   const targetPrimary = hexToRgb01(brand.primary);
   const sourceDeepHsl = rgbToHsl(sourceDeep.r, sourceDeep.g, sourceDeep.b);
   const sourcePrimaryHsl = rgbToHsl(sourcePrimary.r, sourcePrimary.g, sourcePrimary.b);
-  const targetDeepHsl = rgbToHsl(targetDeep.r, targetDeep.g, targetDeep.b);
-  const targetPrimaryHsl = rgbToHsl(targetPrimary.r, targetPrimary.g, targetPrimary.b);
-
-  const shortestHueDelta = (from: number, to: number) => {
-    let delta = to - from;
-    if (delta > 0.5) delta -= 1;
-    if (delta < -0.5) delta += 1;
-    return delta;
+  const lightnessCutoff = (sourceDeepHsl.l + sourcePrimaryHsl.l) / 2;
+  const hueDistance = (a: number, b: number) => {
+    const delta = Math.abs(a - b);
+    return Math.min(delta, 1 - delta);
   };
 
   return (r: number, g: number, b: number) => {
     const { h, s, l } = rgbToHsl(r, g, b);
-    // Leave neutrals (white card fills, blacks, greys) untouched.
-    if (s < 0.05) return { r, g, b };
-
-    const sourceRange = sourcePrimaryHsl.l - sourceDeepHsl.l;
-    const mix = sourceRange === 0
-      ? 0
-      : Math.max(0, Math.min(1, (l - sourceDeepHsl.l) / sourceRange));
-    const sourceAnchor = {
-      h: sourceDeepHsl.h + shortestHueDelta(sourceDeepHsl.h, sourcePrimaryHsl.h) * mix,
-      s: sourceDeepHsl.s + (sourcePrimaryHsl.s - sourceDeepHsl.s) * mix,
-      l: sourceDeepHsl.l + sourceRange * mix,
-    };
-    const targetAnchor = {
-      h: targetDeepHsl.h + shortestHueDelta(targetDeepHsl.h, targetPrimaryHsl.h) * mix,
-      s: targetDeepHsl.s + (targetPrimaryHsl.s - targetDeepHsl.s) * mix,
-      l: targetDeepHsl.l + (targetPrimaryHsl.l - targetDeepHsl.l) * mix,
-    };
-    const hue = (h + shortestHueDelta(sourceAnchor.h, targetAnchor.h) + 1) % 1;
-    const saturation = Math.max(0, Math.min(1, s + targetAnchor.s - sourceAnchor.s));
-    const lightness = Math.max(0, Math.min(1, l + targetAnchor.l - sourceAnchor.l));
-    const out = hslToRgb(hue, saturation, lightness);
-    return out;
+    const isArtworkPurple =
+      s >= 0.02 &&
+      Math.min(hueDistance(h, sourceDeepHsl.h), hueDistance(h, sourcePrimaryHsl.h)) <= 0.16;
+    if (!isArtworkPurple) return { r, g, b };
+    // Very pale purple is only the original paper tint or pale supporting
+    // detail. Keep it neutral instead of inventing a third brand shade.
+    if (l >= 0.72) return { r: 1, g: 1, b: 1 };
+    return l <= lightnessCutoff ? targetDeep : targetPrimary;
   };
 }
 
