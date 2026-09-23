@@ -40,5 +40,5 @@ A small card on the platform admin home: new leads this week, leads due today, l
 
 - Migration: add `stage`, `owner_id`, `next_follow_up_on`, `lost_reason` to `demo_enquiries`; new `demo_enquiry_events` table (enquiry_id, type note/stage_change/assignment, body, from_stage, to_stage, actor_id, actor_name, created_at) with GRANTs and super-admin-only RLS on both, plus an update policy for super admins on `demo_enquiries`.
 - `src/lib/crm.functions.ts`: `listDemoLeads`, `getDemoLead`, `updateDemoLead`, `addDemoLeadNote`, `getDemoLeadSummary` — all `createServerFn` with `requireSupabaseAuth`, each verifying `is_super_admin` before reading or writing.
-- `src/routes/_authenticated/admin.leads.tsx` (list + detail panel) following the existing `admin.sales.tsx` patterns; nav entry added next to the other admin items.
+- `src/routes/_authenticated/leads.tsx` (list + detail panel) following the existing `admin.sales.tsx` patterns; **Leads appears as its own top-level item in the platform admin sidebar** (a new "Sales leads" group above Platform in the super-admin sidebar), not inside the admin tab strip.
 - Summary card added to the existing platform admin home.
