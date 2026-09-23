@@ -204,7 +204,16 @@ export const updateDemoLead = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (updateError) throw new Error(updateError.message);
 
-    const events: Record<string, unknown>[] = [];
+    type EventInsert = {
+      enquiry_id: string;
+      type: string;
+      from_stage?: string | null;
+      to_stage?: string | null;
+      body?: string | null;
+      actor_id: string;
+      actor_name: string;
+    };
+    const events: EventInsert[] = [];
     if (current.stage !== data.stage) {
       events.push({
         enquiry_id: data.id,
