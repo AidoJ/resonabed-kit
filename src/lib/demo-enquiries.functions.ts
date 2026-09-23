@@ -31,7 +31,7 @@ export const getDemoCaptcha = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const submitDemoEnquiry = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => demoEnquirySchema.parse(input))
+  .validator((input: unknown) => demoEnquirySchema.parse(input))
   .handler(async ({ data }) => {
     if (data.website) throw new Error("Your enquiry could not be sent. Please try again.");
 

@@ -14,8 +14,8 @@
 
 ## Demo landing page
 
-- [ ] Add the supplied therapist landing page at `/demo` without changing existing pages
-- [ ] Save validated enquiries privately with attribution and duplicate protection
-- [ ] Notify info@resonabed.com through the existing email setup
-- [ ] Verify desktop, mobile, direct refresh, validation, saved enquiry access, and delivery in preview
-- [ ] Leave production unpublished for owner review
+- [x] Add the supplied therapist landing page at `/demo` without changing existing pages
+- [x] Save validated enquiries privately with attribution and duplicate protection
+- [x] Notify info@resonabed.com through the existing email setup
+- [x] Verify desktop, mobile, direct refresh, validation, saved enquiry access, and delivery in preview
+- [x] Leave production unpublished for owner review
