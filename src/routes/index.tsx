@@ -643,6 +643,10 @@ function LandingPage() {
             The Resonabed app runs on any phone, tablet or laptop. Basic uses a device you already
             own. Pro and Platinum include a dedicated 10 inch tablet.
           </p>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            In every package, the tactile transducers are what turn the licensed Solfeggio
+            frequencies into the gentle vibration your clients feel through the table.
+          </p>
         </div>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-3">
