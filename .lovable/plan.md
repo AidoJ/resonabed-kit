@@ -5,7 +5,7 @@ A simple sales follow-up desk for the enquiries that arrive from the `/demo` pag
 ## How it would work
 
 1. Someone submits the form on `/demo` (unchanged). The enquiry is saved as it is today.
-2. The enquiry appears immediately in a new **Leads** page in the platform admin area, marked **New**.
+2. The enquiry appears immediately in a new **CRM** page (its own top-level sidebar tab for platform admins), marked **New**.
 3. Each lead moves through a simple pipeline: **New → Contacted → Demo booked → Won / Lost**.
 4. Each lead has an owner (a platform admin), a next-follow-up date, and a running notes timeline.
 5. The Leads page opens on "needs attention": new leads plus anything with a follow-up date due today or earlier.
