@@ -8,6 +8,7 @@ import { template as bookingAlternatesReminderTemplate } from './booking-alterna
 import { template as homeAccessCodeTemplate } from './home-access-code'
 import { template as clinicOrderReceivedTemplate } from './clinic-order-received'
 import { template as contactFormTemplate } from './contact-form'
+import { template as demoEnquiryTemplate } from './demo-enquiry'
 import { template as orderDepositReceivedTemplate } from './order-deposit-received'
 import { template as orderBalanceReminderTemplate } from './order-balance-reminder'
 import {
@@ -41,6 +42,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'home-access-code': homeAccessCodeTemplate,
   'clinic-order-received': clinicOrderReceivedTemplate,
   'contact-form': contactFormTemplate,
+  'demo-enquiry': demoEnquiryTemplate,
   'order-deposit-received': orderDepositReceivedTemplate,
   'order-balance-reminder': orderBalanceReminderTemplate,
   'plan-payment-failed': planPaymentFailed,

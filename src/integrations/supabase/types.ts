@@ -788,6 +788,60 @@ export type Database = {
           },
         ]
       }
+      demo_enquiries: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          notification_error: string | null
+          notification_status: string
+          phone: string | null
+          practice: string
+          reference: string
+          suburb: string
+          updated_at: string
+          utm_campaign: string
+          utm_content: string
+          utm_medium: string
+          utm_source: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          notification_error?: string | null
+          notification_status?: string
+          phone?: string | null
+          practice: string
+          reference: string
+          suburb: string
+          updated_at?: string
+          utm_campaign?: string
+          utm_content?: string
+          utm_medium?: string
+          utm_source?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          notification_error?: string | null
+          notification_status?: string
+          phone?: string | null
+          practice?: string
+          reference?: string
+          suburb?: string
+          updated_at?: string
+          utm_campaign?: string
+          utm_content?: string
+          utm_medium?: string
+          utm_source?: string
+        }
+        Relationships: []
+      }
       frequencies: {
         Row: {
           benefits: string | null
