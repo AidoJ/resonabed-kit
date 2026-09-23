@@ -32,8 +32,8 @@
 .demo-skip { position: fixed; top: -100px; left: 20px; z-index: 100; background: var(--demo-white); padding: 10px; }
 .demo-skip:focus { top: 10px; }
 .demo-header { max-width: 1440px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 48px; border-bottom: 1px solid var(--demo-line); }
-.demo-wordmark { color: var(--demo-purple); font-size: 2rem; font-weight: 400; letter-spacing: 0; line-height: 1; }
-.demo-brand-sub { display: block; margin-top: 9px; font-size: .6rem; letter-spacing: .23em; line-height: 1.5; }
+.demo-wordmark { display: inline-block; line-height: 1; }
+.demo-wordmark img { width: auto; height: 64px; }
 .demo-header nav { display: flex; align-items: center; gap: 32px; font-size: .88rem; }
 .demo-nav-link:hover, .demo-text-link:hover { color: var(--demo-purple); text-decoration: underline; text-underline-offset: 6px; }
 .demo-button { display: inline-flex; align-items: center; justify-content: center; gap: 18px; border: 1px solid var(--demo-purple); border-radius: 4px; background: var(--demo-purple); color: var(--demo-white) !important; padding: 16px 23px; font-size: 1rem; font-weight: 500; line-height: 1.4; transition: background .2s, transform .2s; }
@@ -109,7 +109,7 @@
 .demo-faq details[open] summary span { transform: rotate(45deg); }
 .demo-faq details p { padding: 0 26px 25px 0; font-size: .95rem; }
 .demo-footer { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 25px; padding-block: 35px 28px; border-top: 1px solid var(--demo-line); font-size: .875rem; }
-.demo-footer .demo-wordmark { font-size: 1.7rem; }
+.demo-footer .demo-wordmark img { height: 54px; }
 .demo-footer p { justify-self: center; }
 .demo-footer > a:last-of-type { text-decoration: underline; text-underline-offset: 4px; }
 .demo-footer > span { grid-column: 1 / -1; color: #817685; font-size: .75rem; }
@@ -131,8 +131,7 @@
 @media (max-width: 700px) {
   .demo-wrap { width: calc(100% - 40px); }
   .demo-header { padding: 18px 20px; gap: 10px; }
-  .demo-wordmark { font-size: 1.75rem; }
-  .demo-brand-sub { font-size: .6rem; letter-spacing: .12em; }
+  .demo-wordmark img { height: 52px; }
   .demo-nav-link { display: none; }
   .demo-button-small { gap: 10px; padding: 10px 13px; font-size: .8rem; }
   .demo-hero { display: flex; flex-direction: column; align-items: stretch; gap: 35px; padding-block: 38px; }
