@@ -596,6 +596,23 @@ function LandingPage() {
               </li>
             ))}
           </ol>
+
+          <div className="mt-12 rounded-2xl border border-border bg-card p-8 shadow-soft">
+            <h3 className="text-base font-medium text-brand-indigo">How VAT works in the body</h3>
+            <p className="mt-3 max-w-4xl text-sm leading-relaxed text-muted-foreground">
+              Laboratory research in cell biology shows that cells can sense mechanical movement:
+              gentle vibration is detected at the cell's surface, carried inward by the cell's
+              internal framework, and under studied conditions can influence cellular activity.
+              These are laboratory findings about how cells respond to movement, not claims about
+              treatment outcomes.
+            </p>
+            <Link
+              to="/research"
+              className="mt-4 inline-flex items-center text-sm font-medium text-brand-violet-strong underline underline-offset-4 hover:text-brand-indigo"
+            >
+              See the research behind this <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
