@@ -5,10 +5,10 @@ A simple sales follow-up desk for the enquiries that arrive from the `/demo` pag
 ## How it would work
 
 1. Someone submits the form on `/demo` (unchanged). The enquiry is saved as it is today.
-2. The enquiry appears immediately in a new **Leads** page in the platform admin area, marked **New**.
+2. The enquiry appears immediately in a new **CRM** page (its own top-level sidebar tab for platform admins), marked **New**.
 3. Each lead moves through a simple pipeline: **New → Contacted → Demo booked → Won / Lost**.
 4. Each lead has an owner (a platform admin), a next-follow-up date, and a running notes timeline.
-5. The Leads page opens on "needs attention": new leads plus anything with a follow-up date due today or earlier.
+5. The CRM page opens on "needs attention": new leads plus anything with a follow-up date due today or earlier.
 
 ## The leads list
 
@@ -40,5 +40,5 @@ A small card on the platform admin home: new leads this week, leads due today, l
 
 - Migration: add `stage`, `owner_id`, `next_follow_up_on`, `lost_reason` to `demo_enquiries`; new `demo_enquiry_events` table (enquiry_id, type note/stage_change/assignment, body, from_stage, to_stage, actor_id, actor_name, created_at) with GRANTs and super-admin-only RLS on both, plus an update policy for super admins on `demo_enquiries`.
 - `src/lib/crm.functions.ts`: `listDemoLeads`, `getDemoLead`, `updateDemoLead`, `addDemoLeadNote`, `getDemoLeadSummary` — all `createServerFn` with `requireSupabaseAuth`, each verifying `is_super_admin` before reading or writing.
-- `src/routes/_authenticated/leads.tsx` (list + detail panel) following the existing `admin.sales.tsx` patterns; **Leads appears as its own top-level item in the platform admin sidebar** (a new "Sales leads" group above Platform in the super-admin sidebar), not inside the admin tab strip.
+- `src/routes/_authenticated/crm.tsx` (list + detail panel) following the existing `admin.sales.tsx` patterns; **CRM appears as its own top-level item in the platform admin sidebar** (a new "Sales" group above Platform in the super-admin sidebar), not inside the admin tab strip.
 - Summary card added to the existing platform admin home.

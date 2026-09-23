@@ -22,3 +22,4 @@
 
 ## CRM (demo enquiries)
 - [ ] Leads as its own top-level sidebar tab for super admins (not inside admin section)
+- [ ] Name the section "CRM" (sidebar tab and page title), not Leads
