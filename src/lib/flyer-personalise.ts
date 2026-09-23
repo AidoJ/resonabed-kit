@@ -539,8 +539,9 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   stripBaseFontText(pdf, page);
 
   if (details.brand) {
+    const coverMap = makeRecolour(details.brand, true);
     for (const p of pdf.getPages()) {
-      recolourPage(pdf, p, map);
+      recolourPage(pdf, p, map, coverMap);
     }
     await drawWhiteLogoCard(pdf, page, deepC);
   }
