@@ -326,8 +326,7 @@ const BASE_PRIMARY = "#884bc7";
 
 /**
  * Replaces the flyer's purple artwork with the clinic's two exact selections.
- * It deliberately does not generate tints, shades, or intermediate hues.
- */
+ * It deliberately does not generate tints, shades, or intermediate hues:
  *   - every other artwork purple (deep panels, primary accents) onto the
  *     clinic's two selected brand colours by lightness.
  *
