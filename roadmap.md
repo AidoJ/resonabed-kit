@@ -19,3 +19,6 @@
 - [x] Notify info@resonabed.com through the existing email setup
 - [x] Verify desktop, mobile, direct refresh, validation, saved enquiry access, and delivery in preview
 - [x] Leave production unpublished for owner review
+
+## CRM (demo enquiries)
+- [ ] Leads as its own top-level sidebar tab for super admins (not inside admin section)
