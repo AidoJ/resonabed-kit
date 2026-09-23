@@ -32,7 +32,7 @@ const VIDEOS: TrainingVideo[] = [
     num: 2,
     title: "Preparing the cables and connectors",
     description: "Get the cables and connectors ready before fitting anything to the table.",
-    url: null,
+    url: cablesVideo.url,
   },
   {
     num: 3,
