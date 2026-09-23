@@ -44,7 +44,7 @@ const VIDEOS: TrainingVideo[] = [
     num: 4,
     title: "Connecting the cables and the app",
     description: "Wire everything together and connect the app for your first session.",
-    url: null,
+    url: appVideo.url,
   },
 ];
 
