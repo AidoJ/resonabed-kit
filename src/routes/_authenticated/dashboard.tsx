@@ -483,6 +483,20 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
 
       </div>
 
+      <div className="shadow-soft rounded-2xl bg-card p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[20px] font-medium text-brand-indigo">CRM, demo enquiries</h2>
+          <Link to="/crm" className="text-sm text-primary hover:underline">
+            Open CRM
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <MetricCard label="New this week" value={String(leadSummary?.newThisWeek ?? 0)} />
+          <MetricCard label="Due today" value={String(leadSummary?.dueToday ?? 0)} />
+          <MetricCard label="Overdue" value={String(leadSummary?.overdue ?? 0)} />
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <PlatformCard title="Organisations" href="/admin/organisations" description="Create, provision, licence and manage clinics." />
         <PlatformCard title="Global services" href="/admin/global-services" description="Default service catalogue seeded into new clinics." />
