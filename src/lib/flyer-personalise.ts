@@ -348,6 +348,9 @@ function makeRecolour(brand: FlyerBrand | null | undefined) {
       s >= 0.02 &&
       Math.min(hueDistance(h, sourceDeepHsl.h), hueDistance(h, sourcePrimaryHsl.h)) <= 0.16;
     if (!isArtworkPurple) return { r, g, b };
+    // Very pale purple is only the original paper tint or pale supporting
+    // detail. Keep it neutral instead of inventing a third brand shade.
+    if (l >= 0.72) return { r: 1, g: 1, b: 1 };
     return l <= lightnessCutoff ? targetDeep : targetPrimary;
   };
 }
