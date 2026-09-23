@@ -21,5 +21,8 @@
 - [x] Leave production unpublished for owner review
 
 ## CRM (demo enquiries)
-- [ ] Leads as its own top-level sidebar tab for super admins (not inside admin section)
-- [ ] Name the section "CRM" (sidebar tab and page title), not Leads
+- [x] CRM as its own top-level sidebar tab for super admins (Sales group above Platform)
+- [x] Named "CRM" in sidebar and page title
+- [x] Lead pipeline (New/Contacted/Demo booked/Won/Lost), owner, follow-up date, notes timeline
+- [x] CRM summary card on the platform admin home
+- [x] Verified end-to-end as platform admin: list, detail, stage change, owner, note, timeline
