@@ -337,26 +337,55 @@ function hslToRgb(h: number, s: number, l: number) {
 
 /** Resonabed's own deep purple, the reference hue for the artwork. */
 const BASE_DEEP = "#26106c";
+/** Resonabed's original main violet, paired with the deep artwork colour. */
+const BASE_PRIMARY = "#884bc7";
 
 /**
- * Builds a mapper that shifts the flyer's purple family onto the clinic's
- * brand hue while keeping every tint, shade and neutral exactly as designed.
+ * Builds a mapper that moves the flyer's purple family between the two exact
+ * clinic colours. Both hue and brightness are transformed: preserving the
+ * source purple's lightness made bright brand colours print much too dark.
  */
 function makeRecolour(brand: FlyerBrand | null | undefined) {
   if (!brand) return (r: number, g: number, b: number) => ({ r, g, b });
-  const base = hexToRgb01(BASE_DEEP);
-  const target = hexToRgb01(brand.primary || brand.sidebar);
-  const baseHsl = rgbToHsl(base.r, base.g, base.b);
-  const targetHsl = rgbToHsl(target.r, target.g, target.b);
-  const dh = targetHsl.h - baseHsl.h;
-  const satScale =
-    baseHsl.s > 0.05 ? Math.max(0.5, Math.min(1.6, targetHsl.s / baseHsl.s)) : 1;
+  const sourceDeep = hexToRgb01(BASE_DEEP);
+  const sourcePrimary = hexToRgb01(BASE_PRIMARY);
+  const targetDeep = hexToRgb01(brand.sidebar);
+  const targetPrimary = hexToRgb01(brand.primary);
+  const sourceDeepHsl = rgbToHsl(sourceDeep.r, sourceDeep.g, sourceDeep.b);
+  const sourcePrimaryHsl = rgbToHsl(sourcePrimary.r, sourcePrimary.g, sourcePrimary.b);
+  const targetDeepHsl = rgbToHsl(targetDeep.r, targetDeep.g, targetDeep.b);
+  const targetPrimaryHsl = rgbToHsl(targetPrimary.r, targetPrimary.g, targetPrimary.b);
+
+  const shortestHueDelta = (from: number, to: number) => {
+    let delta = to - from;
+    if (delta > 0.5) delta -= 1;
+    if (delta < -0.5) delta += 1;
+    return delta;
+  };
 
   return (r: number, g: number, b: number) => {
     const { h, s, l } = rgbToHsl(r, g, b);
     // Leave neutrals (white card fills, blacks, greys) untouched.
     if (s < 0.05) return { r, g, b };
-    const out = hslToRgb((h + dh + 1) % 1, Math.max(0, Math.min(1, s * satScale)), l);
+
+    const sourceRange = sourcePrimaryHsl.l - sourceDeepHsl.l;
+    const mix = sourceRange === 0
+      ? 0
+      : Math.max(0, Math.min(1, (l - sourceDeepHsl.l) / sourceRange));
+    const sourceAnchor = {
+      h: sourceDeepHsl.h + shortestHueDelta(sourceDeepHsl.h, sourcePrimaryHsl.h) * mix,
+      s: sourceDeepHsl.s + (sourcePrimaryHsl.s - sourceDeepHsl.s) * mix,
+      l: sourceDeepHsl.l + sourceRange * mix,
+    };
+    const targetAnchor = {
+      h: targetDeepHsl.h + shortestHueDelta(targetDeepHsl.h, targetPrimaryHsl.h) * mix,
+      s: targetDeepHsl.s + (targetPrimaryHsl.s - targetDeepHsl.s) * mix,
+      l: targetDeepHsl.l + (targetPrimaryHsl.l - targetDeepHsl.l) * mix,
+    };
+    const hue = (h + shortestHueDelta(sourceAnchor.h, targetAnchor.h) + 1) % 1;
+    const saturation = Math.max(0, Math.min(1, s + targetAnchor.s - sourceAnchor.s));
+    const lightness = Math.max(0, Math.min(1, l + targetAnchor.l - sourceAnchor.l));
+    const out = hslToRgb(hue, saturation, lightness);
     return out;
   };
 }
