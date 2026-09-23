@@ -11,6 +11,7 @@ import { listBookings } from "@/lib/bookings.functions";
 import { getMyOrgLicence } from "@/lib/licence.functions";
 import { getAppSetting, MUSIC_RENEWAL_PRICE_KEY } from "@/lib/app-settings.functions";
 import { getPlatformMetrics } from "@/lib/platform-metrics.functions";
+import { getDemoLeadSummary } from "@/lib/crm.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -407,9 +408,14 @@ function EmptyRow({ text, cta }: { text: string; cta?: React.ReactNode }) {
 
 function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
   const fetchMetrics = useServerFn(getPlatformMetrics);
+  const fetchLeadSummary = useServerFn(getDemoLeadSummary);
   const { data: metrics, isLoading } = useQuery({
     queryKey: ["platform-metrics-dashboard"],
     queryFn: () => fetchMetrics(),
+  });
+  const { data: leadSummary } = useQuery({
+    queryKey: ["demo-lead-summary"],
+    queryFn: () => fetchLeadSummary(),
   });
   const money = (n: number) =>
     new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 }).format(n);
@@ -475,6 +481,20 @@ function SuperAdminDashboard({ displayName }: { displayName: string | null }) {
           hint="Client session payments, kit sales are on the Kit sales page"
         />
 
+      </div>
+
+      <div className="shadow-soft rounded-2xl bg-card p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[20px] font-medium text-brand-indigo">CRM, demo enquiries</h2>
+          <Link to="/crm" className="text-sm text-primary hover:underline">
+            Open CRM
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <MetricCard label="New this week" value={String(leadSummary?.newThisWeek ?? 0)} />
+          <MetricCard label="Due today" value={String(leadSummary?.dueToday ?? 0)} />
+          <MetricCard label="Overdue" value={String(leadSummary?.overdue ?? 0)} />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

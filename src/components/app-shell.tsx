@@ -91,6 +91,10 @@ function buildNav(
   if (roles.includes("super_admin")) {
     const groups: NavGroup[] = [
       {
+        label: "Sales",
+        items: [{ to: "/crm", label: "CRM", icon: ClipboardList }],
+      },
+      {
         label: "Platform",
         items: [
           { to: "/admin/organisations", label: "Organisations", icon: Building2 },

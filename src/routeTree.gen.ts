@@ -36,6 +36,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
 import { Route as AuthenticatedFrequenciesRouteImport } from './routes/_authenticated/frequencies'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
 import { Route as AuthenticatedChangePasswordRouteImport } from './routes/_authenticated/change-password'
 import { Route as AuthenticatedAvailabilityRouteImport } from './routes/_authenticated/availability'
@@ -211,6 +212,11 @@ const AuthenticatedFrequenciesRoute =
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
@@ -463,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/availability': typeof AuthenticatedAvailabilityRoute
   '/change-password': typeof AuthenticatedChangePasswordRoute
   '/clients': typeof AuthenticatedClientsRoute
+  '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/help': typeof AuthenticatedHelpRoute
@@ -530,6 +537,7 @@ export interface FileRoutesByTo {
   '/availability': typeof AuthenticatedAvailabilityRoute
   '/change-password': typeof AuthenticatedChangePasswordRoute
   '/clients': typeof AuthenticatedClientsRoute
+  '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/frequencies': typeof AuthenticatedFrequenciesRoute
   '/help': typeof AuthenticatedHelpRoute
@@ -600,6 +608,7 @@ export interface FileRoutesById {
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
   '/_authenticated/change-password': typeof AuthenticatedChangePasswordRoute
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
+  '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/frequencies': typeof AuthenticatedFrequenciesRoute
   '/_authenticated/help': typeof AuthenticatedHelpRoute
@@ -671,6 +680,7 @@ export interface FileRouteTypes {
     | '/availability'
     | '/change-password'
     | '/clients'
+    | '/crm'
     | '/dashboard'
     | '/frequencies'
     | '/help'
@@ -738,6 +748,7 @@ export interface FileRouteTypes {
     | '/availability'
     | '/change-password'
     | '/clients'
+    | '/crm'
     | '/dashboard'
     | '/frequencies'
     | '/help'
@@ -807,6 +818,7 @@ export interface FileRouteTypes {
     | '/_authenticated/availability'
     | '/_authenticated/change-password'
     | '/_authenticated/clients'
+    | '/_authenticated/crm'
     | '/_authenticated/dashboard'
     | '/_authenticated/frequencies'
     | '/_authenticated/help'
@@ -1077,6 +1089,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/crm': {
+      id: '/_authenticated/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof AuthenticatedCrmRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clients': {
@@ -1446,6 +1465,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvailabilityRoute: typeof AuthenticatedAvailabilityRoute
   AuthenticatedChangePasswordRoute: typeof AuthenticatedChangePasswordRoute
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
+  AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFrequenciesRoute: typeof AuthenticatedFrequenciesRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
@@ -1463,6 +1483,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvailabilityRoute: AuthenticatedAvailabilityRoute,
   AuthenticatedChangePasswordRoute: AuthenticatedChangePasswordRoute,
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
+  AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFrequenciesRoute: AuthenticatedFrequenciesRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
