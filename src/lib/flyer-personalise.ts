@@ -441,9 +441,14 @@ function recolourPatternImages(
       const cs = image.dict.get(PDFName.of("ColorSpace"));
       if (!cs || cs.toString() !== "/DeviceRGB") continue;
 
+      // The cover background is the only pattern image spanning the full page.
+      const w = Number(image.dict.get(PDFName.of("Width")) ?? 0);
+      const h = Number(image.dict.get(PDFName.of("Height")) ?? 0);
+      const isCoverBackground = w >= page.getWidth() - 2 && h >= page.getHeight() - 2;
+      const pixelMap = isCoverBackground ? coverMap : map;
       const pixels = decodePDFRawStream(image).decode();
       for (let i = 0; i + 2 < pixels.length; i += 3) {
-        const c = map(pixels[i]! / 255, pixels[i + 1]! / 255, pixels[i + 2]! / 255);
+        const c = pixelMap(pixels[i]! / 255, pixels[i + 1]! / 255, pixels[i + 2]! / 255);
         pixels[i] = Math.round(Math.max(0, Math.min(1, c.r)) * 255);
         pixels[i + 1] = Math.round(Math.max(0, Math.min(1, c.g)) * 255);
         pixels[i + 2] = Math.round(Math.max(0, Math.min(1, c.b)) * 255);
