@@ -1,5 +1,46 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
+
+// Heavy canvas model: loaded only when the visitor scrolls near it.
+const CellularResponseSection = lazy(() =>
+  import("@/components/public-clinic/cellular-response-section").then((m) => ({
+    default: m.CellularResponseSection,
+  })),
+);
+
+function LazyCellModel() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!("IntersectionObserver" in window)) {
+      setShow(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setShow(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const fallback = (
+    <div className="mx-auto max-w-6xl px-6 py-24 text-sm text-muted-foreground md:px-10">
+      Loading the cell model…
+    </div>
+  );
+  return (
+    <div ref={ref} className="min-h-[400px]">
+      {show ? <Suspense fallback={fallback}>{<CellularResponseSection />}</Suspense> : fallback}
+    </div>
+  );
+}
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -501,9 +542,9 @@ function LandingPage() {
               </Button>
             </Link>
           </div>
-          <Link
-            to="/research"
-            aria-label="Explore the interactive cell model on the research page"
+          <a
+            href="#cell-model"
+            aria-label="Jump to the interactive cell model below"
             className="group relative block overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-soft"
           >
             <img
@@ -515,7 +556,7 @@ function LandingPage() {
             <span className="absolute bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand-ink/85 px-4 py-2 text-xs font-medium text-white backdrop-blur">
               Explore the interactive cell model
             </span>
-          </Link>
+          </a>
         </div>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -549,6 +590,12 @@ function LandingPage() {
           not a medical device.
         </p>
       </section>
+
+      {/* INTERACTIVE CELL MODEL */}
+      <div id="cell-model">
+        <LazyCellModel />
+      </div>
+
 
       {/* HOW IT WORKS */}
       <section id="how" className="bg-secondary/40 py-24 md:py-28">
