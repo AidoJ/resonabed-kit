@@ -522,11 +522,11 @@ function LandingPage() {
           {[
             {
               title: "Relaxation and stress",
-              body: "Small human studies have explored VAT for relaxation and perceived stress.",
+              body: "Studies have explored VAT to provide relaxation and reduce stress.",
             },
             {
               title: "Muscle tension",
-              body: "Studies have explored perceived muscle tension and stiffness after VAT sessions.",
+              body: "VAT may also provide release from muscle tension",
             },
             {
               title: "Pain and comfort",
@@ -534,7 +534,7 @@ function LandingPage() {
             },
             {
               title: "Sleep quality",
-              body: "Early studies have explored sleep quality following vibroacoustic sessions.",
+              body: "Clients report improved sleep quality following a VAT.",
             },
           ].map((c) => (
             <div key={c.title} className="rounded-2xl border border-border bg-card p-6 shadow-soft">
@@ -545,8 +545,8 @@ function LandingPage() {
         </div>
         <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
           These are findings from research into vibroacoustic therapy generally. The studies did
-          not test Resonabed, stronger controlled studies are needed, and individual experiences
-          vary. Resonabed is a wellbeing product, not a medical device.
+          not test Resonabed and individual experiences vary. Resonabed is a wellbeing product,
+          not a medical device.
         </p>
       </section>
 
