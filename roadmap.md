@@ -33,3 +33,7 @@
 - [x] Kit tie-in line near packages
 - [x] Clinic pages already carry ScienceSection + cell animation (verified, no change needed)
 - [x] For home: /for-home redirects to homepage, which now leads with the VAT explainer
+
+## Clinic licence and public branding
+- [x] Activate the included 12-month music licence when a paid clinic order is linked to its organisation
+- [x] Enlarge clinic logos and place the strapline beneath in smaller text

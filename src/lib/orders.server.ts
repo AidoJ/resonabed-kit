@@ -545,6 +545,12 @@ export async function fulfilOrder(orderId: string): Promise<OrderFulfilmentResul
       notes: `Order ${order.order_number}, balance cleared.`,
     });
     queuedForOnboarding = !queued.alreadyExisted;
+    try {
+      const { activatePaidClinicLicence } = await import("@/lib/onboarding.server");
+      await activatePaidClinicLicence(queued.id);
+    } catch (err) {
+      console.error("Could not activate clinic music licence", order.order_number, err);
+    }
   } else {
     const { issueAccessCode } = await import("@/lib/home-access.server");
     const issued = await issueAccessCode({

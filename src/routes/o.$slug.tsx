@@ -154,13 +154,13 @@ function PublicOrgPage() {
     <main className="min-h-screen bg-background text-foreground" style={theme}>
       {/* ---------------------------------------------------------------- LOGO BAND */}
       <header className="relative z-30 border-b border-black/8 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5 md:px-10 md:py-6">
-          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-5 md:gap-8 md:px-10 md:py-6">
+          <div className="flex min-w-0 flex-col items-start gap-1.5">
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt={`${org.name} logo`}
-                className="h-14 w-auto shrink-0 object-contain md:h-20"
+                className="h-24 max-w-full shrink-0 object-contain object-left md:h-32"
                 draggable={false}
               />
             ) : (
@@ -173,7 +173,7 @@ function PublicOrgPage() {
             )}
             {org.public_strapline ? (
               <p
-                className="min-w-0 text-xl font-semibold leading-tight tracking-tight sm:pl-4 sm:text-2xl md:text-3xl lg:text-4xl"
+                className="min-w-0 text-sm font-medium leading-snug sm:text-base md:text-lg"
                 style={{
                   color: "color-mix(in oklab, var(--clinic-ink) 88%, transparent)",
                 }}

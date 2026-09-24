@@ -30,6 +30,55 @@ export type RecordedOnboardingOrder = {
   alreadyExisted: boolean;
 };
 
+const PAID_ORDER_STATES = ["balance_paid", "plan_active", "fulfilled", "plan_completed"];
+
+function licencePlanForPackage(packageKey: string | null): "basic" | "pro" | null {
+  if (packageKey === "essentials") return "basic";
+  if (packageKey === "pro" || packageKey === "platinum") return "pro";
+  return null;
+}
+
+/**
+ * Activates the included 12-month clinic music licence once both sides exist:
+ * the business order is paid and the onboarding record is linked to an org.
+ * Safe to call from either payment fulfilment or later clinic provisioning.
+ */
+export async function activatePaidClinicLicence(onboardingId: string): Promise<boolean> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: onboarding, error: onboardingError } = await supabaseAdmin
+    .from("kit_onboarding_orders")
+    .select("org_id, source, source_ref, package_key")
+    .eq("id", onboardingId)
+    .maybeSingle();
+  if (onboardingError) throw new Error(onboardingError.message);
+  if (!onboarding?.org_id || onboarding.source !== "order" || !onboarding.source_ref) return false;
+
+  const plan = licencePlanForPackage(onboarding.package_key);
+  if (!plan) return false;
+
+  const { data: order, error: orderError } = await supabaseAdmin
+    .from("kit_orders")
+    .select("state")
+    .eq("order_number", onboarding.source_ref)
+    .maybeSingle();
+  if (orderError) throw new Error(orderError.message);
+  if (!order || !PAID_ORDER_STATES.includes(order.state)) return false;
+
+  const expiresAt = new Date();
+  expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + 1);
+  const { error: licenceError } = await supabaseAdmin
+    .from("organisations")
+    .update({
+      music_licence_status: "active",
+      music_licence_plan: plan,
+      music_licence_expires_at: expiresAt.toISOString(),
+      music_licence_note: `12-month licence activated from paid ${onboarding.package_key} kit order ${onboarding.source_ref}.`,
+    })
+    .eq("id", onboarding.org_id);
+  if (licenceError) throw new Error(licenceError.message);
+  return true;
+}
+
 /**
  * Records a paid business order in the clinic onboarding queue, idempotently
  * on (source, source_ref), and emails the buyer a "being set up" note so the

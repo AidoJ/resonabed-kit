@@ -73,7 +73,9 @@ export const markOnboardingOrderProvisioned = createServerFn({ method: "POST" })
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
-    return { ok: true };
+    const { activatePaidClinicLicence } = await import("@/lib/onboarding.server");
+    const licenceActivated = await activatePaidClinicLicence(data.id);
+    return { ok: true, licenceActivated };
   });
 
 export const updateOnboardingOrder = createServerFn({ method: "POST" })
