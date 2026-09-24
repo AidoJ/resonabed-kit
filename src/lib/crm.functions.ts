@@ -272,6 +272,25 @@ export const addDemoLeadNote = createServerFn({ method: "POST" })
     return { saved: true as const };
   });
 
+export const deleteDemoLead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertSuperAdmin(supabase, userId);
+
+    const { data: deleted, error } = await supabase
+      .from("demo_enquiries")
+      .delete()
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!deleted) throw new Error("Enquiry not found or could not be deleted");
+
+    return { deleted: true as const };
+  });
+
 export const getDemoLeadSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
