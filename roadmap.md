@@ -26,6 +26,7 @@
 - [x] Lead pipeline (New/Contacted/Demo booked/Won/Lost), owner, follow-up date, notes timeline
 - [x] CRM summary card on the platform admin home
 - [x] Verified end-to-end as platform admin: list, detail, stage change, owner, note, timeline
+- [x] Platform-admin-only permanent deletion with confirmation
 
 ## VAT science to the fore (done)
 - [x] Homepage "What is VAT" section (explainer, BMJ wording, 4 benefit cards, cell poster link to /research)

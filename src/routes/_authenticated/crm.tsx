@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
-import { Mail, Phone, Search, X } from "lucide-react";
+import { Mail, Phone, Search, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 
@@ -12,6 +13,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -29,6 +41,7 @@ import {
 } from "@/components/ui/table";
 import {
   addDemoLeadNote,
+  deleteDemoLead,
   getDemoLead,
   LEAD_STAGE_LABELS,
   LEAD_STAGES,
@@ -240,6 +253,7 @@ function LeadDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const fetchLead = useServerFn(getDemoLead);
   const saveLead = useServerFn(updateDemoLead);
   const saveNote = useServerFn(addDemoLeadNote);
+  const removeLead = useServerFn(deleteDemoLead);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -291,6 +305,18 @@ function LeadDetail({ id, onClose }: { id: string; onClose: () => void }) {
       setNote("");
       await invalidate();
     },
+  });
+
+  const remove = useMutation({
+    mutationFn: () => removeLead({ data: { id } }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["demo-leads"] });
+      await queryClient.invalidateQueries({ queryKey: ["demo-lead-summary"] });
+      queryClient.removeQueries({ queryKey: ["demo-lead", id] });
+      toast.success("Enquiry deleted");
+      onClose();
+    },
+    onError: (error) => toast.error((error as Error).message),
   });
 
   return (
@@ -468,6 +494,35 @@ function LeadDetail({ id, onClose }: { id: string; onClose: () => void }) {
                 </ul>
               </CardContent>
             </Card>
+
+            <div className="border-t pt-6">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={remove.isPending}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete enquiry
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this enquiry?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently deletes {lead.name}&apos;s enquiry and its notes and activity. This cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={remove.isPending}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => remove.mutate()}
+                      disabled={remove.isPending}
+                    >
+                      {remove.isPending ? "Deleting…" : "Delete permanently"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         )}
       </div>
