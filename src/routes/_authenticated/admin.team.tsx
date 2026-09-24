@@ -227,18 +227,19 @@ function TeamAdmin() {
 
 
   const [editing, setEditing] = useState<
-    | { id: string; name: string; bio: string; avatarUrl: string | null }
+    | { id: string; orgId: string | null; name: string; bio: string; avatarUrl: string | null }
     | null
   >(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  const openEdit = (m: { id: string; display_name: string | null; bio: string | null; avatar_url: string | null }) => {
+  const openEdit = (m: { id: string; org_id: string | null; display_name: string | null; bio: string | null; avatar_url: string | null }) => {
     setAvatarFile(null);
     setAvatarPreview(null);
     setEditing({
       id: m.id,
+      orgId: m.org_id,
       name: m.display_name ?? "this user",
       bio: m.bio ?? "",
       avatarUrl: m.avatar_url,
@@ -264,7 +265,7 @@ function TeamAdmin() {
     try {
       let avatar_path: string | undefined;
       if (avatarFile) {
-        const orgId = ctx?.org?.id;
+        const orgId = editing.orgId;
         if (!orgId) throw new Error("No organisation");
         const ext = avatarFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
         const path = `${orgId}/${editing.id}.${ext}`;
