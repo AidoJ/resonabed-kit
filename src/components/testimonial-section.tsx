@@ -31,7 +31,7 @@ export function TestimonialSection({
     : "text-brand-violet-strong";
 
   const bodyColor = clinic
-    ? { color: "color-mix(in oklab, var(--clinic-ink-fg) 70%, transparent)" }
+    ? { color: "color-mix(in oklab, var(--clinic-ink) 82%, transparent)" }
     : undefined;
 
   return (
@@ -57,6 +57,7 @@ export function TestimonialSection({
               "mt-3 text-3xl font-light tracking-tight md:text-4xl " +
               (clinic ? "" : "text-brand-indigo")
             }
+            style={clinic ? { color: "var(--clinic-ink)" } : undefined}
           >
             {title}
           </h2>
@@ -73,7 +74,14 @@ export function TestimonialSection({
                     ? ""
                     : "border-border bg-card shadow-soft")
                 }
-                style={clinic ? { background: "var(--clinic-tint-soft)" } : undefined}
+                style={
+                  clinic
+                    ? {
+                        background: "var(--clinic-tint-soft)",
+                        borderColor: "color-mix(in oklab, var(--clinic-ink) 12%, transparent)",
+                      }
+                    : undefined
+                }
               >
                 <blockquote
                   className={
@@ -90,7 +98,10 @@ export function TestimonialSection({
                   }
                   style={bodyColor}
                 >
-                  <span className={clinic ? "" : "font-medium text-brand-indigo"}>
+                  <span
+                    className={clinic ? "font-medium" : "font-medium text-brand-indigo"}
+                    style={clinic ? { color: "var(--clinic-ink)" } : undefined}
+                  >
                     {t.name}
                   </span>
                   {t.context ? <span> · {t.context}</span> : null}

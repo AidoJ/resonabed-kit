@@ -154,13 +154,13 @@ function PublicOrgPage() {
     <main className="min-h-screen bg-background text-foreground" style={theme}>
       {/* ---------------------------------------------------------------- LOGO BAND */}
       <header className="relative z-30 border-b border-black/8 bg-white">
-        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-5 md:gap-8 md:px-10 md:py-6">
-          <div className="flex min-w-0 flex-col items-start gap-1.5">
+        <div className="relative mx-auto flex max-w-7xl justify-center px-6 py-5 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-8 md:px-10 md:py-6">
+          <div className="flex min-w-0 flex-col items-center gap-1.5 text-center md:items-start md:text-left">
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt={`${org.name} logo`}
-                className="h-24 max-w-full shrink-0 object-contain object-left md:h-32"
+                className="h-24 max-w-[calc(100%-4rem)] shrink-0 object-contain md:h-32 md:max-w-full md:object-left"
                 draggable={false}
               />
             ) : (
@@ -182,11 +182,11 @@ function PublicOrgPage() {
               </p>
             ) : null}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="absolute right-4 top-5 flex items-center gap-2 md:static">
             {org.public_contact_phone ? (
               <a
                 href={`tel:${org.public_contact_phone.replace(/\s+/g, "")}`}
-                className="inline-flex h-10 items-center gap-2 rounded-full border px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                className="hidden h-10 items-center gap-2 rounded-full border px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white md:inline-flex"
                 style={{
                   borderColor: "color-mix(in oklab, var(--clinic-ink) 18%, transparent)",
                   color: "var(--clinic-ink)",
