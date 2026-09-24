@@ -74,16 +74,23 @@ export const submitDemoEnquiry = createServerFn({ method: "POST" })
     };
 
     const { error: insertError } = await supabaseAdmin.from("demo_enquiries").insert(row);
+    let alreadyNotified = false;
     if (insertError?.code === "23505") {
       const { data: existing } = await supabaseAdmin
         .from("demo_enquiries")
-        .select("reference, email")
+        .select("reference, email, notification_status")
         .eq("id", data.id)
         .maybeSingle();
-      if (existing?.email === normalizedEmail) return { saved: true as const, reference: existing.reference };
+      if (existing?.email !== normalizedEmail) {
+        throw new Error("Your enquiry could not be saved. Please try again.");
+      }
+      alreadyNotified = existing.notification_status === "sent";
+    }
+    if (insertError && insertError.code !== "23505") {
       throw new Error("Your enquiry could not be saved. Please try again.");
     }
-    if (insertError) throw new Error("Your enquiry could not be saved. Please try again.");
+
+    if (alreadyNotified) return { saved: true as const, reference };
 
     const attribution = [data.source, data.medium, data.campaign, data.content]
       .filter(Boolean)
@@ -103,9 +110,12 @@ export const submitDemoEnquiry = createServerFn({ method: "POST" })
         replyTo: normalizedEmail,
         idempotencyKey: `demo-enquiry-${data.id}`,
       });
+      if (!sent.sent) {
+        throw new Error("The enquiry notification could not be delivered.");
+      }
       await supabaseAdmin
         .from("demo_enquiries")
-        .update({ notification_status: sent.sent ? "sent" : "suppressed" })
+        .update({ notification_status: "sent", notification_error: null })
         .eq("id", data.id);
     } catch (error) {
       const message = error instanceof Error ? error.message.slice(0, 500) : "Notification failed";
@@ -114,6 +124,9 @@ export const submitDemoEnquiry = createServerFn({ method: "POST" })
         .update({ notification_status: "failed", notification_error: message })
         .eq("id", data.id);
       console.error("Demo enquiry notification failed", { reference, message });
+      throw new Error(
+        `Your enquiry was saved as ${reference}, but the notification could not be sent. Please try again.`,
+      );
     }
 
     return { saved: true as const, reference };
