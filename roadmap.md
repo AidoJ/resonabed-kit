@@ -39,3 +39,6 @@
 ## Clinic licence and public branding
 - [x] Activate the included 12-month music licence when a paid clinic order is linked to its organisation
 - [x] Enlarge clinic logos and place the strapline beneath in smaller text
+
+## Home player music fix (done)
+- [x] Home session player: music now joins even when Start is tapped before the track finishes loading (replay effect in src/routes/home.index.tsx); verified as 71tdeeble home user — audio plays and advances, no errors
