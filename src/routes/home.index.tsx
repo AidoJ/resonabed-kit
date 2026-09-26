@@ -432,6 +432,9 @@ function HomePlayer({
     queryKey: ["home-audio-url", trackId],
     queryFn: () => urlFn({ data: { id: trackId! } }),
     enabled: !!trackId,
+    // Never swap the track URL mid-session (that would restart playback).
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 
   // If Start is tapped before the signed URL (and player) is ready, the play
