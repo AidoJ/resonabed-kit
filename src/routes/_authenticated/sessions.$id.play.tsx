@@ -41,7 +41,7 @@ function PlaySession() {
   const [timerRunning, setTimerRunning] = useState(false);
   const audioHandleRef = useRef<AudioPlayerHandle | null>(null);
 
-  const { data: session, isLoading } = useQuery({
+  const { data: session, isLoading, error: sessionError } = useQuery({
     queryKey: ["session", id],
     queryFn: () => getFn({ data: { id } }),
   });
@@ -49,15 +49,18 @@ function PlaySession() {
   const freqId = session?.recommended_frequency_id ?? null;
 
   const { data: audio } = useQuery({
-    queryKey: ["audio-for-freq", freqId],
-    queryFn: () => audioFn({ data: { frequency_id: freqId! } }),
+    queryKey: ["audio-for-freq", freqId, id],
+    queryFn: () => audioFn({ data: { frequency_id: freqId!, session_id: id } }),
     enabled: !!freqId,
   });
 
   const { data: signed } = useQuery({
-    queryKey: ["signed-audio", audio?.id],
-    queryFn: () => signFn({ data: { audio_file_id: audio!.id } }),
-    enabled: !!audio?.id,
+    queryKey: ["signed-audio", audio?.id, id],
+    queryFn: () => signFn({ data: { audio_file_id: audio!.id, session_id: id } }),
+    enabled: !!audio?.id && !audio.locked,
+    // Never swap the track URL mid-session (that would restart playback).
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 
   const checkinsFn = useServerFn(getSessionCheckins);
@@ -77,6 +80,17 @@ function PlaySession() {
     }
   }, [timerRunning, signed?.url]);
 
+
+  if (sessionError)
+    return (
+      <div className="play-dark fixed inset-0 z-[60] grid place-items-center bg-background p-6 text-center text-foreground">
+        <div className="max-w-sm space-y-3">
+          <p className="text-sm">This session can't be opened from the current account or clinic view.</p>
+          <p className="text-xs text-muted-foreground">If you're a platform admin, enter support mode for this clinic first.</p>
+          <Link to="/sessions" className="text-sm underline">Back to sessions</Link>
+        </div>
+      </div>
+    );
 
   if (isLoading || !session)
     return (
@@ -252,7 +266,7 @@ function PlaySession() {
 
         {/* Audio */}
         <div className="w-full max-w-2xl">
-          {audio && signed?.url ? (
+          {audio && !audio.locked && signed?.url ? (
             <AudioPlayer
               ref={audioHandleRef}
               src={signed.url}
@@ -262,7 +276,7 @@ function PlaySession() {
               loop
             />
 
-          ) : licence && !licence.is_ok ? (
+          ) : audio?.locked || (licence && !licence.is_ok && !audio) ? (
             <div className="flex items-center gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-foreground/90">
               <Music className="h-5 w-5" />
               <span>
