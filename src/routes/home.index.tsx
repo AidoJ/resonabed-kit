@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -433,6 +433,15 @@ function HomePlayer({
     queryFn: () => urlFn({ data: { id: trackId! } }),
     enabled: !!trackId,
   });
+
+  // If Start is tapped before the signed URL (and player) is ready, the play
+  // call lands on a null ref and is lost. Replay once the track is available
+  // while the timer is running, so the music always joins the session.
+  useEffect(() => {
+    if (ambient && signed?.url && audioHandleRef.current) {
+      audioHandleRef.current.play();
+    }
+  }, [ambient, signed?.url]);
 
   return (
     <div className="play-dark fixed inset-0 z-[60] overflow-y-auto bg-background text-foreground">
