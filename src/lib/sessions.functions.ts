@@ -416,20 +416,38 @@ export const listMyOrgSessions = createServerFn({ method: "GET" })
  * when the caller's org has a valid trial/active licence whose expiry is in
  * the future. The org's own uploaded tracks are always available.
  */
-async function callerHasGlobalLicence(context: {
-  supabase: import("@supabase/supabase-js").SupabaseClient;
-  userId: string;
-}): Promise<boolean> {
+type Ctx = { supabase: import("@supabase/supabase-js").SupabaseClient; userId: string };
+
+/**
+ * Resolve which organisation's library and licence apply. When a session is
+ * given, the session's own clinic wins (support mode, multi-clinic staff);
+ * otherwise fall back to the caller's profile org.
+ */
+async function resolvePlaybackOrg(context: Ctx, sessionId?: string | null): Promise<string | null> {
+  if (sessionId) {
+    const { data: s } = await context.supabase
+      .from("sessions")
+      .select("org_id")
+      .eq("id", sessionId)
+      .maybeSingle();
+    if (s?.org_id) return s.org_id as string;
+  }
   const { data: profile } = await context.supabase
     .from("profiles")
     .select("org_id")
     .eq("id", context.userId)
     .maybeSingle();
-  if (!profile?.org_id) return true; // super_admin with no org: allow
+  return (profile?.org_id as string | null) ?? null;
+}
+
+async function callerHasGlobalLicence(context: Ctx, orgId: string | null): Promise<boolean> {
+  if (!orgId) return true; // super_admin with no org: allow
+  const { data: isSuper } = await context.supabase.rpc("is_super_admin", { _user_id: context.userId });
+  if (isSuper) return true; // platform admins can always play in support/admin mode
   const { data: org } = await context.supabase
     .from("organisations")
     .select("music_licence_status, music_licence_expires_at")
-    .eq("id", profile.org_id)
+    .eq("id", orgId)
     .maybeSingle();
   if (!org) return false;
   if (org.music_licence_status === "expired") return false;
@@ -439,30 +457,25 @@ async function callerHasGlobalLicence(context: {
 
 export const getAudioForFrequency = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { frequency_id: string }) => z.object({ frequency_id: uuid }).parse(data))
+  .inputValidator((data: { frequency_id: string; session_id?: string | null }) =>
+    z.object({ frequency_id: uuid, session_id: uuid.nullish() }).parse(data),
+  )
   .handler(async ({ data, context }) => {
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", context.userId)
-      .maybeSingle();
+    const orgId = await resolvePlaybackOrg(context, data.session_id);
 
-    // Prefer the org's own uploaded track (unaffected by licence).
-    if (profile?.org_id) {
+    // Prefer the clinic's own uploaded track (unaffected by licence).
+    if (orgId) {
       const { data: own } = await context.supabase
         .from("audio_files")
         .select("id, title, file_url, duration_seconds, created_at, org_id")
         .eq("frequency_id", data.frequency_id)
         .eq("is_active", true)
-        .eq("org_id", profile.org_id)
+        .eq("org_id", orgId)
         .order("created_at", { ascending: false })
         .limit(1);
-      if (own && own[0]) return { ...own[0], is_global: false };
+      if (own && own[0]) return { ...own[0], is_global: false, locked: false };
     }
 
-    // Fall back to a global track if the licence is valid.
-    const licensed = await callerHasGlobalLicence(context);
-    if (!licensed) return null;
     const { data: global, error } = await context.supabase
       .from("audio_files")
       .select("id, title, file_url, duration_seconds, created_at, org_id")
@@ -473,13 +486,15 @@ export const getAudioForFrequency = createServerFn({ method: "POST" })
       .limit(1);
     if (error) throw new Error(error.message);
     if (!global?.[0]) return null;
-    return { ...global[0], is_global: true };
+    const licensed = await callerHasGlobalLicence(context, orgId);
+    if (!licensed) return { ...global[0], is_global: true, locked: true };
+    return { ...global[0], is_global: true, locked: false };
   });
 
 export const getSignedAudioUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { audio_file_id: string }) =>
-    z.object({ audio_file_id: uuid }).parse(data),
+  .inputValidator((data: { audio_file_id: string; session_id?: string | null }) =>
+    z.object({ audio_file_id: uuid, session_id: uuid.nullish() }).parse(data),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
@@ -490,7 +505,8 @@ export const getSignedAudioUrl = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!row?.file_url) throw new Error("Audio file has no stored path");
     if (row.org_id === null) {
-      const licensed = await callerHasGlobalLicence(context);
+      const orgId = await resolvePlaybackOrg(context, data.session_id);
+      const licensed = await callerHasGlobalLicence(context, orgId);
       if (!licensed) {
         throw new Error(
           "Music licence expired, contact ResonaBed to renew access to the global library.",
