@@ -58,8 +58,8 @@ function PlaySession() {
     queryKey: ["signed-audio", audio?.id, id],
     queryFn: () => signFn({ data: { audio_file_id: audio!.id, session_id: id } }),
     enabled: !!audio?.id && !audio.locked,
-    // Signed links last an hour; refresh well before so long sessions never lose audio.
-    refetchInterval: 45 * 60 * 1000,
+    // Never swap the track URL mid-session (that would restart playback).
+    staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
 

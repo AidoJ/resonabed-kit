@@ -515,7 +515,7 @@ export const getSignedAudioUrl = createServerFn({ method: "POST" })
     }
     const { data: signed, error: sErr } = await context.supabase.storage
       .from("audio-files")
-      .createSignedUrl(row.file_url, 3600);
+      .createSignedUrl(row.file_url, 4 * 3600); // covers the longest booked session
     if (sErr) throw new Error(sErr.message);
     return { url: signed.signedUrl };
   });
