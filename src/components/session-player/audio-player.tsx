@@ -15,7 +15,7 @@ interface Props {
 
 
 export interface AudioPlayerHandle {
-  play: () => void;
+  play: () => Promise<void>;
   pause: () => void;
   stop: () => void;
   fadeOut: (seconds?: number) => void;
@@ -163,7 +163,8 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     let i = 0;
     fadeTimerRef.current = setInterval(() => {
       i += 1;
-      const next = startVol * (1 - i / steps);
+      // Gentle ease-out curve so the music drifts away rather than dropping.
+      const next = startVol * Math.cos(((i / steps) * Math.PI) / 2);
       if (!audioRef.current) return clearFade();
       audioRef.current.volume = Math.max(0, next);
       if (i >= steps) {
@@ -193,7 +194,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   useImperativeHandle(
     ref,
     () => ({ play: doPlay, pause: doPause, stop: doStop, fadeOut: doFadeOut }),
-    [loop],
+    [loop, vol],
   );
 
   const toggle = () => (playing ? doPause() : doPlay());
@@ -273,3 +274,27 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     </div>
   );
 });
+
+/**
+ * Waits for the player to mount (the signed track URL may still be loading),
+ * then starts the music. Resolves when it is audibly playing, or after the
+ * timeout so a slow network never traps the session.
+ */
+export async function playWhenReady(
+  ref: { current: AudioPlayerHandle | null },
+  timeoutMs = 20000,
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (!ref.current && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 150));
+  }
+  if (!ref.current) return false;
+  const remaining = Math.max(1000, deadline - Date.now());
+  return Promise.race([
+    ref.current.play().then(
+      () => true,
+      () => false,
+    ),
+    new Promise<boolean>((r) => setTimeout(() => r(false), remaining)),
+  ]);
+}
