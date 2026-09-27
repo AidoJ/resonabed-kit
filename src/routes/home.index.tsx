@@ -475,7 +475,7 @@ function HomePlayer({
             ) : null}
             <CountdownTimer
               durationSeconds={minutes * 60}
-              onStart={() => playWhenReady(audioHandleRef)}
+              onStart={() => (trackId ? playWhenReady(audioHandleRef) : undefined)}
               onPause={() => audioHandleRef.current?.pause()}
               onReset={() => audioHandleRef.current?.stop()}
               onRunningChange={setAmbient}
