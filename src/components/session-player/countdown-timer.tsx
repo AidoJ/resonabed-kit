@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Play, Pause, RotateCcw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -9,7 +9,8 @@ interface Props {
   onFadeStart?: (seconds: number) => void;
   fadeLeadSeconds?: number;
   onRunningChange?: (running: boolean) => void;
-  onStart?: () => void;
+  /** May return a promise; the countdown only begins once it settles (music playing). */
+  onStart?: () => void | Promise<unknown>;
   onPause?: () => void;
   onReset?: () => void;
 }
@@ -34,6 +35,7 @@ export function CountdownTimer({
   const [remaining, setRemaining] = useState(durationSeconds);
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [starting, setStarting] = useState(false);
   const endTsRef = useRef<number | null>(null);
   
   const completedRef = useRef(false);
@@ -124,11 +126,20 @@ export function CountdownTimer({
   }, [running, onComplete, onFadeStart, fadeLeadSeconds]);
 
 
-  const start = () => {
-    if (remaining <= 0) return;
+  const start = async () => {
+    if (remaining <= 0 || starting) return;
+    const result = onStart?.();
+    if (result && typeof (result as Promise<unknown>).then === "function") {
+      setStarting(true);
+      try {
+        await result;
+      } catch {
+        /* start the clock anyway */
+      }
+      setStarting(false);
+    }
     endTsRef.current = Date.now() + remaining * 1000;
     setRunning(true);
-    onStart?.();
   };
   const pause = () => {
     setRunning(false);
@@ -197,7 +208,13 @@ export function CountdownTimer({
             </p>
           ) : (
             <p className="mt-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-              {running ? "In session" : remaining < durationSeconds ? "Paused" : "Ready"}
+              {starting
+                ? "Starting your music…"
+                : running
+                  ? "In session"
+                  : remaining < durationSeconds
+                    ? "Paused"
+                    : "Ready"}
             </p>
           )}
         </div>
@@ -206,12 +223,22 @@ export function CountdownTimer({
       <div className="flex items-center gap-4">
         {!running ? (
           <Button
-            onClick={start}
-            disabled={remaining <= 0}
+            onClick={() => void start()}
+            disabled={remaining <= 0 || starting}
+            aria-busy={starting}
             className="h-16 min-w-16 rounded-full px-8 text-[15px] font-medium shadow-lift"
           >
-            <Play className="mr-2 h-5 w-5" fill="currentColor" strokeWidth={0} />
-            Start
+            {starting ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Loading music…
+              </>
+            ) : (
+              <>
+                <Play className="mr-2 h-5 w-5" fill="currentColor" strokeWidth={0} />
+                Start
+              </>
+            )}
           </Button>
         ) : (
           <Button
@@ -237,30 +264,43 @@ export function CountdownTimer({
 }
 
 function playChime() {
+  // Soft closing bells: three gentle strikes, each a small cluster of
+  // inharmonic partials with a long natural decay.
   try {
     const AC =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AC) return;
     const ctx = new AC();
-    // Safari/Chrome can hand back a suspended context after a long session.
     void ctx.resume?.().catch(() => {});
-    const now = ctx.currentTime;
-    const play = (freq: number, start: number, dur: number) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0, now + start);
-      gain.gain.linearRampToValueAtTime(0.15, now + start + 0.05);
-      gain.gain.linearRampToValueAtTime(0, now + start + dur);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now + start);
-      osc.stop(now + start + dur + 0.05);
+    const master = ctx.createGain();
+    master.gain.value = 0.22;
+    master.connect(ctx.destination);
+    const now = ctx.currentTime + 0.6; // small pause after the music fades
+    const bell = (base: number, at: number) => {
+      const partials: Array<[number, number, number]> = [
+        [1, 1, 4.5],
+        [2.01, 0.45, 3],
+        [2.76, 0.3, 2.2],
+        [5.4, 0.12, 1.2],
+      ];
+      for (const [ratio, amp, decay] of partials) {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = base * ratio;
+        g.gain.setValueAtTime(0.0001, now + at);
+        g.gain.exponentialRampToValueAtTime(amp, now + at + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + at + decay);
+        osc.connect(g).connect(master);
+        osc.start(now + at);
+        osc.stop(now + at + decay + 0.1);
+      }
     };
-    play(660, 0, 0.6);
-    play(880, 0.25, 0.8);
-    setTimeout(() => ctx.close(), 2000);
+    bell(528, 0);
+    bell(660, 2.2);
+    bell(528, 4.4);
+    setTimeout(() => void ctx.close().catch(() => {}), 11000);
   } catch {
     /* noop */
   }
