@@ -36,7 +36,11 @@ import {
 import { StepFrequency } from "@/components/session-wizard/step-frequency";
 import { SignaturePad } from "@/components/session-wizard/signature-pad";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
-import { AudioPlayer, type AudioPlayerHandle } from "@/components/session-player/audio-player";
+import {
+  AudioPlayer,
+  playWhenReady,
+  type AudioPlayerHandle,
+} from "@/components/session-player/audio-player";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -471,7 +475,7 @@ function HomePlayer({
             ) : null}
             <CountdownTimer
               durationSeconds={minutes * 60}
-              onStart={() => audioHandleRef.current?.play()}
+              onStart={() => (trackId ? playWhenReady(audioHandleRef) : undefined)}
               onPause={() => audioHandleRef.current?.pause()}
               onReset={() => audioHandleRef.current?.stop()}
               onRunningChange={setAmbient}

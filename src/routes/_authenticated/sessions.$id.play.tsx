@@ -7,7 +7,11 @@ import { getSession, getAudioForFrequency, getSignedAudioUrl } from "@/lib/sessi
 import { getMyOrgLicence } from "@/lib/licence.functions";
 import { getSessionCheckins } from "@/lib/checkins.functions";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
-import { AudioPlayer, type AudioPlayerHandle } from "@/components/session-player/audio-player";
+import {
+  AudioPlayer,
+  playWhenReady,
+  type AudioPlayerHandle,
+} from "@/components/session-player/audio-player";
 import { CompletePanel } from "@/components/session-player/complete-panel";
 import { CheckinPanel } from "@/components/checkin/checkin-panel";
 import { WELLBEING_SCALES, type CheckinRow } from "@/lib/checkins";
@@ -251,7 +255,7 @@ function PlaySession() {
           }}
           onStart={() => {
             setTimerRunning(true);
-            audioHandleRef.current?.play();
+            return playWhenReady(audioHandleRef);
           }}
           onPause={() => {
             setTimerRunning(false);

@@ -15,7 +15,7 @@ interface Props {
 
 
 export interface AudioPlayerHandle {
-  play: () => void;
+  play: () => Promise<void>;
   pause: () => void;
   stop: () => void;
   fadeOut: (seconds?: number) => void;
@@ -85,17 +85,21 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     retryRef.current = null;
   };
 
-  const doPlay = () => {
+  /** Resolves once the music is actually playing; rejects if the device blocks it. */
+  const doPlay = (): Promise<void> => {
     const el = audioRef.current;
-    if (!el) return;
+    if (!el) return Promise.reject(new Error("no audio"));
     clearRetry();
+    clearFade();
     el.loop = loop;
     el.muted = false;
+    el.volume = vol;
 
-    const attempt = (): Promise<void> =>
+    return new Promise<void>((resolve, reject) => {
       el.play().then(
         () => {
           setBlocked(false);
+          resolve();
         },
         () => {
           // The very first tap often lands before the media is decodable, the
@@ -106,8 +110,14 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
               cleanup();
               void el
                 .play()
-                .then(() => setBlocked(false))
-                .catch(() => setBlocked(true));
+                .then(() => {
+                  setBlocked(false);
+                  resolve();
+                })
+                .catch(() => {
+                  setBlocked(true);
+                  reject(new Error("blocked"));
+                });
             };
             const cleanup = () => {
               el.removeEventListener("canplay", onReady);
@@ -125,10 +135,10 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
             return;
           }
           setBlocked(true);
+          reject(new Error("blocked"));
         },
       );
-
-    void attempt();
+    });
   };
   const doPause = () => {
     clearRetry();
@@ -153,7 +163,8 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     let i = 0;
     fadeTimerRef.current = setInterval(() => {
       i += 1;
-      const next = startVol * (1 - i / steps);
+      // Gentle ease-out curve so the music drifts away rather than dropping.
+      const next = startVol * Math.cos(((i / steps) * Math.PI) / 2);
       if (!audioRef.current) return clearFade();
       audioRef.current.volume = Math.max(0, next);
       if (i >= steps) {
@@ -183,7 +194,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   useImperativeHandle(
     ref,
     () => ({ play: doPlay, pause: doPause, stop: doStop, fadeOut: doFadeOut }),
-    [loop],
+    [loop, vol],
   );
 
   const toggle = () => (playing ? doPause() : doPlay());
@@ -263,3 +274,27 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     </div>
   );
 });
+
+/**
+ * Waits for the player to mount (the signed track URL may still be loading),
+ * then starts the music. Resolves when it is audibly playing, or after the
+ * timeout so a slow network never traps the session.
+ */
+export async function playWhenReady(
+  ref: { current: AudioPlayerHandle | null },
+  timeoutMs = 20000,
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (!ref.current && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 150));
+  }
+  if (!ref.current) return false;
+  const remaining = Math.max(1000, deadline - Date.now());
+  return Promise.race([
+    ref.current.play().then(
+      () => true,
+      () => false,
+    ),
+    new Promise<boolean>((r) => setTimeout(() => r(false), remaining)),
+  ]);
+}
