@@ -85,17 +85,21 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     retryRef.current = null;
   };
 
-  const doPlay = () => {
+  /** Resolves once the music is actually playing; rejects if the device blocks it. */
+  const doPlay = (): Promise<void> => {
     const el = audioRef.current;
-    if (!el) return;
+    if (!el) return Promise.reject(new Error("no audio"));
     clearRetry();
+    clearFade();
     el.loop = loop;
     el.muted = false;
+    el.volume = vol;
 
-    const attempt = (): Promise<void> =>
+    return new Promise<void>((resolve, reject) => {
       el.play().then(
         () => {
           setBlocked(false);
+          resolve();
         },
         () => {
           // The very first tap often lands before the media is decodable, the
@@ -106,8 +110,14 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
               cleanup();
               void el
                 .play()
-                .then(() => setBlocked(false))
-                .catch(() => setBlocked(true));
+                .then(() => {
+                  setBlocked(false);
+                  resolve();
+                })
+                .catch(() => {
+                  setBlocked(true);
+                  reject(new Error("blocked"));
+                });
             };
             const cleanup = () => {
               el.removeEventListener("canplay", onReady);
@@ -125,10 +135,10 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
             return;
           }
           setBlocked(true);
+          reject(new Error("blocked"));
         },
       );
-
-    void attempt();
+    });
   };
   const doPause = () => {
     clearRetry();
