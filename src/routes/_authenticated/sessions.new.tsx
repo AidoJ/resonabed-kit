@@ -261,7 +261,7 @@ function NewSession() {
         sessionId = res.id;
       }
       // The wizard's Wellbeing Check doubles as the "before" check-in, saved
-      // in right-positive scale semantics. A failure here must not block the
+      // in display semantics (Pain/Stress: 10 = worst). A failure here must not block the
       // session, the player screen still offers the check-in.
       try {
         await saveCheckinFn({

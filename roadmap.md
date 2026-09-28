@@ -49,4 +49,5 @@
 - [x] Reverse Stress to Calm (left, green) → Very stressed (right, red)
 - [x] Keep the remaining scales negative-left → positive-right
 - [x] Preserve existing saved score meanings and frequency matching
-- [x] Verify the shared before-session and after-session check logic; live preview was unavailable behind the current signed-in state
+- [x] Pain/Stress numbers run 0 (left) → 10 (right); stored scores are now severity (10 = Severe/Very stressed), colours inverted for those two
+- [x] Verified live in preview: Pain dragged right = 10/red/Severe; Stress dragged left = 0/green/Calm; before and after checks share the same logic

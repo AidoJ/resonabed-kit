@@ -70,8 +70,8 @@ const SCALE_FIELD: Record<CheckinItemKey, keyof SymptomsState> = {
  */
 export function toIntakeInputs(s: SymptomsState): IntakeInputs {
   return {
-    painLevel: 10 - s.pain,
-    stressLevel: 10 - s.stress,
+    painLevel: s.pain,
+    stressLevel: s.stress,
     sleepQuality: s.sleep,
     bodyAreas: s.bodyAreas,
     goals: s.goals,
@@ -102,15 +102,12 @@ export function StepSymptoms({ value, onChange }: Props) {
           <div key={k}>
             <div className="mb-2 flex items-baseline justify-between">
               <Label>{meta.label}</Label>
-              <span className="text-xs text-muted-foreground">
-                {poles.left} → {poles.right}
-              </span>
             </div>
             <div className="flex items-center gap-4">
               <Slider
                 className={SLIDER_CLASSES}
                 style={{
-                  "--slider-thumb-color": wellbeingThumbColor(v),
+                  "--slider-thumb-color": wellbeingThumbColor(v, k),
                 } as CSSProperties}
                 min={0}
                 max={10}
@@ -126,10 +123,14 @@ export function StepSymptoms({ value, onChange }: Props) {
               />
               <div
                 className="w-12 text-right text-2xl font-semibold tabular-nums"
-                style={{ color: wellbeingColor(v) }}
+                style={{ color: wellbeingColor(v, k) }}
               >
                 {v}
               </div>
+            </div>
+            <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+              <span>{poles.left}</span>
+              <span>{poles.right}</span>
             </div>
           </div>
         );
