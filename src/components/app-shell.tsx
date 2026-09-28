@@ -306,14 +306,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     // their clinic's public page, platform users go to the Resonabed site.
     const clinicSlug =
       !roles.includes("super_admin") && data?.org?.slug ? data.org.slug : null;
+    // Leave the protected pages first so their queries unmount; clearing the
+    // cache while they're mounted makes them refetch without a token (401).
     await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
     if (clinicSlug) {
-      navigate({ to: "/o/$slug", params: { slug: clinicSlug }, replace: true });
+      await navigate({ to: "/o/$slug", params: { slug: clinicSlug }, replace: true });
     } else {
-      navigate({ to: "/", replace: true });
+      await navigate({ to: "/", replace: true });
     }
+    await supabase.auth.signOut();
+    queryClient.clear();
   };
 
   const exitSupportFn = useServerFn(exitSupportMode);
