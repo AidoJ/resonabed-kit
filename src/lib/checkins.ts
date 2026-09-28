@@ -1,10 +1,9 @@
 /**
  * Wellbeing Check (self-rating scales, 0–10).
  *
- * Every scale is RIGHT-POSITIVE: sliding right always means "feeling better".
- * Anything that needs the opposite semantics (the frequency matcher, legacy
- * session rows) must invert at the boundary, see toIntakeInputs() in
- * step-symptoms.tsx.
+ * Most scales are RIGHT-POSITIVE: sliding right means "feeling better".
+ * Pain and Stress are severity scales: 0 = None/Calm (left), 10 =
+ * Severe/Very stressed (right), matching what the frequency matcher expects.
  *
  * These scales are an OUTCOME MEASURE ONLY. They are stored in their own
  * table (session_checkins) and are never read by the frequency-selection
