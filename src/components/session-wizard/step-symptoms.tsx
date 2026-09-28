@@ -70,8 +70,8 @@ const SCALE_FIELD: Record<CheckinItemKey, keyof SymptomsState> = {
  */
 export function toIntakeInputs(s: SymptomsState): IntakeInputs {
   return {
-    painLevel: 10 - s.pain,
-    stressLevel: 10 - s.stress,
+    painLevel: s.pain,
+    stressLevel: s.stress,
     sleepQuality: s.sleep,
     bodyAreas: s.bodyAreas,
     goals: s.goals,

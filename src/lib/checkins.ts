@@ -30,11 +30,11 @@ export const CHECKIN_ITEMS: Record<
   CheckinItemKey,
   { label: string; low: string; high: string }
 > = {
-  pain: { label: "Pain", low: "Severe", high: "None" },
+  pain: { label: "Pain", low: "None", high: "Severe" },
   physical_ease: { label: "Physical ease", low: "Stiff", high: "Free" },
   sleep_quality: { label: "Sleep", low: "Poor", high: "Good" },
   // DB key kept as "arousal" for historical rows; presented as Stress.
-  arousal: { label: "Stress", low: "Very stressed", high: "Calm" },
+  arousal: { label: "Stress", low: "Calm", high: "Very stressed" },
   mood: { label: "Mood", low: "Poor", high: "Good" },
   relaxation: { label: "Relaxation", low: "Tense", high: "Relaxed" },
 };
@@ -50,28 +50,26 @@ export const WELLBEING_SCALES: CheckinItemKey[] = [
 ];
 
 /**
- * These scales read more naturally with the positive pole on the left.
- * Their stored scores remain right-positive (10 = better); only the visual
- * slider position and pole labels are reversed at the UI boundary.
+ * Pain and Stress are stored as SEVERITY: 0 = None/Calm (left), 10 =
+ * Severe/Very stressed (right). Every other scale stays right-positive
+ * (10 = better). Slider position always equals the stored score.
  */
-export const REVERSED_WELLBEING_SCALES = new Set<CheckinItemKey>([
+export const NEGATIVE_WELLBEING_SCALES = new Set<CheckinItemKey>([
   "pain",
   "arousal",
 ]);
 
-export function wellbeingDisplayValue(key: CheckinItemKey, score: number): number {
-  return REVERSED_WELLBEING_SCALES.has(key) ? 10 - score : score;
+export function wellbeingDisplayValue(_key: CheckinItemKey, score: number): number {
+  return score;
 }
 
-export function wellbeingScoreFromDisplay(key: CheckinItemKey, position: number): number {
-  return REVERSED_WELLBEING_SCALES.has(key) ? 10 - position : position;
+export function wellbeingScoreFromDisplay(_key: CheckinItemKey, position: number): number {
+  return position;
 }
 
 export function wellbeingPoles(key: CheckinItemKey): { left: string; right: string } {
   const item = CHECKIN_ITEMS[key];
-  return REVERSED_WELLBEING_SCALES.has(key)
-    ? { left: item.high, right: item.low }
-    : { left: item.low, right: item.high };
+  return { left: item.low, right: item.high };
 }
 
 export type CheckinPhase = "before" | "after";
@@ -90,8 +88,9 @@ export interface CheckinRow extends CheckinRatings {
  * Slider thumb colour: red at 0 (worst), white at 5 (neutral), green at 10 (best).
  * Used only for the handle (circle), not the track line.
  */
-export function wellbeingThumbColor(value: number): string {
-  const t = Math.max(0, Math.min(10, value)) / 10;
+export function wellbeingThumbColor(value: number, key?: CheckinItemKey): string {
+  const v = key && NEGATIVE_WELLBEING_SCALES.has(key) ? 10 - value : value;
+  const t = Math.max(0, Math.min(10, v)) / 10;
   // 0 = red, 0.5 = white, 1 = green
   if (t <= 0.5) {
     const p = t / 0.5; // 0 → 1
@@ -111,8 +110,9 @@ export function wellbeingThumbColor(value: number): string {
  * Value-label colour: red at 0 (worst) through amber to green at 10 (best).
  * Because every scale is right-positive, one function covers all of them.
  */
-export function wellbeingColor(value: number): string {
-  const t = Math.max(0, Math.min(10, value)) / 10;
+export function wellbeingColor(value: number, key?: CheckinItemKey): string {
+  const v = key && NEGATIVE_WELLBEING_SCALES.has(key) ? 10 - value : value;
+  const t = Math.max(0, Math.min(10, v)) / 10;
   const hue = Math.round(t * 120); // 0 = red, 60 = amber, 120 = green
   return `hsl(${hue} 75% 42%)`;
 }
