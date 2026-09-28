@@ -107,7 +107,7 @@ export function StepSymptoms({ value, onChange }: Props) {
               <Slider
                 className={SLIDER_CLASSES}
                 style={{
-                  "--slider-thumb-color": wellbeingThumbColor(v),
+                  "--slider-thumb-color": wellbeingThumbColor(v, k),
                 } as CSSProperties}
                 min={0}
                 max={10}
@@ -123,7 +123,7 @@ export function StepSymptoms({ value, onChange }: Props) {
               />
               <div
                 className="w-12 text-right text-2xl font-semibold tabular-nums"
-                style={{ color: wellbeingColor(v) }}
+                style={{ color: wellbeingColor(v, k) }}
               >
                 {v}
               </div>

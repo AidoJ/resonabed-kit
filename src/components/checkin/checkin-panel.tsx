@@ -95,7 +95,7 @@ export function CheckinPanel({
                 <p className="text-sm font-medium">{meta.label}</p>
                 <span
                   className="min-w-8 text-right text-2xl font-extralight tabular-nums text-foreground/90"
-                  style={isTouched ? { color: wellbeingColor(values[k]) } : undefined}
+                  style={isTouched ? { color: wellbeingColor(values[k], k) } : undefined}
                 >
                   {isTouched ? values[k] : "–"}
                 </span>
@@ -109,7 +109,7 @@ export function CheckinPanel({
                 className="py-2 [&_[role=slider]]:h-8 [&_[role=slider]]:w-8 [&_[role=slider]]:border-2"
                 style={{
                   "--slider-thumb-color": isTouched
-                    ? wellbeingThumbColor(values[k])
+                    ? wellbeingThumbColor(values[k], k)
                     : undefined,
                 } as CSSProperties}
                 onValueChange={(nv) => {
