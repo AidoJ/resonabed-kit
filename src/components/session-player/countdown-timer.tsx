@@ -148,6 +148,7 @@ export function CountdownTimer({
     onPause?.();
   };
   const reset = () => {
+    stopClosing();
     setRunning(false);
     setRemaining(durationSeconds);
     setCompleted(false);
