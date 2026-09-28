@@ -13,6 +13,9 @@ import {
   CHECKIN_ITEMS,
   WELLBEING_SCALES,
   wellbeingColor,
+  wellbeingDisplayValue,
+  wellbeingPoles,
+  wellbeingScoreFromDisplay,
   wellbeingThumbColor,
   type CheckinItemKey,
 } from "@/lib/checkins";
@@ -93,12 +96,14 @@ export function StepSymptoms({ value, onChange }: Props) {
         const meta = CHECKIN_ITEMS[k];
         const field = SCALE_FIELD[k];
         const v = value[field] as number;
+        const displayValue = wellbeingDisplayValue(k, v);
+        const poles = wellbeingPoles(k);
         return (
           <div key={k}>
             <div className="mb-2 flex items-baseline justify-between">
               <Label>{meta.label}</Label>
               <span className="text-xs text-muted-foreground">
-                {meta.low} → {meta.high}
+                {poles.left} → {poles.right}
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -110,9 +115,14 @@ export function StepSymptoms({ value, onChange }: Props) {
                 min={0}
                 max={10}
                 step={1}
-                value={[v]}
-                aria-label={meta.label}
-                onValueChange={(nv) => onChange({ ...value, [field]: nv[0] ?? 0 })}
+                value={[displayValue]}
+                aria-label={`${meta.label}: ${poles.left} to ${poles.right}`}
+                onValueChange={(nv) =>
+                  onChange({
+                    ...value,
+                    [field]: wellbeingScoreFromDisplay(k, nv[0] ?? 0),
+                  })
+                }
               />
               <div
                 className="w-12 text-right text-2xl font-semibold tabular-nums"

@@ -42,12 +42,37 @@ export const CHECKIN_ITEMS: Record<
 /** Fixed display order for the wizard and both check-in phases. */
 export const WELLBEING_SCALES: CheckinItemKey[] = [
   "pain",
+  "arousal",
   "physical_ease",
   "sleep_quality",
-  "arousal",
   "mood",
   "relaxation",
 ];
+
+/**
+ * These scales read more naturally with the positive pole on the left.
+ * Their stored scores remain right-positive (10 = better); only the visual
+ * slider position and pole labels are reversed at the UI boundary.
+ */
+export const REVERSED_WELLBEING_SCALES = new Set<CheckinItemKey>([
+  "pain",
+  "arousal",
+]);
+
+export function wellbeingDisplayValue(key: CheckinItemKey, score: number): number {
+  return REVERSED_WELLBEING_SCALES.has(key) ? 10 - score : score;
+}
+
+export function wellbeingScoreFromDisplay(key: CheckinItemKey, position: number): number {
+  return REVERSED_WELLBEING_SCALES.has(key) ? 10 - position : position;
+}
+
+export function wellbeingPoles(key: CheckinItemKey): { left: string; right: string } {
+  const item = CHECKIN_ITEMS[key];
+  return REVERSED_WELLBEING_SCALES.has(key)
+    ? { left: item.high, right: item.low }
+    : { left: item.low, right: item.high };
+}
 
 export type CheckinPhase = "before" | "after";
 
