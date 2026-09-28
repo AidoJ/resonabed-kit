@@ -102,9 +102,6 @@ export function StepSymptoms({ value, onChange }: Props) {
           <div key={k}>
             <div className="mb-2 flex items-baseline justify-between">
               <Label>{meta.label}</Label>
-              <span className="text-xs text-muted-foreground">
-                {poles.left} → {poles.right}
-              </span>
             </div>
             <div className="flex items-center gap-4">
               <Slider
