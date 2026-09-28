@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import closingTrack from "@/assets/session-closing.m4a.asset.json";
 
 interface Props {
   durationSeconds: number;
@@ -128,6 +129,7 @@ export function CountdownTimer({
 
   const start = async () => {
     if (remaining <= 0 || starting) return;
+    primeClosing();
     const result = onStart?.();
     if (result && typeof (result as Promise<unknown>).then === "function") {
       setStarting(true);
@@ -263,45 +265,66 @@ export function CountdownTimer({
   );
 }
 
-function playChime() {
-  // Soft closing bells: three gentle strikes, each a small cluster of
-  // inharmonic partials with a long natural decay.
-  try {
-    const AC =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AC) return;
-    const ctx = new AC();
-    void ctx.resume?.().catch(() => {});
-    const master = ctx.createGain();
-    master.gain.value = 0.22;
-    master.connect(ctx.destination);
-    const now = ctx.currentTime + 0.6; // small pause after the music fades
-    const bell = (base: number, at: number) => {
-      const partials: Array<[number, number, number]> = [
-        [1, 1, 4.5],
-        [2.01, 0.45, 3],
-        [2.76, 0.3, 2.2],
-        [5.4, 0.12, 1.2],
-      ];
-      for (const [ratio, amp, decay] of partials) {
-        const osc = ctx.createOscillator();
-        const g = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = base * ratio;
-        g.gain.setValueAtTime(0.0001, now + at);
-        g.gain.exponentialRampToValueAtTime(amp, now + at + 0.015);
-        g.gain.exponentialRampToValueAtTime(0.0001, now + at + decay);
-        osc.connect(g).connect(master);
-        osc.start(now + at);
-        osc.stop(now + at + decay + 0.1);
-      }
-    };
-    bell(528, 0);
-    bell(660, 2.2);
-    bell(528, 4.4);
-    setTimeout(() => void ctx.close().catch(() => {}), 11000);
-  } catch {
-    /* noop */
+// Closing track: softly fades in once the session music has faded out.
+let closingEl: HTMLAudioElement | null = null;
+let closingFade: ReturnType<typeof setInterval> | null = null;
+
+function getClosing(): HTMLAudioElement | null {
+  if (typeof window === "undefined") return null;
+  if (!closingEl) {
+    closingEl = new Audio(closingTrack.url);
+    closingEl.preload = "auto";
+    closingEl.setAttribute("playsinline", "");
   }
+  return closingEl;
+}
+
+/** Unlock the closing track during the Start tap so it may play later. */
+function primeClosing() {
+  const el = getClosing();
+  if (!el) return;
+  stopClosing();
+  el.muted = true;
+  void el
+    .play()
+    .then(() => {
+      el.pause();
+      el.currentTime = 0;
+      el.muted = false;
+    })
+    .catch(() => {
+      el.muted = false;
+    });
+}
+
+function stopClosing() {
+  if (closingFade) clearInterval(closingFade);
+  closingFade = null;
+  if (closingEl) {
+    closingEl.pause();
+    closingEl.currentTime = 0;
+  }
+}
+
+function playChime() {
+  const el = getClosing();
+  if (!el) return;
+  stopClosing();
+  window.setTimeout(() => {
+    el.muted = false;
+    el.volume = 0;
+    el.currentTime = 0;
+    void el.play().catch(() => {});
+    const target = 0.8;
+    const steps = 50; // ~5 second gentle fade-in
+    let i = 0;
+    closingFade = setInterval(() => {
+      i += 1;
+      el.volume = Math.min(target, target * Math.sin(((i / steps) * Math.PI) / 2));
+      if (i >= steps && closingFade) {
+        clearInterval(closingFade);
+        closingFade = null;
+      }
+    }, 100);
+  }, 1500); // short pause after the session music fades away
 }
