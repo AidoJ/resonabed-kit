@@ -42,3 +42,11 @@
 
 ## Home player music fix (done)
 - [x] Home session player: music now joins even when Start is tapped before the track finishes loading (replay effect in src/routes/home.index.tsx); verified as 71tdeeble home user — audio plays and advances, no errors
+
+## Wellbeing check slider polarity
+- [ ] Show Pain first and Stress second on every wellbeing check
+- [ ] Reverse Pain to None (left, green) → Severe (right, red)
+- [ ] Reverse Stress to Calm (left, green) → Very stressed (right, red)
+- [ ] Keep the remaining scales negative-left → positive-right
+- [ ] Preserve existing saved score meanings and frequency matching
+- [ ] Verify the before-session wizard and after-session check on desktop and mobile
