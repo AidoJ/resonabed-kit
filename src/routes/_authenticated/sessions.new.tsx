@@ -116,8 +116,8 @@ function NewSession() {
   const freqFn = useServerFn(listFrequenciesWithAudioFlag);
   const { data: freqs } = useQuery({ queryKey: ["frequencies-with-audio"], queryFn: () => freqFn() });
 
-  // The six right-positive wellbeing scales are converted once, pain and
-  // stress invert here so the matcher keeps its historical semantics.
+  // The six wellbeing scores retain their right-positive stored semantics;
+  // Pain and Stress are reversed visually inside StepSymptoms only.
   const intake = useMemo(() => toIntakeInputs(symptoms), [symptoms]);
 
   const targetHz = useMemo(() => computeTargetHz(intake, freqs ?? []), [intake, freqs]);
@@ -293,7 +293,7 @@ function NewSession() {
   const subtitles = [
     "Pick an existing client or add a new one.",
     "Choose the service being delivered.",
-    "Slide each scale to where the client feels right now, red is hardest, green is best.",
+    "Slide each scale to where the client feels right now. Green is feeling better; red is feeling worse.",
     "Screen for contraindications, then both parties sign. This record is permanent.",
     "Suggested frequency for this intake, override if you prefer.",
   ];

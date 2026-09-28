@@ -7,6 +7,9 @@ import {
   CHECKIN_ITEMS,
   WELLBEING_SCALES,
   wellbeingColor,
+  wellbeingDisplayValue,
+  wellbeingPoles,
+  wellbeingScoreFromDisplay,
   wellbeingThumbColor,
   type CheckinItemKey,
   type CheckinPhase,
@@ -84,6 +87,8 @@ export function CheckinPanel({
         {items.map((k) => {
           const meta = CHECKIN_ITEMS[k];
           const isTouched = touched.has(k);
+          const displayValue = wellbeingDisplayValue(k, values[k]);
+          const poles = wellbeingPoles(k);
           return (
             <div key={k} className="space-y-2">
               <div className="flex items-baseline justify-between">
@@ -99,8 +104,8 @@ export function CheckinPanel({
                 min={0}
                 max={10}
                 step={1}
-                value={[values[k]]}
-                aria-label={meta.label}
+                value={[displayValue]}
+                aria-label={`${meta.label}: ${poles.left} to ${poles.right}`}
                 className="py-2 [&_[role=slider]]:h-8 [&_[role=slider]]:w-8 [&_[role=slider]]:border-2"
                 style={{
                   "--slider-thumb-color": isTouched
@@ -108,14 +113,14 @@ export function CheckinPanel({
                     : undefined,
                 } as CSSProperties}
                 onValueChange={(nv) => {
-                  const v = nv[0] ?? 0;
+                  const v = wellbeingScoreFromDisplay(k, nv[0] ?? 0);
                   setValues((s) => ({ ...s, [k]: v }));
                   setTouched((s) => new Set(s).add(k));
                 }}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{meta.low}</span>
-                <span>{meta.high}</span>
+                <span>{poles.left}</span>
+                <span>{poles.right}</span>
               </div>
             </div>
           );
