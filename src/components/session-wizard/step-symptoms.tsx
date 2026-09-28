@@ -128,6 +128,10 @@ export function StepSymptoms({ value, onChange }: Props) {
                 {v}
               </div>
             </div>
+            <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+              <span>{poles.left}</span>
+              <span>{poles.right}</span>
+            </div>
           </div>
         );
       })}
