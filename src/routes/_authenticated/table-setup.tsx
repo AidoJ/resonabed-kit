@@ -39,7 +39,7 @@ const VIDEOS: TrainingVideo[] = [
     num: 3,
     title: "Install transducers and amplifier",
     description: "Mount the transducers under the tabletop and position the amplifier.",
-    url: null,
+    url: installVideo.url,
   },
   {
     num: 4,
