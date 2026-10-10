@@ -84,12 +84,25 @@ function Shell({
       <div className="mx-auto w-full max-w-3xl">
         <div className="mb-8 flex items-center justify-between">
           <img src={logo.url} alt="Resonabed" className="h-9 w-auto" />
-          {onSignOut ? (
-            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={onSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+              <Link to="/home/setup">
+                <Wrench className="mr-2 h-4 w-4" />
+                Table setup
+              </Link>
             </Button>
-          ) : null}
+            {onSignOut ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                onClick={onSignOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </Button>
+            ) : null}
+          </div>
         </div>
         {children}
       </div>
