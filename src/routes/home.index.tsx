@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, LogOut, X } from "lucide-react";
+import { Loader2, LogOut, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getHomeContext,
