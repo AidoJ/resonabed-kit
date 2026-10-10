@@ -37,6 +37,7 @@ import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTableSetupRouteImport } from './routes/_authenticated/table-setup'
 import { Route as HomeIndexRouteImport } from './routes/home.index'
 import { Route as HomeLoginRouteImport } from './routes/home.login'
+import { Route as HomeSetupRouteImport } from './routes/home.setup'
 import { Route as HomeSignupRouteImport } from './routes/home.signup'
 import { Route as OSlugRouteImport } from './routes/o.$slug'
 import { Route as OfferTokenRouteImport } from './routes/offer.$token'
@@ -219,6 +220,11 @@ const HomeIndexRoute = HomeIndexRouteImport.update({
 const HomeLoginRoute = HomeLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => HomeRoute,
+} as any)
+const HomeSetupRoute = HomeSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
   getParentRoute: () => HomeRoute,
 } as any)
 const HomeSignupRoute = HomeSignupRouteImport.update({
@@ -478,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/table-setup': typeof AuthenticatedTableSetupRoute
   '/home/login': typeof HomeLoginRoute
+  '/home/setup': typeof HomeSetupRoute
   '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
   '/offer/$token': typeof OfferTokenRoute
@@ -545,6 +552,7 @@ export interface FileRoutesByTo {
   '/services': typeof AuthenticatedServicesRoute
   '/table-setup': typeof AuthenticatedTableSetupRoute
   '/home/login': typeof HomeLoginRoute
+  '/home/setup': typeof HomeSetupRoute
   '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
   '/offer/$token': typeof OfferTokenRoute
@@ -617,6 +625,7 @@ export interface FileRoutesById {
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/_authenticated/table-setup': typeof AuthenticatedTableSetupRoute
   '/home/login': typeof HomeLoginRoute
+  '/home/setup': typeof HomeSetupRoute
   '/home/signup': typeof HomeSignupRoute
   '/o/$slug': typeof OSlugRoute
   '/offer/$token': typeof OfferTokenRoute
@@ -689,6 +698,7 @@ export interface FileRouteTypes {
     | '/sessions'
     | '/table-setup'
     | '/home/login'
+    | '/home/setup'
     | '/home/signup'
     | '/o/$slug'
     | '/offer/$token'
@@ -756,6 +766,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/table-setup'
     | '/home/login'
+    | '/home/setup'
     | '/home/signup'
     | '/o/$slug'
     | '/offer/$token'
@@ -827,6 +838,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sessions'
     | '/_authenticated/table-setup'
     | '/home/login'
+    | '/home/setup'
     | '/home/signup'
     | '/o/$slug'
     | '/offer/$token'
@@ -1096,6 +1108,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/home/login'
       preLoaderRoute: typeof HomeLoginRouteImport
+      parentRoute: typeof HomeRoute
+    }
+    '/home/setup': {
+      id: '/home/setup'
+      path: '/setup'
+      fullPath: '/home/setup'
+      preLoaderRoute: typeof HomeSetupRouteImport
       parentRoute: typeof HomeRoute
     }
     '/home/signup': {
@@ -1500,12 +1519,14 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface HomeRouteChildren {
   HomeLoginRoute: typeof HomeLoginRoute
+  HomeSetupRoute: typeof HomeSetupRoute
   HomeSignupRoute: typeof HomeSignupRoute
   HomeIndexRoute: typeof HomeIndexRoute
 }
 
 const HomeRouteChildren: HomeRouteChildren = {
   HomeLoginRoute: HomeLoginRoute,
+  HomeSetupRoute: HomeSetupRoute,
   HomeSignupRoute: HomeSignupRoute,
   HomeIndexRoute: HomeIndexRoute,
 }
