@@ -90,6 +90,7 @@ import {
   type PackageDef,
 } from "@/lib/packages";
 import { getKitPricing } from "@/lib/pricing.functions";
+import { HomeOrderPanel } from "@/components/home-order-panel";
 
 import {
   ArrowRight,
