@@ -90,6 +90,7 @@ import {
   type PackageDef,
 } from "@/lib/packages";
 import { getKitPricing } from "@/lib/pricing.functions";
+import { HomeOrderPanel } from "@/components/home-order-panel";
 
 import {
   ArrowRight,
@@ -432,12 +433,12 @@ function LandingPage() {
             <p className="mt-5 max-w-xl text-sm text-white/65">
               Retrofit a compatible timber-base table, or choose a fully fitted setup.
             </p>
-            <Link
-              to="/for-home"
+            <a
+              href="#home-package"
               className="mt-4 w-fit text-sm text-white/75 underline underline-offset-4 hover:text-white"
             >
               Looking for Resonabed at home?
-            </Link>
+            </a>
           </div>
 
           <div className="relative flex items-center">
@@ -749,6 +750,22 @@ function LandingPage() {
           equipment can be mounted securely. Shipping is quoted when you reserve and charged with
           your balance.
         </p>
+
+        <div id="home-package" className="mx-auto mt-20 max-w-xl scroll-mt-24">
+          <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+            Not running a clinic?
+          </p>
+          <h3 className="mt-3 text-center text-2xl font-light tracking-tight text-brand-indigo md:text-3xl">
+            Resonabed for Home.
+          </h3>
+          <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
+            The full vibroacoustic experience for yourself, family and friends, on a fully fitted
+            table with the personal app included at no ongoing cost.
+          </p>
+          <div className="mt-8">
+            <HomeOrderPanel pkg={pkgs.home} depositCents={orderDepositCents} />
+          </div>
+        </div>
       </section>
 
       {/* COMPARE */}
