@@ -843,14 +843,6 @@ function LandingPage() {
               How Resonabed is designed to support a practitioner workflow — not a customer
               testimonial.
             </p>
-            <Button
-              type="button"
-              onClick={openCalendlyPopup}
-              variant="outline"
-              className="mt-6 rounded-full border-brand-indigo/20 text-brand-indigo"
-            >
-              See a product walkthrough
-            </Button>
           </div>
         </div>
       </section>
