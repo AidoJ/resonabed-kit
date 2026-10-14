@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import { Play, Pause, Square, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { attachMusic, isMusicAttached } from "./session-audio-engine";
 
 interface Props {
   src: string;
@@ -91,6 +92,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     if (!el) return Promise.reject(new Error("no audio"));
     clearRetry();
     clearFade();
+    attachMusic(el);
     el.loop = loop;
     el.muted = false;
     el.volume = vol;
@@ -149,6 +151,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   const clearFade = () => {
     if (fadeTimerRef.current != null) {
       clearInterval(fadeTimerRef.current);
+      clearTimeout(fadeTimerRef.current as unknown as ReturnType<typeof setTimeout>);
       fadeTimerRef.current = null;
     }
   };
@@ -157,6 +160,15 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     const el = audioRef.current;
     if (!el || el.paused) return;
     clearFade();
+    if (isMusicAttached(el)) {
+      // The fade is already booked on the audio clock; just stop the silent
+      // track once it has finished.
+      fadeTimerRef.current = setTimeout(() => {
+        fadeTimerRef.current = null;
+        doStop();
+      }, (seconds + 0.5) * 1000) as unknown as ReturnType<typeof setInterval>;
+      return;
+    }
     const startVol = el.volume;
     const stepMs = 100;
     const steps = Math.max(1, Math.round((seconds * 1000) / stepMs));
@@ -214,7 +226,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
           {fmt(time)} / {fmt(dur)}
         </span>
       </div>
-      <audio ref={audioRef} src={src} preload="auto" loop={loop} playsInline />
+      <audio ref={audioRef} src={src} preload="auto" loop={loop} playsInline crossOrigin="anonymous" />
       {blocked ? (
         <button
           type="button"

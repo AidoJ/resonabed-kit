@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import closingTrack from "@/assets/session-closing.m4a.asset.json";
+import {
+  unlockAudio,
+  scheduleEnding,
+  cancelEnding,
+  resetMusicLevel,
+} from "./session-audio-engine";
 
 interface Props {
   durationSeconds: number;
@@ -41,6 +46,7 @@ export function CountdownTimer({
   
   const completedRef = useRef(false);
   const fadeStartedRef = useRef(false);
+  const engineFadeRef = useRef(false);
   const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
 
   useEffect(() => {
@@ -107,7 +113,6 @@ export function CountdownTimer({
             onFadeStart?.(2);
           }
           setCompleted(true);
-          playChime();
           onComplete?.();
         }
         setRunning(false);
@@ -129,7 +134,7 @@ export function CountdownTimer({
 
   const start = async () => {
     if (remaining <= 0 || starting) return;
-    primeClosing();
+    unlockAudio();
     const result = onStart?.();
     if (result && typeof (result as Promise<unknown>).then === "function") {
       setStarting(true);
@@ -141,14 +146,20 @@ export function CountdownTimer({
       setStarting(false);
     }
     endTsRef.current = Date.now() + remaining * 1000;
+    // Book the fade-out + closing track on the audio clock. If the engine owns
+    // the music fade, skip the timer-driven fade (except the final stop).
+    const handled = scheduleEnding(remaining, fadeLeadSeconds);
+    engineFadeRef.current = handled;
     setRunning(true);
   };
   const pause = () => {
+    cancelEnding();
     setRunning(false);
     onPause?.();
   };
   const reset = () => {
-    stopClosing();
+    cancelEnding();
+    resetMusicLevel();
     setRunning(false);
     setRemaining(durationSeconds);
     setCompleted(false);
@@ -266,66 +277,3 @@ export function CountdownTimer({
   );
 }
 
-// Closing track: softly fades in once the session music has faded out.
-let closingEl: HTMLAudioElement | null = null;
-let closingFade: ReturnType<typeof setInterval> | null = null;
-
-function getClosing(): HTMLAudioElement | null {
-  if (typeof window === "undefined") return null;
-  if (!closingEl) {
-    closingEl = new Audio(closingTrack.url);
-    closingEl.preload = "auto";
-    closingEl.setAttribute("playsinline", "");
-  }
-  return closingEl;
-}
-
-/** Unlock the closing track during the Start tap so it may play later. */
-function primeClosing() {
-  const el = getClosing();
-  if (!el) return;
-  stopClosing();
-  el.muted = true;
-  void el
-    .play()
-    .then(() => {
-      el.pause();
-      el.currentTime = 0;
-      el.muted = false;
-    })
-    .catch(() => {
-      el.muted = false;
-    });
-}
-
-function stopClosing() {
-  if (closingFade) clearInterval(closingFade);
-  closingFade = null;
-  if (closingEl) {
-    closingEl.pause();
-    closingEl.currentTime = 0;
-  }
-}
-
-function playChime() {
-  const el = getClosing();
-  if (!el) return;
-  stopClosing();
-  window.setTimeout(() => {
-    el.muted = false;
-    el.volume = 0;
-    el.currentTime = 0;
-    void el.play().catch(() => {});
-    const target = 0.8;
-    const steps = 50; // ~5 second gentle fade-in
-    let i = 0;
-    closingFade = setInterval(() => {
-      i += 1;
-      el.volume = Math.min(target, target * Math.sin(((i / steps) * Math.PI) / 2));
-      if (i >= steps && closingFade) {
-        clearInterval(closingFade);
-        closingFade = null;
-      }
-    }, 100);
-  }, 1500); // short pause after the session music fades away
-}
