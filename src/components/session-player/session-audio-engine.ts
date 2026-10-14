@@ -135,7 +135,7 @@ export function scheduleEnding(remainingSeconds: number, fadeSeconds = 15): bool
     src.buffer = buf;
     const g = ctx.createGain();
     g.gain.setValueAtTime(0, startAt);
-    g.linearRampToValueAtTime(CLOSING_VOLUME, startAt + CLOSING_FADE_IN);
+    g.gain.linearRampToValueAtTime(CLOSING_VOLUME, startAt + CLOSING_FADE_IN);
     src.connect(g).connect(ctx.destination);
     src.start(startAt);
     src.onended = () => {
