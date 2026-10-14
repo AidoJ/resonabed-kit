@@ -16,6 +16,11 @@ export const THERAPIST_TESTIMONIALS: Testimonial[] = [
     name: "Clare L.",
     context: "09/08/2026",
   },
+  {
+    quote:
+      "Loved how easy the kit was to set up on my own therapy table, I'm not very technical but the table set up videos in the app were simple to follow. The business app is a great part of the system too that allows me to easily take bookings and run the vibroacoustic sessions for my clients.",
+    name: "Joseph M.",
+  },
 ];
 
 export const CLIENT_TESTIMONIALS: Testimonial[] = [
