@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { PromoDiscountSchema } from "@/lib/promo-discounts";
 
 async function requireSuperAdmin(ctx: {
   supabase: import("@supabase/supabase-js").SupabaseClient;
@@ -20,6 +21,7 @@ export interface PromoCodeRow {
   code: string;
   active: boolean;
   percent_off: number;
+  fixed_amount_cents: number | null;
   max_redemptions: number | null;
   times_redeemed: number;
   created_at: string;
@@ -32,7 +34,7 @@ export const listPromoCodes = createServerFn({ method: "GET" })
 
     const { data, error } = await context.supabase
       .from("promo_codes")
-      .select("id, code, active, discount_percent, max_redemptions, times_redeemed, created_at")
+      .select("id, code, active, discount_percent, fixed_amount_cents, max_redemptions, times_redeemed, created_at")
       .order("created_at", { ascending: false });
 
     if (error) throw new Error(error.message);
@@ -42,6 +44,7 @@ export const listPromoCodes = createServerFn({ method: "GET" })
       code: pc.code,
       active: pc.active,
       percent_off: pc.discount_percent,
+      fixed_amount_cents: pc.fixed_amount_cents,
       max_redemptions: pc.max_redemptions,
       times_redeemed: pc.times_redeemed,
       created_at: pc.created_at,
@@ -50,9 +53,8 @@ export const listPromoCodes = createServerFn({ method: "GET" })
 
 const CreateSchema = z.object({
   code: z.string().min(3).max(40).regex(/^[A-Z0-9_-]+$/i, "Use letters, numbers, dashes and underscores only"),
-  percent_off: z.number().int().min(1).max(99),
   max_redemptions: z.number().int().min(1).nullable().optional(),
-});
+}).and(PromoDiscountSchema);
 
 export const createPromoCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -65,7 +67,8 @@ export const createPromoCode = createServerFn({ method: "POST" })
       .from("promo_codes")
       .insert({
         code: normalizedCode,
-        discount_percent: data.percent_off,
+        discount_percent: data.discount_type === "percentage" ? data.percent_off : 1,
+        fixed_amount_cents: data.discount_type === "fixed" ? data.fixed_amount_cents : null,
         max_redemptions: data.max_redemptions ?? null,
         created_by: context.userId,
       })

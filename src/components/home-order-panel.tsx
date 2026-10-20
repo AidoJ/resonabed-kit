@@ -85,7 +85,7 @@ export function HomeOrderPanel({ pkg, depositCents }: { pkg: PackageDef; deposit
           : `Shipping to ${shipping.label}: $${(shipping.amount / 100).toFixed(2)} AUD${shipping.gstInclusive ? " (incl. GST)" : " (GST-free export)"}, locked in and charged with your balance, not today.`
         : null;
       const promoBlurb = appliedPromo
-        ? `${appliedPromo.code} applied, ${appliedPromo.percentOff}% off, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
+        ? `${appliedPromo.code} applied${appliedPromo.percentOff !== null ? `, ${appliedPromo.percentOff}% off` : ""}, saving $${(appliedPromo.amountDiscounted / 100).toFixed(2)} AUD.`
         : null;
       const combined = ["For home use.", promoBlurb, shippingBlurb].filter(Boolean).join(" ");
       setCheckoutNote(combined || null);

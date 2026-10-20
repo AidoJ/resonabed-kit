@@ -194,7 +194,7 @@ export type CreateOrderInput = {
   pickup: boolean;
   shippingAddress?: string | null;
   shipping: { region: string; label: string; amount: number; gstInclusive: boolean };
-  promo?: { id: string; code: string; percentOff: number; amountDiscounted: number } | null;
+  promo?: { id: string; code: string; percentOff: number | null; amountDiscounted: number } | null;
   paymentChannel: "card" | "eft";
 };
 

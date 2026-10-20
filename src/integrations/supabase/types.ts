@@ -1999,6 +1999,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           discount_percent: number
+          fixed_amount_cents: number | null
           id: string
           max_redemptions: number | null
           times_redeemed: number
@@ -2010,6 +2011,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           discount_percent: number
+          fixed_amount_cents?: number | null
           id?: string
           max_redemptions?: number | null
           times_redeemed?: number
@@ -2021,6 +2023,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           discount_percent?: number
+          fixed_amount_cents?: number | null
           id?: string
           max_redemptions?: number | null
           times_redeemed?: number
