@@ -9,7 +9,8 @@ describe("promo discount types", () => {
     expect(calculatePromoDiscount(159900, 149900, 10, null)).toBe(15990);
   });
   it("accepts fixed amounts including cents", () => {
-    expect(PromoDiscountSchema.parse({ discount_type: "fixed", fixed_amount_cents: 20025 }).fixed_amount_cents).toBe(20025);
+    const discount = PromoDiscountSchema.parse({ discount_type: "fixed", fixed_amount_cents: 20025 });
+    expect(discount).toEqual({ discount_type: "fixed", fixed_amount_cents: 20025 });
   });
   it("rejects zero fixed discounts", () => {
     expect(PromoDiscountSchema.safeParse({ discount_type: "fixed", fixed_amount_cents: 0 }).success).toBe(false);

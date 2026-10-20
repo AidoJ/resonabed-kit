@@ -9,13 +9,11 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-## Session audio
-
 ## Promo discounts
 
 - Store fixed promo amounts in integer cents; a non-null fixed amount overrides the legacy percentage field so existing percentage codes remain compatible. Orders freeze the monetary discount, and percentage is null for fixed codes to avoid misreporting.
 
-## Session audio rules
+## Session audio
 
 - Session music and the session-end sequence are scheduled on the device audio clock (Web Audio) rather than page timers, so the ending still fires when the screen locks or the tab is backgrounded; page timers only mirror the display.
 - The closing recording is started only by the booked ending and never during start-up unlock, because a muted pre-play of it has leaked audible sound at the beginning of sessions on some devices.
