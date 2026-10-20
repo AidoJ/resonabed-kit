@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,10 @@ export const Route = createFileRoute("/_authenticated/admin/promo-codes")({
     meta: [
       { title: "Promo codes, ResonaBed" },
       { name: "description", content: "Create and manage promotional discount codes for kit checkout." },
+      { property: "og:title", content: "Promo codes, ResonaBed" },
+      { property: "og:description", content: "Manage fixed-dollar and percentage kit discounts." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -66,6 +71,8 @@ function PromoCodesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [code, setCode] = useState("");
   const [percentOff, setPercentOff] = useState("10");
+  const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
+  const [fixedAmount, setFixedAmount] = useState("");
   const [maxRedemptions, setMaxRedemptions] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -76,7 +83,9 @@ function PromoCodesPage() {
       createFn({
         data: {
           code: code.trim(),
-          percent_off: Number(percentOff),
+          ...(discountType === "percentage"
+            ? { discount_type: "percentage" as const, percent_off: Number(percentOff) }
+            : { discount_type: "fixed" as const, fixed_amount_cents: Math.round(Number(fixedAmount) * 100) }),
           max_redemptions: maxRedemptions ? Number(maxRedemptions) : null,
         },
       }),
@@ -84,6 +93,8 @@ function PromoCodesPage() {
       toast.success("Promo code created");
       setCode("");
       setPercentOff("10");
+      setDiscountType("percentage");
+      setFixedAmount("");
       setMaxRedemptions("");
       setCreateOpen(false);
       qc.invalidateQueries({ queryKey: ["promo-codes"] });
@@ -111,11 +122,11 @@ function PromoCodesPage() {
   const isValid =
     code.trim().length >= 3 &&
     /^[A-Z0-9_-]+$/i.test(code.trim()) &&
-    !Number.isNaN(Number(percentOff)) &&
-    Number(percentOff) >= 1 &&
-    Number(percentOff) <= 99 &&
+    (discountType === "percentage"
+      ? Number.isInteger(Number(percentOff)) && Number(percentOff) >= 1 && Number(percentOff) <= 99
+      : /^\d+(\.\d{1,2})?$/.test(fixedAmount) && Number(fixedAmount) > 0 && Math.round(Number(fixedAmount) * 100) <= 2147483647) &&
     (maxRedemptions === "" ||
-      (!Number.isNaN(Number(maxRedemptions)) && Number(maxRedemptions) >= 1));
+      (Number.isInteger(Number(maxRedemptions)) && Number(maxRedemptions) >= 1));
 
   return (
     <div className="space-y-6">
@@ -123,7 +134,7 @@ function PromoCodesPage() {
         <div>
           <h2 className="text-xl font-medium">Promo codes</h2>
           <p className="text-sm text-muted-foreground">
-            Percentage discounts that customers can apply at checkout on the Pro or Premium kit.
+            Percentage or fixed-dollar discounts for pay-in-full kit orders.
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="gap-2">
@@ -176,7 +187,7 @@ function PromoCodesPage() {
                         </button>
                       </div>
                     </TableCell>
-                    <TableCell>{pc.percent_off}% off</TableCell>
+                     <TableCell>{pc.fixed_amount_cents !== null ? `$${(pc.fixed_amount_cents / 100).toFixed(2)} AUD` : `${pc.percent_off}%`} off</TableCell>
                     <TableCell>
                       {pc.times_redeemed}
                       {pc.max_redemptions !== null ? ` / ${pc.max_redemptions}` : " unlimited"}
@@ -210,7 +221,7 @@ function PromoCodesPage() {
           <DialogHeader>
             <DialogTitle>Create promo code</DialogTitle>
             <DialogDescription>
-              Customers enter this code at checkout. It applies to both the Pro and Premium kits.
+              Customers enter this code at checkout for pay-in-full kit orders.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -228,14 +239,25 @@ function PromoCodesPage() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="percent">Percent off</Label>
+              <Label htmlFor="discount-type">Discount type</Label>
+              <Select value={discountType} onValueChange={(value) => { if (value === "percentage" || value === "fixed") setDiscountType(value); }}>
+                <SelectTrigger id="discount-type"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">Percentage (%)</SelectItem>
+                  <SelectItem value="fixed">Fixed amount (AUD)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="percent">{discountType === "percentage" ? "Percent off" : "Amount off (AUD)"}</Label>
               <Input
                 id="percent"
                 type="number"
-                min={1}
-                max={99}
-                value={percentOff}
-                onChange={(e) => setPercentOff(e.target.value)}
+                min={discountType === "percentage" ? 1 : 0.01}
+                max={discountType === "percentage" ? 99 : undefined}
+                step={discountType === "percentage" ? 1 : 0.01}
+                value={discountType === "percentage" ? percentOff : fixedAmount}
+                onChange={(e) => discountType === "percentage" ? setPercentOff(e.target.value) : setFixedAmount(e.target.value)}
               />
             </div>
             <div className="space-y-2">

@@ -14,6 +14,7 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { PACKAGES, PACKAGE_KEYS, money, type PackageKey } from "@/lib/packages";
 import { resolveKitPricing } from "@/lib/pricing.server";
+import { calculatePromoDiscount } from "@/lib/promo-discounts";
 import {
   createOrderDraft,
   getOrderByToken,
@@ -170,7 +171,8 @@ export function addressToText(addr?: z.infer<typeof ShippingAddressSchema>) {
 export type AppliedPromo = {
   id: string;
   code: string;
-  percentOff: number;
+  percentOff: number | null;
+  fixedAmountCents: number | null;
   amountDiscounted: number;
   payableAmount: number;
 };
@@ -187,7 +189,7 @@ export async function resolvePromo(
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: promo, error } = await supabaseAdmin
     .from("promo_codes")
-    .select("id, code, active, discount_percent, max_redemptions, times_redeemed")
+    .select("id, code, active, discount_percent, fixed_amount_cents, max_redemptions, times_redeemed")
     .eq("code", code)
     .maybeSingle();
   if (error) throw new Error("We couldn't validate that promo code. Please try again.");
@@ -195,14 +197,12 @@ export async function resolvePromo(
   if (promo.max_redemptions !== null && promo.times_redeemed >= promo.max_redemptions) {
     throw new Error("That promo code has reached its redemption limit");
   }
-  const amountDiscounted = Math.floor((pkg.listCents * promo.discount_percent) / 100);
-  if (pkg.balanceCents - amountDiscounted < 50) {
-    throw new Error("This promo code discount is too high for checkout");
-  }
+  const amountDiscounted = calculatePromoDiscount(pkg.listCents, pkg.balanceCents, promo.discount_percent, promo.fixed_amount_cents);
   return {
     id: promo.id,
     code: promo.code,
-    percentOff: promo.discount_percent,
+    percentOff: promo.fixed_amount_cents === null ? promo.discount_percent : null,
+    fixedAmountCents: promo.fixed_amount_cents,
     amountDiscounted,
     payableAmount: pkg.listCents - amountDiscounted,
   };

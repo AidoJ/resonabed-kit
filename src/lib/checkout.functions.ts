@@ -77,6 +77,7 @@ export const validatePromoCode = createServerFn({ method: "POST" })
     return {
       code: promo.code,
       percentOff: promo.percentOff,
+      fixedAmountCents: promo.fixedAmountCents,
       originalAmount: pricing.packages[data.package].listCents,
       amountDiscounted: promo.amountDiscounted,
       payableAmount: promo.payableAmount,

@@ -8,7 +8,8 @@ import { CheckCircle2, Tag } from "lucide-react";
 
 type Applied = {
   code: string;
-  percentOff: number;
+  percentOff: number | null;
+  fixedAmountCents: number | null;
   originalAmount: number;
   amountDiscounted: number;
   payableAmount: number;
@@ -129,7 +130,7 @@ export function PromoStepDialog({
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
               <div className="flex items-center gap-2 text-emerald-800">
                 <CheckCircle2 className="h-5 w-5" />
-                <span className="font-medium">{applied.code} applied, {applied.percentOff}% off</span>
+                <span className="font-medium">{applied.code} applied, {applied.fixedAmountCents !== null ? fmt(applied.fixedAmountCents) : `${applied.percentOff}%`} off</span>
               </div>
               <dl className="mt-3 space-y-1.5 text-sm">
                 <div className="flex justify-between text-muted-foreground">
