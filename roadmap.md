@@ -1,6 +1,6 @@
 # Tasks
 
-- [ ] Add fixed-dollar promo codes alongside percentages and verify administration and checkout
+- [x] Add fixed-dollar promo codes alongside percentages and verify administration and checkout
 - [x] Raise storage limits for ~1GB WAV uploads
 - [ ] Confirm /audio upload path handles large files
 - [x] Redesign client invoice and receipt with ResonaBed branding
