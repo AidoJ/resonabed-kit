@@ -257,6 +257,37 @@ function fit(
 }
 
 /**
+ * Breaks text into lines that fit a width, wrapping at word boundaries.
+ * When the text needs more than maxLines, the last line is ellipsised.
+ */
+function wrap(
+  text: string,
+  size: number,
+  maxWidth: number,
+  maxLines: number,
+  measure: (t: string, s: number) => number,
+): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (measure(candidate, size) <= maxWidth) {
+      current = candidate;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  if (lines.length <= maxLines) return lines;
+  const kept = lines.slice(0, maxLines);
+  const overflow = [kept[maxLines - 1]!, ...lines.slice(maxLines)].join(" ");
+  kept[maxLines - 1] = fit(overflow, size, maxWidth, measure);
+  return kept;
+}
+
+/**
  * The source artwork stamps its intro block and clinic-details placeholder with
  * a non-embedded base font (Helvetica). Printers reject that at pre-flight, so
  * we delete those operators and the font resource, then redraw the same text
@@ -616,15 +647,19 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   }
 
   if (details.name) {
-    cursor -= 11;
-    page.drawText(fit(details.name, 11, maxWidth, (t, s) => bold.widthOfTextAtSize(t, s)), {
-      x: left,
-      y: cursor,
-      size: 11,
-      font: bold,
-      color: INK,
-    });
-    cursor -= 5;
+    const nameLines = wrap(details.name, 11, maxWidth, 2, (t, s) => bold.widthOfTextAtSize(t, s));
+    for (const line of nameLines) {
+      cursor -= 11;
+      page.drawText(line, {
+        x: left,
+        y: cursor,
+        size: 11,
+        font: bold,
+        color: INK,
+      });
+      cursor -= 2;
+    }
+    cursor -= 3;
   }
 
   const lines = [details.phone, details.email, details.website].filter(Boolean) as string[];
