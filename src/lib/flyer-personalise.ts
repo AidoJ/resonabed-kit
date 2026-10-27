@@ -647,15 +647,19 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
   }
 
   if (details.name) {
-    cursor -= 11;
-    page.drawText(fit(details.name, 11, maxWidth, (t, s) => bold.widthOfTextAtSize(t, s)), {
-      x: left,
-      y: cursor,
-      size: 11,
-      font: bold,
-      color: INK,
-    });
-    cursor -= 5;
+    const nameLines = wrap(details.name, 11, maxWidth, 2, (t, s) => bold.widthOfTextAtSize(t, s));
+    for (const line of nameLines) {
+      cursor -= 11;
+      page.drawText(line, {
+        x: left,
+        y: cursor,
+        size: 11,
+        font: bold,
+        color: INK,
+      });
+      cursor -= 2;
+    }
+    cursor -= 3;
   }
 
   const lines = [details.phone, details.email, details.website].filter(Boolean) as string[];
