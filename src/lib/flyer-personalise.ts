@@ -389,9 +389,12 @@ function makeRecolour(brand: FlyerBrand | null | undefined, coverMode = false) {
       s >= 0.02 &&
       Math.min(hueDistance(h, sourceDeepHsl.h), hueDistance(h, sourcePrimaryHsl.h)) <= 0.16;
     if (!isArtworkPurple) return { r, g, b };
-    // Very pale purple is only the original paper tint or pale supporting
-    // detail. Keep it neutral instead of inventing a third brand shade.
-    if (l >= 0.72) return { r: 1, g: 1, b: 1 };
+    // Very pale purple is the original paper tint or pale supporting detail.
+    // Keep it neutral instead of inventing a third brand shade. The cutoff sits
+    // above the palest tone dot (the nine Solfeggio dots reach l ≈ 0.74) and
+    // below the pale panels (paper tints start at l ≈ 0.88), so every tone dot
+    // keeps its colour — previously the palest dot printed white and vanished.
+    if (l >= 0.8) return { r: 1, g: 1, b: 1 };
     if (coverMode) return targetPrimary;
     return l <= lightnessCutoff ? targetDeep : targetPrimary;
   };
