@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus } from "lucide-react";
+import { Plus, User } from "lucide-react";
 import { listMyOrgSessions } from "@/lib/sessions.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,9 +34,14 @@ function SessionsIndex() {
           <h1 className="text-2xl font-semibold tracking-tight">Sessions</h1>
           <p className="text-sm text-muted-foreground">Most recent first.</p>
         </div>
-        <Button asChild size="lg" className="h-12">
-          <Link to="/sessions/new"><Plus className="mr-2 h-4 w-4" /> New session</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="lg" className="h-12">
+            <Link to="/sessions/personal"><User className="mr-2 h-4 w-4" /> Personal session</Link>
+          </Button>
+          <Button asChild size="lg" className="h-12">
+            <Link to="/sessions/new"><Plus className="mr-2 h-4 w-4" /> New session</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card">

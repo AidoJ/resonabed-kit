@@ -68,6 +68,7 @@ import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings.$id'
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
+import { Route as AuthenticatedSessionsPersonalRouteImport } from './routes/_authenticated/sessions.personal'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as OrderBalanceTokenRouteImport } from './routes/order.balance.$token'
 import { Route as OrderCardTokenRouteImport } from './routes/order.card.$token'
@@ -398,6 +399,12 @@ const AuthenticatedSessionsNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedSessionsRoute,
   } as any)
+const AuthenticatedSessionsPersonalRoute =
+  AuthenticatedSessionsPersonalRouteImport.update({
+    id: '/personal',
+    path: '/personal',
+    getParentRoute: () => AuthenticatedSessionsRoute,
+  } as any)
 const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
   id: '/lovable/email/events',
   path: '/lovable/email/events',
@@ -513,6 +520,7 @@ export interface FileRoutesByFullPath {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/sessions/personal': typeof AuthenticatedSessionsPersonalRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
   '/order/card/$token': typeof OrderCardTokenRoute
@@ -581,6 +589,7 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/sessions/personal': typeof AuthenticatedSessionsPersonalRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
   '/order/card/$token': typeof OrderCardTokenRoute
@@ -654,6 +663,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/_authenticated/sessions/personal': typeof AuthenticatedSessionsPersonalRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/order/balance/$token': typeof OrderBalanceTokenRoute
   '/order/card/$token': typeof OrderCardTokenRoute
@@ -727,6 +737,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/bookings/$id'
     | '/sessions/new'
+    | '/sessions/personal'
     | '/lovable/email/events'
     | '/order/balance/$token'
     | '/order/card/$token'
@@ -795,6 +806,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/bookings/$id'
     | '/sessions/new'
+    | '/sessions/personal'
     | '/lovable/email/events'
     | '/order/balance/$token'
     | '/order/card/$token'
@@ -867,6 +879,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/team'
     | '/_authenticated/bookings/$id'
     | '/_authenticated/sessions/new'
+    | '/_authenticated/sessions/personal'
     | '/lovable/email/events'
     | '/order/balance/$token'
     | '/order/card/$token'
@@ -1327,6 +1340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSessionsNewRouteImport
       parentRoute: typeof AuthenticatedSessionsRoute
     }
+    '/_authenticated/sessions/personal': {
+      id: '/_authenticated/sessions/personal'
+      path: '/personal'
+      fullPath: '/sessions/personal'
+      preLoaderRoute: typeof AuthenticatedSessionsPersonalRouteImport
+      parentRoute: typeof AuthenticatedSessionsRoute
+    }
     '/lovable/email/events': {
       id: '/lovable/email/events'
       path: '/lovable/email/events'
@@ -1461,6 +1481,7 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedSessionsRouteChildren {
   AuthenticatedSessionsNewRoute: typeof AuthenticatedSessionsNewRoute
+  AuthenticatedSessionsPersonalRoute: typeof AuthenticatedSessionsPersonalRoute
   AuthenticatedSessionsIndexRoute: typeof AuthenticatedSessionsIndexRoute
   AuthenticatedSessionsIdPlayRoute: typeof AuthenticatedSessionsIdPlayRoute
   AuthenticatedSessionsIdIndexRoute: typeof AuthenticatedSessionsIdIndexRoute
@@ -1468,6 +1489,7 @@ interface AuthenticatedSessionsRouteChildren {
 
 const AuthenticatedSessionsRouteChildren: AuthenticatedSessionsRouteChildren = {
   AuthenticatedSessionsNewRoute: AuthenticatedSessionsNewRoute,
+  AuthenticatedSessionsPersonalRoute: AuthenticatedSessionsPersonalRoute,
   AuthenticatedSessionsIndexRoute: AuthenticatedSessionsIndexRoute,
   AuthenticatedSessionsIdPlayRoute: AuthenticatedSessionsIdPlayRoute,
   AuthenticatedSessionsIdIndexRoute: AuthenticatedSessionsIdIndexRoute,
