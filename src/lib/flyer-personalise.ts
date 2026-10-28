@@ -634,8 +634,10 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     qrBlockWidth = box + QR.gap;
   }
 
-  const left = PANEL.x + 6;
-  const maxWidth = PANEL.width - 12 - qrBlockWidth;
+  // Align the stamped block with the question-card text above it: card text
+  // starts at x=43.27 and the cards end at x=253.88 in the source artwork.
+  const left = 43.27;
+  const maxWidth = 253.88 - left - qrBlockWidth;
   let cursor = PANEL.y + PANEL.height + LIFT;
 
   if (logoImage) {
