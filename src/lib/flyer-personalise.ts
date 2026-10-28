@@ -67,6 +67,10 @@ const QR = { size: 62, pad: 4, gap: 10 };
 
 const MM_TO_PT = 72 / 25.4;
 const BLEED_MM = 3;
+/** How far the stamped details block sits above the printed placeholder box.
+ * The "How long is a session?" card ends ~235pt above the trim bottom, so this
+ * is the highest the block can sit while keeping a clear gap under the card. */
+const LIFT = 30 * MM_TO_PT;
 const BLEED_PT = BLEED_MM * MM_TO_PT;
 const TRIM_W = 841.92;
 const TRIM_H = 595.92;
@@ -604,7 +608,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
     const box = QR.size + QR.pad * 2;
     const labelSize = 8;
     const boxX = PANEL.x + PANEL.width - 6 - box;
-    const boxY = PANEL.y + PANEL.height - 6 - box;
+    const boxY = PANEL.y + PANEL.height - 6 - box + LIFT;
     page.drawRectangle({
       x: boxX,
       y: boxY - (labelSize + 5),
@@ -632,7 +636,7 @@ export async function buildPersonalisedFlyer(details: FlyerClinicDetails): Promi
 
   const left = PANEL.x + 6;
   const maxWidth = PANEL.width - 12 - qrBlockWidth;
-  let cursor = PANEL.y + PANEL.height;
+  let cursor = PANEL.y + PANEL.height + LIFT;
 
   if (logoImage) {
     const maxH = 60;
