@@ -63,12 +63,12 @@ const MUTED_HEX = "#52477b";
 const WHITE = rgb(1, 1, 1);
 /** Size of the printed QR square, plus its white surround. */
 const QR = { size: 62, pad: 4, gap: 10 };
-/** How far the stamped details block sits above the printed placeholder box. */
-const LIFT = 50 * MM_TO_PT;
 
 
 const MM_TO_PT = 72 / 25.4;
 const BLEED_MM = 3;
+/** How far the stamped details block sits above the printed placeholder box. */
+const LIFT = 50 * MM_TO_PT;
 const BLEED_PT = BLEED_MM * MM_TO_PT;
 const TRIM_W = 841.92;
 const TRIM_H = 595.92;
