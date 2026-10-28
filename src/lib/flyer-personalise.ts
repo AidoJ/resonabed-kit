@@ -67,8 +67,10 @@ const QR = { size: 62, pad: 4, gap: 10 };
 
 const MM_TO_PT = 72 / 25.4;
 const BLEED_MM = 3;
-/** How far the stamped details block sits above the printed placeholder box. */
-const LIFT = 50 * MM_TO_PT;
+/** How far the stamped details block sits above the printed placeholder box.
+ * The "How long is a session?" card ends ~235pt above the trim bottom, so this
+ * is the highest the block can sit while keeping a clear gap under the card. */
+const LIFT = 30 * MM_TO_PT;
 const BLEED_PT = BLEED_MM * MM_TO_PT;
 const TRIM_W = 841.92;
 const TRIM_H = 595.92;

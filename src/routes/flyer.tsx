@@ -124,7 +124,7 @@ function FlyerPage() {
             {/* Sample of the personalised clinic details panel, for illustration only. */}
             <div
               className="absolute flex items-end gap-[3%] overflow-hidden bg-[#f7f1fd] px-[0.6%] py-[0.4%]"
-              style={{ left: "35.93%", right: "36.27%", bottom: "29.1%", top: "52.3%" }}
+              style={{ left: "35.93%", right: "36.27%", bottom: "14.3%", top: "62.2%" }}
             >
               <div className="flex min-w-0 flex-1 flex-col justify-end">
                 <p className="truncate text-[clamp(7px,1.1vw,13px)] font-semibold leading-tight text-brand-indigo">
