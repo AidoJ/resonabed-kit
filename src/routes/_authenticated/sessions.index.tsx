@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus } from "lucide-react";
+import { Plus, User } from "lucide-react";
 import { listMyOrgSessions } from "@/lib/sessions.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
