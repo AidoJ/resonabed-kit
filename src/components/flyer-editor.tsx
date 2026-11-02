@@ -78,7 +78,8 @@ export function FlyerEditor({ clinic }: { clinic: Clinic | null }) {
         const blob = await buildPanelFlyer(design, identity);
         if (cancelled) return;
         const pdfjs = await import("pdfjs-dist"); pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-        const doc = await pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
+        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) });
+        const doc = await loadingTask.promise;
         const next: string[] = [];
         try {
           for (let n = 1; n <= 2; n++) {
@@ -88,7 +89,7 @@ export function FlyerEditor({ clinic }: { clinic: Clinic | null }) {
             next.push(canvas.toDataURL("image/png"));
           }
           if (!cancelled) setImages(next);
-        } finally { await doc.destroy(); }
+        } finally { await loadingTask.destroy(); }
       } catch (e) { if (!cancelled) setError(e instanceof Error ? e.message : "Preview unavailable"); }
       finally { if (!cancelled) setRendering(false); }
     }, 400);
