@@ -30,6 +30,8 @@ The cover remains F3 in the flat-sheet view; printing and folding will retain th
 5. Apply a suggested logo-based palette to all panels as a starting point, then adjust individual panels. Offer coordinated dark, mid-tone and light variants rather than three unrelated colours.
 6. Save the flyer design for their clinic, reset to the supplied design when needed, and download the print-ready PDF only when satisfied.
 
+Client editing is strictly limited to uploading their clinic logo, entering their phone number and changing panel colours. Wording, photograph, layout, panel order and element positions are locked. Other clinic details and the booking QR come from existing clinic settings, not editable flyer content fields.
+
 Keep logos and photographs unchanged by recolouring. Offer suitable light/dark text choices and flag poor contrast; keep the QR reliably scannable.
 
 ## Initial mock-up and review
@@ -53,6 +55,7 @@ Keep logos and photographs unchanged by recolouring. Offer suitable light/dark t
 
 - Test that changing one panel does not change another and that saved designs stay isolated between clinics.
 - Test valid colour settings and legacy two-colour compatibility.
+- Test that client edits accept only logo, phone and colours, never wording or layout changes.
 - Exercise selecting panels, changing colours, saving, reopening and exporting in the signed-in Marketing view.
 - Render and visually inspect both PDF pages for layout, logos, colours, all frequency dots and print clearance; verify QR destination and scanning.
 - Check the editor at desktop and mobile widths, and confirm the exported PDF matches its preview.
