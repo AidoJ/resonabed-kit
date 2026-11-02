@@ -1,14 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Music, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import {
   deleteFrequency,
   listFrequencies,
   upsertFrequency,
 } from "@/lib/sessions.functions";
+import {
+  createAudioFileRow,
+  finalizeAudioFile,
+  listOrgAudioFiles,
+  setAudioFileActive,
+} from "@/lib/audio.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import {
   BODY_AREA_OPTIONS,
