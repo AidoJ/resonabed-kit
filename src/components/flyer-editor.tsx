@@ -77,7 +77,7 @@ export function FlyerEditor({ clinic }: { clinic: Clinic | null }) {
       try {
         const blob = await buildPanelFlyer(design, identity);
         if (cancelled) return;
-        const pdfjs = await import("pdfjs-dist/build/pdf.mjs"); pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+        const pdfjs = await import("pdfjs-dist"); pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
         const doc = await pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
         const next: string[] = [];
         try {
