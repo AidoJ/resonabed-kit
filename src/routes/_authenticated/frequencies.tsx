@@ -266,32 +266,6 @@ function FrequenciesAdmin() {
     }
   };
 
-  const deleteMut = useMutation({
-    mutationFn: (id: string) => deleteFn({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Frequency deleted");
-      qc.invalidateQueries({ queryKey: ["frequencies-admin"] });
-      qc.invalidateQueries({ queryKey: ["frequencies-with-audio"] });
-    },
-    onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Could not delete"),
-  });
-
-  const submit = () => {
-    if (!editing) return;
-    if (!editing.name.trim()) return toast.error("Name is required");
-    if (!editing.hz || editing.hz < 1) return toast.error("Hz must be a positive number");
-    const flagged =
-      containsMedicalClaim(editing.description) ??
-      containsMedicalClaim(editing.benefits);
-    if (flagged) {
-      return toast.error(
-        `Please rephrase, "${flagged}" is a medical/therapeutic term. Use wellbeing language only.`,
-      );
-    }
-    upsertMut.mutate(editing);
-  };
-
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
