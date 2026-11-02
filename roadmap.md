@@ -1,5 +1,12 @@
 # Tasks
 
+## Revised DL flyer editor
+- [x] Build the approved six-panel colour editor and live flyer preview in Marketing
+- [x] Restrict client editing to logo upload, phone number and panel colours; lock all content and layout
+- [x] Implement clinic-specific saving; verify panel changes, desktop/mobile preview and two-page printable export
+- [ ] Verify logo upload and save/reopen in a clinic account — current preview account is platform-only with no active clinic support grant
+- [x] Leave public flyer downloads and production unchanged for owner review
+
 - [x] Add fixed-dollar promo codes alongside percentages and verify administration and checkout
 - [x] Raise storage limits for ~1GB WAV uploads
 - [ ] Confirm /audio upload path handles large files

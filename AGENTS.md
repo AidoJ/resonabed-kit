@@ -19,3 +19,8 @@
 - The closing recording is started only by the booked ending and never during start-up unlock, because a muted pre-play of it has leaked audible sound at the beginning of sessions on some devices.
 - Any change to session playback must keep working for every access mode (clinic, home user, support and admin) and must not rely on a single clinic's licence or signed URL being the only source of the track.
 
+## Flyer editor
+
+- Keep flyer preferences separate from website themes in organisations.flyer_design, validated by the strict shared schema, so flyer changes cannot alter the clinic website or editable content scope.
+- Generate the Marketing preview and printable export through the same panel renderer using the supplied artwork; leave the public flyer pipeline independent until explicitly requested.
+

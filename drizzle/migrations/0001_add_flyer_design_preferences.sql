@@ -1,0 +1,2 @@
+ALTER TABLE public.organisations ADD COLUMN flyer_design jsonb;
+COMMENT ON COLUMN public.organisations.flyer_design IS 'Flyer-only logo path, phone and six-panel colour preferences; independent of website theme. Existing organisation RLS applies.';
