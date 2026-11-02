@@ -486,14 +486,72 @@ function FrequenciesAdmin() {
                   })
                 }
               />
+
+              <div className="rounded-md border p-3 space-y-3">
+                <Label className="flex items-center gap-2">
+                  <Music className="h-4 w-4" /> Sound file (global track)
+                </Label>
+                {(() => {
+                  const current = editing.id
+                    ? globalAudio
+                        .filter((a) => a.frequency_id === editing.id && a.is_active && a.file_url)
+                        .concat(
+                          globalAudio.filter(
+                            (a) => a.frequency_id === editing.id && (!a.is_active || !a.file_url),
+                          ),
+                        )[0]
+                    : null;
+                  return (
+                    <p className="text-xs text-muted-foreground">
+                      {current
+                        ? `Current: ${current.title} · ${fmtDuration(current.duration_seconds)}${current.is_active ? "" : " (inactive)"}`
+                        : "No global sound file for this frequency yet."}
+                    </p>
+                  );
+                })()}
+                <input
+                  ref={audioInputRef}
+                  type="file"
+                  accept={AUDIO_ACCEPT}
+                  className="hidden"
+                  onChange={(e) => setPendingAudio(e.target.files?.[0] ?? null)}
+                />
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => audioInputRef.current?.click()}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {pendingAudio ? "Choose a different file" : "Upload replacement (MP3 or WAV)"}
+                  </Button>
+                  {pendingAudio ? (
+                    <span className="text-xs text-muted-foreground">
+                      {pendingAudio.name} · {(pendingAudio.size / (1024 * 1024)).toFixed(1)} MB —
+                      replaces the current track when you save
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  The new track becomes the global sound for this frequency in every
+                  organisation's sessions. The previous track is kept but switched off.
+                </p>
+              </div>
             </div>
           ) : null}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>
+            <Button variant="outline" onClick={() => openEditor(null)} disabled={saving}>
               Cancel
             </Button>
-            <Button onClick={submit} disabled={upsertMut.isPending}>
-              {upsertMut.isPending ? "Saving…" : "Save"}
+            <Button onClick={submit} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…
+                </>
+              ) : (
+                "Save"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
