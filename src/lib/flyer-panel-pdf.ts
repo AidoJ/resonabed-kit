@@ -1,7 +1,8 @@
 import { PDFArray, PDFDict, PDFDocument, PDFName, PDFRawStream, clip, closePath, decodePDFRawStream, endPath, lineTo, moveTo, popGraphicsState, pushGraphicsState, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import QRCode from "qrcode";
-import template from "@/assets/resonabed-flyer-editor-template.pdf.asset.json";
+import outsideArt from "@/assets/resonabed-brochure-outside.jpg.asset.json";
+import insideArt from "@/assets/resonabed-brochure-inside.jpg.asset.json";
 import { hexRgb, type FlyerDesign, type PanelColours, PANEL_IDS } from "./flyer-design";
 
 const W = 841.92, H = 595.92, PW = W / 3, BLEED = 72 * 3 / 25.4;
@@ -68,56 +69,39 @@ async function logoBytes(url: string) {
 
 export interface FlyerIdentity { name: string; email: string; website: string; bookingUrl: string; logoUrl: string; }
 export async function buildPanelFlyer(design: FlyerDesign, identity: FlyerIdentity, print = false): Promise<Blob> {
-  const bytes = await source(); const out = await PDFDocument.create();
-  const pages = [out.addPage([W, H]), out.addPage([W, H])];
-  // Source outside panels were already rotated by the old export. Our cleaned
-  // source retains pre-rotation coordinates: expected, questions, cover = 2,0,1.
-  for (let i = 0; i < PANEL_IDS.length; i++) {
-    const id = PANEL_IDS[i]; if (!id) continue;
-    const side = i < 3 ? 0 : 1, slot = i % 3, srcSlot = side === 0 ? [2, 0, 1][slot] ?? 0 : slot;
-    const doc = await PDFDocument.load(bytes.slice(0)); recolour(doc, side, design.panels[id], id === "F3");
-    const [embedded] = await out.embedPdf(await doc.save(), [side]); const page = pages[side]; if (!embedded || !page) throw new Error("Missing flyer panel");
-    page.drawRectangle({ x: slot * PW, y: 0, width: PW, height: H, color: colour(design.panels[id].background) });
-    page.pushOperators(pushGraphicsState(), moveTo(slot * PW, 0), lineTo((slot + 1) * PW, 0), lineTo((slot + 1) * PW, H), lineTo(slot * PW, H), closePath(), clip(), endPath());
-    page.drawPage(embedded, { x: (slot - srcSlot) * PW, y: 0, width: W, height: H }); page.pushOperators(popGraphicsState());
-  }
+  // Supplied brochure artwork (flattened). Each sheet includes bleed and crop
+  // marks; the middle outside panel is a cleared area for clinic details.
+  const SW = 876.24, SH = 629.52, M = (SW - 841.92) / 2, P = 841.92 / 3;
+  const out = await PDFDocument.create();
+  const sheets = await Promise.all([outsideArt.url, insideArt.url].map(async (u) => { const r = await fetch(u); if (!r.ok) throw new Error("Flyer artwork unavailable"); return out.embedJpg(await r.arrayBuffer()); }));
+  const pages = sheets.map((img) => { const pg = out.addPage([SW, SH]); pg.drawImage(img, { x: 0, y: 0, width: SW, height: SH }); pg.setTrimBox(M, M, SW - 2 * M, SH - 2 * M); pg.setBleedBox(0, 0, SW, SH); if (!print) pg.setCropBox(M, M, SW - 2 * M, SH - 2 * M); return pg; });
   const page = pages[0]; if (!page) throw new Error("Missing outside page");
   const c = design.panels.F2;
-  // Personal details occupy the supplied reserved area. Everything else stays
-  // in the original artwork, and never becomes user-editable text.
-  page.drawRectangle({ x: PW, y: 17.9, width: PW, height: 211, color: colour(c.background) });
   out.registerFontkit(fontkit);
   const fonts = await Promise.all([fetch("/fonts/LiberationSans-Bold.ttf").then((r) => r.arrayBuffer()), fetch("/fonts/LiberationSans-Regular.ttf").then((r) => r.arrayBuffer())]);
   const bold = await out.embedFont(fonts[0] ?? new ArrayBuffer(0), { subset: true }); const regular = await out.embedFont(fonts[1] ?? new ArrayBuffer(0), { subset: true });
-  const left = PW + 43.27; let cursor = 225.03937;
+  const cx = M + P * 1.5, maxW = P - 50;
+  const top = (y: number) => SH - y;
+  const centred = (text: string, y: number, size: number, font: typeof bold, hex: string) => { const s = Math.min(size, maxW / Math.max(1, font.widthOfTextAtSize(text, 1))); page.drawText(text, { x: cx - font.widthOfTextAtSize(text, s) / 2, y, size: s, font, color: colour(hex) }); };
   if (identity.logoUrl) {
-    const img = await out.embedPng(await logoBytes(identity.logoUrl)); const scale = Math.min(110 / img.width, 60 / img.height);
-    page.drawImage(img, { x: left, y: cursor - 60, width: img.width * scale, height: img.height * scale });
+    const img = await out.embedPng(await logoBytes(identity.logoUrl)); const scale = Math.min(150 / img.width, 140 / img.height);
+    const w = img.width * scale, h = img.height * scale; page.drawImage(img, { x: cx - w / 2, y: top(40) - 140 + (140 - h) / 2, width: w, height: h });
   }
-  cursor = 146.03937;
-  const words = identity.name.trim().split(/\s+/); const lines: string[] = []; let line = "";
-  for (const word of words) { const candidate = line ? `${line} ${word}` : word; if (bold.widthOfTextAtSize(candidate, 11) > 132 && line) { lines.push(line); line = word; } else line = candidate; } if (line) lines.push(line);
-  for (const text of lines.slice(0, 2)) {
-    const size = Math.min(11, 132 / Math.max(1, bold.widthOfTextAtSize(text, 1)));
-    page.drawText(text, { x: left, y: cursor, size, font: bold, color: colour(c.text) }); cursor -= 13;
-  }
-  cursor -= 1;
-  for (const text of [design.phone, identity.email, identity.website].filter(Boolean)) {
-    const size = Math.min(8.5, 132 / Math.max(1, regular.widthOfTextAtSize(text, 1)));
-    page.drawText(text, { x: left, y: cursor, size, font: regular, color: colour(c.text) }); cursor -= 12;
-  }
+  page.drawLine({ start: { x: cx - 50, y: top(222) }, end: { x: cx + 50, y: top(222) }, thickness: 0.6, color: colour(c.accent) });
+  const words = identity.name.trim().split(/\s+/).filter(Boolean); const lines: string[] = []; let line = "";
+  for (const word of words) { const cand = line ? `${line} ${word}` : word; if (bold.widthOfTextAtSize(cand, 12) > maxW && line) { lines.push(line); line = word; } else line = cand; } if (line) lines.push(line);
+  let y = top(252);
+  for (const t of lines.slice(0, 2)) { centred(t, y, 12, bold, c.text); y -= 15; }
+  y -= 10;
+  for (const t of [design.phone, identity.email, identity.website].filter(Boolean)) { centred(t, y, 11, regular, c.text); y -= 26; }
+  page.drawLine({ start: { x: cx - 50, y: top(352) }, end: { x: cx + 50, y: top(352) }, thickness: 0.6, color: colour(c.accent) });
   if (identity.bookingUrl) {
-    const url = await QRCode.toDataURL(identity.bookingUrl, { margin: 4, scale: 8 });
+    const url = await QRCode.toDataURL(identity.bookingUrl, { margin: 2, scale: 8 });
     const encoded = url.split(",")[1]; if (!encoded) throw new Error("Booking code unavailable");
     const qr = await out.embedPng(Uint8Array.from(atob(encoded), (s) => s.charCodeAt(0)));
-    page.drawImage(qr, { x: PW + 181, y: 150.03937, width: 70, height: 70 });
-    page.drawText("Book Now", { x: PW + 199.445, y: 140.03937, size: 8, font: bold, color: colour(c.text) });
+    page.drawImage(qr, { x: cx - 38, y: top(470), width: 76, height: 76 });
+    centred("Book Now", top(492), 14, bold, c.accent);
   }
-  if (!print) return new Blob([await out.save() as BlobPart], { type: "application/pdf" });
-  const ready = await PDFDocument.create(); const sheets = await ready.embedPdf(await out.save(), [0, 1]);
-  for (const sheet of sheets) {
-    const p = ready.addPage([W + BLEED * 2, H + BLEED * 2]); p.drawPage(sheet, { x: 0, y: 0, width: W + BLEED * 2, height: H + BLEED * 2 }); p.drawPage(sheet, { x: BLEED, y: BLEED, width: W, height: H }); p.setTrimBox(BLEED, BLEED, W, H); p.setBleedBox(0, 0, W + BLEED * 2, H + BLEED * 2);
-    for (const x of [BLEED, W + BLEED]) for (const y of [BLEED, H + BLEED]) { p.drawLine({ start: { x, y }, end: { x: x + (x === BLEED ? -BLEED : BLEED), y }, thickness: 0.5, color: rgb(0, 0, 0) }); p.drawLine({ start: { x, y }, end: { x, y: y + (y === BLEED ? -BLEED : BLEED) }, thickness: 0.5, color: rgb(0, 0, 0) }); }
-  }
-  return new Blob([await ready.save() as BlobPart], { type: "application/pdf" });
+  if (print) for (const pg of pages) void pg;
+  return new Blob([await out.save() as BlobPart], { type: "application/pdf" });
 }
