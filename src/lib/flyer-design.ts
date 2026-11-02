@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const PANEL_IDS = ["F1", "F2", "F3", "B1", "B2", "B3"] as const;
 export type PanelId = (typeof PANEL_IDS)[number];
-export const PANEL_NAMES: Record<PanelId, string> = { F1: "What to expect", F2: "Questions & clinic", F3: "Front cover", B1: "What it is", B2: "Why people come back", B3: "Frequencies" };
+export const PANEL_NAMES: Record<PanelId, string> = { F1: "What to expect & questions", F2: "Clinic details", F3: "Front cover", B1: "What it is", B2: "The experience", B3: "Why people come back" };
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 export const panelColoursSchema = z.object({ background: hex, accent: hex, text: hex, box: hex, boxText: hex }).strict();
 export type PanelColours = z.infer<typeof panelColoursSchema>;
