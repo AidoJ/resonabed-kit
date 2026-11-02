@@ -18,7 +18,9 @@ function recolour(doc: PDFDocument, pageIndex: number, c: PanelColours, cover: b
   for (const ref of refs) {
     if (!ref) continue;
     const raw = ctx.lookup(ref); if (!(raw instanceof PDFRawStream)) continue;
-    let text = new TextDecoder("latin1").decode(decodePDFRawStream(raw).decode());
+    const decoded = decodePDFRawStream(raw).decode();
+    let text = "";
+    for (let i = 0; i < decoded.length; i += 8192) text += String.fromCharCode(...decoded.subarray(i, i + 8192));
     // Assign semantic roles to the supplied vector artwork. Text colours are
     // set before BT in the source; look ahead to distinguish text from paths.
     text = text.replace(/([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(rg|RG)\b/g, (match, rs: string, gs: string, bs: string, op: string, offset: number, full: string) => {
