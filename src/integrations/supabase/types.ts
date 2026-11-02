@@ -1687,6 +1687,7 @@ export type Database = {
           consent_version: number
           contact_email: string | null
           created_at: string
+          flyer_design: Json | null
           health_policy_text: string | null
           id: string
           is_configured: boolean
@@ -1745,6 +1746,7 @@ export type Database = {
           consent_version?: number
           contact_email?: string | null
           created_at?: string
+          flyer_design?: Json | null
           health_policy_text?: string | null
           id?: string
           is_configured?: boolean
@@ -1803,6 +1805,7 @@ export type Database = {
           consent_version?: number
           contact_email?: string | null
           created_at?: string
+          flyer_design?: Json | null
           health_policy_text?: string | null
           id?: string
           is_configured?: boolean
