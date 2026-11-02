@@ -112,7 +112,7 @@ export async function buildPanelFlyer(design: FlyerDesign, identity: FlyerIdenti
     page.drawText("Book Now", { x: PW + 199.445, y: 140.03937, size: 8, font: bold, color: colour(c.text) });
   }
   if (!print) return new Blob([await out.save() as BlobPart], { type: "application/pdf" });
-  const ready = await PDFDocument.create(); const sheets = await ready.embedPdf(await out.save());
+  const ready = await PDFDocument.create(); const sheets = await ready.embedPdf(await out.save(), [0, 1]);
   for (const sheet of sheets) {
     const p = ready.addPage([W + BLEED * 2, H + BLEED * 2]); p.drawPage(sheet, { x: 0, y: 0, width: W + BLEED * 2, height: H + BLEED * 2 }); p.drawPage(sheet, { x: BLEED, y: BLEED, width: W, height: H }); p.setTrimBox(BLEED, BLEED, W, H); p.setBleedBox(0, 0, W + BLEED * 2, H + BLEED * 2);
     for (const x of [BLEED, W + BLEED]) for (const y of [BLEED, H + BLEED]) { p.drawLine({ start: { x, y }, end: { x: x + (x === BLEED ? -BLEED : BLEED), y }, thickness: 0.5, color: rgb(0, 0, 0) }); p.drawLine({ start: { x, y }, end: { x, y: y + (y === BLEED ? -BLEED : BLEED) }, thickness: 0.5, color: rgb(0, 0, 0) }); }
