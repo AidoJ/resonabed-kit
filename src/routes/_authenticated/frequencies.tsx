@@ -1,14 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Music, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import {
   deleteFrequency,
   listFrequencies,
   upsertFrequency,
 } from "@/lib/sessions.functions";
+import {
+  createAudioFileRow,
+  finalizeAudioFile,
+  listOrgAudioFiles,
+  setAudioFileActive,
+} from "@/lib/audio.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import {
   BODY_AREA_OPTIONS,
@@ -71,6 +78,33 @@ const EMPTY: FrequencyEditable = {
   body_area_tags: [],
 };
 
+const AUDIO_ACCEPT = "audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/wave";
+
+async function readAudioDuration(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const el = document.createElement("audio");
+    el.preload = "metadata";
+    el.onloadedmetadata = () => {
+      const d = el.duration;
+      URL.revokeObjectURL(url);
+      resolve(isFinite(d) ? Math.round(d) : null);
+    };
+    el.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+    el.src = url;
+  });
+}
+
+function fmtDuration(sec: number | null): string {
+  if (sec == null || !isFinite(sec)) return "—";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 // Wellbeing-only language: block obvious medical/therapeutic claims in text fields.
 const FORBIDDEN_WORDS = [
   "heal", "healing", "cure", "cures", "treat", "treatment", "therapy",
@@ -121,38 +155,62 @@ function FrequenciesAdmin() {
   const listFn = useServerFn(listFrequencies);
   const upsertFn = useServerFn(upsertFrequency);
   const deleteFn = useServerFn(deleteFrequency);
+  const listAudioFn = useServerFn(listOrgAudioFiles);
+  const createAudioRowFn = useServerFn(createAudioFileRow);
+  const finalizeAudioFn = useServerFn(finalizeAudioFile);
+  const setAudioActiveFn = useServerFn(setAudioFileActive);
 
   const { data, isLoading } = useQuery({
     queryKey: ["frequencies-admin"],
     queryFn: () => listFn(),
   });
 
-  const [editing, setEditing] = useState<FrequencyEditable | null>(null);
-
-  const upsertMut = useMutation({
-    mutationFn: (v: FrequencyEditable) =>
-      upsertFn({
-        data: {
-          id: v.id,
-          hz: v.hz,
-          name: v.name,
-          description: v.description || null,
-          benefits: v.benefits || null,
-          traditional_associations: v.traditional_associations || null,
-          color: v.color || null,
-          goal_tags: v.goal_tags,
-          body_area_tags: v.body_area_tags,
-        },
-      }),
-    onSuccess: () => {
-      toast.success("Frequency saved");
-      setEditing(null);
-      qc.invalidateQueries({ queryKey: ["frequencies-admin"] });
-      qc.invalidateQueries({ queryKey: ["frequencies-with-audio"] });
-    },
-    onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Could not save"),
+  // Global tracks (org_id IS NULL) so the edit dialog can show and replace the
+  // sound file that plays for each frequency.
+  const { data: audioFiles } = useQuery({
+    queryKey: ["audio-files"],
+    queryFn: () => listAudioFn(),
   });
+  const globalAudio = (audioFiles ?? []).filter((a) => a.org_id === null);
+
+  const [editing, setEditing] = useState<FrequencyEditable | null>(null);
+  const [pendingAudio, setPendingAudio] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
+
+  const openEditor = (v: FrequencyEditable | null) => {
+    setPendingAudio(null);
+    setEditing(v);
+  };
+
+  const uploadGlobalAudio = async (frequencyId: string, file: File) => {
+    const ext = (file.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!["mp3", "wav"].includes(ext)) {
+      throw new Error("Only MP3 or WAV files are supported");
+    }
+    const duration = await readAudioDuration(file);
+    const title = file.name.replace(/\.[^.]+$/, "").slice(0, 160) || "Global track";
+    const row = await createAudioRowFn({
+      data: { title, frequency_id: frequencyId, is_global: true },
+    });
+    const path = `global/${row.id}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from("audio-files")
+      .upload(path, file, {
+        contentType: file.type || (ext === "wav" ? "audio/wav" : "audio/mpeg"),
+        upsert: false,
+      });
+    if (upErr) throw new Error(upErr.message);
+    await finalizeAudioFn({ data: { id: row.id, file_url: path, duration_seconds: duration } });
+    // Radio-button behaviour for globals: the new track becomes the one that
+    // plays for this frequency, previous global tracks are switched off.
+    const siblings = globalAudio.filter(
+      (a) => a.frequency_id === frequencyId && a.id !== row.id && a.is_active,
+    );
+    for (const s of siblings) {
+      await setAudioActiveFn({ data: { id: s.id, is_active: false } });
+    }
+  };
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteFn({ data: { id } }),
@@ -165,7 +223,7 @@ function FrequenciesAdmin() {
       toast.error(e instanceof Error ? e.message : "Could not delete"),
   });
 
-  const submit = () => {
+  const submit = async () => {
     if (!editing) return;
     if (!editing.name.trim()) return toast.error("Name is required");
     if (!editing.hz || editing.hz < 1) return toast.error("Hz must be a positive number");
@@ -177,7 +235,35 @@ function FrequenciesAdmin() {
         `Please rephrase, "${flagged}" is a medical/therapeutic term. Use wellbeing language only.`,
       );
     }
-    upsertMut.mutate(editing);
+    setSaving(true);
+    try {
+      const saved = await upsertFn({
+        data: {
+          id: editing.id,
+          hz: editing.hz,
+          name: editing.name,
+          description: editing.description || null,
+          benefits: editing.benefits || null,
+          traditional_associations: editing.traditional_associations || null,
+          color: editing.color || null,
+          goal_tags: editing.goal_tags,
+          body_area_tags: editing.body_area_tags,
+        },
+      });
+      if (pendingAudio) {
+        await uploadGlobalAudio(saved.id, pendingAudio);
+      }
+      toast.success(pendingAudio ? "Frequency and sound file saved" : "Frequency saved");
+      setEditing(null);
+      setPendingAudio(null);
+      qc.invalidateQueries({ queryKey: ["frequencies-admin"] });
+      qc.invalidateQueries({ queryKey: ["frequencies-with-audio"] });
+      qc.invalidateQueries({ queryKey: ["audio-files"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -190,7 +276,7 @@ function FrequenciesAdmin() {
             wizard computes a target Hz and ranks frequencies by proximity.
           </p>
         </div>
-        <Button onClick={() => setEditing({ ...EMPTY })} className="h-11">
+        <Button onClick={() => openEditor({ ...EMPTY })} className="h-11">
           <Plus className="mr-2 h-4 w-4" /> New frequency
         </Button>
       </header>
@@ -250,8 +336,9 @@ function FrequenciesAdmin() {
                     <Button
                       size="sm"
                       variant="ghost"
+                      aria-label={`Edit ${f.hz} Hz ${f.name}`}
                       onClick={() =>
-                        setEditing({
+                        openEditor({
                           id: f.id,
                           hz: f.hz,
                           name: f.name,
@@ -283,7 +370,7 @@ function FrequenciesAdmin() {
         </Table>
       </div>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog open={!!editing} onOpenChange={(o) => !o && openEditor(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing?.id ? "Edit frequency" : "New frequency"}</DialogTitle>
@@ -399,14 +486,72 @@ function FrequenciesAdmin() {
                   })
                 }
               />
+
+              <div className="rounded-md border p-3 space-y-3">
+                <Label className="flex items-center gap-2">
+                  <Music className="h-4 w-4" /> Sound file (global track)
+                </Label>
+                {(() => {
+                  const current = editing.id
+                    ? globalAudio
+                        .filter((a) => a.frequency_id === editing.id && a.is_active && a.file_url)
+                        .concat(
+                          globalAudio.filter(
+                            (a) => a.frequency_id === editing.id && (!a.is_active || !a.file_url),
+                          ),
+                        )[0]
+                    : null;
+                  return (
+                    <p className="text-xs text-muted-foreground">
+                      {current
+                        ? `Current: ${current.title} · ${fmtDuration(current.duration_seconds)}${current.is_active ? "" : " (inactive)"}`
+                        : "No global sound file for this frequency yet."}
+                    </p>
+                  );
+                })()}
+                <input
+                  ref={audioInputRef}
+                  type="file"
+                  accept={AUDIO_ACCEPT}
+                  className="hidden"
+                  onChange={(e) => setPendingAudio(e.target.files?.[0] ?? null)}
+                />
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => audioInputRef.current?.click()}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {pendingAudio ? "Choose a different file" : "Upload replacement (MP3 or WAV)"}
+                  </Button>
+                  {pendingAudio ? (
+                    <span className="text-xs text-muted-foreground">
+                      {pendingAudio.name} · {(pendingAudio.size / (1024 * 1024)).toFixed(1)} MB —
+                      replaces the current track when you save
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  The new track becomes the global sound for this frequency in every
+                  organisation's sessions. The previous track is kept but switched off.
+                </p>
+              </div>
             </div>
           ) : null}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>
+            <Button variant="outline" onClick={() => openEditor(null)} disabled={saving}>
               Cancel
             </Button>
-            <Button onClick={submit} disabled={upsertMut.isPending}>
-              {upsertMut.isPending ? "Saving…" : "Save"}
+            <Button onClick={submit} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…
+                </>
+              ) : (
+                "Save"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
