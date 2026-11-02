@@ -155,38 +155,116 @@ function FrequenciesAdmin() {
   const listFn = useServerFn(listFrequencies);
   const upsertFn = useServerFn(upsertFrequency);
   const deleteFn = useServerFn(deleteFrequency);
+  const listAudioFn = useServerFn(listOrgAudioFiles);
+  const createAudioRowFn = useServerFn(createAudioFileRow);
+  const finalizeAudioFn = useServerFn(finalizeAudioFile);
+  const setAudioActiveFn = useServerFn(setAudioFileActive);
 
   const { data, isLoading } = useQuery({
     queryKey: ["frequencies-admin"],
     queryFn: () => listFn(),
   });
 
-  const [editing, setEditing] = useState<FrequencyEditable | null>(null);
+  // Global tracks (org_id IS NULL) so the edit dialog can show and replace the
+  // sound file that plays for each frequency.
+  const { data: audioFiles } = useQuery({
+    queryKey: ["audio-files"],
+    queryFn: () => listAudioFn(),
+  });
+  const globalAudio = (audioFiles ?? []).filter((a) => a.org_id === null);
 
-  const upsertMut = useMutation({
-    mutationFn: (v: FrequencyEditable) =>
-      upsertFn({
-        data: {
-          id: v.id,
-          hz: v.hz,
-          name: v.name,
-          description: v.description || null,
-          benefits: v.benefits || null,
-          traditional_associations: v.traditional_associations || null,
-          color: v.color || null,
-          goal_tags: v.goal_tags,
-          body_area_tags: v.body_area_tags,
-        },
-      }),
+  const [editing, setEditing] = useState<FrequencyEditable | null>(null);
+  const [pendingAudio, setPendingAudio] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
+
+  const openEditor = (v: FrequencyEditable | null) => {
+    setPendingAudio(null);
+    setEditing(v);
+  };
+
+  const uploadGlobalAudio = async (frequencyId: string, file: File) => {
+    const ext = (file.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!["mp3", "wav"].includes(ext)) {
+      throw new Error("Only MP3 or WAV files are supported");
+    }
+    const duration = await readAudioDuration(file);
+    const title = file.name.replace(/\.[^.]+$/, "").slice(0, 160) || "Global track";
+    const row = await createAudioRowFn({
+      data: { title, frequency_id: frequencyId, is_global: true },
+    });
+    const path = `global/${row.id}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from("audio-files")
+      .upload(path, file, {
+        contentType: file.type || (ext === "wav" ? "audio/wav" : "audio/mpeg"),
+        upsert: false,
+      });
+    if (upErr) throw new Error(upErr.message);
+    await finalizeAudioFn({ data: { id: row.id, file_url: path, duration_seconds: duration } });
+    // Radio-button behaviour for globals: the new track becomes the one that
+    // plays for this frequency, previous global tracks are switched off.
+    const siblings = globalAudio.filter(
+      (a) => a.frequency_id === frequencyId && a.id !== row.id && a.is_active,
+    );
+    for (const s of siblings) {
+      await setAudioActiveFn({ data: { id: s.id, is_active: false } });
+    }
+  };
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { id } }),
     onSuccess: () => {
-      toast.success("Frequency saved");
-      setEditing(null);
+      toast.success("Frequency deleted");
       qc.invalidateQueries({ queryKey: ["frequencies-admin"] });
       qc.invalidateQueries({ queryKey: ["frequencies-with-audio"] });
     },
     onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Could not save"),
+      toast.error(e instanceof Error ? e.message : "Could not delete"),
   });
+
+  const submit = async () => {
+    if (!editing) return;
+    if (!editing.name.trim()) return toast.error("Name is required");
+    if (!editing.hz || editing.hz < 1) return toast.error("Hz must be a positive number");
+    const flagged =
+      containsMedicalClaim(editing.description) ??
+      containsMedicalClaim(editing.benefits);
+    if (flagged) {
+      return toast.error(
+        `Please rephrase, "${flagged}" is a medical/therapeutic term. Use wellbeing language only.`,
+      );
+    }
+    setSaving(true);
+    try {
+      const saved = await upsertFn({
+        data: {
+          id: editing.id,
+          hz: editing.hz,
+          name: editing.name,
+          description: editing.description || null,
+          benefits: editing.benefits || null,
+          traditional_associations: editing.traditional_associations || null,
+          color: editing.color || null,
+          goal_tags: editing.goal_tags,
+          body_area_tags: editing.body_area_tags,
+        },
+      });
+      if (pendingAudio) {
+        await uploadGlobalAudio(saved.id, pendingAudio);
+      }
+      toast.success(pendingAudio ? "Frequency and sound file saved" : "Frequency saved");
+      setEditing(null);
+      setPendingAudio(null);
+      qc.invalidateQueries({ queryKey: ["frequencies-admin"] });
+      qc.invalidateQueries({ queryKey: ["frequencies-with-audio"] });
+      qc.invalidateQueries({ queryKey: ["audio-files"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteFn({ data: { id } }),
