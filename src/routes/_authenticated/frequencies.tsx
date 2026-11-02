@@ -78,6 +78,33 @@ const EMPTY: FrequencyEditable = {
   body_area_tags: [],
 };
 
+const AUDIO_ACCEPT = "audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/wave";
+
+async function readAudioDuration(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const el = document.createElement("audio");
+    el.preload = "metadata";
+    el.onloadedmetadata = () => {
+      const d = el.duration;
+      URL.revokeObjectURL(url);
+      resolve(isFinite(d) ? Math.round(d) : null);
+    };
+    el.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+    el.src = url;
+  });
+}
+
+function fmtDuration(sec: number | null): string {
+  if (sec == null || !isFinite(sec)) return "—";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 // Wellbeing-only language: block obvious medical/therapeutic claims in text fields.
 const FORBIDDEN_WORDS = [
   "heal", "healing", "cure", "cures", "treat", "treatment", "therapy",
