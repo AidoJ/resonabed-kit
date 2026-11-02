@@ -276,7 +276,7 @@ function FrequenciesAdmin() {
             wizard computes a target Hz and ranks frequencies by proximity.
           </p>
         </div>
-        <Button onClick={() => setEditing({ ...EMPTY })} className="h-11">
+        <Button onClick={() => openEditor({ ...EMPTY })} className="h-11">
           <Plus className="mr-2 h-4 w-4" /> New frequency
         </Button>
       </header>
@@ -370,7 +370,7 @@ function FrequenciesAdmin() {
         </Table>
       </div>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog open={!!editing} onOpenChange={(o) => !o && openEditor(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing?.id ? "Edit frequency" : "New frequency"}</DialogTitle>
