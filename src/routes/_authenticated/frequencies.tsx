@@ -336,8 +336,9 @@ function FrequenciesAdmin() {
                     <Button
                       size="sm"
                       variant="ghost"
+                      aria-label={`Edit ${f.hz} Hz ${f.name}`}
                       onClick={() =>
-                        setEditing({
+                        openEditor({
                           id: f.id,
                           hz: f.hz,
                           name: f.name,
