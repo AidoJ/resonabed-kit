@@ -53,7 +53,7 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
 });
 
 const POLICY_HELPER =
-  "This is your clinic's legal wording. You are the responsible party. Review with your own insurer or legal advisor. Resonabed stores and displays what you enter and does not review it for legal sufficiency.";
+  "This wording becomes your clinic's own legal document once you use it. You are the responsible party. Review it with your own insurer or legal advisor. Resonabed stores and displays what you enter and does not review it for legal sufficiency.";
 
 // Text colour used on top of sidebar/primary. Matches what the shell renders.
 const SIDEBAR_TEXT_FALLBACK = "#ffffff";
