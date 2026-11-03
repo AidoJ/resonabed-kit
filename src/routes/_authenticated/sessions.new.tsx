@@ -162,6 +162,7 @@ function NewSession() {
   }, [ranked, hasAudio]);
 
   const activeFreqId = chosenFreqId ?? defaultFreqId;
+  const chosenFrequency = ranked.find((r) => r.frequency.id === activeFreqId)?.frequency ?? null;
   const createFn = useServerFn(createDraftSession);
   const saveCheckinFn = useServerFn(saveSessionCheckin);
   const startFromBookingFn = useServerFn(startSessionFromBooking);
