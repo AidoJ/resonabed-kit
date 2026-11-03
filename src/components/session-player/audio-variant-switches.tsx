@@ -38,16 +38,21 @@ export function AudioVariantSwitches({
     <label
       htmlFor={id}
       className={cn(
-        "flex cursor-pointer items-start justify-between gap-4 rounded-lg border p-3",
-        dark && "border-white/10 bg-white/5",
+        "flex cursor-pointer items-start justify-between gap-4 rounded-lg border border-primary/40 bg-accent p-3 text-accent-foreground transition-colors hover:border-primary focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+        dark && "border-primary/60",
       )}
     >
       <span className="min-w-0">
         <span className="block text-sm font-medium">{label}</span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">{hint}</span>
-        {note ? <span className="mt-1 block text-xs font-medium text-amber-500">{note}</span> : null}
+        <span className="mt-0.5 block text-xs leading-relaxed text-accent-foreground">{hint}</span>
+        {note ? <span className="mt-1 block text-xs font-semibold text-accent-foreground">{note}</span> : null}
       </span>
-      <Switch id={id} checked={checked} onCheckedChange={onChange} />
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={onChange}
+        className="border-accent-foreground/50 data-[state=unchecked]:bg-accent-foreground/30"
+      />
     </label>
   );
 
