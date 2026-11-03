@@ -4,7 +4,9 @@ export const PANEL_IDS = ["F1", "F2", "F3", "B1", "B2", "B3"] as const;
 export type PanelId = (typeof PANEL_IDS)[number];
 export const PANEL_NAMES: Record<PanelId, string> = { F1: "What to expect & questions", F2: "Clinic details", F3: "Front cover", B1: "What it is", B2: "The experience", B3: "Why people come back" };
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/);
-export const panelColoursSchema = z.object({ background: hex, accent: hex, text: hex, box: hex, boxText: hex }).strict();
+export const panelColoursSchema = z.object({ background: hex, accent: hex, text: hex, box: hex, boxText: hex, logoBacking: z.boolean().optional() }).strict();
+// Panels that carry a logo, and so offer an optional backing shape behind it.
+export const LOGO_PANELS: PanelId[] = ["F2", "F3", "B1"];
 export type PanelColours = z.infer<typeof panelColoursSchema>;
 export const flyerDesignSchema = z.object({
   version: z.literal(1),
@@ -14,10 +16,13 @@ export const flyerDesignSchema = z.object({
 }).strict();
 export type FlyerDesign = z.infer<typeof flyerDesignSchema>;
 
-// Artwork values, not application theme colours.
+// Colours sampled from the supplied brochure artwork (not app theme colours).
+// With these defaults the flyer reproduces the artwork as supplied.
+export const ARTWORK_INK = "#1f1a17";
+export const ARTWORK_BASES: Record<PanelId, string> = { F1: "#e8dcc8", F2: "#e1c9ad", F3: "#d9a7a1", B1: "#efd3d0", B2: "#e7dbc8", B3: "#f5ece4" };
 export const ARTWORK_COLOURS = { red: "#d64354", white: "#ffffff", black: "#000000" };
 export function defaultFlyerDesign(phone = "", logoPath: string | null = null): FlyerDesign {
-  const panels = Object.fromEntries(PANEL_IDS.map((id) => [id, { background: id === "F3" ? ARTWORK_COLOURS.red : ARTWORK_COLOURS.white, accent: ARTWORK_COLOURS.red, text: id === "F3" ? ARTWORK_COLOURS.white : ARTWORK_COLOURS.black, box: ARTWORK_COLOURS.black, boxText: ARTWORK_COLOURS.white }])) as Record<PanelId, PanelColours>;
+  const panels = Object.fromEntries(PANEL_IDS.map((id) => [id, { background: ARTWORK_BASES[id], accent: id === "F2" ? ARTWORK_COLOURS.red : ARTWORK_INK, text: ARTWORK_INK, box: ARTWORK_COLOURS.white, boxText: ARTWORK_INK, logoBacking: false }])) as Record<PanelId, PanelColours>;
   return { version: 1, phone, logoPath, panels };
 }
 export function readFlyerDesign(value: unknown, phone = "", logoPath: string | null = null) {
@@ -41,7 +46,7 @@ export function paletteVariants(base: string) {
 export function applyPalette(design: FlyerDesign, base: string): FlyerDesign {
   const [dark = base, main = base, light = base] = paletteVariants(base);
   return { ...design, panels: Object.fromEntries(PANEL_IDS.map((id) => {
-    const background = id === "F3" ? main : light;
-    return [id, { background, accent: id === "F3" ? readableInk(background) : dark, text: readableInk(background), box: dark, boxText: readableInk(dark) }];
+    const background = id === "F3" ? main : light; const prev = design.panels[id];
+    return [id, { background, accent: id === "F3" ? readableInk(background) : dark, text: id === "F3" ? readableInk(background) : dark, box: id === "F3" ? dark : main, boxText: readableInk(dark), logoBacking: prev.logoBacking ?? false }];
   })) as Record<PanelId, PanelColours> };
 }
