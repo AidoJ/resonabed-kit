@@ -42,16 +42,46 @@ interface Props {
   selectedId: string | null;
   targetHz: number;
   onChange: (id: string) => void;
+  /** Which of the four recordings exist per frequency. */
+  availability?: Record<string, VariantAvailability>;
+  deepFeel: boolean;
+  onDeepFeelChange: (v: boolean) => void;
+  ambience: boolean;
+  onAmbienceChange: (v: boolean) => void;
 }
 
-export function StepFrequency({ ranked, hasAudio, selectedId, targetHz, onChange }: Props) {
+export function StepFrequency({
+  ranked,
+  hasAudio,
+  selectedId,
+  targetHz,
+  onChange,
+  availability,
+  deepFeel,
+  onDeepFeelChange,
+  ambience,
+  onAmbienceChange,
+}: Props) {
   if (ranked.length === 0) return null;
   const selected = ranked.find((r) => r.frequency.id === selectedId) ?? ranked[0]!;
   const rest = ranked.filter((r) => r.frequency.id !== selected.frequency.id);
   const selectedHasAudio = hasAudio[selected.frequency.id] ?? false;
+  const wanted = variantFor(deepFeel, ambience);
+  const missingNote = (id: string) => {
+    const a = availability?.[id];
+    if (!a || a.variants.length === 0 || a.variants.includes(wanted)) return null;
+    return `${VARIANT_LABELS[wanted]} not available, plays ${a.variants.includes("original") ? "Gentle" : VARIANT_LABELS[a.variants[0]!]}`;
+  };
 
   return (
     <div className="space-y-6">
+      <AudioVariantSwitches
+        deepFeel={deepFeel}
+        ambience={ambience}
+        onDeepFeelChange={onDeepFeelChange}
+        onAmbienceChange={onAmbienceChange}
+        availability={availability?.[selected.frequency.id] ?? null}
+      />
       <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm">
         <span className="text-muted-foreground">Target:</span>{" "}
         <span className="font-semibold tabular-nums">{targetHz} Hz</span>
