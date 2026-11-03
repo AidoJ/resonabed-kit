@@ -100,7 +100,9 @@ export async function buildPanelFlyer(design: FlyerDesign, identity: FlyerIdenti
   for (const t of [design.phone, identity.email, identity.website].filter(Boolean)) { centred(t, y, 11, regular, c.text); y -= 26; }
   page.drawLine({ start: { x: cx - 50, y: top(352) }, end: { x: cx + 50, y: top(352) }, thickness: 0.6, color: colour(c.accent) });
   if (identity.bookingUrl) {
-    const url = await QRCode.toDataURL(identity.bookingUrl, { margin: 2, scale: 8 });
+    // Transparent quiet zone: only the black modules are drawn, so no white
+    // square sits on the panel behind the code.
+    const url = await QRCode.toDataURL(identity.bookingUrl, { margin: 2, scale: 8, color: { dark: "#000000ff", light: "#00000000" } });
     const encoded = url.split(",")[1]; if (!encoded) throw new Error("Booking code unavailable");
     const qr = await out.embedPng(Uint8Array.from(atob(encoded), (s) => s.charCodeAt(0)));
     page.drawImage(qr, { x: cx - 38, y: top(470), width: 76, height: 76 });
