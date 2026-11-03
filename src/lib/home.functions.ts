@@ -118,7 +118,7 @@ export const listHomeLibrary = createServerFn({ method: "GET" })
 
     const { data: tracks, error: aErr } = await context.supabase
       .from("audio_files")
-      .select("id, title, frequency_id, duration_seconds")
+      .select("id, title, frequency_id, duration_seconds, variant, ambience_kind")
       .is("org_id", null)
       .eq("is_active", true);
     if (aErr) throw new Error(aErr.message);

@@ -314,6 +314,8 @@ const startSessionInput = z.object({
   consent_given: z.literal(true),
   client_signature: z.string().max(2_000_000).optional(),
   recommended_frequency_id: uuid.nullable(),
+  audio_resonance: z.enum(["gentle", "deep"]).default("gentle"),
+  audio_ambience: z.boolean().default(false),
 });
 
 export const startSessionFromBooking = createServerFn({ method: "POST" })
@@ -355,6 +357,8 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
         client_signature: data.client_signature ?? null,
         signed_at: data.client_signature ? new Date().toISOString() : null,
         recommended_frequency_id: data.recommended_frequency_id,
+        audio_resonance: data.audio_resonance,
+        audio_ambience: data.audio_ambience,
         status: "draft",
       })
       .select("id")

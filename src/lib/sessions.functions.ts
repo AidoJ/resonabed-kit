@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertPractitionerAction } from "@/lib/practitioner-permissions";
 import { screeningErrorMessage } from "@/lib/screening-errors";
+import { AUDIO_VARIANTS, buildAvailability, type AudioVariant } from "@/lib/audio-variants";
 
 const uuid = z.string().uuid();
 
@@ -130,14 +131,20 @@ export const listFrequenciesWithAudioFlag = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const [freqRes, audioRes] = await Promise.all([
       context.supabase.from("frequencies").select(FREQ_COLUMNS).order("hz", { ascending: true }),
-      context.supabase.from("audio_files").select("frequency_id").eq("is_active", true),
+      context.supabase
+        .from("audio_files")
+        .select("frequency_id, variant, ambience_kind")
+        .eq("is_active", true),
     ]);
     if (freqRes.error) throw new Error(freqRes.error.message);
     if (audioRes.error) throw new Error(audioRes.error.message);
-    const withAudio = new Set(
-      (audioRes.data ?? []).map((r) => r.frequency_id).filter((v): v is string => !!v),
-    );
-    return (freqRes.data ?? []).map((f) => ({ ...f, has_audio: withAudio.has(f.id) }));
+    const avail = buildAvailability(audioRes.data ?? []);
+    return (freqRes.data ?? []).map((f) => ({
+      ...f,
+      has_audio: !!avail[f.id],
+      audio_variants: avail[f.id]?.variants ?? [],
+      ambience_kind: avail[f.id]?.ambience ?? null,
+    }));
   });
 
 // Admin: upsert a frequency. RLS restricts write access to super_admin.
@@ -214,6 +221,8 @@ const createDraftInput = z.object({
   consent_given: z.literal(true),
   client_signature: z.string().max(2_000_000).optional(),
   recommended_frequency_id: uuid.nullable(),
+  audio_resonance: z.enum(["gentle", "deep"]).default("gentle"),
+  audio_ambience: z.boolean().default(false),
 });
 
 export const createDraftSession = createServerFn({ method: "POST" })
@@ -250,6 +259,8 @@ export const createDraftSession = createServerFn({ method: "POST" })
         client_signature: data.client_signature ?? null,
         signed_at: data.client_signature ? new Date().toISOString() : null,
         recommended_frequency_id: data.recommended_frequency_id,
+        audio_resonance: data.audio_resonance,
+        audio_ambience: data.audio_ambience,
         status: "draft",
       })
       .select("id")
@@ -277,6 +288,7 @@ export const getSession = createServerFn({ method: "POST" })
         `id, status, pain_level, stress_level, sleep_quality, body_areas, primary_goals,
          contraindications, practitioner_notes, payment_method, payment_amount,
          recommended_frequency_id, service_id, client_id, org_id, created_at,
+         audio_resonance, audio_ambience,
          client:client_id(id, first_name, last_name, email, phone),
          service:service_id(id, name, duration_minutes, price),
          frequency:recommended_frequency_id(id, hz, name, description, benefits, color)`,
@@ -457,38 +469,85 @@ async function callerHasGlobalLicence(context: Ctx, orgId: string | null): Promi
 
 export const getAudioForFrequency = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { frequency_id: string; session_id?: string | null }) =>
-    z.object({ frequency_id: uuid, session_id: uuid.nullish() }).parse(data),
+  .inputValidator(
+    (data: { frequency_id: string; session_id?: string | null; variant?: AudioVariant }) =>
+      z
+        .object({
+          frequency_id: uuid,
+          session_id: uuid.nullish(),
+          variant: z.enum(AUDIO_VARIANTS).default("original"),
+        })
+        .parse(data),
   )
   .handler(async ({ data, context }) => {
     const orgId = await resolvePlaybackOrg(context, data.session_id);
+    const cols = "id, title, file_url, duration_seconds, created_at, org_id, variant, ambience_kind";
 
-    // Prefer the clinic's own uploaded track (unaffected by licence).
-    if (orgId) {
-      const { data: own } = await context.supabase
+    // Precedence per variant: the clinic's own row, then the global row.
+    // A missing variant falls back to the Gentle (original) recording.
+    const tryVariant = async (variant: AudioVariant) => {
+      if (orgId) {
+        const { data: own } = await context.supabase
+          .from("audio_files")
+          .select(cols)
+          .eq("frequency_id", data.frequency_id)
+          .eq("variant", variant)
+          .eq("is_active", true)
+          .eq("org_id", orgId)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (own && own[0]) return { ...own[0], is_global: false, locked: false };
+      }
+      const { data: global, error } = await context.supabase
         .from("audio_files")
-        .select("id, title, file_url, duration_seconds, created_at, org_id")
+        .select(cols)
         .eq("frequency_id", data.frequency_id)
+        .eq("variant", variant)
         .eq("is_active", true)
-        .eq("org_id", orgId)
+        .is("org_id", null)
         .order("created_at", { ascending: false })
         .limit(1);
-      if (own && own[0]) return { ...own[0], is_global: false, locked: false };
-    }
+      if (error) throw new Error(error.message);
+      if (!global?.[0]) return null;
+      const licensed = await callerHasGlobalLicence(context, orgId);
+      return { ...global[0], is_global: true, locked: !licensed };
+    };
 
-    const { data: global, error } = await context.supabase
-      .from("audio_files")
-      .select("id, title, file_url, duration_seconds, created_at, org_id")
-      .eq("frequency_id", data.frequency_id)
-      .eq("is_active", true)
-      .is("org_id", null)
-      .order("created_at", { ascending: false })
-      .limit(1);
+    let row = await tryVariant(data.variant);
+    if (!row && data.variant !== "original") row = await tryVariant("original");
+    if (!row) return null;
+    return { ...row, requested_variant: data.variant, resolved_variant: row.variant as AudioVariant };
+  });
+
+export const setSessionAudioChoice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; audio_resonance: "gentle" | "deep"; audio_ambience: boolean }) =>
+    z
+      .object({ id: uuid, audio_resonance: z.enum(["gentle", "deep"]), audio_ambience: z.boolean() })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("sessions")
+      .update({ audio_resonance: data.audio_resonance, audio_ambience: data.audio_ambience })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
-    if (!global?.[0]) return null;
-    const licensed = await callerHasGlobalLicence(context, orgId);
-    if (!licensed) return { ...global[0], is_global: true, locked: true };
-    return { ...global[0], is_global: true, locked: false };
+    return { ok: true };
+  });
+
+/** The client's most recent sound preference, so returning clients keep it. */
+export const getClientLastAudioChoice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { client_id: string }) => z.object({ client_id: uuid }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: row } = await context.supabase
+      .from("sessions")
+      .select("audio_resonance, audio_ambience")
+      .eq("client_id", data.client_id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return row ?? null;
   });
 
 export const getSignedAudioUrl = createServerFn({ method: "POST" })
