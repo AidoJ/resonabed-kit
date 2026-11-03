@@ -9,6 +9,7 @@ type Ctx = AudioContext;
 let ctx: Ctx | null = null;
 let musicGain: GainNode | null = null;
 let attachedEl: HTMLMediaElement | null = null;
+let musicSource: MediaElementAudioSourceNode | null = null;
 let closingBuffer: AudioBuffer | null = null;
 let closingLoading: Promise<AudioBuffer | null> | null = null;
 let closingSource: AudioBufferSourceNode | null = null;
@@ -69,6 +70,7 @@ export function attachMusic(el: HTMLMediaElement): boolean {
     const g = c.createGain();
     src.connect(g).connect(c.destination);
     musicGain = g;
+    musicSource = src;
     attachedEl = el;
     return true;
   } catch {
@@ -187,10 +189,12 @@ export function onAudioClockStateChange(cb: (state: string) => void): () => void
 export function detachMusic(el: HTMLMediaElement) {
   if (attachedEl !== el) return;
   try {
+    musicSource?.disconnect();
     musicGain?.disconnect();
   } catch {
     /* ignore */
   }
+  musicSource = null;
   musicGain = null;
   attachedEl = null;
 }

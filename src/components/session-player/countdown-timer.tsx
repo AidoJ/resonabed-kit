@@ -6,6 +6,9 @@ import {
   scheduleEnding,
   cancelEnding,
   resetMusicLevel,
+  isAudioClockRunning,
+  resumeAudioClock,
+  onAudioClockStateChange,
 } from "./session-audio-engine";
 
 interface Props {
@@ -48,6 +51,11 @@ export function CountdownTimer({
   const fadeStartedRef = useRef(false);
   const engineFadeRef = useRef(false);
   const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
+  const clockInterruptedRef = useRef(false);
+
+  // Unmount only (empty deps): never leave a booked closing track behind on
+  // another page.
+  useEffect(() => () => cancelEnding(), []);
 
   useEffect(() => {
     setRemaining(durationSeconds);
@@ -119,15 +127,39 @@ export function CountdownTimer({
         return;
       }
     };
+    // If the audio clock stops (phone call, OS interruption) while the wall
+    // clock carries on, re-book the ending from the wall-clock remainder once
+    // it runs again, so the fade and closing track are not late.
+    const rebookIfResumed = () => {
+      if (!isAudioClockRunning()) {
+        clockInterruptedRef.current = true;
+        return;
+      }
+      if (!clockInterruptedRef.current) return;
+      clockInterruptedRef.current = false;
+      const end = endTsRef.current;
+      if (end == null) return;
+      const rem = Math.max(0, (end - Date.now()) / 1000);
+      engineFadeRef.current = scheduleEnding(rem, fadeLeadSeconds);
+    };
     const id = setInterval(tick, 250);
     const onVisible = () => {
-      if (document.visibilityState === "visible") tick();
+      if (document.visibilityState === "visible") {
+        if (!isAudioClockRunning()) {
+          clockInterruptedRef.current = true;
+          resumeAudioClock();
+        }
+        rebookIfResumed();
+        tick();
+      }
     };
     document.addEventListener("visibilitychange", onVisible);
+    const offClock = onAudioClockStateChange(rebookIfResumed);
     tick();
     return () => {
       clearInterval(id);
       document.removeEventListener("visibilitychange", onVisible);
+      offClock();
     };
   }, [running, onComplete, onFadeStart, fadeLeadSeconds]);
 
@@ -148,6 +180,7 @@ export function CountdownTimer({
     endTsRef.current = Date.now() + remaining * 1000;
     // Book the fade-out + closing track on the audio clock. If the engine owns
     // the music fade, skip the timer-driven fade (except the final stop).
+    clockInterruptedRef.current = false;
     const handled = scheduleEnding(remaining, fadeLeadSeconds);
     engineFadeRef.current = handled;
     setRunning(true);

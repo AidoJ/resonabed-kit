@@ -1,8 +1,8 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import { Play, Pause, Square, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { attachMusic, isMusicAttached } from "./session-audio-engine";
+import { attachMusic, detachMusic, isMusicAttached } from "./session-audio-engine";
 
 interface Props {
   src: string;
@@ -40,38 +40,80 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   const [vol, setVol] = useState(0.8);
   const [blocked, setBlocked] = useState(false);
 
+  // Last known position and whether playback is intended, so a track switch
+  // (new src on this same element) can resume at the same moment.
+  const timeRef = useRef(0);
+  const wantPlayRef = useRef(false);
+
+  // Media listeners are registered once for the life of the element.
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
-    const onTime = () => setTime(el.currentTime);
+    const onTime = () => {
+      timeRef.current = el.currentTime;
+      setTime(el.currentTime);
+    };
     const onDur = () => setDur(el.duration);
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
-    const onEnd = () => setPlaying(false);
+    const onEnd = () => {
+      wantPlayRef.current = false;
+      setPlaying(false);
+    };
     el.addEventListener("timeupdate", onTime);
     el.addEventListener("loadedmetadata", onDur);
     el.addEventListener("play", onPlay);
     el.addEventListener("pause", onPause);
     el.addEventListener("ended", onEnd);
-    el.volume = vol;
     return () => {
       el.removeEventListener("timeupdate", onTime);
       el.removeEventListener("loadedmetadata", onDur);
       el.removeEventListener("play", onPlay);
       el.removeEventListener("pause", onPause);
       el.removeEventListener("ended", onEnd);
+      // The element is going away with this component: release its routing.
+      detachMusic(el);
     };
+  }, []);
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (el) el.volume = vol;
   }, [vol]);
 
   useEffect(() => {
     onPlayingChange?.(playing);
   }, [playing, onPlayingChange]);
 
-  // Start buffering as soon as a track is available, so the first Start tap
-  // has something decodable to play.
-  useEffect(() => {
+  // Track switch: React has already set the new src on the SAME element (the
+  // Web Audio routing stays attached). Seek back to where we were and resume.
+  const prevSrcRef = useRef<string | null>(null);
+  useLayoutEffect(() => {
     const el = audioRef.current;
     if (!el || !src) return;
+    const prev = prevSrcRef.current;
+    prevSrcRef.current = src;
+    if (prev && prev !== src) {
+      const resumeAt = timeRef.current;
+      const resume = wantPlayRef.current;
+      const onMeta = () => {
+        try {
+          el.currentTime = resumeAt;
+        } catch {
+          /* ignore */
+        }
+        if (resume) void el.play().catch(() => setBlocked(true));
+      };
+      el.addEventListener("loadedmetadata", onMeta, { once: true });
+      try {
+        el.load();
+      } catch {
+        /* ignore */
+      }
+      return () => el.removeEventListener("loadedmetadata", onMeta);
+    }
+    // Start buffering as soon as a track is available, so the first Start tap
+    // has something decodable to play.
     try {
       el.load();
     } catch {
@@ -92,6 +134,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
     if (!el) return Promise.reject(new Error("no audio"));
     clearRetry();
     clearFade();
+    wantPlayRef.current = true;
     attachMusic(el);
     el.loop = loop;
     el.muted = false;
@@ -144,6 +187,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   };
   const doPause = () => {
     clearRetry();
+    wantPlayRef.current = false;
     audioRef.current?.pause();
   };
   const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -195,6 +239,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
   const doStop = () => {
     clearFade();
     clearRetry();
+    wantPlayRef.current = false;
     const el = audioRef.current;
     if (!el) return;
     el.loop = false;
@@ -226,6 +271,9 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
           {fmt(time)} / {fmt(dur)}
         </span>
       </div>
+      {/* crossOrigin="anonymous" is load-bearing: tracks are cross-origin signed
+          URLs, and once createMediaElementSource is attached a cross-origin
+          element without it outputs silence with no error. Do not remove. */}
       <audio ref={audioRef} src={src} preload="auto" loop={loop} playsInline crossOrigin="anonymous" />
       {blocked ? (
         <button
@@ -241,8 +289,16 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, Props>(function AudioPl
         max={dur || 1}
         step={0.5}
         value={[time]}
-        onValueChange={(v) => seek(v[0] ?? 0)}
-        className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5"
+        // With the transport hidden the session timer owns the clock, so the
+        // bar is a read-only progress indicator and cannot seek.
+        onValueChange={hideTransport ? undefined : (v) => seek(v[0] ?? 0)}
+        disabled={hideTransport}
+        aria-readonly={hideTransport || undefined}
+        className={
+          hideTransport
+            ? "pointer-events-none data-[disabled]:opacity-100 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3"
+            : "[&_[role=slider]]:h-5 [&_[role=slider]]:w-5"
+        }
       />
       <div className="flex items-center gap-4">
         {hideTransport ? null : (
