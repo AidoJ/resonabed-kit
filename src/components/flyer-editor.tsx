@@ -5,16 +5,18 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { getSignedLogoUrl } from "@/lib/admin.functions";
 import { saveFlyerDesign } from "@/lib/flyer-design.functions";
-import { applyPalette, contrast, defaultFlyerDesign, flyerDesignSchema, hexRgb, paletteVariants, PANEL_IDS, PANEL_NAMES, readFlyerDesign, rgbHex, type FlyerDesign, type PanelColours, type PanelId } from "@/lib/flyer-design";
+import { LOGO_PANELS, applyPalette, contrast, defaultFlyerDesign, flyerDesignSchema, hexRgb, paletteVariants, PANEL_IDS, PANEL_NAMES, readFlyerDesign, rgbHex, type FlyerDesign, type PanelColours, type PanelId } from "@/lib/flyer-design";
 import { buildPanelFlyer, type FlyerIdentity } from "@/lib/flyer-panel-pdf";
 import ownerLogo from "@/assets/resonabed-logo.png.asset.json";
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 interface Clinic { id: string; name: string; public_contact_phone: string | null; public_contact_email: string | null; slug: string | null; logo_path: string | null; flyer_design: unknown; }
-const ROLES: { key: keyof PanelColours; label: string }[] = [{ key: "background", label: "Panel background" }, { key: "accent", label: "Headings & accents" }, { key: "text", label: "Body text" }, { key: "box", label: "Inset / logo backing" }, { key: "boxText", label: "Inset text" }];
+type ColourKey = "background" | "text" | "accent" | "box";
+const ROLES: { key: ColourKey; label: string }[] = [{ key: "background", label: "Panel background" }, { key: "text", label: "Text" }, { key: "accent", label: "Lines & Book Now" }, { key: "box", label: "Logo backing colour" }];
 
 async function suggestColours(url: string): Promise<string[]> {
   const response = await fetch(url); if (!response.ok) return [];
@@ -51,6 +53,8 @@ export function FlyerEditor({ clinic }: { clinic: Clinic | null }) {
   const input = useRef<HTMLInputElement>(null);
   const save = useServerFn(saveFlyerDesign); const sign = useServerFn(getSignedLogoUrl);
   const current = design.panels[panel];
+  const [draft, setDraft] = useState<Partial<Record<ColourKey, string>>>({});
+  useEffect(() => { setDraft({}); }, [panel]);
   const valid = flyerDesignSchema.safeParse(design).success;
   useEffect(() => {
     const initial = readFlyerDesign(clinic?.flyer_design, clinic?.public_contact_phone ?? "", clinic?.logo_path ?? null);
@@ -95,7 +99,7 @@ export function FlyerEditor({ clinic }: { clinic: Clinic | null }) {
     }, 400);
     return () => { cancelled = true; window.clearTimeout(timer); };
   }, [design, identity, valid]);
-  const change = (key: keyof PanelColours, value: string) => setDesign((d) => ({ ...d, panels: { ...d.panels, [panel]: { ...d.panels[panel], [key]: value } } }));
+  const change = (key: keyof PanelColours, value: string | boolean) => setDesign((d) => ({ ...d, panels: { ...d.panels, [panel]: { ...d.panels[panel], [key]: value } } }));
   const upload = async (file: File) => {
     if (!clinic) return;
     if (!["image/png", "image/jpeg", "image/webp", "image/svg+xml"].includes(file.type) || file.size > 10 * 1024 * 1024) { toast.error("Choose a PNG, JPEG, WebP or SVG logo up to 10 MB."); return; }
@@ -112,7 +116,7 @@ export function FlyerEditor({ clinic }: { clinic: Clinic | null }) {
     catch (e) { toast.error(e instanceof Error ? e.message : "Download failed"); } finally { setBusy(false); }
   };
   const dirty = saved !== JSON.stringify(design);
-  const lowContrast = valid && (contrast(current.text, current.background) < 4.5 || contrast(current.accent, current.background) < 3 || contrast(current.boxText, current.box) < 4.5);
+  const lowContrast = valid && (contrast(current.text, current.background) < 4.5 || contrast(current.accent, current.background) < 3 );
   const variants = base ? paletteVariants(base) : [];
   return <div className="space-y-5">
     <header className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-semibold">Client flyer</h1><p className="mt-1 text-sm text-muted-foreground">DL · Six-panel design</p></div><div className="flex flex-wrap gap-2">
@@ -133,7 +137,8 @@ export function FlyerEditor({ clinic }: { clinic: Clinic | null }) {
           {variants.length > 0 && <><div className="flex h-8 overflow-hidden rounded border">{variants.map((hex) => <span key={hex} className="flex-1" style={{ backgroundColor: hex }} title={hex} />)}</div><Button variant="outline" className="w-full" onClick={() => setDesign((d) => applyPalette(d, base))}>Apply logo palette</Button></>}
         </section>
         <section className="space-y-4 border-t pt-5"><div><h2 className="font-semibold">{panel} · {PANEL_NAMES[panel]}</h2></div>
-          {ROLES.filter((role) => !["box", "boxText"].includes(role.key) || ["F1", "F3", "B2"].includes(panel)).map(({ key, label }) => <div key={key} className="space-y-1.5"><Label htmlFor={`panel-${key}`}>{label}</Label><div className="flex gap-2"><Input type="color" aria-label={`${panel} ${label} picker`} className="h-10 w-12 shrink-0 p-1" value={/^#[\da-f]{6}$/i.test(current[key]) ? current[key] : "#000000"} onChange={(e) => change(key, e.target.value)} /><Input id={`panel-${key}`} aria-label={`${panel} ${label}`} className="font-mono uppercase" maxLength={7} value={current[key]} onChange={(e) => change(key, e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`)} /></div><div className="flex flex-wrap gap-1">{[...new Set([...variants, ...suggestions, "#ffffff", "#000000"])].map((hex) => <Button key={hex} variant="outline" size="icon" className="h-6 w-6" title={hex} aria-label={`Set ${label} to ${hex}`} onClick={() => change(key, hex)}><span className="h-4 w-4 rounded-full" style={{ backgroundColor: hex }} /></Button>)}</div></div>)}
+          {ROLES.filter((role) => (role.key !== "accent" || panel === "F2") && (role.key !== "box" || (LOGO_PANELS.includes(panel) && current.logoBacking))).map(({ key, label }) => { const value = draft[key] ?? current[key]; const ok = /^#[\da-f]{6}$/i.test(value); const pending = value.toLowerCase() !== current[key].toLowerCase(); return <div key={key} className="space-y-1.5"><Label htmlFor={`panel-${key}`}>{label}</Label><div className="flex gap-2"><Input type="color" aria-label={`${panel} ${label} picker`} className="h-10 w-12 shrink-0 p-1" value={ok ? value : "#000000"} onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))} /><Input id={`panel-${key}`} aria-label={`${panel} ${label}`} className="font-mono uppercase" maxLength={7} value={value} onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}` }))} /><Button size="sm" className="h-10 shrink-0" variant={pending ? "default" : "outline"} disabled={!ok || !pending} onClick={() => { change(key, value); setDraft((d) => { const n = { ...d }; delete n[key]; return n; }); }}>Apply</Button></div><div className="flex flex-wrap gap-1">{[...new Set([...variants, ...suggestions, "#ffffff", "#000000"])].map((hex) => <Button key={hex} variant="outline" size="icon" className="h-6 w-6" title={hex} aria-label={`Choose ${hex} for ${label}`} onClick={() => setDraft((d) => ({ ...d, [key]: hex }))}><span className="h-4 w-4 rounded-full" style={{ backgroundColor: hex }} /></Button>)}</div>{ok && !pending ? null : ok ? <p className="text-xs text-muted-foreground">Press Apply to see it on the flyer.</p> : <p className="text-xs text-destructive">Enter a six-digit colour code.</p>}</div>; })}
+          {LOGO_PANELS.includes(panel) && <div className="flex items-center justify-between gap-3"><Label htmlFor="logo-backing">Logo backing</Label><Switch id="logo-backing" checked={!!current.logoBacking} onCheckedChange={(v) => change("logoBacking", v)} /></div>}
           {!valid && <p role="alert" className="text-sm text-destructive">Enter complete six-digit colour codes.</p>}
           {lowContrast && <p role="status" className="text-sm text-destructive">Some text may be difficult to read against these colours.</p>}
         </section>
