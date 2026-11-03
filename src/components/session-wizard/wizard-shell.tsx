@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,11 @@ export function WizardShell({
   footer,
   stepLabels,
 }: WizardShellProps) {
+  // Every step opens at the top so nothing above the fold is missed on phones.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [step]);
+
   return (
     <div className="mx-auto flex min-h-[calc(100vh-9rem)] max-w-[880px] flex-col">
       {/* Step indicator */}

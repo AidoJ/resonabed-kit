@@ -75,15 +75,11 @@ export function StepFrequency({
     return `${VARIANT_LABELS[wanted]} not available, plays ${a.variants.includes("original") ? "Gentle" : VARIANT_LABELS[a.variants[0]!]}`;
   };
 
+  void onDeepFeelChange;
+  void onAmbienceChange;
+
   return (
     <div className="space-y-6">
-      <AudioVariantSwitches
-        deepFeel={deepFeel}
-        ambience={ambience}
-        onDeepFeelChange={onDeepFeelChange}
-        onAmbienceChange={onAmbienceChange}
-        availability={availability?.[selected.frequency.id] ?? null}
-      />
       <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm">
         <span className="text-muted-foreground">Target:</span>{" "}
         <span className="font-semibold tabular-nums">{targetHz} Hz</span>

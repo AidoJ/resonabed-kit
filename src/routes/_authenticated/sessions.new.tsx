@@ -16,7 +16,7 @@ import {
 } from "@/components/session-wizard/step-symptoms";
 import { saveSessionCheckin } from "@/lib/checkins.functions";
 import { StepSafety, type SafetyState } from "@/components/session-wizard/step-safety";
-import { StepFrequency } from "@/components/session-wizard/step-frequency";
+import { StepFrequency, StepSoundOptions } from "@/components/session-wizard/step-frequency";
 import {
   createDraftSession,
   getClientLastAudioChoice,
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/_authenticated/sessions/new")({
   component: NewSession,
 });
 
-const STEP_TITLES = ["Client", "Service", "Wellbeing Check", "Safety", "Frequency"];
+const STEP_TITLES = ["Client", "Service", "Wellbeing Check", "Safety", "Frequency", "Sound"];
 
 function NewSession() {
   const { booking_id } = Route.useSearch();
@@ -180,6 +180,7 @@ function NewSession() {
         safety.otherHealth !== null
       );
     if (step === 4) return !!activeFreqId;
+    if (step === 5) return !!activeFreqId;
     return false;
   })();
 
@@ -320,6 +321,7 @@ function NewSession() {
     "Slide each scale to where the client feels right now. Green is feeling better; red is feeling worse.",
     "Screen for contraindications, then both parties sign. This record is permanent.",
     "Suggested frequency for this intake, override if you prefer.",
+    "Add Deep Feel or Ambient Sound if you like, then start.",
   ];
 
   if (!isConfigured) {
@@ -425,7 +427,16 @@ function NewSession() {
           ambience={ambienceOn}
           onAmbienceChange={setAmbienceOn}
         />
-
+      )}
+      {step === 5 && (
+        <StepSoundOptions
+          frequency={chosenFrequency}
+          availability={activeFreqId ? availability[activeFreqId] ?? null : null}
+          deepFeel={deepFeel}
+          onDeepFeelChange={setDeepFeel}
+          ambience={ambienceOn}
+          onAmbienceChange={setAmbienceOn}
+        />
       )}
 
       <Dialog open={!!blocked} onOpenChange={() => {}}>

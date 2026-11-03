@@ -33,7 +33,7 @@ import {
   toIntakeInputs,
   type SymptomsState,
 } from "@/components/session-wizard/step-symptoms";
-import { StepFrequency } from "@/components/session-wizard/step-frequency";
+import { StepFrequency, StepSoundOptions } from "@/components/session-wizard/step-frequency";
 import { AudioVariantSwitches } from "@/components/session-player/audio-variant-switches";
 import {
   buildAvailability,
@@ -120,13 +120,14 @@ function Shell({
 
 /* ---------------------------------------------------------------- */
 
-const STEP_TITLES = ["Reminder", "Length", "Symptoms", "Frequency"] as const;
+const STEP_TITLES = ["Reminder", "Length", "Symptoms", "Frequency", "Sound"] as const;
 
 const SUBTITLES = [
   "A short safety note before you settle in.",
   "How long do you have today?",
   "A quick snapshot of how you feel right now.",
   "Your suggested frequency, change it if you prefer.",
+  "Add Deep Feel or Ambient Sound if you like, then start.",
 ];
 
 function todayLabel() {
@@ -251,6 +252,7 @@ function HomeWizard({
     if (step === 1) return !!minutes;
     if (step === 2) return true;
     if (step === 3) return !!activeFreqId;
+    if (step === 4) return !!activeFreqId;
     return false;
   })();
 
@@ -363,6 +365,16 @@ function HomeWizard({
               Your sound library is not available right now.
             </p>
           ))}
+        {step === 4 && (
+          <StepSoundOptions
+            frequency={chosen ?? null}
+            availability={chosen ? availability[chosen.id] ?? null : null}
+            deepFeel={deepFeel}
+            onDeepFeelChange={setDeepFeel}
+            ambience={ambienceOn}
+            onAmbienceChange={setAmbienceOn}
+          />
+        )}
       </WizardShell>
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
