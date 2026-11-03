@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { AUDIO_VARIANTS } from "@/lib/audio-variants";
 
 const uuid = z.string().uuid();
 
@@ -11,7 +12,7 @@ export const listOrgAudioFiles = createServerFn({ method: "GET" })
     // filters the rest. The session player uses the same visibility.
     const { data, error } = await context.supabase
       .from("audio_files")
-      .select("id, org_id, title, frequency_id, file_url, duration_seconds, is_active, created_at")
+      .select("id, org_id, title, frequency_id, file_url, duration_seconds, is_active, created_at, variant, ambience_kind")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -25,6 +26,8 @@ export const createAudioFileRow = createServerFn({ method: "POST" })
         title: z.string().min(1).max(160),
         frequency_id: uuid,
         is_global: z.boolean().optional(),
+        variant: z.enum(AUDIO_VARIANTS).default("original"),
+        ambience_kind: z.enum(["water", "wind"]).nullish(),
       })
       .parse(data),
   )
@@ -43,7 +46,10 @@ export const createAudioFileRow = createServerFn({ method: "POST" })
           org_id: null,
           title: data.title,
           frequency_id: data.frequency_id,
-          is_active: true,
+          // Activated by finalize once the file is stored.
+          is_active: false,
+          variant: data.variant,
+          ambience_kind: data.variant.endsWith("_amb") ? (data.ambience_kind ?? null) : null,
         })
         .select("id, org_id")
         .single();
@@ -65,7 +71,9 @@ export const createAudioFileRow = createServerFn({ method: "POST" })
         org_id: profile.org_id,
         title: data.title,
         frequency_id: data.frequency_id,
-        is_active: true,
+        is_active: false,
+        variant: data.variant,
+        ambience_kind: data.variant.endsWith("_amb") ? (data.ambience_kind ?? null) : null,
       })
       .select("id, org_id")
       .single();
@@ -96,8 +104,14 @@ export const finalizeAudioFile = createServerFn({ method: "POST" })
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
-    // A freshly uploaded org track becomes the one that plays for its frequency.
-    if (row.is_active) await deactivateOrgSiblings(context, row);
+    // A freshly uploaded track becomes the one that plays for its frequency
+    // and variant: switch off the previous one first, then activate.
+    await deactivateOrgSiblings(context, row);
+    const { error: aErr } = await context.supabase
+      .from("audio_files")
+      .update({ is_active: true })
+      .eq("id", data.id);
+    if (aErr) throw new Error(aErr.message);
     return { ok: true };
   });
 
@@ -109,12 +123,12 @@ export const setAudioFileActive = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { loadMutableAudioRow, deactivateOrgSiblings } = await import("./audio.server");
     const row = await loadMutableAudioRow(context, data.id);
+    if (data.is_active) await deactivateOrgSiblings(context, row);
     const { error } = await context.supabase
       .from("audio_files")
       .update({ is_active: data.is_active })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
-    if (data.is_active) await deactivateOrgSiblings(context, row);
     return { ok: true };
   });
 

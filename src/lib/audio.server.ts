@@ -9,6 +9,7 @@ export interface AudioRowRef {
   frequency_id: string | null;
   file_url: string | null;
   is_active: boolean;
+  variant: string;
 }
 
 /** True when the caller holds the super_admin role. */
@@ -31,7 +32,7 @@ export async function loadMutableAudioRow(
 ): Promise<AudioRowRef> {
   const { data: row, error } = await context.supabase
     .from("audio_files")
-    .select("id, org_id, frequency_id, file_url, is_active")
+    .select("id, org_id, frequency_id, file_url, is_active, variant")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -45,21 +46,25 @@ export async function loadMutableAudioRow(
 }
 
 /**
- * Only one of an organisation's own tracks may be active per frequency, so the
- * session player has a single unambiguous winner. Activating one deactivates
- * its siblings (radio-button behaviour). Global tracks are untouched.
+ * Only one track may be active per library (clinic or global), frequency and
+ * variant, so the session player has a single unambiguous winner. Activating
+ * one deactivates its same-variant siblings (radio-button behaviour); other
+ * variants of the same frequency are untouched. Must run BEFORE activating,
+ * because a unique index enforces one active row per variant.
  */
 export async function deactivateOrgSiblings(
   context: AudioCtx,
-  args: { id: string; org_id: string | null; frequency_id: string | null },
+  args: { id: string; org_id: string | null; frequency_id: string | null; variant?: string },
 ): Promise<void> {
-  if (!args.org_id || !args.frequency_id) return;
-  const { error } = await context.supabase
+  if (!args.frequency_id) return;
+  let q = context.supabase
     .from("audio_files")
     .update({ is_active: false })
-    .eq("org_id", args.org_id)
     .eq("frequency_id", args.frequency_id)
+    .eq("variant", args.variant ?? "original")
     .eq("is_active", true)
     .neq("id", args.id);
+  q = args.org_id ? q.eq("org_id", args.org_id) : q.is("org_id", null);
+  const { error } = await q;
   if (error) throw new Error(error.message);
 }
