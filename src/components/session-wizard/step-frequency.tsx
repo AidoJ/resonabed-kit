@@ -196,3 +196,47 @@ export function StepFrequency({
     </div>
   );
 }
+
+/** Separate wizard step: the sound options for the frequency chosen on the previous step. */
+export function StepSoundOptions({
+  frequency,
+  availability,
+  deepFeel,
+  onDeepFeelChange,
+  ambience,
+  onAmbienceChange,
+}: {
+  frequency: FrequencyRow | null;
+  availability?: VariantAvailability | null;
+  deepFeel: boolean;
+  onDeepFeelChange: (v: boolean) => void;
+  ambience: boolean;
+  onAmbienceChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      {frequency ? (
+        <div
+          className="flex items-center gap-3 rounded-lg border px-4 py-3"
+          style={{ borderColor: frequency.color ?? undefined }}
+        >
+          <span
+            className="h-8 w-8 shrink-0 rounded-full"
+            style={{ background: frequency.color ?? "#888" }}
+          />
+          <p className="text-sm">
+            <span className="text-muted-foreground">Chosen frequency:</span>{" "}
+            <span className="font-semibold tabular-nums">{frequency.hz} Hz</span> · {frequency.name}
+          </p>
+        </div>
+      ) : null}
+      <AudioVariantSwitches
+        deepFeel={deepFeel}
+        ambience={ambience}
+        onDeepFeelChange={onDeepFeelChange}
+        onAmbienceChange={onAmbienceChange}
+        availability={availability ?? null}
+      />
+    </div>
+  );
+}
