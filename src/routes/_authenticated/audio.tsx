@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
+import { AUDIO_VARIANTS, VARIANT_LABELS, type AudioVariant } from "@/lib/audio-variants";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -96,6 +97,8 @@ interface AudioRow {
   duration_seconds: number | null;
   is_active: boolean;
   created_at: string;
+  variant: string;
+  ambience_kind: string | null;
 }
 
 function fmtDuration(sec: number | null): string {
@@ -260,9 +263,24 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
             });
 
             const playable = rows.filter((r) => !!r.file_url && r.is_active);
-            const ownWinner = playable.find((r) => r.org_id !== null) ?? null;
-            const globalWinner = playable.find((r) => r.org_id === null) ?? null;
+            // Headline status reflects the Gentle (original) version.
+            const ofOriginal = playable.filter((r) => (r.variant ?? "original") === "original");
+            const ownWinner = ofOriginal.find((r) => r.org_id !== null) ?? null;
+            const globalWinner = ofOriginal.find((r) => r.org_id === null) ?? null;
             const winner = ownWinner ?? (licenceOk ? globalWinner : null);
+            // Winner per version: clinic row first, then global.
+            const winnerIds = new Set(
+              AUDIO_VARIANTS.map((v) => {
+                const pv = playable.filter((r) => (r.variant ?? "original") === v);
+                const w =
+                  pv.find((r) => r.org_id !== null) ??
+                  (licenceOk ? pv.find((r) => r.org_id === null) : undefined);
+                return w?.id;
+              }).filter(Boolean) as string[],
+            );
+            const globalMissing = AUDIO_VARIANTS.filter(
+              (v) => !playable.some((r) => r.org_id === null && (r.variant ?? "original") === v),
+            );
 
             const status = winner
               ? {
@@ -293,6 +311,11 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                       <span className="tabular-nums">{f.hz} Hz</span> · {f.name}
                     </p>
                     <p className="text-xs text-muted-foreground">{helper}</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      {globalMissing.length === 0
+                        ? "All four ResonaBed versions available."
+                        : `ResonaBed versions missing: ${globalMissing.map((v) => VARIANT_LABELS[v]).join(", ")}`}
+                    </p>
                   </div>
                   <Badge variant={status.variant}>{status.label}</Badge>
                   <Button
@@ -310,7 +333,7 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                     {rows.map((r) => {
                       const isGlobalRow = r.org_id === null;
                       const readOnly = isGlobalRow && !isSuperAdmin;
-                      const isWinner = winner?.id === r.id;
+                      const isWinner = winnerIds.has(r.id);
                       const shadowed =
                         isGlobalRow && !!ownWinner && r.is_active && !!r.file_url;
 
@@ -325,6 +348,9 @@ function AudioLibrary({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                           <div className="flex-1 min-w-[160px]">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-sm font-medium">{r.title}</p>
+                              <Badge variant="outline" className="text-[10px]">
+                                {VARIANT_LABELS[(r.variant ?? "original") as AudioVariant]}
+                              </Badge>
                               {isGlobalRow ? (
                                 <Badge variant="secondary" className="text-[10px]">
                                   Global
@@ -448,7 +474,13 @@ interface UploadDialogProps {
   frequencies: Array<{ id: string; hz: number; name: string }>;
   presetFrequencyId: string | null;
   isSuperAdmin: boolean;
-  createRow: (v: { title: string; frequency_id: string; is_global?: boolean }) => Promise<{
+  createRow: (v: {
+    title: string;
+    frequency_id: string;
+    is_global?: boolean;
+    variant?: AudioVariant;
+    ambience_kind?: "water" | "wind" | null;
+  }) => Promise<{
     id: string;
     org_id: string | null;
   }>;
@@ -476,6 +508,8 @@ function UploadDialog({
   const [frequencyId, setFrequencyId] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [isGlobal, setIsGlobal] = useState(false);
+  const [variant, setVariant] = useState<AudioVariant>("original");
+  const [ambienceKind, setAmbienceKind] = useState<"water" | "wind">("water");
   const [busy, setBusy] = useState(false);
 
   // Reset when opened.
@@ -486,6 +520,7 @@ function UploadDialog({
     setFrequencyId(presetFrequencyId ?? "");
     setFile(null);
     setIsGlobal(false);
+    setVariant("original");
   } else if (!open && openedRef.current) {
     openedRef.current = false;
   }
@@ -508,6 +543,8 @@ function UploadDialog({
         title: title.trim(),
         frequency_id: frequencyId,
         is_global: isSuperAdmin && isGlobal ? true : undefined,
+        variant,
+        ambience_kind: variant.endsWith("_amb") ? ambienceKind : null,
       });
       createdId = row.id;
       const folder = row.org_id ?? "global";
@@ -570,6 +607,35 @@ function UploadDialog({
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <Label>Version</Label>
+            <Select value={variant} onValueChange={(v) => setVariant(v as AudioVariant)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {AUDIO_VARIANTS.map((v) => (
+                  <SelectItem key={v} value={v}>
+                    {VARIANT_LABELS[v]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {variant.endsWith("_amb") ? (
+            <div>
+              <Label>Ambient sound in this recording</Label>
+              <Select value={ambienceKind} onValueChange={(v) => setAmbienceKind(v as "water" | "wind")}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="water">Water / ocean</SelectItem>
+                  <SelectItem value="wind">Forest wind</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
           <div>
             <Label htmlFor="file">Audio file (MP3 or WAV)</Label>
             <Input

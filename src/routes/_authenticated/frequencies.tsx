@@ -43,6 +43,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { AUDIO_VARIANTS, VARIANT_LABELS, type AudioVariant } from "@/lib/audio-variants";
 
 export const Route = createFileRoute("/_authenticated/frequencies")({
   head: () => ({
@@ -175,6 +176,7 @@ function FrequenciesAdmin() {
 
   const [editing, setEditing] = useState<FrequencyEditable | null>(null);
   const [pendingAudio, setPendingAudio] = useState<File | null>(null);
+  const [audioVariant, setAudioVariant] = useState<AudioVariant>("original");
   const [saving, setSaving] = useState(false);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -190,8 +192,18 @@ function FrequenciesAdmin() {
     }
     const duration = await readAudioDuration(file);
     const title = file.name.replace(/\.[^.]+$/, "").slice(0, 160) || "Global track";
+    // Ambient versions keep the ambience already recorded for this frequency.
+    const ambience =
+      globalAudio.find((a) => a.frequency_id === frequencyId && a.ambience_kind)?.ambience_kind ??
+      null;
     const row = await createAudioRowFn({
-      data: { title, frequency_id: frequencyId, is_global: true },
+      data: {
+        title,
+        frequency_id: frequencyId,
+        is_global: true,
+        variant: audioVariant,
+        ambience_kind: ambience as "water" | "wind" | null,
+      },
     });
     const path = `global/${row.id}.${ext}`;
     const { error: upErr } = await supabase.storage
@@ -201,15 +213,9 @@ function FrequenciesAdmin() {
         upsert: false,
       });
     if (upErr) throw new Error(upErr.message);
+    // Finalize activates the new track and switches off the previous one of
+    // the SAME version only; the other versions of this frequency are kept.
     await finalizeAudioFn({ data: { id: row.id, file_url: path, duration_seconds: duration } });
-    // Radio-button behaviour for globals: the new track becomes the one that
-    // plays for this frequency, previous global tracks are switched off.
-    const siblings = globalAudio.filter(
-      (a) => a.frequency_id === frequencyId && a.id !== row.id && a.is_active,
-    );
-    for (const s of siblings) {
-      await setAudioActiveFn({ data: { id: s.id, is_active: false } });
-    }
   };
 
   const deleteMut = useMutation({
@@ -491,21 +497,32 @@ function FrequenciesAdmin() {
                 <Label className="flex items-center gap-2">
                   <Music className="h-4 w-4" /> Sound file (global track)
                 </Label>
+                <select
+                  aria-label="Version to replace"
+                  className="h-9 w-full rounded-md border bg-background px-2 text-sm"
+                  value={audioVariant}
+                  onChange={(e) => setAudioVariant(e.target.value as AudioVariant)}
+                >
+                  {AUDIO_VARIANTS.map((v) => (
+                    <option key={v} value={v}>
+                      {VARIANT_LABELS[v]}
+                    </option>
+                  ))}
+                </select>
                 {(() => {
+                  const ofVariant = globalAudio.filter(
+                    (a) => a.frequency_id === editing.id && (a.variant ?? "original") === audioVariant,
+                  );
                   const current = editing.id
-                    ? globalAudio
-                        .filter((a) => a.frequency_id === editing.id && a.is_active && a.file_url)
-                        .concat(
-                          globalAudio.filter(
-                            (a) => a.frequency_id === editing.id && (!a.is_active || !a.file_url),
-                          ),
-                        )[0]
+                    ? ofVariant
+                        .filter((a) => a.is_active && a.file_url)
+                        .concat(ofVariant.filter((a) => !a.is_active || !a.file_url))[0]
                     : null;
                   return (
                     <p className="text-xs text-muted-foreground">
                       {current
                         ? `Current: ${current.title} · ${fmtDuration(current.duration_seconds)}${current.is_active ? "" : " (inactive)"}`
-                        : "No global sound file for this frequency yet."}
+                        : `No ${VARIANT_LABELS[audioVariant]} sound file for this frequency yet.`}
                     </p>
                   );
                 })()}

@@ -19,8 +19,10 @@ import { StepSafety, type SafetyState } from "@/components/session-wizard/step-s
 import { StepFrequency } from "@/components/session-wizard/step-frequency";
 import {
   createDraftSession,
+  getClientLastAudioChoice,
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
+import type { AmbienceKind, AudioVariant, VariantAvailability } from "@/lib/audio-variants";
 import { submitScreening, declineSessionForScreening } from "@/lib/screening.functions";
 import { SCREENING_CHECKLIST } from "@/lib/screening-checklist";
 import { getBooking, startSessionFromBooking } from "@/lib/bookings.functions";
@@ -132,6 +134,26 @@ function NewSession() {
     for (const f of freqs ?? []) m[f.id] = f.has_audio;
     return m;
   }, [freqs]);
+  const availability = useMemo(() => {
+    const m: Record<string, VariantAvailability> = {};
+    for (const f of freqs ?? [])
+      m[f.id] = { variants: f.audio_variants as AudioVariant[], ambience: f.ambience_kind as AmbienceKind | null };
+    return m;
+  }, [freqs]);
+
+  // Sound preference: defaults to the client's previous session, else Gentle.
+  const [deepFeel, setDeepFeel] = useState(false);
+  const [ambienceOn, setAmbienceOn] = useState(false);
+  const lastChoiceFn = useServerFn(getClientLastAudioChoice);
+  const { data: lastChoice } = useQuery({
+    queryKey: ["client-last-audio", client?.id],
+    queryFn: () => lastChoiceFn({ data: { client_id: client!.id } }),
+    enabled: !!client?.id,
+  });
+  useEffect(() => {
+    setDeepFeel(lastChoice?.audio_resonance === "deep");
+    setAmbienceOn(!!lastChoice?.audio_ambience);
+  }, [lastChoice, client?.id]);
 
   // Default selection: top-ranked with audio, else top-ranked overall.
   const defaultFreqId = useMemo(() => {
@@ -247,6 +269,8 @@ function NewSession() {
         client_signature: safety.signature ?? undefined,
         recommended_frequency_id: activeFreqId,
         screening_id: screeningId,
+        audio_resonance: (deepFeel ? "deep" : "gentle") as "deep" | "gentle",
+        audio_ambience: ambienceOn,
       };
       let sessionId: string;
       if (booking_id) {
@@ -395,6 +419,11 @@ function NewSession() {
           targetHz={targetHz}
           selectedId={activeFreqId}
           onChange={setChosenFreqId}
+          availability={availability}
+          deepFeel={deepFeel}
+          onDeepFeelChange={setDeepFeel}
+          ambience={ambienceOn}
+          onAmbienceChange={setAmbienceOn}
         />
 
       )}

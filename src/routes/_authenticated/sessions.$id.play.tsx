@@ -1,9 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Music, X } from "lucide-react";
-import { getSession, getAudioForFrequency, getSignedAudioUrl } from "@/lib/sessions.functions";
+import {
+  getSession,
+  getAudioForFrequency,
+  getSignedAudioUrl,
+  listFrequenciesWithAudioFlag,
+  setSessionAudioChoice,
+} from "@/lib/sessions.functions";
+import { AudioVariantSwitches } from "@/components/session-player/audio-variant-switches";
+import { VariantFallbackNote } from "@/components/session-player/variant-fallback-note";
+import {
+  variantFor,
+  type AmbienceKind,
+  type AudioVariant,
+} from "@/lib/audio-variants";
 import { getMyOrgLicence } from "@/lib/licence.functions";
 import { getSessionCheckins } from "@/lib/checkins.functions";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
@@ -52,19 +65,54 @@ function PlaySession() {
 
   const freqId = session?.recommended_frequency_id ?? null;
 
+  // Nature-ambience / resonance choice. Distinct from `ambient` above, which
+  // only tracks whether audio is playing for the visuals.
+  const deepFeel = session?.audio_resonance === "deep";
+  const ambienceOn = !!session?.audio_ambience;
+  const variant = variantFor(deepFeel, ambienceOn);
+  const queryClient = useQueryClient();
+  const choiceFn = useServerFn(setSessionAudioChoice);
+  const setChoice = (next: { deep: boolean; amb: boolean }) => {
+    // Optimistic: the player switches immediately; the choice is saved so a
+    // reload keeps it.
+    queryClient.setQueryData(["session", id], (old: typeof session) =>
+      old ? { ...old, audio_resonance: next.deep ? "deep" : "gentle", audio_ambience: next.amb } : old,
+    );
+    void choiceFn({
+      data: { id, audio_resonance: next.deep ? "deep" : "gentle", audio_ambience: next.amb },
+    }).catch(() => {});
+  };
+
+  const availFn = useServerFn(listFrequenciesWithAudioFlag);
+  const { data: freqList } = useQuery({
+    queryKey: ["frequencies-with-audio"],
+    queryFn: () => availFn(),
+  });
+  const freqAvail = freqList?.find((f) => f.id === freqId);
+  const availability = freqAvail
+    ? {
+        variants: freqAvail.audio_variants as AudioVariant[],
+        ambience: freqAvail.ambience_kind as AmbienceKind | null,
+      }
+    : null;
+
   const { data: audio } = useQuery({
-    queryKey: ["audio-for-freq", freqId, id],
-    queryFn: () => audioFn({ data: { frequency_id: freqId!, session_id: id } }),
+    queryKey: ["audio-for-freq", freqId, id, variant],
+    queryFn: () => audioFn({ data: { frequency_id: freqId!, session_id: id, variant } }),
     enabled: !!freqId,
+    // Keep the current track mounted while a switched variant resolves.
+    placeholderData: keepPreviousData,
   });
 
   const { data: signed } = useQuery({
     queryKey: ["signed-audio", audio?.id, id],
     queryFn: () => signFn({ data: { audio_file_id: audio!.id, session_id: id } }),
     enabled: !!audio?.id && !audio.locked,
-    // Never swap the track URL mid-session (that would restart playback).
-    staleTime: Infinity,
+    // Same URL for the life of a track; a later switch back fetches a fresh one.
+    staleTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    placeholderData: keepPreviousData,
   });
 
   const checkinsFn = useServerFn(getSessionCheckins);
@@ -269,7 +317,16 @@ function PlaySession() {
 
 
         {/* Audio */}
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-2xl space-y-4">
+          <AudioVariantSwitches
+            dark
+            deepFeel={deepFeel}
+            ambience={ambienceOn}
+            onDeepFeelChange={(v) => setChoice({ deep: v, amb: ambienceOn })}
+            onAmbienceChange={(v) => setChoice({ deep: deepFeel, amb: v })}
+            availability={availability}
+          />
+          <VariantFallbackNote audio={audio} />
           {audio && !audio.locked && signed?.url ? (
             <AudioPlayer
               ref={audioHandleRef}

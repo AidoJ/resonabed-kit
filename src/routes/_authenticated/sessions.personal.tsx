@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Music, X } from "lucide-react";
 import {
@@ -30,6 +30,14 @@ import {
   type SymptomsState,
 } from "@/components/session-wizard/step-symptoms";
 import { StepFrequency } from "@/components/session-wizard/step-frequency";
+import { AudioVariantSwitches } from "@/components/session-player/audio-variant-switches";
+import { VariantFallbackNote } from "@/components/session-player/variant-fallback-note";
+import {
+  variantFor,
+  type AmbienceKind,
+  type AudioVariant,
+  type VariantAvailability,
+} from "@/lib/audio-variants";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
 import {
   AudioPlayer,
@@ -73,6 +81,8 @@ function PersonalSession() {
   const [chosenFreqId, setChosenFreqId] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [deepFeel, setDeepFeel] = useState(false);
+  const [ambienceOn, setAmbienceOn] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["personal-library"],
@@ -83,6 +93,12 @@ function PersonalSession() {
   const hasAudio = useMemo(() => {
     const m: Record<string, boolean> = {};
     for (const f of data ?? []) m[f.id] = f.has_audio;
+    return m;
+  }, [data]);
+  const availability = useMemo(() => {
+    const m: Record<string, VariantAvailability> = {};
+    for (const f of data ?? [])
+      m[f.id] = { variants: f.audio_variants as AudioVariant[], ambience: f.ambience_kind as AmbienceKind | null };
     return m;
   }, [data]);
 
@@ -104,7 +120,18 @@ function PersonalSession() {
   const exit = () => navigate({ to: "/sessions" });
 
   if (playing && chosen) {
-    return <PersonalPlayer minutes={minutes} frequency={chosen} onExit={exit} />;
+    return (
+      <PersonalPlayer
+        minutes={minutes}
+        frequency={chosen}
+        onExit={exit}
+        deepFeel={deepFeel}
+        ambienceOn={ambienceOn}
+        onDeepFeelChange={setDeepFeel}
+        onAmbienceChange={setAmbienceOn}
+        availability={availability[chosen.id] ?? null}
+      />
+    );
   }
 
   const canProceed = (() => {
@@ -201,6 +228,11 @@ function PersonalSession() {
               targetHz={targetHz}
               selectedId={activeFreqId}
               onChange={setChosenFreqId}
+              availability={availability}
+              deepFeel={deepFeel}
+              onDeepFeelChange={setDeepFeel}
+              ambience={ambienceOn}
+              onAmbienceChange={setAmbienceOn}
             />
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -273,28 +305,43 @@ function PersonalPlayer({
   minutes,
   frequency,
   onExit,
+  deepFeel,
+  ambienceOn,
+  onDeepFeelChange,
+  onAmbienceChange,
+  availability,
 }: {
   minutes: number;
   frequency: FrequencyRow;
   onExit: () => void;
+  deepFeel: boolean;
+  ambienceOn: boolean;
+  onDeepFeelChange: (v: boolean) => void;
+  onAmbienceChange: (v: boolean) => void;
+  availability: VariantAvailability | null;
 }) {
+  const variant = variantFor(deepFeel, ambienceOn);
   const audioFn = useServerFn(getAudioForFrequency);
   const signFn = useServerFn(getSignedAudioUrl);
   const audioHandleRef = useRef<AudioPlayerHandle | null>(null);
   const [ambient, setAmbient] = useState(false);
 
   const { data: audio } = useQuery({
-    queryKey: ["personal-audio", frequency.id],
-    queryFn: () => audioFn({ data: { frequency_id: frequency.id } }),
+    queryKey: ["personal-audio", frequency.id, variant],
+    queryFn: () => audioFn({ data: { frequency_id: frequency.id, variant } }),
+    // Keep the current track mounted while a switched variant resolves.
+    placeholderData: keepPreviousData,
   });
 
   const { data: signed } = useQuery({
     queryKey: ["personal-audio-url", audio?.id],
     queryFn: () => signFn({ data: { audio_file_id: audio!.id } }),
     enabled: !!audio?.id && !audio.locked,
-    // Never swap the track URL mid-session (that would restart playback).
-    staleTime: Infinity,
+    // Same URL for the life of a track; a later switch back fetches a fresh one.
+    staleTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    placeholderData: keepPreviousData,
   });
 
   // If Start is tapped before the signed URL (and player) is ready, the play
@@ -344,7 +391,16 @@ function PersonalPlayer({
             />
           </div>
 
-          <div className="w-full">
+          <div className="w-full space-y-4">
+            <AudioVariantSwitches
+              dark
+              deepFeel={deepFeel}
+              ambience={ambienceOn}
+              onDeepFeelChange={onDeepFeelChange}
+              onAmbienceChange={onAmbienceChange}
+              availability={availability}
+            />
+            <VariantFallbackNote audio={audio} />
             {audio && !audio.locked && signed?.url ? (
               <AudioPlayer
                 ref={audioHandleRef}

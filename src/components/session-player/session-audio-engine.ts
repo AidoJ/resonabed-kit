@@ -9,6 +9,7 @@ type Ctx = AudioContext;
 let ctx: Ctx | null = null;
 let musicGain: GainNode | null = null;
 let attachedEl: HTMLMediaElement | null = null;
+let musicSource: MediaElementAudioSourceNode | null = null;
 let closingBuffer: AudioBuffer | null = null;
 let closingLoading: Promise<AudioBuffer | null> | null = null;
 let closingSource: AudioBufferSourceNode | null = null;
@@ -69,6 +70,7 @@ export function attachMusic(el: HTMLMediaElement): boolean {
     const g = c.createGain();
     src.connect(g).connect(c.destination);
     musicGain = g;
+    musicSource = src;
     attachedEl = el;
     return true;
   } catch {
@@ -158,4 +160,41 @@ export function resetMusicLevel() {
     musicGain.gain.cancelScheduledValues(c.currentTime);
     musicGain.gain.setValueAtTime(1, c.currentTime);
   }
+}
+
+/** True when the device audio clock is advancing. */
+export function isAudioClockRunning(): boolean {
+  return !!ctx && ctx.state === "running";
+}
+
+/** Try to resume a suspended audio clock (e.g. after a phone call). */
+export function resumeAudioClock() {
+  if (ctx && ctx.state !== "running") void ctx.resume().catch(() => {});
+}
+
+/** Subscribe to audio clock state changes (running / suspended / interrupted). */
+export function onAudioClockStateChange(cb: (state: string) => void): () => void {
+  const c = getCtx();
+  if (!c) return () => {};
+  const handler = () => cb(c.state);
+  c.addEventListener("statechange", handler);
+  return () => c.removeEventListener("statechange", handler);
+}
+
+/**
+ * Release the routing for an element that is going away. Only call this when
+ * the element itself is unmounting: createMediaElementSource can never be
+ * called twice on the same element.
+ */
+export function detachMusic(el: HTMLMediaElement) {
+  if (attachedEl !== el) return;
+  try {
+    musicSource?.disconnect();
+    musicGain?.disconnect();
+  } catch {
+    /* ignore */
+  }
+  musicSource = null;
+  musicGain = null;
+  attachedEl = null;
 }

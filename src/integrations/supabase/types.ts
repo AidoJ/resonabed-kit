@@ -37,6 +37,7 @@ export type Database = {
       }
       audio_files: {
         Row: {
+          ambience_kind: string | null
           created_at: string
           duration_seconds: number | null
           file_url: string | null
@@ -46,8 +47,10 @@ export type Database = {
           org_id: string | null
           title: string
           updated_at: string
+          variant: string
         }
         Insert: {
+          ambience_kind?: string | null
           created_at?: string
           duration_seconds?: number | null
           file_url?: string | null
@@ -57,8 +60,10 @@ export type Database = {
           org_id?: string | null
           title: string
           updated_at?: string
+          variant?: string
         }
         Update: {
+          ambience_kind?: string | null
           created_at?: string
           duration_seconds?: number | null
           file_url?: string | null
@@ -68,6 +73,7 @@ export type Database = {
           org_id?: string | null
           title?: string
           updated_at?: string
+          variant?: string
         }
         Relationships: [
           {
@@ -2220,6 +2226,8 @@ export type Database = {
       }
       sessions: {
         Row: {
+          audio_ambience: boolean
+          audio_resonance: string
           body_areas: string[]
           client_id: string
           client_signature: string | null
@@ -2247,6 +2255,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          audio_ambience?: boolean
+          audio_resonance?: string
           body_areas?: string[]
           client_id: string
           client_signature?: string | null
@@ -2274,6 +2284,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          audio_ambience?: boolean
+          audio_resonance?: string
           body_areas?: string[]
           client_id?: string
           client_signature?: string | null
