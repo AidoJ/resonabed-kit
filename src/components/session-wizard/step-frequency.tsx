@@ -7,6 +7,8 @@ import {
   type RankedFrequency,
 } from "@/lib/frequency-match";
 import { Badge } from "@/components/ui/badge";
+import { AudioVariantSwitches } from "@/components/session-player/audio-variant-switches";
+import { VARIANT_LABELS, variantFor, type VariantAvailability } from "@/lib/audio-variants";
 
 function labelFor(list: { value: string; label: string }[], value: string) {
   return list.find((o) => o.value === value)?.label ?? value;
@@ -111,6 +113,11 @@ export function StepFrequency({
             </Badge>
           )}
         </div>
+        {selectedHasAudio && missingNote(selected.frequency.id) ? (
+          <p className="mt-2 text-xs font-medium text-amber-600">
+            {missingNote(selected.frequency.id)}
+          </p>
+        ) : null}
         <div className="mt-3 flex items-baseline gap-3">
           <span
             className="text-5xl font-bold tabular-nums"
@@ -176,6 +183,11 @@ export function StepFrequency({
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {r.frequency.benefits || r.frequency.description}
                   </p>
+                  {audio && missingNote(r.frequency.id) ? (
+                    <p className="mt-1 text-[11px] font-medium text-amber-600">
+                      {missingNote(r.frequency.id)}
+                    </p>
+                  ) : null}
                 </div>
 
 
