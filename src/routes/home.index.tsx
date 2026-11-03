@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, LogOut, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +34,14 @@ import {
   type SymptomsState,
 } from "@/components/session-wizard/step-symptoms";
 import { StepFrequency } from "@/components/session-wizard/step-frequency";
+import { AudioVariantSwitches } from "@/components/session-player/audio-variant-switches";
+import {
+  buildAvailability,
+  pickTrack,
+  variantFor,
+  VARIANT_LABELS,
+  type VariantAvailability,
+} from "@/lib/audio-variants";
 import { SignaturePad } from "@/components/session-wizard/signature-pad";
 import { CountdownTimer } from "@/components/session-player/countdown-timer";
 import {
@@ -173,6 +181,10 @@ function HomeWizard({
     for (const f of frequencies) m[f.id] = tracks.some((t) => t.frequency_id === f.id);
     return m;
   }, [frequencies, tracks]);
+  const availability = useMemo(() => buildAvailability(tracks), [tracks]);
+  const [deepFeel, setDeepFeel] = useState(false);
+  const [ambienceOn, setAmbienceOn] = useState(false);
+  const variant = variantFor(deepFeel, ambienceOn);
 
   const intake = useMemo(() => toIntakeInputs(symptoms), [symptoms]);
 
@@ -193,7 +205,7 @@ function HomeWizard({
 
   const activeFreqId = chosenFreqId ?? defaultFreqId;
   const chosen = ranked.find((r) => r.frequency.id === activeFreqId)?.frequency ?? null;
-  const track = chosen ? (tracks.find((t) => t.frequency_id === chosen.id) ?? null) : null;
+  const track = chosen ? pickTrack(tracks, chosen.id, variant) : null;
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -218,6 +230,16 @@ function HomeWizard({
         frequency={chosen}
         trackId={track?.id ?? null}
         trackTitle={track?.title ?? `${chosen.hz} Hz`}
+        fallbackNote={
+          track && (track.variant ?? "original") !== variant
+            ? `${VARIANT_LABELS[variant]} is not available for this frequency. Now playing: ${VARIANT_LABELS[(track.variant ?? "original") as keyof typeof VARIANT_LABELS]}.`
+            : null
+        }
+        deepFeel={deepFeel}
+        ambienceOn={ambienceOn}
+        onDeepFeelChange={setDeepFeel}
+        onAmbienceChange={setAmbienceOn}
+        availability={availability[chosen.id] ?? null}
         onExit={endSession}
       />
     );
@@ -330,6 +352,11 @@ function HomeWizard({
               targetHz={targetHz}
               selectedId={activeFreqId}
               onChange={setChosenFreqId}
+              availability={availability}
+              deepFeel={deepFeel}
+              onDeepFeelChange={setDeepFeel}
+              ambience={ambienceOn}
+              onAmbienceChange={setAmbienceOn}
             />
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -434,12 +461,24 @@ function HomePlayer({
   trackId,
   trackTitle,
   onExit,
+  fallbackNote,
+  deepFeel,
+  ambienceOn,
+  onDeepFeelChange,
+  onAmbienceChange,
+  availability,
 }: {
   minutes: number;
   frequency: FrequencyRow;
   trackId: string | null;
   trackTitle: string;
   onExit: () => void;
+  fallbackNote: string | null;
+  deepFeel: boolean;
+  ambienceOn: boolean;
+  onDeepFeelChange: (v: boolean) => void;
+  onAmbienceChange: (v: boolean) => void;
+  availability: VariantAvailability | null;
 }) {
   const urlFn = useServerFn(getHomeAudioUrl);
   const audioHandleRef = useRef<AudioPlayerHandle | null>(null);
@@ -449,9 +488,12 @@ function HomePlayer({
     queryKey: ["home-audio-url", trackId],
     queryFn: () => urlFn({ data: { id: trackId! } }),
     enabled: !!trackId,
-    // Never swap the track URL mid-session (that would restart playback).
-    staleTime: Infinity,
+    // Same URL for the life of a track; a later switch back fetches a fresh one.
+    staleTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    // Keep the current track mounted while a switched variant's URL loads.
+    placeholderData: keepPreviousData,
   });
 
   // If Start is tapped before the signed URL (and player) is ready, the play
@@ -496,7 +538,20 @@ function HomePlayer({
             />
           </div>
 
-          <div className="w-full">
+          <div className="w-full space-y-4">
+            <AudioVariantSwitches
+              dark
+              deepFeel={deepFeel}
+              ambience={ambienceOn}
+              onDeepFeelChange={onDeepFeelChange}
+              onAmbienceChange={onAmbienceChange}
+              availability={availability}
+            />
+            {fallbackNote ? (
+              <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500">
+                {fallbackNote}
+              </p>
+            ) : null}
             {signed?.url ? (
               <AudioPlayer
                 ref={audioHandleRef}
