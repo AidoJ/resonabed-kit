@@ -23,6 +23,7 @@
 
 - Keep flyer preferences separate from website themes in organisations.flyer_design, validated by the strict shared schema, so flyer changes cannot alter the clinic website or editable content scope.
 - Generate the Marketing preview and printable export through the same panel renderer using the supplied artwork; leave the public flyer pipeline independent until explicitly requested.
+- The brochure artwork is flattened, so panels are recoloured per pixel (tint the paper, pull dark ink to the text colour) with protect masks keeping photos untouched, and Resonabed logos are drawn as separate images at true proportions because baked-in logos stretched.
 
 - Each frequency has up to four recordings as separate audio_files rows keyed by `variant` (one active per library/frequency/variant, enforced by a unique index); playback resolves by variant and falls back to `original` with a visible note, so a comfort switch never hides a frequency.
 - Switching variant mid-session changes only the `src` of the same mounted <audio> element (never remount it), because the Web Audio routing and the booked ending live on that element.
