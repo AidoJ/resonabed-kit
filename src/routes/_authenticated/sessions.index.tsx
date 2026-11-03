@@ -36,10 +36,10 @@ function SessionsIndex() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline" size="lg" className="h-12">
-            <Link to="/sessions/personal"><User className="mr-2 h-4 w-4" /> Personal session</Link>
+            <Link to="/sessions/personal"><User className="mr-2 h-4 w-4" /> Personal Session</Link>
           </Button>
           <Button asChild size="lg" className="h-12">
-            <Link to="/sessions/new"><Plus className="mr-2 h-4 w-4" /> New session</Link>
+            <Link to="/sessions/new"><Plus className="mr-2 h-4 w-4" /> Public Sessions</Link>
           </Button>
         </div>
       </div>
@@ -49,7 +49,7 @@ function SessionsIndex() {
           <p className="p-6 text-sm text-muted-foreground">Loading…</p>
         ) : !data || data.length === 0 ? (
           <p className="p-6 text-sm text-muted-foreground">
-            No sessions yet. Start one with the New session button.
+            No sessions yet. Start one with the Public Sessions button.
           </p>
         ) : (
           <ul className="divide-y">
