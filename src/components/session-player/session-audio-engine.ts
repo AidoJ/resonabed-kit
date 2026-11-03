@@ -159,3 +159,38 @@ export function resetMusicLevel() {
     musicGain.gain.setValueAtTime(1, c.currentTime);
   }
 }
+
+/** True when the device audio clock is advancing. */
+export function isAudioClockRunning(): boolean {
+  return !!ctx && ctx.state === "running";
+}
+
+/** Try to resume a suspended audio clock (e.g. after a phone call). */
+export function resumeAudioClock() {
+  if (ctx && ctx.state !== "running") void ctx.resume().catch(() => {});
+}
+
+/** Subscribe to audio clock state changes (running / suspended / interrupted). */
+export function onAudioClockStateChange(cb: (state: string) => void): () => void {
+  const c = getCtx();
+  if (!c) return () => {};
+  const handler = () => cb(c.state);
+  c.addEventListener("statechange", handler);
+  return () => c.removeEventListener("statechange", handler);
+}
+
+/**
+ * Release the routing for an element that is going away. Only call this when
+ * the element itself is unmounting: createMediaElementSource can never be
+ * called twice on the same element.
+ */
+export function detachMusic(el: HTMLMediaElement) {
+  if (attachedEl !== el) return;
+  try {
+    musicGain?.disconnect();
+  } catch {
+    /* ignore */
+  }
+  musicGain = null;
+  attachedEl = null;
+}
