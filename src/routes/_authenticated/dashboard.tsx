@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 
-import { Sparkles, Calendar, ArrowRight, Music } from "lucide-react";
+import { Sparkles, Calendar, ArrowRight, Music, User } from "lucide-react";
 
 import { getCurrentUserContext } from "@/lib/user-context.functions";
 import { listMyOrgSessions } from "@/lib/sessions.functions";
@@ -154,14 +154,24 @@ function DashboardPage() {
             Ready when your client is. Start a session in one tap.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <Button
+            asChild
+            variant="outline"
+            className="h-14 rounded-[10px] px-8 text-[15px] font-medium shadow-lift"
+          >
+            <Link to="/sessions/personal">
+              <User className="mr-2 h-5 w-5" />
+              Personal Session
+            </Link>
+          </Button>
           <Button
             asChild
             className="h-14 rounded-[10px] px-8 text-[15px] font-medium shadow-lift"
           >
             <Link to="/sessions/new">
               <Sparkles className="mr-2 h-5 w-5" />
-              New session
+              Public Sessions
             </Link>
           </Button>
         </div>
