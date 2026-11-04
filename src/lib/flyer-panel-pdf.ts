@@ -108,5 +108,16 @@ export async function buildPanelFlyer(design: FlyerDesign, identity: FlyerIdenti
     page.drawImage(qr, { x: cx - 38, y: top(470), width: 76, height: 76 });
     centred("Book Now", top(492), 14, bold, c.accent);
   }
+  // Printer templates expect A4 landscape (297x210mm) with three equal 99mm
+  // panels, plus exactly 3mm bleed for print. The artwork carries a wider
+  // bleed, so trim the page to the standard size with the folds unchanged.
+  const B = print ? 72 * 3 / 25.4 : 0, TW = 841.92, TH = 595.92, off = M - B;
+  for (const pg of pages) {
+    pg.translateContent(-off, -off);
+    pg.setSize(TW + 2 * B, TH + 2 * B);
+    pg.setCropBox(0, 0, TW + 2 * B, TH + 2 * B);
+    pg.setBleedBox(0, 0, TW + 2 * B, TH + 2 * B);
+    pg.setTrimBox(B, B, TW, TH);
+  }
   return new Blob([await out.save() as BlobPart], { type: "application/pdf" });
 }
