@@ -104,10 +104,41 @@ function Section({
         </div>
       </div>
       {intro && <p className="mb-5 mt-3 text-sm text-muted-foreground">{intro}</p>}
+      {SHOTS[id] && (
+        <a href={`/help/${SHOTS[id]}.png`} target="_blank" rel="noreferrer" className="mt-4 block">
+          <img
+            src={`/help/${SHOTS[id]}.png`}
+            alt={`Screenshot of the ${title.split(",")[0]} screen`}
+            loading="lazy"
+            className="w-full rounded-xl border shadow-sm"
+          />
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Screenshot from a sample clinic. Personal details are blurred. Tap to enlarge.
+          </span>
+        </a>
+      )}
       <div className="mt-4">{children}</div>
+      <a href="#contents" className="mt-5 inline-block text-xs text-muted-foreground hover:text-foreground">
+        ↑ Back to contents
+      </a>
     </section>
   );
 }
+
+const SHOTS: Record<string, string> = {
+  orientation: "dashboard",
+  settings: "settings",
+  team: "team",
+  services: "services",
+  audio: "audio",
+  reports: "reports",
+  marketing: "marketing",
+  availability: "availability",
+  clients: "clients",
+  bookings: "bookings",
+  sessions: "sessions",
+  profile: "profile",
+};
 
 function Bullet({ children }: { children: ReactNode }) {
   return (
@@ -167,7 +198,7 @@ function HelpPage() {
       </div>
 
       {/* Table of contents */}
-      <nav className="rounded-2xl border bg-card p-5">
+      <nav id="contents" className="scroll-mt-24 rounded-2xl border bg-card p-5">
         <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
           Contents
         </p>
