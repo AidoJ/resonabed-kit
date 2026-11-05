@@ -99,6 +99,12 @@ function Shell({
                 Table setup
               </Link>
             </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+              <Link to="/home/help">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Help guide
+              </Link>
+            </Button>
             {onSignOut ? (
               <Button
                 variant="ghost"
