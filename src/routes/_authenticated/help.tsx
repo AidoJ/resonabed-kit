@@ -583,9 +583,11 @@ function HelpPage() {
             <Step num={6} title="The player">
               <p>
                 Dark, tablet-friendly screen with a big countdown. The screen stays
-                awake automatically. Music fades out and a chime plays as time
-                expires. At completion, record payment (your admin may require this
-                before the session can be closed).
+                awake automatically. Over the last 15 seconds the music fades out
+                gently, there is a short quiet pause, then the closing recording
+                fades in with soft bells to bring the client back. At completion,
+                record payment (your admin may require this before the session can
+                be closed).
               </p>
             </Step>
           </ol>
