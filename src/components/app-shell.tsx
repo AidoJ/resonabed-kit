@@ -118,6 +118,10 @@ function buildNav(
           { to: "/admin/access-codes", label: "Home access codes", icon: KeyRound },
         ],
       },
+      {
+        label: "Support",
+        items: [{ to: "/admin/help", label: "Help guide", icon: BookOpen }],
+      },
     ];
     if (inSupportMode) {
       groups.push({

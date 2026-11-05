@@ -36,6 +36,7 @@ import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedTableSetupRouteImport } from './routes/_authenticated/table-setup'
 import { Route as HomeIndexRouteImport } from './routes/home.index'
+import { Route as HomeHelpRouteImport } from './routes/home.help'
 import { Route as HomeLoginRouteImport } from './routes/home.login'
 import { Route as HomeSetupRouteImport } from './routes/home.setup'
 import { Route as HomeSignupRouteImport } from './routes/home.signup'
@@ -48,6 +49,7 @@ import { Route as AuthenticatedAdminAccessCodesRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminArrearsRouteImport } from './routes/_authenticated/admin.arrears'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated/admin.clients'
 import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
+import { Route as AuthenticatedAdminHelpRouteImport } from './routes/_authenticated/admin.help'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminMarketingRouteImport } from './routes/_authenticated/admin.marketing'
 import { Route as AuthenticatedAdminMetricsRouteImport } from './routes/_authenticated/admin.metrics'
@@ -218,6 +220,11 @@ const HomeIndexRoute = HomeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => HomeRoute,
 } as any)
+const HomeHelpRoute = HomeHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => HomeRoute,
+} as any)
 const HomeLoginRoute = HomeLoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -282,6 +289,11 @@ const AuthenticatedAdminGlobalServicesRoute =
     path: '/global-services',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminHelpRoute = AuthenticatedAdminHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminInvoicesRoute =
   AuthenticatedAdminInvoicesRouteImport.update({
     id: '/invoices',
@@ -490,6 +502,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof AuthenticatedServicesRoute
   '/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/table-setup': typeof AuthenticatedTableSetupRoute
+  '/home/help': typeof HomeHelpRoute
   '/home/login': typeof HomeLoginRoute
   '/home/setup': typeof HomeSetupRoute
   '/home/signup': typeof HomeSignupRoute
@@ -502,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
+  '/admin/help': typeof AuthenticatedAdminHelpRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/marketing': typeof AuthenticatedAdminMarketingRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
@@ -559,6 +573,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/services': typeof AuthenticatedServicesRoute
   '/table-setup': typeof AuthenticatedTableSetupRoute
+  '/home/help': typeof HomeHelpRoute
   '/home/login': typeof HomeLoginRoute
   '/home/setup': typeof HomeSetupRoute
   '/home/signup': typeof HomeSignupRoute
@@ -571,6 +586,7 @@ export interface FileRoutesByTo {
   '/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
+  '/admin/help': typeof AuthenticatedAdminHelpRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/marketing': typeof AuthenticatedAdminMarketingRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
@@ -633,6 +649,7 @@ export interface FileRoutesById {
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRouteWithChildren
   '/_authenticated/table-setup': typeof AuthenticatedTableSetupRoute
+  '/home/help': typeof HomeHelpRoute
   '/home/login': typeof HomeLoginRoute
   '/home/setup': typeof HomeSetupRoute
   '/home/signup': typeof HomeSignupRoute
@@ -645,6 +662,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
+  '/_authenticated/admin/help': typeof AuthenticatedAdminHelpRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/admin/marketing': typeof AuthenticatedAdminMarketingRoute
   '/_authenticated/admin/metrics': typeof AuthenticatedAdminMetricsRoute
@@ -707,6 +725,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/sessions'
     | '/table-setup'
+    | '/home/help'
     | '/home/login'
     | '/home/setup'
     | '/home/signup'
@@ -719,6 +738,7 @@ export interface FileRouteTypes {
     | '/admin/arrears'
     | '/admin/clients'
     | '/admin/global-services'
+    | '/admin/help'
     | '/admin/invoices'
     | '/admin/marketing'
     | '/admin/metrics'
@@ -776,6 +796,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/services'
     | '/table-setup'
+    | '/home/help'
     | '/home/login'
     | '/home/setup'
     | '/home/signup'
@@ -788,6 +809,7 @@ export interface FileRouteTypes {
     | '/admin/arrears'
     | '/admin/clients'
     | '/admin/global-services'
+    | '/admin/help'
     | '/admin/invoices'
     | '/admin/marketing'
     | '/admin/metrics'
@@ -849,6 +871,7 @@ export interface FileRouteTypes {
     | '/_authenticated/services'
     | '/_authenticated/sessions'
     | '/_authenticated/table-setup'
+    | '/home/help'
     | '/home/login'
     | '/home/setup'
     | '/home/signup'
@@ -861,6 +884,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/arrears'
     | '/_authenticated/admin/clients'
     | '/_authenticated/admin/global-services'
+    | '/_authenticated/admin/help'
     | '/_authenticated/admin/invoices'
     | '/_authenticated/admin/marketing'
     | '/_authenticated/admin/metrics'
@@ -1116,6 +1140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeIndexRouteImport
       parentRoute: typeof HomeRoute
     }
+    '/home/help': {
+      id: '/home/help'
+      path: '/help'
+      fullPath: '/home/help'
+      preLoaderRoute: typeof HomeHelpRouteImport
+      parentRoute: typeof HomeRoute
+    }
     '/home/login': {
       id: '/home/login'
       path: '/login'
@@ -1198,6 +1229,13 @@ declare module '@tanstack/react-router' {
       path: '/global-services'
       fullPath: '/admin/global-services'
       preLoaderRoute: typeof AuthenticatedAdminGlobalServicesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/help': {
+      id: '/_authenticated/admin/help'
+      path: '/help'
+      fullPath: '/admin/help'
+      preLoaderRoute: typeof AuthenticatedAdminHelpRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/invoices': {
@@ -1432,6 +1470,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminArrearsRoute: typeof AuthenticatedAdminArrearsRoute
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRoute
   AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
+  AuthenticatedAdminHelpRoute: typeof AuthenticatedAdminHelpRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
   AuthenticatedAdminMarketingRoute: typeof AuthenticatedAdminMarketingRoute
   AuthenticatedAdminMetricsRoute: typeof AuthenticatedAdminMetricsRoute
@@ -1456,6 +1495,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminArrearsRoute: AuthenticatedAdminArrearsRoute,
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRoute,
   AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
+  AuthenticatedAdminHelpRoute: AuthenticatedAdminHelpRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
   AuthenticatedAdminMarketingRoute: AuthenticatedAdminMarketingRoute,
   AuthenticatedAdminMetricsRoute: AuthenticatedAdminMetricsRoute,
@@ -1540,6 +1580,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface HomeRouteChildren {
+  HomeHelpRoute: typeof HomeHelpRoute
   HomeLoginRoute: typeof HomeLoginRoute
   HomeSetupRoute: typeof HomeSetupRoute
   HomeSignupRoute: typeof HomeSignupRoute
@@ -1547,6 +1588,7 @@ interface HomeRouteChildren {
 }
 
 const HomeRouteChildren: HomeRouteChildren = {
+  HomeHelpRoute: HomeHelpRoute,
   HomeLoginRoute: HomeLoginRoute,
   HomeSetupRoute: HomeSetupRoute,
   HomeSignupRoute: HomeSignupRoute,

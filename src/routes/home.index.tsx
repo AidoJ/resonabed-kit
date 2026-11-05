@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { keepPreviousData, useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, LogOut, Wrench, X } from "lucide-react";
+import { BookOpen, Loader2, LogOut, Wrench, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getHomeContext,
@@ -97,6 +97,12 @@ function Shell({
               <Link to="/home/setup">
                 <Wrench className="mr-2 h-4 w-4" />
                 Table setup
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+              <Link to="/home/help">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Help guide
               </Link>
             </Button>
             {onSignOut ? (
