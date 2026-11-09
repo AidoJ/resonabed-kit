@@ -149,9 +149,11 @@ export async function fetchKitSales(_secret?: string): Promise<{
   if (error) throw new Error(error.message);
 
   const rows: KitSaleRow[] = (data ?? []).map((o) => {
-    const matched = o.stripe_deposit_session_id
-      ? buyerLookup[o.stripe_deposit_session_id]
-      : undefined;
+    // Onboarding records reference the purchase number (newer) or the Stripe
+    // session id (older); try both so set-up clinics aren't shown as pending.
+    const matched =
+      (o.order_number ? buyerLookup[o.order_number] : undefined) ??
+      (o.stripe_deposit_session_id ? buyerLookup[o.stripe_deposit_session_id] : undefined);
     const buyerType = o.buyer_type === "business" ? "business" : "personal";
     return {
       id: o.id,
