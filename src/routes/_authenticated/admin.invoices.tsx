@@ -279,6 +279,7 @@ function InvoicesAdmin() {
         open={!!viewing}
         onClose={() => setViewing(null)}
         invoice={viewing}
+        paidCents={viewing ? paidFor(viewing.id) : 0}
         profile={profile ?? EMPTY_BILLING_PROFILE}
       />
     </div>

@@ -135,6 +135,7 @@ export function KitDocumentDialog({
   onClose,
   invoice,
   payment,
+  paidCents,
   profile,
 }: {
   open: boolean;
@@ -142,6 +143,8 @@ export function KitDocumentDialog({
   invoice: KitInvoice | null;
   /** When supplied the document renders as a receipt for that payment. */
   payment?: KitPayment | null;
+  /** Total recorded against this invoice; shown as paid to date and balance due. */
+  paidCents?: number;
   profile: BillingProfile;
 }) {
   const domId = "kit-doc-print";
@@ -213,7 +216,13 @@ export function KitDocumentDialog({
               <div className="kit-doc-title">
                 <h1>{documentTitle}</h1>
                 <div className="kit-doc-number">#{documentNumber}</div>
-                <div className="kit-doc-status">{isReceipt ? "Paid" : invoice.status}</div>
+                <div className="kit-doc-status">
+                  {isReceipt
+                    ? "Paid"
+                    : invoice.status !== "paid" && invoice.status !== "void" && (paidCents ?? 0) > 0
+                      ? "Part paid"
+                      : invoice.status}
+                </div>
               </div>
             </header>
 
@@ -277,6 +286,15 @@ export function KitDocumentDialog({
                   <td>{isReceipt ? "Invoice total" : "Total"}</td>
                   <td>{money(invoice.total_cents, invoice.currency)}</td>
                 </tr>
+                {!isReceipt && (paidCents ?? 0) > 0 && (
+                  <>
+                    <tr><td>Paid to date</td><td>-{money(paidCents ?? 0, invoice.currency)}</td></tr>
+                    <tr className="kit-doc-summary-total">
+                      <td>Balance due</td>
+                      <td>{money(Math.max(0, invoice.total_cents - (paidCents ?? 0)), invoice.currency)}</td>
+                    </tr>
+                  </>
+                )}
                 {isReceipt && payment && (
                   <tr><td><strong>Amount received</strong></td><td><strong>{money(payment.amount_cents, invoice.currency)}</strong></td></tr>
                 )}
