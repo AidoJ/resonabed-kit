@@ -70,4 +70,11 @@
 - [x] Part 7: AI crawler log (8 AI bots, public pages only, background insert, 90-day cleanup, AI crawlers admin page)
 - [x] Part 8: SEO review, sound-bed vs therapy-bed overlap report, final change list
 - [ ] Publish — waiting for owner's go-ahead
-- [ ] Package stock status for search data — waiting for owner's answer
+- [x] Package stock status for search data (all four InStock)
+
+## Owner follow-up on Parts 1–6 (Nov 2026)
+- [x] All four packages InStock; add Home ("Resonabed for Home", $1,699) Product+Offer; full prices incl. GST flagged; no shipping in search data
+- [x] Sitemap lastmod: no hand-set dates; only real content-change dates (clinic pages)
+- [x] Wording changes 3a, 3c–3i (3b flyer unchanged; 3f with visible [LINKS TODO])
+- [x] Re-run frequency/health wording check; report search data per package
+- [ ] Therapy bed FAQ study links — waiting for owner's links (visible [LINKS TODO] until then)

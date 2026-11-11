@@ -49,7 +49,7 @@ export const FAQS: { q: string; a: string }[] = [
 ];
 
 export const Route = createFileRoute("/vibroacoustic-sound-bed")({
-  staticData: { sitemap: true, sitemapLastmod: "2026-11-11" },
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: TITLE },

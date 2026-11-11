@@ -54,6 +54,7 @@ import {
 import { getKitPricing } from "@/lib/pricing.functions";
 import { HomeOrderPanel } from "@/components/home-order-panel";
 import { SITE_URL, jsonLdScript } from "@/lib/seo";
+import { CARD_DESCRIPTIONS, packagesJsonLd } from "@/lib/package-structured-data";
 import { applyPricing, type KitPricing } from "@/lib/packages";
 
 import {
@@ -92,15 +93,6 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base", true, true, true, true],
   ["Fully fitted out table", false, false, true, true],
 ];
-
-/** Package card copy, shared by the cards and the Product structured data. */
-const CARD_DESCRIPTIONS = {
-  essentials:
-    "The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room.",
-  pro: "Everything in Basic, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room.",
-  platinum:
-    "Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives.",
-} as const;
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
@@ -158,37 +150,8 @@ const HOME_DESCRIPTION =
   "Resonabed is a complete vibroacoustic therapy system for your practice: therapy table, tactile sound, session software and booking.";
 const HOME_URL = `${SITE_URL}/`;
 
-/** Product + Offer per business package, from the same prices the cards show. */
-function packagesJsonLd(pricing: KitPricing) {
-  const cards = [
-    ["essentials", CARD_DESCRIPTIONS.essentials],
-    ["pro", CARD_DESCRIPTIONS.pro],
-    ["platinum", CARD_DESCRIPTIONS.platinum],
-  ] as const;
-  return {
-    "@context": "https://schema.org",
-    "@graph": cards.map(([key, description]) => {
-      const pkg = pricing.packages[key];
-      return {
-        "@type": "Product",
-        name: pkg.label,
-        description,
-        brand: { "@type": "Brand", name: "Resonabed" },
-        url: `${SITE_URL}/#packages`,
-        offers: {
-          "@type": "Offer",
-          price: (pkg.listCents / 100).toFixed(2),
-          priceCurrency: "AUD",
-          url: `${SITE_URL}/#packages`,
-          seller: { "@id": `${SITE_URL}/#organization` },
-        },
-      };
-    }),
-  };
-}
-
 export const Route = createFileRoute("/")({
-  staticData: { sitemap: true, sitemapLastmod: "2026-11-11" },
+  staticData: { sitemap: true },
   // Saved package prices are read on the server so the first HTML (and the
   // Product data) carries the same prices visitors see.
   loader: async (): Promise<{ pricing: KitPricing }> => {
@@ -601,7 +564,7 @@ function LandingPage() {
             },
             {
               title: "Sleep quality",
-              body: "Clients report improved sleep quality following a VAT.",
+              body: "Clients report improved sleep quality after a VAT session.",
             },
           ].map((c) => (
             <div key={c.title} className="rounded-2xl border border-border bg-card p-6 shadow-soft">
@@ -719,8 +682,8 @@ function LandingPage() {
             own. Pro and Platinum include a dedicated 10 inch tablet.
           </p>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            In every package, the tactile transducers are what turn the licensed Solfeggio
-            frequencies into the gentle vibration your clients feel through the table.
+            In every package, the tactile transducers turn the low-frequency layer of each track
+            into gentle vibration you feel, while the Solfeggio tone is what you hear.
           </p>
         </div>
 
@@ -786,8 +749,7 @@ function LandingPage() {
             Resonabed for Home.
           </h3>
           <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
-            The full vibroacoustic experience for yourself, family and friends, on a fully fitted
-            table with the personal app included at no ongoing cost.
+            {CARD_DESCRIPTIONS.home}
           </p>
           <div className="mt-8">
             <HomeOrderPanel pkg={pkgs.home} depositCents={orderDepositCents} />

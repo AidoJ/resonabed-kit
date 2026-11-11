@@ -23,7 +23,7 @@ const FAQS = [
 ] as const;
 
 export const Route = createFileRoute("/demo")({
-  staticData: { sitemap: true, sitemapLastmod: "2026-09-23" },
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "ResonaBed | Add a second therapy to your practice" },

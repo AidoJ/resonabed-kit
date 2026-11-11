@@ -64,7 +64,7 @@ export const SOLFEGGIO = [
   {
     hz: "285 Hz",
     label: "Restore and renew",
-    desc: "A gently restorative tone, a sense of quiet repair and fresh energy.",
+    desc: "A gently restorative tone, a sense of quiet and settling and fresh energy.",
     tag: "Renewal",
     toneA: "#5a2a9e",
     toneB: "#8a48c4",
@@ -87,7 +87,7 @@ export const SOLFEGGIO = [
   },
   {
     hz: "528 Hz",
-    label: "Balance and repair",
+    label: "Balance",
     desc: "A balanced, even tone, a calm middle ground for body and mind.",
     tag: "Harmony",
     toneA: "#7048b8",

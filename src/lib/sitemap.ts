@@ -9,12 +9,6 @@ declare module "@tanstack/react-router" {
     // Required so every new route makes an explicit sitemap decision.
     // Fix missing staticData on the route; don't make this optional.
     sitemap: boolean | "exclude-subtree";
-    /**
-     * Date (YYYY-MM-DD) of the page's last significant content change, emitted
-     * as <lastmod>. Update it when the page's wording or offer changes; leave
-     * it unset rather than guessing.
-     */
-    sitemapLastmod?: string;
   }
 }
 
@@ -36,7 +30,10 @@ export function sitemapStaticPaths(router: AnyRouter): string[] {
   return sitemapStaticEntries(router).map((e) => e.path);
 }
 
-/** Static pages with their declared lastmod (if any). */
+/**
+ * Static pages. No <lastmod>: there is no record of when their wording changed,
+ * and hand-set dates are not used. Only clinic pages carry a lastmod.
+ */
 export function sitemapStaticEntries(router: AnyRouter): SitemapEntry[] {
   const byPath = new Map<string, SitemapEntry>();
   for (const route of Object.values(router.routesById) as AnyRoute[]) {
@@ -44,8 +41,7 @@ export function sitemapStaticEntries(router: AnyRouter): SitemapEntry[] {
     const location = router.buildLocation({ to: route.fullPath });
     const path = sitemapPathForLocation(router, location, route.id);
     if (path === undefined) continue;
-    const lastmod = route.options.staticData?.sitemapLastmod;
-    byPath.set(path, lastmod ? { path, lastmod } : { path });
+    byPath.set(path, { path });
   }
   return [...byPath.values()].sort((a, b) => a.path.localeCompare(b.path));
 }

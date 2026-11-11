@@ -9,8 +9,8 @@
  */
 
 const BENEFITS = [
-  "Reduced chronic musculoskeletal pain and fibromyalgia symptoms",
-  "Lower stress and anxiety",
+  "Chronic musculoskeletal pain and fibromyalgia symptoms",
+  "Stress and anxiety",
   "Improved sleep quality",
   "Reduced muscle tension and stiffness",
   "Enhanced comfort and quality of life for people living with chronic illness",
@@ -102,7 +102,7 @@ export function ScienceSection() {
 
           <div>
             <h3 className="text-sm font-medium tracking-tight">
-              Clinical studies have reported benefits including
+              What research has looked at
             </h3>
             <ul className="mt-5 space-y-3">
               {BENEFITS.map((b) => (
@@ -119,6 +119,10 @@ export function ScienceSection() {
                 </li>
               ))}
             </ul>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              Research is early and studies are small. Vibroacoustic therapy is a relaxation
+              therapy, not a medical treatment.
+            </p>
           </div>
         </div>
 

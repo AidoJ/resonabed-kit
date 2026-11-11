@@ -30,7 +30,7 @@
 
 ## Search and structured data
 
-- The sitemap is router-derived: every route declares `staticData.sitemap` (plus optional `sitemapLastmod` set by hand when page wording changes), and clinic pages come from the `get_public_directory` function, so only directory-listed clinics appear.
+- The sitemap is router-derived: every route declares `staticData.sitemap`, and clinic pages come from the `get_public_directory` function, so only directory-listed clinics appear. Only clinic pages carry <lastmod> (from the clinic record); hand-set dates are not allowed, so static pages omit it.
 - Public page text, prices and JSON-LD must be server-rendered (route loaders + head()); heavy visuals may start client-side in effects but their copy stays in the first HTML.
 - Canonicals, og:url and JSON-LD URLs are built from `SITE_URL` in src/lib/seo.ts (apex domain) so they never drift between www and non-www.
 - Directory listing data (suburb, state, postcode, phone only if the clinic shows it) is exposed only through `get_public_directory`, gated by the clinic's own opt-in switch.

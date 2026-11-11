@@ -12,7 +12,7 @@ const DESCRIPTION =
 const URL = `${SITE_URL}/research`;
 
 export const Route = createFileRoute("/research")({
-  staticData: { sitemap: true, sitemapLastmod: "2026-09-21" },
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: TITLE },

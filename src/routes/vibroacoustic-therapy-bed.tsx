@@ -34,7 +34,9 @@ const SPECS: { label: string; value: string }[] = [
   { label: "Install", value: "Wiring, fittings and step-by-step guide, around an hour" },
 ];
 
-export const FAQS: { q: string; a: string }[] = [
+// `linksTodo` shows a visible marker until the owner supplies the study links;
+// the marker is page text only and never goes into the FAQ search data.
+export const FAQS: { q: string; a: string; linksTodo?: boolean }[] = [
   {
     q: "What is a vibroacoustic therapy bed?",
     a: "A vibroacoustic therapy bed is a treatment table fitted with tactile transducers that transmit low-frequency sound through the body as gentle vibration. The client hears the music and feels it at the same time, which is why sessions are often described as deeply restful.",
@@ -45,7 +47,8 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "What conditions is a vibroacoustic therapy bed used for?",
-    a: "Clinical studies have reported benefits for chronic musculoskeletal pain, fibromyalgia symptoms, stress and anxiety, sleep quality, and muscle tension. Vibroacoustic therapy is intended to complement, not replace, professional medical care.",
+    a: "Early research, mostly small studies, has looked at chronic musculoskeletal pain, fibromyalgia symptoms, stress and anxiety, sleep quality, and muscle tension. Vibroacoustic therapy is intended to complement, not replace, professional medical care.",
+    linksTodo: true,
   },
   {
     q: "How long does a vibroacoustic therapy session take?",
@@ -58,7 +61,7 @@ export const FAQS: { q: string; a: string }[] = [
 ];
 
 export const Route = createFileRoute("/vibroacoustic-therapy-bed")({
-  staticData: { sitemap: true, sitemapLastmod: "2026-11-11" },
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: TITLE },
@@ -322,7 +325,10 @@ function TherapyBedPage() {
           {FAQS.map((f) => (
             <div key={f.q} className="py-6">
               <h3 className="text-base font-medium text-brand-indigo">{f.q}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {f.a}
+                {f.linksTodo ? <strong className="text-foreground"> [LINKS TODO]</strong> : null}
+              </p>
             </div>
           ))}
         </div>
