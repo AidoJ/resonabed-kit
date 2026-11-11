@@ -35,3 +35,5 @@
 - Canonicals, og:url and JSON-LD URLs are built from `SITE_URL` in src/lib/seo.ts (apex domain) so they never drift between www and non-www.
 - Directory listing data (suburb, state, postcode, phone only if the clinic shows it) is exposed only through `get_public_directory`, gated by the clinic's own opt-in switch.
 - AI crawler visits are logged from src/server.ts after the response is built (handed to the worker's waitUntil, never awaited) so logging can't slow pages; bot/path rules live in the pure, tested src/lib/crawler-log.ts, inserts use the server-only admin client, only super admins can read rows, and a daily database job deletes rows older than 90 days.
+- Package kit contents, fitting time and install wording live only in src/lib/kit-contents.ts; package cards, the Home panel, the compare table, the kit showcase and the bed pages' shared KitList read from it so every kit list stays identical.
+- The two bed pages target different searches (sound bed: own table/home; therapy bed: clinics) and must not share prose beyond the shared KitList and ClosingDisclaimer; the full science section and study references live only on /research (and clinic pages).

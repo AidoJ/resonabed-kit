@@ -19,12 +19,10 @@ import {
   type EnteredShippingAddress,
 } from "@/components/shipping-address-step-dialog";
 import { money, planTotalCents, type PackageDef } from "@/lib/packages";
+import { packageKitList } from "@/lib/kit-contents";
 
 const INCLUDES = [
-  "Therapy table, fully fitted and ready to lie on",
-  "Two Douk Audio tactile transducers and 100W amplifier",
-  "JBL Tune 530 Headphones",
-  '10" tablet with the personal Resonabed app',
+  ...packageKitList("home"),
   "App and music access included for home use without renewal",
 ];
 

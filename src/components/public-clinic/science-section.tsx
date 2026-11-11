@@ -8,6 +8,8 @@
  * strengthened or amplified by an individual clinic.
  */
 
+import { ClosingDisclaimer } from "@/components/closing-disclaimer";
+
 const BENEFITS = [
   "Chronic musculoskeletal pain and fibromyalgia symptoms",
   "Stress and anxiety",
@@ -132,11 +134,7 @@ export function ScienceSection() {
           mind. Many clients describe leaving a session feeling calmer, lighter, and deeply restored.
         </p>
 
-        <p className="mx-auto mt-8 max-w-3xl text-center text-sm leading-relaxed text-muted-foreground">
-          Vibroacoustic therapy is intended to complement, not replace, professional medical care.
-          Individual results may vary, and anyone with significant health concerns should consult
-          their healthcare professional before commencing treatment.
-        </p>
+        <ClosingDisclaimer className="mt-8" />
 
         <div className="mx-auto mt-12 max-w-3xl border-t pt-6">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">

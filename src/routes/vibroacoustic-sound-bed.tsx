@@ -3,54 +3,62 @@ import { Button } from "@/components/ui/button";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import hero from "@/assets/resonabed-hero-1536-img.webp";
-import { ScienceSection } from "@/components/public-clinic/science-section";
-import { KitCard, kitImages } from "@/components/kit-card";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Speaker,
-  Volume2,
-  Tablet,
-  Music,
-  Package,
-  Waves,
-  Headphones as HeadphonesIcon,
-} from "lucide-react";
-
-
+import { KitList } from "@/components/kit-list";
+import { ClosingDisclaimer } from "@/components/closing-disclaimer";
+import { ArrowRight, Waves } from "lucide-react";
+import { getKitPricing } from "@/lib/pricing.functions";
+import { applyPricing, money, type KitPricing } from "@/lib/packages";
+import { INSTALL_FAQ_ANSWER } from "@/lib/kit-contents";
 import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 
-const TITLE = "Vibroacoustic Therapy System | Resonabed";
+// Aimed at people turning a table they already own into a sound bed (cost,
+// space, setup, home use). Clinic-focused content lives on /vibroacoustic-therapy-bed.
+export const TITLE = "Vibroacoustic Sound Bed Kit for Your Own Table | Resonabed";
 const DESCRIPTION =
-  "Sound bed kit for your own table, with session software and 9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base.";
+  "Turn the table you already own into a vibroacoustic sound bed with tactile transducers, an amplifier, headphones and the Resonabed app.";
 const URL = "https://resonabed.com/vibroacoustic-sound-bed";
 
-export const FAQS: { q: string; a: string }[] = [
-  {
-    q: "What is a vibroacoustic sound bed?",
-    a: "A vibroacoustic sound bed is a treatment table fitted with tactile transducers that transmit low-frequency sound through the body as gentle vibration. The client hears the music and feels it at the same time, which is why sessions are often described as deeply restful.",
-  },
-  {
-    q: "Do I need to buy a whole new sound bed?",
-    a: "No. The Resonabed kit converts the massage, chiropractic, osteopathic or other therapeutic treatment table already in your room, so you are not paying for a second table or finding space for one.",
-  },
-  {
-    q: "How long does installation take?",
-    a: "The kit arrives with wiring, fittings and a step-by-step guide. Most practitioners have the kit fitted and their first session ready inside an hour.",
-  },
-  {
-    q: "Is music included with the sound bed kit?",
-    a: "Yes. The Resonabed app comes with 9 original tracks designed by a sound engineer, each pairing a Solfeggio tone with low-frequency vibration between 25 and 120 Hz, centred around 40 Hz, the most widely studied frequency in vibroacoustic therapy. They are licensed and ready to play, so there is no separate music licence to negotiate.",
-  },
-  {
-    q: "Can a vibroacoustic sound bed be used at home?",
-    a: "Yes. The same kit is available for personal use, with a simple home version of the app for choosing a frequency and running a timed session.",
-  },
-];
+export function soundBedFaqs(pricing: KitPricing): { q: string; a: string }[] {
+  const p = pricing.packages;
+  return [
+    {
+      q: "What is a vibroacoustic sound bed?",
+      a: "A vibroacoustic sound bed is a treatment table fitted with tactile transducers that transmit low-frequency sound through the body as gentle vibration. The client hears the music and feels it at the same time, which is why sessions are often described as deeply restful.",
+    },
+    {
+      q: "Do I need to buy a whole new sound bed?",
+      a: "No. The Resonabed kit converts the massage, chiropractic, osteopathic or other therapeutic treatment table already in your room, so you are not paying for a second table or finding space for one.",
+    },
+    {
+      q: "How long does installation take?",
+      a: INSTALL_FAQ_ANSWER,
+    },
+    {
+      q: "What does a sound bed kit cost?",
+      a: `Basic is ${money(p.essentials.listCents)} and Pro is ${money(p.pro.listCents)}, both including GST and both fitted to your own table. Pro adds a 10 inch tablet with the Resonabed app. Shipping is quoted separately.`,
+    },
+    {
+      q: "Is music included with the sound bed kit?",
+      a: "Yes. The Resonabed app comes with 9 original tracks designed by a sound engineer, each pairing a Solfeggio tone with low-frequency vibration between 25 and 120 Hz, centred around 40 Hz, the most widely studied frequency in vibroacoustic therapy. They are licensed and ready to play, so there is no separate music licence to negotiate.",
+    },
+    {
+      q: "Can a vibroacoustic sound bed be used at home?",
+      a: `Yes. Resonabed for Home (${money(p.home.listCents)} including GST) is the personal version: it arrives on a fully fitted therapy table with a 10 inch tablet running the personal Resonabed app, and the music licence for home use carries no ongoing cost. The personal app has no bookings or client records.`,
+    },
+  ];
+}
 
 export const Route = createFileRoute("/vibroacoustic-sound-bed")({
   staticData: { sitemap: true },
-  head: () => ({
+  // Prices are read on the server so the first HTML and the FAQ data match the homepage.
+  loader: async (): Promise<{ pricing: KitPricing }> => {
+    try {
+      return { pricing: await getKitPricing() };
+    } catch {
+      return { pricing: applyPricing([]) };
+    }
+  },
+  head: ({ loaderData }) => ({
     meta: [
       { title: TITLE },
       { name: "description", content: DESCRIPTION },
@@ -65,24 +73,23 @@ export const Route = createFileRoute("/vibroacoustic-sound-bed")({
     links: [{ rel: "canonical", href: URL }],
     scripts: [
       jsonLdScript(breadcrumbJsonLd([{ name: "Vibroacoustic sound bed", path: "/vibroacoustic-sound-bed" }])),
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: FAQS.map((f) => ({
-            "@type": "Question",
-            name: f.q,
-            acceptedAnswer: { "@type": "Answer", text: f.a },
-          })),
-        }),
-      },
+      jsonLdScript({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: soundBedFaqs(loaderData?.pricing ?? applyPricing([])).map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }),
     ],
   }),
   component: SoundBedPage,
 });
 
 function SoundBedPage() {
+  const { pricing } = Route.useLoaderData();
+  const faqs = soundBedFaqs(pricing);
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* HERO */}
@@ -137,17 +144,19 @@ function SoundBedPage() {
               Vibroacoustic sound bed kit
             </span>
             <h1 className="text-4xl font-light leading-[1.05] tracking-tight md:text-5xl">
-              A vibroacoustic sound bed,
+              Turn your own table into{" "}
               <br />
               <span className="bg-gradient-to-r from-white to-[color-mix(in_oklab,var(--brand-violet)_60%,white)] bg-clip-text text-transparent">
-                built from the table you already own.
+                a vibroacoustic sound bed
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              Instead of buying a dedicated sound bed, the Resonabed kit fits tactile transducers,
-              a 100W amplifier and a guided session app to your existing massage,
-              chiropractic or osteopathic treatment table. The result is a professional-grade
-              vibroacoustic sound bed in the room you already work in.
+              The Resonabed kit mounts two tactile transducers under a table you already own and
+              drives them from a 100W amplifier, so you hear each track through headphones and feel
+              its low-frequency layer as gentle vibration through the tabletop. It fits a sturdy
+              timber-base massage, chiropractic, osteopathic or other treatment table, so there is
+              no second table to buy. Kits start at {money(pricing.packages.essentials.listCents)}{" "}
+              including GST, with shipping quoted separately.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link to="/" hash="packages">
@@ -156,7 +165,7 @@ function SoundBedPage() {
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/" hash="home-use">
+              <Link to="/" hash="home-package">
                 <Button
                   variant="outline"
                   className="h-12 rounded-full border-white/25 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
@@ -188,27 +197,33 @@ function SoundBedPage() {
         </div>
       </section>
 
-      {/* WHAT IT IS */}
+      {/* HOW THE KIT WORKS */}
       <section className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-3xl">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-            What it is
+            How the kit works
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            How a vibroacoustic sound bed works
+            From treatment table to sound bed
           </h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            A vibroacoustic sound bed carries low-frequency sound directly into the body through
-            the surface of the table. Tactile transducers mounted beneath the table convert the
-            audio signal into physical vibration, so the client feels the tone as well as hearing
-            it. Sessions are typically 20 to 40 minutes, run at a chosen frequency, and the client
-            stays fully clothed throughout.
+            The transducers fix to the underside of the tabletop, where the timber carries their
+            vibration to the person lying on it. The amplifier powers them and sets how strongly
+            the vibration is felt, and the Resonabed app plays the music and runs the timer.
           </p>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Because the vibration is produced by the table itself, the quality of a sound bed comes
-            down to three things: the transducers, the amplifier driving them, and the material
-            being played. The Resonabed kit supplies all three, tuned to work together, rather than
-            leaving you to source parts and licences separately.
+            Tables with a metal or heavily padded structural base do not carry the vibration well.
+            If you are unsure about yours, send us a photo before you order.
+          </p>
+          <p className="mt-4 leading-relaxed text-muted-foreground">
+            Running a clinic?{" "}
+            <Link
+              to="/vibroacoustic-therapy-bed"
+              className="underline underline-offset-4 hover:text-brand-indigo"
+            >
+              See the vibroacoustic therapy bed for clinics
+            </Link>
+            .
           </p>
         </div>
       </section>
@@ -225,59 +240,7 @@ function SoundBedPage() {
             </h2>
           </div>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                icon: Speaker,
-                title: "Two Douk Audio tactile transducers",
-                body: "Premium transducers that send low-frequency sound as gentle vibration through your existing table, so clients do not just hear the music, they feel it moving through them.",
-                image: kitImages.transducer,
-                imageAlt: "Two tactile transducers included in the Resonabed kit",
-                pair: true,
-              },
-              {
-                icon: Volume2,
-                title: "100W amplifier",
-                body: "Compact 100W amplifier with clean, professional power. Simple controls, no audio engineering required.",
-                image: kitImages.amplifier,
-                imageAlt: "100W amplifier included in the Resonabed kit",
-              },
-              {
-                icon: HeadphonesIcon,
-                title: "JBL Tune 530 Headphones",
-                body: "The JBL Tune 530 Headphones deliver powerful sound and long-lasting comfort in a lightweight on-ear design, featuring JBL Pure Bass sound.",
-                image: kitImages.headphones,
-                imageAlt: "White JBL Tune 530 on-ear headphones",
-              },
-              {
-                icon: Tablet,
-                title: "Session player and booking app",
-                body: "One calm app for client intake, frequency selection, playback, timer, session records and diary bookings. Practitioners pick it up in minutes.",
-                image: kitImages.tablet,
-                imageAlt: "Resonabed session player app running on a tablet",
-              },
-              {
-                icon: Music,
-                title: "9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base",
-                body: "Nine therapeutic, wellbeing-focused tones matched to how clients describe what they want. Licensed and ready to play, with no separate music agreement.",
-                image: kitImages.solfeggio,
-                imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
-              },
-              {
-                icon: Package,
-                title: "Fittings and setup guide",
-                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or other therapeutic table you already own.",
-              },
-              {
-                icon: CheckCircle2,
-                title: "Marketing pack",
-                body: "Your own customisable booking page plus 100 professionally designed DL flyers carrying your clinic details and a QR code that links straight to it.",
-              },
-            ].map((item) => (
-              <KitCard key={item.title} {...item} />
-            ))}
-          </div>
-
+          <KitList />
         </div>
       </section>
 
@@ -314,7 +277,25 @@ function SoundBedPage() {
         </div>
       </section>
 
-      <ScienceSection />
+      {/* RESEARCH SUMMARY */}
+      <section className="bg-brand-tint/40 py-20 md:py-24">
+        <div className="mx-auto max-w-3xl px-6 md:px-10">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+            Research
+          </p>
+          <p className="mt-3 leading-relaxed text-muted-foreground">
+            Studies on vibroacoustic therapy are early and mostly small, and have looked at
+            relaxation, sleep and how people respond to low-frequency vibration through the body.
+            A Resonabed sound bed is for relaxation and wellbeing; it is not a medical device.
+          </p>
+          <Link
+            to="/research"
+            className="mt-4 inline-flex items-center text-sm font-medium text-brand-violet-strong underline underline-offset-4 hover:text-brand-indigo"
+          >
+            See the research behind vibroacoustic therapy <ArrowRight className="ml-1.5 h-4 w-4" />
+          </Link>
+        </div>
+      </section>
 
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-6 py-24 md:px-10 md:py-28">
@@ -322,13 +303,14 @@ function SoundBedPage() {
           Sound bed questions
         </h2>
         <div className="mt-10 divide-y divide-border border-y border-border">
-          {FAQS.map((f) => (
+          {faqs.map((f) => (
             <div key={f.q} className="py-6">
               <h3 className="text-base font-medium text-brand-indigo">{f.q}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
             </div>
           ))}
         </div>
+        <ClosingDisclaimer className="mt-12" />
       </section>
 
       {/* CTA */}
@@ -338,7 +320,7 @@ function SoundBedPage() {
             Ready to turn your table into a sound bed?
           </h2>
           <p className="mt-4 text-white/75">
-            Choose the kit that suits your clinic, or read more about Resonabed on the main site.
+            Compare the kits that fit your own table, or the Home package on a fitted table.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/" hash="packages">

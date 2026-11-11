@@ -53,6 +53,12 @@ import {
 } from "@/lib/packages";
 import { getKitPricing } from "@/lib/pricing.functions";
 import { HomeOrderPanel } from "@/components/home-order-panel";
+import {
+  ALL_PACKAGES_INCLUDE,
+  FITTING_TIME,
+  INSTALL_FAQ_ANSWER,
+  packageKitList,
+} from "@/lib/kit-contents";
 import { SITE_URL, jsonLdScript } from "@/lib/seo";
 import { CARD_DESCRIPTIONS, packagesJsonLd } from "@/lib/package-structured-data";
 import { applyPricing, type KitPricing } from "@/lib/packages";
@@ -80,11 +86,16 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
   { href: "#contact", label: "Contact" },
 ];
 
+/** Not part of the owner's kit lists; business packages also include the app and webpage. */
+const BUSINESS_APP_LINE = "Full business app and bookable clinic webpage";
+
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
-  ["Douk Audio tactile transducers (pair)", true, true, true, true],
-  ["100W Nobo Sound Amplifier", true, true, true, true],
+  ["2 Douk Audio tactile transducers", true, true, true, true],
+  ["100W Nobo Sound amplifier", true, true, true, true],
   ['10" IQU Tablet', false, true, true, true],
   ["JBL Tune 530 headphones", true, true, true, true],
+  [ALL_PACKAGES_INCLUDE[3], true, true, true, true],
+  [ALL_PACKAGES_INCLUDE[4], true, true, true, true],
   ["100 disposable headphone covers", true, true, true, false],
   ["100 Resonabed Customised Marketing Flyers", true, true, true, false],
   ["Full business app", true, true, true, false],
@@ -117,7 +128,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "How long does setup take?",
-    a: "Allow one to two hours for a retrofit. The transducers mount under the tabletop, the amplifier and wiring are secured, and the app is signed in and tested. Platinum and Home arrive already fitted.",
+    a: INSTALL_FAQ_ANSWER,
   },
   {
     q: "How do payments and dispatch work?",
@@ -612,7 +623,7 @@ function LandingPage() {
               {
                 n: "01",
                 title: "Set up your system",
-                body: "Fit the tactile transducers beneath a compatible timber-base table in around 1–2 hours, or choose a fully fitted setup.",
+                body: `Fit the tactile transducers beneath a compatible timber-base table in ${FITTING_TIME}, or choose a fully fitted setup.`,
               },
               {
                 n: "02",
@@ -695,13 +706,7 @@ function LandingPage() {
             depositCents={orderDepositCents}
             tagline="Use your own table and device."
             description={CARD_DESCRIPTIONS.essentials}
-            features={[
-              "Two Douk Audio tactile transducers and 100W amplifier",
-              "JBL Tune 530 Headphones and 100 disposable covers",
-              "Full business app and bookable clinic webpage",
-              "100 personalised marketing flyers",
-              "Runs on your own phone, tablet or laptop",
-            ]}
+            features={[...packageKitList("essentials"), BUSINESS_APP_LINE]}
           />
           <PackageCard
             name="Pro"
@@ -711,13 +716,7 @@ function LandingPage() {
             highlighted
             tagline="Upgrade your table with a dedicated tablet and headphones."
             description={CARD_DESCRIPTIONS.pro}
-            features={[
-              "Everything included in Basic",
-              '10" tablet, pre-configured for sessions',
-              "JBL Tune 530 Headphones",
-              "100 disposable headphone covers",
-              "Fits your compatible timber-base table",
-            ]}
+            features={[...packageKitList("pro"), BUSINESS_APP_LINE]}
           />
           <PackageCard
             name="Platinum"
@@ -726,12 +725,7 @@ function LandingPage() {
             depositCents={orderDepositCents}
             tagline="Start with a fully fitted table."
             description={CARD_DESCRIPTIONS.platinum}
-            features={[
-              "Everything included in Pro",
-              "New therapy table, fully fitted out",
-              "Dedicated tablet and headphones",
-              "Tested as a complete system before dispatch",
-            ]}
+            features={[...packageKitList("platinum"), BUSINESS_APP_LINE]}
           />
         </div>
 

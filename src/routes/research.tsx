@@ -1,3 +1,4 @@
+import type React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -5,6 +6,8 @@ import { SITE_URL, breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 // Rendered on the server so every heading and study summary is in the first HTML;
 // the canvas animation itself only starts in the browser (inside effects).
 import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
+// The full science section and study references live here (moved off the bed pages).
+import { ScienceSection } from "@/components/public-clinic/science-section";
 
 const TITLE = "Research | How cells sense movement, what VAT studies show";
 const DESCRIPTION =
@@ -54,6 +57,18 @@ function ResearchPage() {
       </section>
 
       <CellularResponseSection />
+
+      {/* The science section reads clinic colours; on Resonabed's own pages use the brand ones. */}
+      <div
+        style={
+          {
+            "--clinic-accent": "var(--brand-violet-strong)",
+            "--clinic-tint-soft": "color-mix(in oklab, var(--brand-tint) 45%, transparent)",
+          } as React.CSSProperties
+        }
+      >
+        <ScienceSection />
+      </div>
 
       <section className="bg-brand-ink py-16 text-white md:py-20">
         <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 md:flex-row md:items-center md:justify-between md:px-10">

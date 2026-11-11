@@ -3,35 +3,28 @@ import { Button } from "@/components/ui/button";
 import logoWhite from "@/assets/resonabed-logo-white.svg";
 import logoMark from "@/assets/resonabed-logo-mark.svg";
 import hero from "@/assets/resonabed-hero-1536-img.webp";
-import { ScienceSection } from "@/components/public-clinic/science-section";
-import { KitCard, kitImages } from "@/components/kit-card";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Speaker,
-  Volume2,
-  Tablet,
-  Music,
-  Package,
-  Waves,
-  Headphones as HeadphonesIcon,
-} from "lucide-react";
-
-
+import { KitList } from "@/components/kit-list";
+import { ClosingDisclaimer } from "@/components/closing-disclaimer";
+import { ArrowRight, Waves } from "lucide-react";
+import { getKitPricing } from "@/lib/pricing.functions";
+import { applyPricing, money, type KitPricing } from "@/lib/packages";
+import { INSTALL_SPEC } from "@/lib/kit-contents";
 import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 
-const TITLE = "Vibroacoustic Therapy Table for Clinics | Resonabed";
+// Aimed at clinics (session flow, records, packages). Converting your own table
+// at home lives on /vibroacoustic-sound-bed.
+export const TITLE = "Vibroacoustic Therapy Bed for Clinics | Resonabed";
 const DESCRIPTION =
-  "Clinic vibroacoustic table system with booking software and 9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base.";
+  "Add vibroacoustic therapy to your clinic: a kit for your treatment table or a fitted bed, with an app for screening, sessions and client records.";
 const URL = "https://resonabed.com/vibroacoustic-therapy-bed";
 
-const SPECS: { label: string; value: string }[] = [
+export const SPECS: { label: string; value: string }[] = [
   { label: "Transducers", value: "Two Douk Audio tactile transducers, table-mounted" },
-  { label: "Amplifier", value: "100W amplifier, clean professional power" },
+  { label: "Amplifier", value: "100W Nobo Sound amplifier, clean professional power" },
   { label: "Frequencies", value: "9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base" },
   { label: "Session length", value: "Typically 20 to 40 minutes, client fully clothed" },
   { label: "App", value: "Intake, frequency selection, playback, timer, records, bookings" },
-  { label: "Install", value: "Wiring, fittings and step-by-step guide, around an hour" },
+  { label: "Install", value: INSTALL_SPEC },
 ];
 
 // `linksTodo` shows a visible marker until the owner supplies the study links;
@@ -39,11 +32,11 @@ const SPECS: { label: string; value: string }[] = [
 export const FAQS: { q: string; a: string; linksTodo?: boolean }[] = [
   {
     q: "What is a vibroacoustic therapy bed?",
-    a: "A vibroacoustic therapy bed is a treatment table fitted with tactile transducers that transmit low-frequency sound through the body as gentle vibration. The client hears the music and feels it at the same time, which is why sessions are often described as deeply restful.",
+    a: "It is a treatment table with tactile transducers mounted underneath, so a client lying on it feels the low-frequency layer of the music as gentle vibration while hearing the track through headphones. In a clinic it becomes a bookable service run from the Resonabed app.",
   },
   {
     q: "Can I convert my existing therapy table instead of buying a bed?",
-    a: "Yes. The Resonabed kit fits the massage, chiropractic, osteopathic or other therapeutic treatment table already in your room, so you do not pay for a second table or find space for one.",
+    a: "Yes. Basic and Pro fit the kit to the sturdy timber-base treatment table already in your clinic, using the included wiring, mounting hardware and setup videos. If your table has a metal or heavily padded base, Platinum supplies a new therapy table with the system already fitted.",
   },
   {
     q: "What conditions is a vibroacoustic therapy bed used for?",
@@ -54,14 +47,18 @@ export const FAQS: { q: string; a: string; linksTodo?: boolean }[] = [
     q: "How long does a vibroacoustic therapy session take?",
     a: "Most sessions run 20 to 40 minutes at a chosen frequency. The client stays fully clothed, and the app handles the timer, the fade out and the session record.",
   },
-  {
-    q: "Is a vibroacoustic therapy bed suitable for home use?",
-    a: "Yes. The same kit is available for personal use, with a simple home version of the app for choosing a frequency and running a timed session.",
-  },
 ];
 
 export const Route = createFileRoute("/vibroacoustic-therapy-bed")({
   staticData: { sitemap: true },
+  // Prices are read on the server so the first HTML matches the homepage cards.
+  loader: async (): Promise<{ pricing: KitPricing }> => {
+    try {
+      return { pricing: await getKitPricing() };
+    } catch {
+      return { pricing: applyPricing([]) };
+    }
+  },
   head: () => ({
     meta: [
       { title: TITLE },
@@ -77,24 +74,23 @@ export const Route = createFileRoute("/vibroacoustic-therapy-bed")({
     links: [{ rel: "canonical", href: URL }],
     scripts: [
       jsonLdScript(breadcrumbJsonLd([{ name: "Vibroacoustic therapy bed", path: "/vibroacoustic-therapy-bed" }])),
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: FAQS.map((f) => ({
-            "@type": "Question",
-            name: f.q,
-            acceptedAnswer: { "@type": "Answer", text: f.a },
-          })),
-        }),
-      },
+      jsonLdScript({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: FAQS.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }),
     ],
   }),
   component: TherapyBedPage,
 });
 
 function TherapyBedPage() {
+  const { pricing } = Route.useLoaderData();
+  const p = pricing.packages;
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* HERO */}
@@ -149,17 +145,19 @@ function TherapyBedPage() {
               For clinics and practitioners
             </span>
             <h1 className="text-4xl font-light leading-[1.05] tracking-tight md:text-5xl">
-              A vibroacoustic therapy bed
+              Vibroacoustic therapy bed{" "}
               <br />
               <span className="bg-gradient-to-r from-white to-[color-mix(in_oklab,var(--brand-violet)_60%,white)] bg-clip-text text-transparent">
-                without buying another table.
+                for your clinic
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              The Resonabed kit fits tactile transducers, a 100W amplifier and a guided
-              session app to the treatment table already in your room, giving you a
-              professional vibroacoustic therapy bed for a fraction of the cost of dedicated
-              equipment.
+              Resonabed adds vibroacoustic therapy sessions to your practice, either fitted to a
+              treatment table you already use or on a new, fully fitted therapy table. The
+              Resonabed app takes each session from client screening and frequency choice through
+              timed playback to a saved session record. Choose Basic ({money(p.essentials.listCents)}),
+              Pro ({money(p.pro.listCents)}) or Platinum ({money(p.platinum.listCents)}), all
+              including GST.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link to="/" hash="packages">
@@ -168,7 +166,7 @@ function TherapyBedPage() {
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/" hash="home-use">
+              <Link to="/" hash="home-package">
                 <Button
                   variant="outline"
                   className="h-12 rounded-full border-white/25 bg-transparent px-7 text-[15px] font-medium text-white hover:bg-white/10 hover:text-white"
@@ -200,37 +198,35 @@ function TherapyBedPage() {
         </div>
       </section>
 
-      {/* WHAT IT IS */}
+      {/* WHAT IT ADDS */}
       <section className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28">
         <div className="mx-auto max-w-3xl">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
-            What it is
+            In your practice
           </p>
           <h2 className="mt-3 text-3xl font-light tracking-tight text-brand-indigo md:text-4xl">
-            How a vibroacoustic therapy bed works
+            What it adds to your practice
           </h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            A vibroacoustic therapy bed carries low-frequency sound directly into the body
-            through the surface of the table. Tactile transducers mounted beneath the table
-            convert the audio signal into physical vibration, so the client feels the tone as
-            well as hearing it. Sessions typically run 20 to 40 minutes at a chosen frequency,
-            and the client stays fully clothed throughout.
+            Each client completes a screening step and safe-use guidance with you before their
+            first session. You choose one of the 9 tracks and the app runs the timer. At the end
+            the music fades out, a closing recording fades in, and the session is saved to the
+            client&rsquo;s record.
           </p>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Because the vibration is produced by the table itself, the quality of the bed comes
-            down to three things: the transducers, the amplifier driving them, and the material
-            being played. The Resonabed kit supplies all three, tuned to work together, rather
-            than leaving you to source parts and music licences separately.
+            Clients can book through your own clinic webpage, and business packages include 100
+            DL flyers with your clinic details and a QR code linking to it. A 12-month music
+            licence for the tracks is included, renewable after that, with no per-session fees.
           </p>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            If you are researching the equipment side in more detail, our{" "}
+            Setting up at home or on your own table?{" "}
             <Link
               to="/vibroacoustic-sound-bed"
               className="underline underline-offset-4 hover:text-brand-indigo"
             >
-              vibroacoustic sound bed
-            </Link>{" "}
-            page covers the conversion in full.
+              See the vibroacoustic sound bed kit
+            </Link>
+            .
           </p>
         </div>
       </section>
@@ -258,63 +254,28 @@ function TherapyBedPage() {
             ))}
           </div>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                icon: Speaker,
-                title: "Two Douk Audio tactile transducers",
-                body: "Premium transducers that send low-frequency sound as gentle vibration through your existing table, so clients do not just hear the music, they feel it moving through them.",
-                image: kitImages.transducer,
-                imageAlt: "Two tactile transducers included in the Resonabed kit",
-                pair: true,
-              },
-              {
-                icon: Volume2,
-                title: "100W amplifier",
-                body: "Compact 100W amplifier with clean, professional power. Simple controls, no audio engineering required.",
-                image: kitImages.amplifier,
-                imageAlt: "100W amplifier included in the Resonabed kit",
-              },
-              {
-                icon: HeadphonesIcon,
-                title: "JBL Tune 530 Headphones",
-                body: "The JBL Tune 530 Headphones deliver powerful sound and long-lasting comfort in a lightweight on-ear design, featuring JBL Pure Bass sound.",
-                image: kitImages.headphones,
-                imageAlt: "White JBL Tune 530 on-ear headphones",
-              },
-              {
-                icon: Tablet,
-                title: "Session player and booking app",
-                body: "One calm app for client intake, frequency selection, playback, timer, session records and diary bookings. Practitioners pick it up in minutes.",
-                image: kitImages.tablet,
-                imageAlt: "Resonabed session player app running on a tablet",
-              },
-              {
-                icon: Music,
-                title: "9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base",
-                body: "Nine therapeutic, wellbeing-focused tones matched to how clients describe what they want. Licensed and ready to play, with no separate music agreement.",
-                image: kitImages.solfeggio,
-                imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",
-              },
-              {
-                icon: Package,
-                title: "Fittings and setup guide",
-                body: "Wiring, fittings and a step-by-step guide to install the kit on the massage, chiropractic, osteopathic or other therapeutic table you already own.",
-              },
-              {
-                icon: CheckCircle2,
-                title: "Marketing pack",
-                body: "Your own customisable booking page plus 100 professionally designed DL flyers carrying your clinic details and a QR code that links straight to it.",
-              },
-            ].map((item) => (
-              <KitCard key={item.title} {...item} />
-            ))}
-          </div>
-
+          <KitList />
         </div>
       </section>
 
-      <ScienceSection />
+      {/* RESEARCH SUMMARY */}
+      <section className="mx-auto max-w-3xl px-6 pt-24 md:px-10 md:pt-28">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-violet-strong">
+          Research
+        </p>
+        <p className="mt-3 leading-relaxed text-muted-foreground">
+          Published research on vibroacoustic therapy has looked at pain, stress, sleep and
+          rehabilitation, and a 2022 BMJ Open scoping review of 20 clinical studies called for
+          larger, high-quality trials. For your clients, it is offered as a relaxation therapy, not
+          a medical treatment.
+        </p>
+        <Link
+          to="/research"
+          className="mt-4 inline-flex items-center text-sm font-medium text-brand-violet-strong underline underline-offset-4 hover:text-brand-indigo"
+        >
+          See the research behind vibroacoustic therapy <ArrowRight className="ml-1.5 h-4 w-4" />
+        </Link>
+      </section>
 
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-6 py-24 md:px-10 md:py-28">
@@ -332,6 +293,7 @@ function TherapyBedPage() {
             </div>
           ))}
         </div>
+        <ClosingDisclaimer className="mt-12" />
       </section>
 
       {/* CTA */}
@@ -341,8 +303,7 @@ function TherapyBedPage() {
             Ready to add vibroacoustic therapy to your clinic?
           </h2>
           <p className="mt-4 text-white/75">
-            Choose the kit that suits your practice, or read more about Resonabed on the main
-            site.
+            Compare Basic, Pro and Platinum side by side on the main site.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/" hash="packages">

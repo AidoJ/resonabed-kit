@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { kitImages } from "@/components/kit-card";
 import { heroPosterUrl } from "@/components/hero-video";
 import jblHeadphones from "@/assets/jbl-tune-530-headphones-transparent.png";
+import { Package } from "lucide-react";
+import { WIRING_CARD } from "@/lib/kit-contents";
 
 const EQUIPMENT = [
   {
@@ -29,6 +31,13 @@ const EQUIPMENT = [
     inclusion: "Included in Basic, Pro, Platinum and Home",
     image: jblHeadphones,
     imageAlt: "White JBL Tune 530 on-ear headphones",
+  },
+  {
+    name: WIRING_CARD.title,
+    description: WIRING_CARD.body,
+    inclusion: "Included in Basic, Pro, Platinum and Home",
+    image: undefined,
+    imageAlt: "",
   },
   {
     name: '10" IQU tablet',
@@ -115,7 +124,9 @@ export function KitShowcase() {
                       />
                     ) : null}
                   </div>
-                ) : null}
+                ) : (
+                  <Package aria-hidden className="h-16 w-16 text-brand-violet-strong" />
+                )}
               </div>
               <h3 className="mt-5 text-lg font-medium text-brand-indigo">{item.name}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
