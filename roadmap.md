@@ -78,3 +78,5 @@
 - [x] Wording changes 3a, 3c–3i (3b flyer unchanged; 3f with visible [LINKS TODO])
 - [x] Re-run frequency/health wording check; report search data per package
 - [ ] Therapy bed FAQ study links — waiting for owner's links (visible [LINKS TODO] until then)
+- [x] List every place the kit 'Wiring, fittings…' wording appears (reported; no changes)
+- [ ] Owner's Parts 1–8 note: kit wording (awaiting replacement text), separate the two bed pages, final checks
