@@ -81,4 +81,4 @@
 - [x] List every place the kit 'Wiring, fittings…' wording appears (reported; no changes)
 - [x] Owner's Parts 1–8 note: kit wording, per-package kit lists, 1 to 3 hour fitting time, separate the two bed pages, final checks
 - [ ] Owner to update the two trifold flyer files in Files before the next print run (old "Wiring, fittings…" panel)
-- [ ] Owner to confirm amplifier brand spelling ("Nobo Sound" in lists vs "Nobsound" on the homepage kit showcase)
+- [x] Owner approval round: Nobsound everywhere, Basic device wording, app/home/tested lines in the lists, "Not included with Home." on Marketing pack, therapy bed studies FAQ with research link, then publish

@@ -17,7 +17,7 @@ export const KIT_ITEMS: KitItem[] = [
   },
   {
     icon: Volume2,
-    title: "100W Nobo Sound amplifier",
+    title: "100W Nobsound amplifier",
     body: "Compact 100W amplifier with clean, professional power. Simple controls, no audio engineering required.",
     image: kitImages.amplifier,
     imageAlt: "100W amplifier included in the Resonabed kit",
@@ -48,7 +48,7 @@ export const KIT_ITEMS: KitItem[] = [
   {
     icon: CheckCircle2,
     title: "Marketing pack",
-    body: "Your own customisable booking page plus 100 professionally designed DL flyers carrying your clinic details and a QR code that links straight to it.",
+    body: "Your own customisable booking page plus 100 professionally designed DL flyers carrying your clinic details and a QR code that links straight to it. Not included with Home.",
   },
 ];
 

@@ -20,16 +20,17 @@ const URL = "https://resonabed.com/vibroacoustic-therapy-bed";
 
 export const SPECS: { label: string; value: string }[] = [
   { label: "Transducers", value: "Two Douk Audio tactile transducers, table-mounted" },
-  { label: "Amplifier", value: "100W Nobo Sound amplifier, clean professional power" },
+  { label: "Amplifier", value: "100W Nobsound amplifier, clean professional power" },
   { label: "Frequencies", value: "9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base" },
   { label: "Session length", value: "Typically 20 to 40 minutes, client fully clothed" },
   { label: "App", value: "Intake, frequency selection, playback, timer, records, bookings" },
   { label: "Install", value: INSTALL_SPEC },
 ];
 
-// `linksTodo` shows a visible marker until the owner supplies the study links;
-// the marker is page text only and never goes into the FAQ search data.
-export const FAQS: { q: string; a: string; linksTodo?: boolean }[] = [
+// `researchLink` marks an answer whose last sentence links to /research; the
+// search data carries the same words as plain text.
+export const RESEARCH_LINK_TEXT = "See the research behind vibroacoustic therapy.";
+export const FAQS: { q: string; a: string; researchLink?: boolean }[] = [
   {
     q: "What is a vibroacoustic therapy bed?",
     a: "It is a treatment table with tactile transducers mounted underneath, so a client lying on it feels the low-frequency layer of the music as gentle vibration while hearing the track through headphones. In a clinic it becomes a bookable service run from the Resonabed app.",
@@ -40,8 +41,8 @@ export const FAQS: { q: string; a: string; linksTodo?: boolean }[] = [
   },
   {
     q: "What conditions is a vibroacoustic therapy bed used for?",
-    a: "Early research, mostly small studies, has looked at chronic musculoskeletal pain, fibromyalgia symptoms, stress and anxiety, sleep quality, and muscle tension. Vibroacoustic therapy is intended to complement, not replace, professional medical care.",
-    linksTodo: true,
+    a: `Early research, mostly small studies, has looked at chronic musculoskeletal pain, fibromyalgia symptoms, stress and anxiety, and sleep quality. ${RESEARCH_LINK_TEXT}`,
+    researchLink: true,
   },
   {
     q: "How long does a vibroacoustic therapy session take?",
@@ -287,8 +288,19 @@ function TherapyBedPage() {
             <div key={f.q} className="py-6">
               <h3 className="text-base font-medium text-brand-indigo">{f.q}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {f.a}
-                {f.linksTodo ? <strong className="text-foreground"> [LINKS TODO]</strong> : null}
+                {f.researchLink ? (
+                  <>
+                    {f.a.slice(0, -RESEARCH_LINK_TEXT.length)}
+                    <Link
+                      to="/research"
+                      className="underline underline-offset-4 hover:text-brand-indigo"
+                    >
+                      {RESEARCH_LINK_TEXT}
+                    </Link>
+                  </>
+                ) : (
+                  f.a
+                )}
               </p>
             </div>
           ))}

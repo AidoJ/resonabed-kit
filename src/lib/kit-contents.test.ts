@@ -24,7 +24,7 @@ describe("per-package kit lists", () => {
     for (const key of ["essentials", "pro", "platinum", "home"] as const) {
       const list = packageKitList(key);
       expect(list).toContain("2 Douk Audio tactile transducers");
-      expect(list).toContain("100W Nobo Sound amplifier");
+      expect(list).toContain("100W Nobsound amplifier");
       expect(list).toContain("JBL Tune 530 headphones");
       expect(list).toContain(
         "Wiring and mounting hardware: 4 banana plugs, 1.5m and 0.5m speaker wire, 8 M4 well nuts and screws, cable ties and double-sided mounting pads",
@@ -35,7 +35,7 @@ describe("per-package kit lists", () => {
 
   it("Basic has no tablet and says so", () => {
     const basic = packageKitList("essentials");
-    expect(basic).toContain("Runs on your own tablet. Tablet not included.");
+    expect(basic).toContain("Runs on the phone, tablet or laptop you already use. Tablet not included.");
     expect(basic.some((l) => l.includes('10" tablet'))).toBe(false);
   });
 
@@ -94,5 +94,37 @@ describe("bed pages are separate", () => {
     expect(sound).toContain("Running a clinic?");
     expect(therapy.match(/to="\/vibroacoustic-sound-bed"/g)).toHaveLength(1);
     expect(therapy).toContain("Setting up at home or on your own table?");
+  });
+});
+
+describe("owner approval round", () => {
+  it("lists carry the app, home access and Platinum testing lines", () => {
+    for (const key of ["essentials", "pro", "platinum"] as const)
+      expect(packageKitList(key)).toContain("Full business app and bookable clinic webpage");
+    expect(packageKitList("home")).toContain("App and music access for home use without renewal");
+    expect(packageKitList("platinum")).toContain("Tested as a complete system before dispatch");
+  });
+
+  it("uses Nobsound everywhere and the same Basic device wording", () => {
+    const files = sourceFiles(src).map((f) => readFileSync(f, "utf8"));
+    expect(files.some((t) => /Nobo Sound/i.test(t))).toBe(false);
+    const home = read("routes/index.tsx").replace(/\s+/g, " ");
+    expect(home.match(/the phone, tablet or laptop you already use\. Tablet not included\./g)?.length).toBe(3);
+    expect(read("lib/package-structured-data.ts")).toContain(
+      "Runs on the phone, tablet or laptop you already use. Tablet not included.",
+    );
+  });
+
+  it("Marketing pack card says it is not included with Home", () => {
+    expect(read("components/kit-list.tsx")).toContain("QR code that links straight to it. Not included with Home.");
+  });
+
+  it("therapy bed studies answer links to the research page", () => {
+    const t = read("routes/vibroacoustic-therapy-bed.tsx");
+    expect(t).toContain(
+      "Early research, mostly small studies, has looked at chronic musculoskeletal pain, fibromyalgia symptoms, stress and anxiety, and sleep quality. ${RESEARCH_LINK_TEXT}",
+    );
+    expect(t).toContain('RESEARCH_LINK_TEXT = "See the research behind vibroacoustic therapy."');
+    expect(t).not.toContain("LINKS TODO");
   });
 });

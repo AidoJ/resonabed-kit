@@ -21,10 +21,7 @@ import {
 import { money, planTotalCents, type PackageDef } from "@/lib/packages";
 import { packageKitList } from "@/lib/kit-contents";
 
-const INCLUDES = [
-  ...packageKitList("home"),
-  "App and music access included for home use without renewal",
-];
+const INCLUDES = packageKitList("home");
 
 /**
  * Buy panel for the Resonabed for Home package.

@@ -86,12 +86,9 @@ const NAV_LINKS: { href: string; label: string; children?: { href: string; label
   { href: "#contact", label: "Contact" },
 ];
 
-/** Not part of the owner's kit lists; business packages also include the app and webpage. */
-const BUSINESS_APP_LINE = "Full business app and bookable clinic webpage";
-
 const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["2 Douk Audio tactile transducers", true, true, true, true],
-  ["100W Nobo Sound amplifier", true, true, true, true],
+  ["100W Nobsound amplifier", true, true, true, true],
   ['10" IQU Tablet', false, true, true, true],
   ["JBL Tune 530 headphones", true, true, true, true],
   [ALL_PACKAGES_INCLUDE[3], true, true, true, true],
@@ -108,7 +105,7 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: "What is the difference between Basic, Pro and Platinum?",
-    a: "Basic uses your compatible timber-base table and device. Pro adds a dedicated 10 inch tablet. Platinum adds a new therapy table with the system already fitted. Headphones, 100 disposable headphone covers, the business app, clinic webpage and marketing material are included with all three.",
+    a: "Basic fits your compatible timber-base table and runs on the phone, tablet or laptop you already use. Tablet not included. Pro adds a dedicated 10 inch tablet. Platinum adds a new therapy table with the system already fitted. Headphones, 100 disposable headphone covers, the business app, clinic webpage and marketing material are included with all three.",
   },
   {
     q: "Can I run a clinic on the Home package?",
@@ -120,7 +117,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "Do I need my own device or table?",
-    a: "It depends on the package. Basic runs on a phone, tablet or laptop you already own, and fits to the treatment table you already use. Pro includes a dedicated 10 inch tablet, pre-configured to run sessions and nothing else, and also fits your existing table. Platinum and Home include both the tablet and a fully fitted out table, so nothing else is needed.",
+    a: "It depends on the package. Basic runs on the phone, tablet or laptop you already use. Tablet not included. It fits to the treatment table you already use. Pro includes a dedicated 10 inch tablet, pre-configured to run sessions and nothing else, and also fits your existing table. Platinum and Home include both the tablet and a fully fitted out table, so nothing else is needed.",
   },
   {
     q: "Which tables are compatible?",
@@ -689,8 +686,9 @@ function LandingPage() {
             , the full business app and your own bookable clinic webpage.
           </p>
           <p className="mt-4 rounded-2xl bg-secondary/60 px-5 py-4 text-sm leading-relaxed text-foreground/90">
-            The Resonabed app runs on any phone, tablet or laptop. Basic uses a device you already
-            own. Pro and Platinum include a dedicated 10 inch tablet.
+            The Resonabed app runs on any phone, tablet or laptop. Basic runs on the phone, tablet
+            or laptop you already use. Tablet not included. Pro and Platinum include a dedicated
+            10 inch tablet.
           </p>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             In every package, the tactile transducers turn the low-frequency layer of each track
@@ -706,7 +704,7 @@ function LandingPage() {
             depositCents={orderDepositCents}
             tagline="Use your own table and device."
             description={CARD_DESCRIPTIONS.essentials}
-            features={[...packageKitList("essentials"), BUSINESS_APP_LINE]}
+            features={packageKitList("essentials")}
           />
           <PackageCard
             name="Pro"
@@ -716,7 +714,7 @@ function LandingPage() {
             highlighted
             tagline="Upgrade your table with a dedicated tablet and headphones."
             description={CARD_DESCRIPTIONS.pro}
-            features={[...packageKitList("pro"), BUSINESS_APP_LINE]}
+            features={packageKitList("pro")}
           />
           <PackageCard
             name="Platinum"
@@ -725,7 +723,7 @@ function LandingPage() {
             depositCents={orderDepositCents}
             tagline="Start with a fully fitted table."
             description={CARD_DESCRIPTIONS.platinum}
-            features={[...packageKitList("platinum"), BUSINESS_APP_LINE]}
+            features={packageKitList("platinum")}
           />
         </div>
 

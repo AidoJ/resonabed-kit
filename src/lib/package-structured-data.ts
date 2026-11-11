@@ -4,7 +4,7 @@ import type { KitPricing } from "@/lib/packages";
 /** Package card copy, shared by the cards and the Product structured data. */
 export const CARD_DESCRIPTIONS = {
   essentials:
-    "The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room.",
+    "The complete business system. Runs on the phone, tablet or laptop you already use. Tablet not included. Fits the treatment table already in your room.",
   pro: "Everything in Basic, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room.",
   platinum:
     "Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives.",

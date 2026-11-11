@@ -45,7 +45,7 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     shipsTable: false,
     personalOnly: false,
     description:
-      "Business system with 2x Douk Audio tactile transducers, 100W amplifier, JBL Tune 530 headphones, 100 disposable headphone covers, the full Resonabed business app and clinic webpage, and 100 marketing flyers. Runs on a phone, tablet or laptop you already own.",
+      "Business system with 2x Douk Audio tactile transducers, 100W amplifier, JBL Tune 530 headphones, 100 disposable headphone covers, the full Resonabed business app and clinic webpage, and 100 marketing flyers. Runs on the phone, tablet or laptop you already use. Tablet not included.",
   },
   pro: {
     key: "pro",
