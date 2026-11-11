@@ -8,6 +8,7 @@ import {
   getSignedAudioUrl,
   listFrequenciesWithAudioFlag,
 } from "@/lib/sessions.functions";
+import { getCurrentUserContext } from "@/lib/user-context.functions";
 import {
   HOME_DURATION_PRESETS,
   HOME_SAFETY_CHECK_LEAD,
@@ -63,6 +64,9 @@ export const Route = createFileRoute("/_authenticated/sessions/personal")({
   component: PersonalSession,
 });
 
+/** Platform-admin-only test length: checks the real fade and closing hand-over quickly. */
+const ADMIN_TEST_MINUTES = 3;
+
 const STEP_TITLES = ["Reminder", "Length", "Symptoms", "Frequency", "Sound"] as const;
 
 const SUBTITLES = [
@@ -76,6 +80,9 @@ const SUBTITLES = [
 function PersonalSession() {
   const navigate = useNavigate();
   const libraryFn = useServerFn(listFrequenciesWithAudioFlag);
+  const ctxFn = useServerFn(getCurrentUserContext);
+  const { data: ctx } = useQuery({ queryKey: ["user-context"], queryFn: () => ctxFn() });
+  const isSuper = !!ctx?.roles?.includes("super_admin");
 
   const [step, setStep] = useState(0);
   const [minutes, setMinutes] = useState<number>(30);
@@ -214,6 +221,27 @@ function PersonalSession() {
                 </button>
               ))}
             </div>
+            {isSuper ? (
+              <div className="mt-6 rounded-xl border border-dashed p-4">
+                <p className="text-sm font-medium">Admin test</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Platform admins only. A 3-minute session with the same fade-out and closing
+                  recording as a real session.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMinutes(ADMIN_TEST_MINUTES)}
+                  className={cn(
+                    "mt-3 h-12 rounded-xl border px-5 text-sm transition-colors",
+                    minutes === ADMIN_TEST_MINUTES
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-input bg-background hover:bg-muted",
+                  )}
+                >
+                  3 min test
+                </button>
+              </div>
+            ) : null}
           </div>
         )}
 

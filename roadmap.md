@@ -92,7 +92,11 @@
 - [x] Expired-licence banner wording; delete the 8 unused files in the deleted clinic's folder; check the 9th shared file (exact copy of 285 Hz Gentle, kept)
 - [x] Stage A: publish
 - [x] Stage B prep: hidden platform-admin storage test page
-- [ ] Publish the storage test page — waiting for owner's go-ahead
+- [x] Clinic and Home accounts sent away from the storage test page (tested)
+- [x] Admin-only 3-minute test session (same fade and closing recording)
+- [x] Delete the 9th file (duplicate 285 Hz Gentle)
+- [x] Publish the storage test page and 3-minute test
+- [ ] Business settings exposure: report only, no change — owner deciding
 - [ ] Stage B: device tests on an IQU tablet and an iPad (installed), incl. screen-locked playback — needs the owner's devices
 - [ ] Stage C: offline build for tester accounts — waiting for Stage B results
 - [ ] Stage D: roll out — waiting for owner's own Stage C testing
