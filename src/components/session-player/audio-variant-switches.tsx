@@ -11,6 +11,8 @@ interface Props {
   availability?: VariantAvailability | null;
   className?: string;
   dark?: boolean;
+  /** Locks both switches while a change is being saved. */
+  disabled?: boolean;
 }
 
 export function AudioVariantSwitches({
@@ -21,6 +23,7 @@ export function AudioVariantSwitches({
   availability,
   className,
   dark,
+  disabled,
 }: Props) {
   const has = (v: string) => !availability || availability.variants.includes(v as never);
   const deepMissing = deepFeel && !has(ambience ? "deep_amb" : "deep");
@@ -51,6 +54,7 @@ export function AudioVariantSwitches({
         id={id}
         checked={checked}
         onCheckedChange={onChange}
+        disabled={disabled}
         className="border-accent-foreground/50 data-[state=unchecked]:bg-accent-foreground/30"
       />
     </label>

@@ -27,9 +27,11 @@ import { submitScreening, declineSessionForScreening } from "@/lib/screening.fun
 import { SCREENING_CHECKLIST } from "@/lib/screening-checklist";
 import { getBooking, startSessionFromBooking } from "@/lib/bookings.functions";
 import { getCurrentUserContext } from "@/lib/user-context.functions";
+import { getMyOrgLicence } from "@/lib/licence.functions";
+import { renewLicenceHref } from "@/lib/music-access";
 import { computeTargetHz, rankFrequencies } from "@/lib/frequency-match";
 import { Link } from "@tanstack/react-router";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Music } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -69,6 +71,16 @@ function NewSession() {
     queryFn: () => bookingFn({ data: { id: booking_id! } }),
     enabled: !!booking_id,
   });
+
+  // The music licence is checked before anything else, so an expired clinic
+  // never reaches the signed screening step. The server re-checks on save.
+  const licenceFn = useServerFn(getMyOrgLicence);
+  const { data: licence, isLoading: licenceLoading } = useQuery({
+    queryKey: ["my-org-licence"],
+    queryFn: () => licenceFn(),
+    staleTime: 0,
+  });
+  const licenceExpired = !!licence && !licence.is_ok;
 
   const isConfigured = ctx?.org?.isConfigured ?? true;
   const isAdmin =
@@ -325,6 +337,39 @@ function NewSession() {
     "Suggested frequency for this intake, override if you prefer.",
     "Add Deep Feel or Ambient Sound if you like, then start.",
   ];
+
+  if (licenceLoading) {
+    return <p className="text-muted-foreground mx-auto max-w-2xl p-6 text-sm">Checking music licence…</p>;
+  }
+
+  if (licenceExpired) {
+    return (
+      <div className="mx-auto max-w-2xl rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-foreground">
+        <div className="flex items-start gap-3">
+          <Music className="mt-0.5 h-6 w-6 shrink-0 text-destructive" />
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold">Music licence expired</h2>
+            <p className="text-sm">
+              Your clinic's music licence
+              {licence?.expires_at
+                ? ` ended on ${new Date(licence.expires_at).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}`
+                : " has expired"}
+              . New sessions can't be started until it is renewed. Existing session records are
+              still available.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild>
+                <a href={renewLicenceHref(ctx?.org?.name)}>Renew music licence</a>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/sessions">Back to sessions</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isConfigured) {
     return (

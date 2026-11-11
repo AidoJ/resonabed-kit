@@ -31,6 +31,7 @@ import { WELLBEING_SCALES, type CheckinRow } from "@/lib/checkins";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/sessions/$id/play")({
   staticData: { sitemap: false },
@@ -73,15 +74,44 @@ function PlaySession() {
   const variant = variantFor(deepFeel, ambienceOn);
   const queryClient = useQueryClient();
   const choiceFn = useServerFn(setSessionAudioChoice);
-  const setChoice = (next: { deep: boolean; amb: boolean }) => {
-    // Optimistic: the player switches immediately; the choice is saved so a
-    // reload keeps it.
-    queryClient.setQueryData(["session", id], (old: typeof session) =>
-      old ? { ...old, audio_resonance: next.deep ? "deep" : "gentle", audio_ambience: next.amb } : old,
-    );
-    void choiceFn({
-      data: { id, audio_resonance: next.deep ? "deep" : "gentle", audio_ambience: next.amb },
-    }).catch(() => {});
+  const [choiceBusy, setChoiceBusy] = useState(false);
+  const setChoice = async (next: { deep: boolean; amb: boolean }) => {
+    if (!freqId || choiceBusy) return;
+    const prev = { deep: deepFeel, amb: ambienceOn };
+    const save = (c: { deep: boolean; amb: boolean }) =>
+      choiceFn({
+        data: { id, audio_resonance: c.deep ? "deep" : "gentle", audio_ambience: c.amb },
+      });
+    setChoiceBusy(true);
+    let saved = false;
+    try {
+      // Save first, then load the new recording and its link. Only once all of
+      // that has worked does the player switch, so a failure leaves the
+      // current recording playing untouched.
+      await save(next);
+      saved = true;
+      const nextVariant = variantFor(next.deep, next.amb);
+      const nextAudio = await queryClient.fetchQuery({
+        queryKey: ["audio-for-freq", freqId, id, nextVariant],
+        queryFn: () => audioFn({ data: { frequency_id: freqId, session_id: id, variant: nextVariant } }),
+      });
+      if (nextAudio?.id && !nextAudio.locked) {
+        await queryClient.fetchQuery({
+          queryKey: ["signed-audio", nextAudio.id, id],
+          queryFn: () => signFn({ data: { audio_file_id: nextAudio.id, session_id: id } }),
+          staleTime: 30 * 60 * 1000,
+        });
+      }
+      queryClient.setQueryData(["session", id], (old: typeof session) =>
+        old ? { ...old, audio_resonance: next.deep ? "deep" : "gentle", audio_ambience: next.amb } : old,
+      );
+    } catch {
+      // Keep the saved choice in step with what is still playing.
+      if (saved) void save(prev).catch(() => {});
+      toast.error("Couldn't change the setting, check your connection and try again");
+    } finally {
+      setChoiceBusy(false);
+    }
   };
 
   const availFn = useServerFn(listFrequenciesWithAudioFlag);
@@ -323,9 +353,10 @@ function PlaySession() {
             dark
             deepFeel={deepFeel}
             ambience={ambienceOn}
-            onDeepFeelChange={(v) => setChoice({ deep: v, amb: ambienceOn })}
-            onAmbienceChange={(v) => setChoice({ deep: deepFeel, amb: v })}
+            onDeepFeelChange={(v) => void setChoice({ deep: v, amb: ambienceOn })}
+            onAmbienceChange={(v) => void setChoice({ deep: deepFeel, amb: v })}
             availability={availability}
+            disabled={choiceBusy}
           />
           <VariantFallbackNote audio={audio} />
           {audio && !audio.locked && signed?.url ? (

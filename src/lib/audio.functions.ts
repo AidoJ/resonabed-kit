@@ -164,14 +164,30 @@ export const getSignedAudioUrlById = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("audio_files")
-      .select("file_url")
+      .select("file_url, org_id")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row?.file_url) throw new Error("Audio file has no stored path");
-    const { data: signed, error: sErr } = await context.supabase.storage
-      .from("audio-files")
-      .createSignedUrl(row.file_url, 3600);
-    if (sErr) throw new Error(sErr.message);
-    return { url: signed.signedUrl };
+    // Library previews follow the same licence rule as session playback.
+    if (row.org_id === null) {
+      const { callerIsSuperAdmin } = await import("./audio.server");
+      const isSuperAdmin = await callerIsSuperAdmin(context);
+      if (!isSuperAdmin) {
+        const { data: profile } = await context.supabase
+          .from("profiles")
+          .select("org_id")
+          .eq("id", context.userId)
+          .maybeSingle();
+        const orgId = (profile?.org_id as string | null) ?? null;
+        const { canPlayGlobalAsClinic } = await import("@/lib/music-access");
+        const { loadOrgLicence } = await import("@/lib/music-access.server");
+        const org = orgId ? await loadOrgLicence(context.supabase, orgId) : null;
+        if (!canPlayGlobalAsClinic({ isSuperAdmin, orgId, org })) {
+          throw new Error("Music licence expired, contact Resonabed to renew access to the shared library.");
+        }
+      }
+    }
+    const { signMusicPath } = await import("@/lib/music-access.server");
+    return { url: await signMusicPath(row.file_url, 3600) };
   });

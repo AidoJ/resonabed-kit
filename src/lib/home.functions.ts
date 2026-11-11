@@ -94,11 +94,12 @@ type AuthedCtx = { supabase: SupabaseClient<Database>; userId: string };
 async function assertHomeUser(context: AuthedCtx) {
   const { data, error } = await context.supabase
     .from("home_accounts")
-    .select("user_id")
+    .select("user_id, access_code_id")
     .eq("user_id", context.userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("This area is for personal Resonabed accounts");
+  return data;
 }
 
 /**
@@ -131,7 +132,19 @@ export const getHomeAudioUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ id: uuid }).parse(data))
   .handler(async ({ data, context }) => {
-    await assertHomeUser(context);
+    const account = await assertHomeUser(context);
+
+    // The Home package covers the shared library only, while the purchase
+    // code is live. Read with the server client because the code table is
+    // not readable by the account itself.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: code } = await supabaseAdmin
+      .from("kit_access_codes")
+      .select("status, access_level")
+      .eq("id", account.access_code_id)
+      .maybeSingle();
+    const { homeCodeAllowsMusic } = await import("@/lib/music-access");
+    if (!homeCodeAllowsMusic(code)) throw new Error("Music isn't available on this account");
 
     const { data: row, error } = await context.supabase
       .from("audio_files")
@@ -142,11 +155,8 @@ export const getHomeAudioUrl = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!row?.file_url || !row.is_active) throw new Error("That track is not available");
 
-    const { data: signed, error: sErr } = await context.supabase.storage
-      .from("audio-files")
-      .createSignedUrl(row.file_url, 60 * 90);
-    if (sErr) throw new Error(sErr.message);
-    return { url: signed.signedUrl };
+    const { signMusicPath } = await import("@/lib/music-access.server");
+    return { url: await signMusicPath(row.file_url, 60 * 90) };
   });
 
 /** Public: redeem a purchase access code and create the perpetual account. */

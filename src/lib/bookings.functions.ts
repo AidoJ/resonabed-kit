@@ -335,6 +335,9 @@ export const startSessionFromBooking = createServerFn({ method: "POST" })
       throw new Error(`Cannot start a session from a booking with status ${booking.status}`);
     }
 
+    const { assertOrgMusicLicence } = await import("@/lib/music-access.server");
+    await assertOrgMusicLicence(context.supabase, booking.org_id as string);
+
     const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { data: session, error: sErr } = await context.supabase
       .from("sessions")

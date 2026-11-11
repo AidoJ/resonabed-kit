@@ -82,3 +82,13 @@
 - [x] Owner's Parts 1–8 note: kit wording, per-package kit lists, 1 to 3 hour fitting time, separate the two bed pages, final checks
 - [ ] Owner to update the two trifold flyer files in Files before the next print run (old "Wiring, fittings…" panel)
 - [x] Owner approval round: Nobsound everywhere, Basic device wording, app/home/tested lines in the lists, "Not included with Home." on Marketing pack, therapy bed studies FAQ with research link, then publish
+
+## Offline mode (owner's four-stage plan, Nov 2026)
+- [x] Stage A1: shared music only through the licensed playback path (no direct storage reads)
+- [x] Stage A2: Deep Feel / Ambient save failure keeps the current track and shows the message
+- [x] Stage A3: licence check before the screening step, with renew link
+- [x] Stage A4: list unused audio files (not deleted)
+- [ ] Stage A: owner review, then publish — waiting for owner
+- [ ] Stage B: device tests on an IQU tablet and an iPad (installed) — waiting for Stage A publish; needs the owner's devices
+- [ ] Stage C: offline build for tester accounts — waiting for Stage B results
+- [ ] Stage D: roll out — waiting for owner's own Stage C testing

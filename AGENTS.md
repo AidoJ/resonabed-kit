@@ -27,6 +27,9 @@
 
 - Each frequency has up to four recordings as separate audio_files rows keyed by `variant` (one active per library/frequency/variant, enforced by a unique index); playback resolves by variant and falls back to `original` with a visible note, so a comfort switch never hides a frequency.
 - Switching variant mid-session changes only the `src` of the same mounted <audio> element (never remount it), because the Web Audio routing and the booked ending live on that element.
+- Shared (global) music is reachable only through server-signed links (src/lib/music-access.server.ts) issued after the pure, tested checks in src/lib/music-access.ts; storage rules deny direct reads of the global folder to everyone but super admins, so a signed-in account can't bypass the licence.
+- Clinic sessions can't start on an expired music licence: the new-session wizard blocks before the screening step, and submitScreening, createDraftSession and startSessionFromBooking re-check on the server so no screening is written for a session that can't run.
+- A mid-session Deep Feel/Ambient change saves the choice and loads the new recording and its link before the player switches, so a failure leaves the current recording playing.
 
 ## Search and structured data
 

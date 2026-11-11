@@ -108,6 +108,10 @@ export const submitScreening = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const orgId = await callerOrgId(context);
 
+    // No permanent screening record for a session that cannot start.
+    const { assertOrgMusicLicence } = await import("@/lib/music-access.server");
+    await assertOrgMusicLicence(context.supabase, orgId);
+
     // "None of these apply" is a stored affirmative attestation and must be
     // mutually exclusive with flagged items. Absence of a row is a different
     // state entirely (nobody answered) and never looks the same.

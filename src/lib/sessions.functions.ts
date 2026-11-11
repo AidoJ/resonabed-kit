@@ -237,6 +237,9 @@ export const createDraftSession = createServerFn({ method: "POST" })
     if (pErr) throw new Error(pErr.message);
     if (!profile?.org_id) throw new Error("No organisation assigned to your profile");
 
+    const { assertOrgMusicLicence } = await import("@/lib/music-access.server");
+    await assertOrgMusicLicence(context.supabase, profile.org_id);
+
     const { pseudonymForClient } = await import("@/lib/pseudonym.server");
     const { data: row, error } = await context.supabase
       .from("sessions")
@@ -453,18 +456,13 @@ async function resolvePlaybackOrg(context: Ctx, sessionId?: string | null): Prom
 }
 
 async function callerHasGlobalLicence(context: Ctx, orgId: string | null): Promise<boolean> {
-  if (!orgId) return true; // super_admin with no org: allow
+  const { canPlayGlobalAsClinic } = await import("@/lib/music-access");
   const { data: isSuper } = await context.supabase.rpc("is_super_admin", { _user_id: context.userId });
   if (isSuper) return true; // platform admins can always play in support/admin mode
-  const { data: org } = await context.supabase
-    .from("organisations")
-    .select("music_licence_status, music_licence_expires_at")
-    .eq("id", orgId)
-    .maybeSingle();
-  if (!org) return false;
-  if (org.music_licence_status === "expired") return false;
-  if (!org.music_licence_expires_at) return false;
-  return new Date(org.music_licence_expires_at as string).getTime() > Date.now();
+  if (!orgId) return false; // no clinic (e.g. a Home account): never through this path
+  const { loadOrgLicence } = await import("@/lib/music-access.server");
+  const org = await loadOrgLicence(context.supabase, orgId);
+  return canPlayGlobalAsClinic({ isSuperAdmin: false, orgId, org });
 }
 
 export const getAudioForFrequency = createServerFn({ method: "POST" })
@@ -572,9 +570,9 @@ export const getSignedAudioUrl = createServerFn({ method: "POST" })
         );
       }
     }
-    const { data: signed, error: sErr } = await context.supabase.storage
-      .from("audio-files")
-      .createSignedUrl(row.file_url, 4 * 3600); // covers the longest booked session
-    if (sErr) throw new Error(sErr.message);
-    return { url: signed.signedUrl };
+    // The row was read through the caller's own access rules above, so they
+    // may play it; the link itself is signed server-side.
+    const { signMusicPath } = await import("@/lib/music-access.server");
+    const url = await signMusicPath(row.file_url, 4 * 3600); // covers the longest booked session
+    return { url };
   });
