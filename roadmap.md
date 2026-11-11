@@ -88,7 +88,10 @@
 - [x] Stage A2: Deep Feel / Ambient save failure keeps the current track and shows the message
 - [x] Stage A3: licence check before the screening step, with renew link
 - [x] Stage A4: list unused audio files (not deleted)
-- [ ] Stage A: owner review, then publish — waiting for owner
+- [x] Stage A approval checks: admin/support playback, Audio library preview, server-side screening block
+- [x] Expired-licence banner wording; delete the 8 unused files in the deleted clinic's folder; check the 9th shared file (exact copy of 285 Hz Gentle, kept)
+- [x] Stage A: publish
+- [x] Stage B prep: hidden platform-admin storage test page
 - [ ] Stage B: device tests on an IQU tablet and an iPad (installed) — waiting for Stage A publish; needs the owner's devices
 - [ ] Stage C: offline build for tester accounts — waiting for Stage B results
 - [ ] Stage D: roll out — waiting for owner's own Stage C testing

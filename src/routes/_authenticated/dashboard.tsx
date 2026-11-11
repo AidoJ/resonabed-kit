@@ -194,7 +194,7 @@ function DashboardPage() {
             {!licence.is_ok ? (
               <>
                 <strong>Music licence expired.</strong> The 9 global Solfeggio tracks are locked
-                until renewal. Your own uploaded audio still plays.{" "}
+                until renewal. Music is locked until the licence is renewed.{" "}
                 {renewalPrice ? <>Renew for {renewalPrice}, c</> : <>C</>}ontact ResonaBed to renew.
               </>
             ) : (
