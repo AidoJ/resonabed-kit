@@ -67,6 +67,7 @@ import { Route as AuthenticatedAdminSalesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminShippingRouteImport } from './routes/_authenticated/admin.shipping'
+import { Route as AuthenticatedAdminStorageTestRouteImport } from './routes/_authenticated/admin.storage-test'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings.index'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings.$id'
@@ -396,6 +397,12 @@ const AuthenticatedAdminShippingRoute =
     path: '/shipping',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminStorageTestRoute =
+  AuthenticatedAdminStorageTestRouteImport.update({
+    id: '/storage-test',
+    path: '/storage-test',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -546,6 +553,7 @@ export interface FileRoutesByFullPath {
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/shipping': typeof AuthenticatedAdminShippingRoute
+  '/admin/storage-test': typeof AuthenticatedAdminStorageTestRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
@@ -619,6 +627,7 @@ export interface FileRoutesByTo {
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/shipping': typeof AuthenticatedAdminShippingRoute
+  '/admin/storage-test': typeof AuthenticatedAdminStorageTestRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
@@ -697,6 +706,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/shipping': typeof AuthenticatedAdminShippingRoute
+  '/_authenticated/admin/storage-test': typeof AuthenticatedAdminStorageTestRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
@@ -775,6 +785,7 @@ export interface FileRouteTypes {
     | '/admin/services'
     | '/admin/settings'
     | '/admin/shipping'
+    | '/admin/storage-test'
     | '/admin/team'
     | '/bookings/$id'
     | '/sessions/new'
@@ -848,6 +859,7 @@ export interface FileRouteTypes {
     | '/admin/services'
     | '/admin/settings'
     | '/admin/shipping'
+    | '/admin/storage-test'
     | '/admin/team'
     | '/bookings/$id'
     | '/sessions/new'
@@ -925,6 +937,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/services'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/shipping'
+    | '/_authenticated/admin/storage-test'
     | '/_authenticated/admin/team'
     | '/_authenticated/bookings/$id'
     | '/_authenticated/sessions/new'
@@ -1383,6 +1396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminShippingRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/storage-test': {
+      id: '/_authenticated/admin/storage-test'
+      path: '/storage-test'
+      fullPath: '/admin/storage-test'
+      preLoaderRoute: typeof AuthenticatedAdminStorageTestRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/team': {
       id: '/_authenticated/admin/team'
       path: '/team'
@@ -1527,6 +1547,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminServicesRoute: typeof AuthenticatedAdminServicesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminShippingRoute: typeof AuthenticatedAdminShippingRoute
+  AuthenticatedAdminStorageTestRoute: typeof AuthenticatedAdminStorageTestRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -1554,6 +1575,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminServicesRoute: AuthenticatedAdminServicesRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminShippingRoute: AuthenticatedAdminShippingRoute,
+  AuthenticatedAdminStorageTestRoute: AuthenticatedAdminStorageTestRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
