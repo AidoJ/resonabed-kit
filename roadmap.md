@@ -96,7 +96,8 @@
 - [x] Admin-only 3-minute test session (same fade and closing recording)
 - [x] Delete the 9th file (duplicate 285 Hz Gentle)
 - [x] Publish the storage test page and 3-minute test
-- [ ] Business settings exposure: report only, no change — owner deciding
+- [x] Business settings: confirmed only platform admins can change them; billing details now readable by platform admins only; EFT checkout and balance page tested
+- [ ] EFT orders send no email with bank details or invoice copy (screen says one is sent) — waiting for owner decision
 - [ ] Stage B: device tests on an IQU tablet and an iPad (installed), incl. screen-locked playback — needs the owner's devices
 - [ ] Stage C: offline build for tester accounts — waiting for Stage B results
 - [ ] Stage D: roll out — waiting for owner's own Stage C testing
