@@ -13,6 +13,7 @@ import { Receipt as ReceiptIcon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/payments")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Kit payments, Admin, ResonaBed" },

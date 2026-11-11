@@ -52,6 +52,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/organisations")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Organisations, ResonaBed" },

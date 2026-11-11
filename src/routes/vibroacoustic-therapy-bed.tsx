@@ -18,15 +18,17 @@ import {
 } from "lucide-react";
 
 
+import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
+
 const TITLE = "Vibroacoustic Therapy Table for Clinics | Resonabed";
 const DESCRIPTION =
-  "A complete vibroacoustic therapy system for your practice — tactile sound through the treatment table, session software, client booking and nine licensed Solfeggio frequencies.";
+  "Clinic vibroacoustic table system with booking software and 9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base.";
 const URL = "https://resonabed.com/vibroacoustic-therapy-bed";
 
 const SPECS: { label: string; value: string }[] = [
   { label: "Transducers", value: "Two Douk Audio tactile transducers, table-mounted" },
   { label: "Amplifier", value: "100W amplifier, clean professional power" },
-  { label: "Frequencies", value: "9 licensed Solfeggio wellbeing tracks" },
+  { label: "Frequencies", value: "9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base" },
   { label: "Session length", value: "Typically 20 to 40 minutes, client fully clothed" },
   { label: "App", value: "Intake, frequency selection, playback, timer, records, bookings" },
   { label: "Install", value: "Wiring, fittings and step-by-step guide, around an hour" },
@@ -56,6 +58,7 @@ export const FAQS: { q: string; a: string }[] = [
 ];
 
 export const Route = createFileRoute("/vibroacoustic-therapy-bed")({
+  staticData: { sitemap: true, sitemapLastmod: "2026-11-11" },
   head: () => ({
     meta: [
       { title: TITLE },
@@ -70,6 +73,7 @@ export const Route = createFileRoute("/vibroacoustic-therapy-bed")({
     ],
     links: [{ rel: "canonical", href: URL }],
     scripts: [
+      jsonLdScript(breadcrumbJsonLd([{ name: "Vibroacoustic therapy bed", path: "/vibroacoustic-therapy-bed" }])),
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -284,7 +288,7 @@ function TherapyBedPage() {
               },
               {
                 icon: Music,
-                title: "9 Solfeggio frequencies",
+                title: "9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base",
                 body: "Nine therapeutic, wellbeing-focused tones matched to how clients describe what they want. Licensed and ready to play, with no separate music agreement.",
                 image: kitImages.solfeggio,
                 imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",

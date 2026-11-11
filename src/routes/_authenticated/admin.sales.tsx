@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/admin/sales")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Kit sales, Admin, ResonaBed" },

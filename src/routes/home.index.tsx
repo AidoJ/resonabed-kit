@@ -55,6 +55,7 @@ import { cn } from "@/lib/utils";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/home/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Your Resonabed" },

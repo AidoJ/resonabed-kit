@@ -19,6 +19,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: false },
   validateSearch: searchSchema,
   ssr: false,
   head: () => ({

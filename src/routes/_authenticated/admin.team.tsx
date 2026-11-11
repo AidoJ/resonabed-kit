@@ -27,6 +27,7 @@ import { UserPlus, Copy, MailWarning, User } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Team, Admin, ResonaBed" },

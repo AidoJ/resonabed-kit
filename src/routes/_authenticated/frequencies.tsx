@@ -46,6 +46,7 @@ import { cn } from "@/lib/utils";
 import { AUDIO_VARIANTS, VARIANT_LABELS, type AudioVariant } from "@/lib/audio-variants";
 
 export const Route = createFileRoute("/_authenticated/frequencies")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Frequencies, ResonaBed" },

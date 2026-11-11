@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
 
 export const Route = createFileRoute("/offer/$token")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Choose a session time, ResonaBed" },

@@ -8,7 +8,9 @@ import flyerOutside from "@/assets/resonabed-flyer-outside.jpg.asset.json";
 import flyerInside from "@/assets/resonabed-flyer-inside.jpg.asset.json";
 
 
+import { SITE_URL, breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 export const Route = createFileRoute("/flyer")({
+  staticData: { sitemap: false },
   ssr: false,
   head: () => ({
     meta: [
@@ -25,8 +27,11 @@ export const Route = createFileRoute("/flyer")({
           "The professionally designed DL client leaflet included with every Resonabed kit, preview both sides and download the print-ready PDF.",
       },
       { property: "og:type", content: "article" },
+      { property: "og:url", content: `${SITE_URL}/flyer` },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/flyer` }],
+    scripts: [jsonLdScript(breadcrumbJsonLd([{ name: "Marketing flyer", path: "/flyer" }]))],
   }),
   component: FlyerPage,
 });

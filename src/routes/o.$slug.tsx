@@ -26,22 +26,45 @@ import { ClinicNav, type ClinicNavItem } from "@/components/public-clinic/clinic
 import { HeroVideo, heroPosterUrl } from "@/components/hero-video";
 import { TestimonialSection } from "@/components/testimonial-section";
 import { CLIENT_TESTIMONIALS } from "@/lib/testimonials";
+import { getDirectoryClinic, type DirectoryClinic } from "@/lib/directory.functions";
+import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 
 const SITE = "https://resonabed.com";
 const HERO_OG = `${SITE}${heroPosterUrl}`;
 
 async function loadPublicPage(slug: string) {
-  const res = await getPublicOrgPage({ data: { slug } });
+  const [res, listing] = await Promise.all([
+    getPublicOrgPage({ data: { slug } }),
+    // Directory entry only exists when the clinic opted in; a lookup failure
+    // just renders the page without the directory extras.
+    getDirectoryClinic({ data: { slug } }).catch(() => null),
+  ]);
   if (!res.org) throw notFound();
-  return res as {
+  return { ...res, listing } as {
     org: PublicOrg;
     services: PublicService[];
     logoUrl: string | null;
     availability: AvailabilityWindow[];
+    listing: DirectoryClinic | null;
   };
 }
 
+/** Shorten to at most `max` characters on a word boundary (search snippet limits). */
+function clipWords(text: string, max: number) {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:–-]+$/, "");
+}
+
+/** "Robina, QLD" from the directory entry. */
+function listingPlace(listing: DirectoryClinic) {
+  return [listing.suburb, listing.state].filter(Boolean).join(", ");
+}
+
 export const Route = createFileRoute("/o/$slug")({
+  staticData: { sitemap: true },
   loader: ({ params }) => loadPublicPage(params.slug),
   head: ({ params, loaderData }) => {
     if (!loaderData) {
@@ -52,16 +75,45 @@ export const Route = createFileRoute("/o/$slug")({
         ],
       };
     }
-    const { org } = loaderData;
+    const { org, listing } = loaderData;
     const url = `${SITE}/o/${params.slug}`;
-    const title = org.public_strapline
-      ? `${org.name}, ${org.public_strapline}`.slice(0, 60)
-      : `${org.name}, Vibroacoustic relaxation sessions`;
-    const description =
+    const title = clipWords(
       org.public_strapline
-        ? `${org.public_strapline}. ${org.public_blurb ?? `Book a Resonabed vibroacoustic relaxation session with ${org.name}.`}`.slice(0, 155)
-        : org.public_blurb?.slice(0, 155) ??
-      `Book a Resonabed vibroacoustic relaxation session with ${org.name}. Sound you can feel, where tension unwinds.`;
+        ? `${org.name}, ${org.public_strapline}`
+        : `${org.name}, Vibroacoustic relaxation sessions`,
+      59,
+    );
+    const description = clipWords(
+      org.public_strapline
+        ? `${org.public_strapline}. ${org.public_blurb ?? `Book a Resonabed vibroacoustic relaxation session with ${org.name}.`}`
+        : org.public_blurb ??
+            `Book a Resonabed vibroacoustic relaxation session with ${org.name}. Sound you can feel, where tension unwinds.`,
+      154,
+    );
+    const breadcrumbs = breadcrumbJsonLd([
+      ...(listing ? [{ name: "Practitioners", path: "/practitioners" }] : []),
+      { name: org.name, path: `/o/${params.slug}` },
+    ]);
+    // Clinics listed in the directory publish LocalBusiness data from their
+    // settings (suburb, state, postcode, and phone only if shown on the page).
+    const localBusiness = listing
+      ? {
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: org.name,
+          url,
+          image: HERO_OG,
+          description,
+          ...(listing.telephone ? { telephone: listing.telephone } : {}),
+          address: {
+            "@type": "PostalAddress",
+            ...(listing.suburb ? { addressLocality: listing.suburb } : {}),
+            ...(listing.state ? { addressRegion: listing.state } : {}),
+            ...(listing.postcode ? { postalCode: listing.postcode } : {}),
+            addressCountry: "AU",
+          },
+        }
+      : null;
     return {
       meta: [
         { title },
@@ -76,7 +128,7 @@ export const Route = createFileRoute("/o/$slug")({
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [
-        {
+        localBusiness ? jsonLdScript(localBusiness) : {
           type: "application/ld+json",
           children: JSON.stringify({
             "@context": "https://schema.org",
@@ -93,6 +145,7 @@ export const Route = createFileRoute("/o/$slug")({
               : {}),
           }),
         },
+        jsonLdScript(breadcrumbs),
       ],
     };
   },
@@ -115,6 +168,25 @@ function Unavailable() {
   );
 }
 
+/** Renders the same styled element as a heading or plain text. */
+function HeroBadge({
+  as: Tag,
+  className,
+  style,
+  children,
+}: {
+  as: "h1" | "p" | "span";
+  className?: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tag className={className} style={style}>
+      {children}
+    </Tag>
+  );
+}
+
 function Eyebrow({ children, onDark = false }: { children: React.ReactNode; onDark?: boolean }) {
   return (
     <p
@@ -134,8 +206,9 @@ function PublicOrgPage() {
     availability: AvailabilityWindow[];
     practitioners: PublicPractitioner[];
     practitionerAvailability: PublicPractitionerAvailability[];
+    listing: DirectoryClinic | null;
   };
-  const { org, services, logoUrl, availability, practitioners, practitionerAvailability } = data;
+  const { org, services, logoUrl, availability, practitioners, practitionerAvailability, listing } = data;
   const theme = clinicThemeVars(org.theme_sidebar, org.theme_primary);
   const tz = org.timezone || DEFAULT_TIMEZONE;
   const bookable = org.public_booking_enabled && services.length > 0;
@@ -227,7 +300,10 @@ function PublicOrgPage() {
 
         <div className="relative mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-10 md:grid-cols-2 md:gap-10 md:px-10 md:pb-28 md:pt-14">
           <div className="flex flex-col justify-center">
-            <span
+            {/* Directory-listed clinics carry the location heading as the page H1;
+                the tagline below keeps its look either way. */}
+            <HeroBadge
+              as={listing ? "h1" : "span"}
               className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] backdrop-blur"
               style={{
                 borderColor: "color-mix(in oklab, var(--clinic-ink-fg) 18%, transparent)",
@@ -235,15 +311,20 @@ function PublicOrgPage() {
                 color: "color-mix(in oklab, var(--clinic-ink-fg) 80%, transparent)",
               }}
             >
-              <Waves className="h-3.5 w-3.5" />
-              Vibroacoustic therapy
-            </span>
+              <Waves className="h-3.5 w-3.5 shrink-0" />
+              {listing && listingPlace(listing)
+                ? `Vibroacoustic therapy in ${listingPlace(listing)}: ${org.name}`
+                : "Vibroacoustic therapy"}
+            </HeroBadge>
 
-            <h1 className="text-4xl font-light leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
+            <HeroBadge
+              as={listing ? "p" : "h1"}
+              className="text-4xl font-light leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
+            >
               Sound you can feel.
               <br />
               Where tension unwinds.
-            </h1>
+            </HeroBadge>
 
             <p
               className="mt-6 max-w-xl whitespace-pre-line text-lg leading-relaxed"
@@ -715,6 +796,18 @@ function PublicOrgPage() {
             >
               Powered by Resonabed
             </p>
+            {listing ? (
+              <p
+                className="text-xs"
+                style={{ color: "color-mix(in oklab, var(--clinic-ink-fg) 60%, transparent)" }}
+              >
+                {org.name} uses the{" "}
+                <Link to="/" className="underline underline-offset-4">
+                  Resonabed vibroacoustic therapy system
+                </Link>
+                .
+              </p>
+            ) : null}
           </div>
 
 

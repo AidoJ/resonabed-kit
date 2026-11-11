@@ -9,6 +9,7 @@ import treatment from "@/assets/demo-treatment.webp.asset.json";
 import logo from "@/assets/resonabed-logo-signature.png.asset.json";
 import { getDemoCaptcha, submitDemoEnquiry } from "@/lib/demo-enquiries.functions";
 import "./demo.css";
+import { SITE_URL, breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 
 const DESCRIPTION = "Add Vibro Acoustic Therapy to your clinic or home practice. Simple setup, booking system and marketing materials in one package. Request a free demo.";
 
@@ -22,6 +23,7 @@ const FAQS = [
 ] as const;
 
 export const Route = createFileRoute("/demo")({
+  staticData: { sitemap: true, sitemapLastmod: "2026-09-23" },
   head: () => ({
     meta: [
       { title: "ResonaBed | Add a second therapy to your practice" },
@@ -32,8 +34,13 @@ export const Route = createFileRoute("/demo")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "ResonaBed | Add a second therapy to your practice" },
       { name: "twitter:description", content: DESCRIPTION },
+      { property: "og:url", content: `${SITE_URL}/demo` },
     ],
-    links: [{ rel: "preload", as: "image", href: treatment.url }],
+    links: [
+      { rel: "canonical", href: `${SITE_URL}/demo` },
+      { rel: "preload", as: "image", href: treatment.url },
+    ],
+    scripts: [jsonLdScript(breadcrumbJsonLd([{ name: "Request a demo", path: "/demo" }]))],
   }),
   component: DemoPage,
 });

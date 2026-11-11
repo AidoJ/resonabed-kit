@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/onboarding")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Clinic onboarding, ResonaBed" },

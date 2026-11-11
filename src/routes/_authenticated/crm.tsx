@@ -52,6 +52,7 @@ import {
 } from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/crm")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "CRM, ResonaBed" },

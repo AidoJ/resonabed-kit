@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/_authenticated/change-password")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Change password, ResonaBed" },

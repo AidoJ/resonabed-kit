@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, ImageIcon, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/services")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Services, Admin, ResonaBed" },

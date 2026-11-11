@@ -50,6 +50,7 @@ export type PublicPageOrg = {
   public_show_phone: boolean;
   public_show_practitioners: boolean;
   public_allow_practitioner_choice: boolean;
+  directory_listed: boolean;
   public_suburb: string | null;
   public_booking_enabled: boolean;
   timezone: string | null;
@@ -88,6 +89,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
   const [showPhone, setShowPhone] = useState(false);
   const [showPractitioners, setShowPractitioners] = useState(false);
   const [allowPractitionerChoice, setAllowPractitionerChoice] = useState(false);
+  const [directoryListed, setDirectoryListed] = useState(false);
   const [suburb, setSuburb] = useState("");
   const [tz, setTz] = useState("Australia/Brisbane");
   const [published, setPublished] = useState(false);
@@ -112,6 +114,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     setShowPhone(!!org.public_show_phone);
     setShowPractitioners(!!org.public_show_practitioners);
     setAllowPractitionerChoice(!!org.public_allow_practitioner_choice);
+    setDirectoryListed(!!org.directory_listed);
     setSuburb(org.public_suburb ?? "");
     setTz(org.timezone ?? "Australia/Brisbane");
     setPublished(!!org.published);
@@ -135,6 +138,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
     showPhone !== !!org.public_show_phone ||
     showPractitioners !== !!org.public_show_practitioners ||
     allowPractitionerChoice !== !!org.public_allow_practitioner_choice ||
+    directoryListed !== !!org.directory_listed ||
     suburb !== (org.public_suburb ?? "") ||
     tz !== (org.timezone ?? "Australia/Brisbane") ||
     published !== !!org.published ||
@@ -185,6 +189,7 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
           public_show_phone: showPhone,
           public_show_practitioners: showPractitioners,
           public_allow_practitioner_choice: allowPractitionerChoice,
+          directory_listed: published ? directoryListed : false,
           public_suburb: suburb || null,
           timezone: tz,
           published,
@@ -546,6 +551,22 @@ export function PublicPageCard({ org }: { org: PublicPageOrg }) {
               checked={bookingEnabled}
               disabled={!published}
               onCheckedChange={setBookingEnabled}
+            />
+          </div>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">List my clinic in the directory</p>
+              <p className="text-xs text-muted-foreground">
+                Adds your clinic name, suburb, state and postcode to the Resonabed practitioner
+                directory, linking to your public page. Your phone only shows if you show it on
+                your page. Off by default.
+              </p>
+            </div>
+            <Switch
+              checked={directoryListed}
+              disabled={!published}
+              onCheckedChange={setDirectoryListed}
+              aria-label="List my clinic in the directory"
             />
           </div>
         </div>

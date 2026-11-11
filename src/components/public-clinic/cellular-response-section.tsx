@@ -286,7 +286,6 @@ export function CellularResponseSection() {
     return () => window.clearTimeout(timer);
   }, [step, playing, reduced, visible]);
   const select = (index: number) => { setStep(index); setPlaying(false); };
-  const current = STEPS[step];
   return (
     <section id="cellular-response" data-animation-version="resonabed-cellular-v3" className="cr-section" ref={root} aria-label="The cellular response">
       <style>{CSS}</style>
@@ -313,7 +312,7 @@ export function CellularResponseSection() {
             <div className="cr-info-top"><span className="cr-micro">Explore related mechanisms</span><span className="cr-index"><strong>{String(step + 1).padStart(2, "0")}</strong> / 06</span></div>
             <div className="cr-pathways" data-branch={step === 1 ? "membrane" : step >= 2 && step <= 4 ? "structural" : "shared"} dangerouslySetInnerHTML={{ __html: PATHWAYS }} />
             <nav className="cr-steps" aria-label="Cell response stages">{STEPS.map((item, i) => <button type="button" className="cr-step" key={item.title} aria-current={step === i ? "step" : undefined} onClick={() => select(i)}><span className="cr-step-number">{String(i + 1).padStart(2, "0")}</span><span className="cr-step-name">{item.label}</span><span className="cr-step-arrow" aria-hidden="true">↗</span></button>)}</nav>
-            <div className="cr-caption" aria-live={playing ? "off" : "polite"} aria-atomic="true"><div key={step} className="cr-fade"><p className="cr-tag" style={{ color: current.color }}>{current.tag}</p><h3>{current.title}</h3><p>{current.text}</p></div></div>
+            <div className="cr-caption" aria-live={playing ? "off" : "polite"} aria-atomic="true">{STEPS.map((item, i) => <div key={item.title} className="cr-fade" hidden={i !== step}><p className="cr-tag" style={{ color: item.color }}>{item.tag}</p><h3>{item.title}</h3><p>{item.text}</p></div>)}</div>
           </div>
         </div>
         <footer className="cr-footer"><span>Potential benefits are not guaranteed. Cellular mechanisms and human outcomes are separate areas of research.</span><span>Conceptual visuals · Continuous loop</span></footer>

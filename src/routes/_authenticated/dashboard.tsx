@@ -26,6 +26,7 @@ import {
 } from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Dashboard, Resonabed" },

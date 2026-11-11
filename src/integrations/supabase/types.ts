@@ -1693,6 +1693,7 @@ export type Database = {
           consent_version: number
           contact_email: string | null
           created_at: string
+          directory_listed: boolean
           flyer_design: Json | null
           health_policy_text: string | null
           id: string
@@ -1752,6 +1753,7 @@ export type Database = {
           consent_version?: number
           contact_email?: string | null
           created_at?: string
+          directory_listed?: boolean
           flyer_design?: Json | null
           health_policy_text?: string | null
           id?: string
@@ -1811,6 +1813,7 @@ export type Database = {
           consent_version?: number
           contact_email?: string | null
           created_at?: string
+          directory_listed?: boolean
           flyer_design?: Json | null
           health_policy_text?: string | null
           id?: string
@@ -2548,6 +2551,18 @@ export type Database = {
           day_of_week: number
           end_time: string
           start_time: string
+        }[]
+      }
+      get_public_directory: {
+        Args: { p_slug?: string }
+        Returns: {
+          name: string
+          postcode: string
+          slug: string
+          state: string
+          suburb: string
+          telephone: string
+          updated_at: string
         }[]
       }
       get_public_org: {

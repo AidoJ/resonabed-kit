@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/home/login")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Sign in to your Resonabed app" },

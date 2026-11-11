@@ -17,6 +17,7 @@ import { Route as FlyerRouteImport } from './routes/flyer'
 import { Route as ForHomeRouteImport } from './routes/for-home'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as PractitionersRouteImport } from './routes/practitioners'
 import { Route as ResearchRouteImport } from './routes/research'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -120,6 +121,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PractitionersRoute = PractitionersRouteImport.update({
+  id: '/practitioners',
+  path: '/practitioners',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResearchRoute = ResearchRouteImport.update({
@@ -484,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/home': typeof HomeRouteWithChildren
+  '/practitioners': typeof PractitionersRoute
   '/research': typeof ResearchRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -557,6 +564,7 @@ export interface FileRoutesByTo {
   '/flyer': typeof FlyerRoute
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/practitioners': typeof PractitionersRoute
   '/research': typeof ResearchRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -631,6 +639,7 @@ export interface FileRoutesById {
   '/for-home': typeof ForHomeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/home': typeof HomeRouteWithChildren
+  '/practitioners': typeof PractitionersRoute
   '/research': typeof ResearchRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -707,6 +716,7 @@ export interface FileRouteTypes {
     | '/for-home'
     | '/forgot-password'
     | '/home'
+    | '/practitioners'
     | '/research'
     | '/reset-password'
     | '/sitemap.xml'
@@ -780,6 +790,7 @@ export interface FileRouteTypes {
     | '/flyer'
     | '/for-home'
     | '/forgot-password'
+    | '/practitioners'
     | '/research'
     | '/reset-password'
     | '/sitemap.xml'
@@ -853,6 +864,7 @@ export interface FileRouteTypes {
     | '/for-home'
     | '/forgot-password'
     | '/home'
+    | '/practitioners'
     | '/research'
     | '/reset-password'
     | '/sitemap.xml'
@@ -929,6 +941,7 @@ export interface RootRouteChildren {
   ForHomeRoute: typeof ForHomeRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HomeRoute: typeof HomeRouteWithChildren
+  PractitionersRoute: typeof PractitionersRoute
   ResearchRoute: typeof ResearchRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -1005,6 +1018,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practitioners': {
+      id: '/practitioners'
+      path: '/practitioners'
+      fullPath: '/practitioners'
+      preLoaderRoute: typeof PractitionersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/research': {
@@ -1606,6 +1626,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForHomeRoute: ForHomeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HomeRoute: HomeRouteWithChildren,
+  PractitionersRoute: PractitionersRoute,
   ResearchRoute: ResearchRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

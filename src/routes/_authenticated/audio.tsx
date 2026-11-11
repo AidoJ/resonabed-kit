@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/audio")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Audio library, ResonaBed" },

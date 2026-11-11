@@ -38,7 +38,7 @@ const EQUIPMENT = [
     imageAlt: "10 inch IQU tablet showing the Resonabed session app",
   },
   {
-    name: "9 Solfeggio frequencies",
+    name: "9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base",
     description:
       "Nine uniquely curated solfeggio frequency based tones are used to facilitate your clients relaxation and ease pain.",
     inclusion: "Included in Basic, Pro, Platinum and Home",

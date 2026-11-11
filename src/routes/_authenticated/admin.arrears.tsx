@@ -52,6 +52,7 @@ import {
 } from "@/lib/arrears.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/arrears")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Payment plans and arrears, ResonaBed" },

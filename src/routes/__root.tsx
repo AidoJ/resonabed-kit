@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { ORGANIZATION_JSON_LD, jsonLdScript } from "../lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -78,6 +79,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -128,6 +130,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.json" },
 
     ],
+    scripts: [jsonLdScript(ORGANIZATION_JSON_LD)],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -137,7 +140,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en-AU">
       <head>
         <HeadContent />
       </head>

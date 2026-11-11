@@ -24,6 +24,7 @@ import {
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/admin/help")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [{ title: "Platform admin guide, ResonaBed" }] }),
   component: AdminHelpPage,
 });

@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 /** Retired page. The Home package now lives on the main landing page. */
 export const Route = createFileRoute("/for-home")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Resonabed for Home | Personal Vibroacoustic Kit" },

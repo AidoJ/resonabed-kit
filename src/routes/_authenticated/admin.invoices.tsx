@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { FileText, Plus, Trash2, Banknote, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/invoices")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Kit invoices, Admin, ResonaBed" },

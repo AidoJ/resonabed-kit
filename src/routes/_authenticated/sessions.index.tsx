@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/sessions/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Sessions, ResonaBed" },

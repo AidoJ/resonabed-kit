@@ -1,20 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Suspense, lazy, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { SITE_URL, breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
+// Rendered on the server so every heading and study summary is in the first HTML;
+// the canvas animation itself only starts in the browser (inside effects).
+import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
 
-// The canvas model is heavy; keep it off the first paint and off the homepage.
-const CellularResponseSection = lazy(() =>
-  import("@/components/public-clinic/cellular-response-section").then((m) => ({
-    default: m.CellularResponseSection,
-  })),
-);
-
-const TITLE = "Research | How cells sense movement and what VAT studies show";
+const TITLE = "Research | How cells sense movement, what VAT studies show";
 const DESCRIPTION =
-  "Explore the mechanisms behind vibroacoustic therapy: how cells sense mechanical movement, and what early VAT research does and does not establish about relaxation, tension, pain and sleep.";
+  "How cells sense mechanical movement, and what early vibroacoustic therapy research does and does not establish about relaxation, pain and sleep.";
+const URL = `${SITE_URL}/research`;
 
 export const Route = createFileRoute("/research")({
+  staticData: { sitemap: true, sitemapLastmod: "2026-09-21" },
   head: () => ({
     meta: [
       { title: TITLE },
@@ -25,15 +23,15 @@ export const Route = createFileRoute("/research")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESCRIPTION },
+      { property: "og:url", content: URL },
     ],
+    links: [{ rel: "canonical", href: URL }],
+    scripts: [jsonLdScript(breadcrumbJsonLd([{ name: "Research", path: "/research" }]))],
   }),
   component: ResearchPage,
 });
 
 function ResearchPage() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="bg-brand-ink text-white">
@@ -55,21 +53,7 @@ function ResearchPage() {
         </div>
       </section>
 
-      {mounted ? (
-        <Suspense
-          fallback={
-            <div className="mx-auto max-w-6xl px-6 py-24 text-sm text-muted-foreground md:px-10">
-              Loading the cell model…
-            </div>
-          }
-        >
-          <CellularResponseSection />
-        </Suspense>
-      ) : (
-        <div className="mx-auto max-w-6xl px-6 py-24 text-sm text-muted-foreground md:px-10">
-          Loading the cell model…
-        </div>
-      )}
+      <CellularResponseSection />
 
       <section className="bg-brand-ink py-16 text-white md:py-20">
         <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 md:flex-row md:items-center md:justify-between md:px-10">

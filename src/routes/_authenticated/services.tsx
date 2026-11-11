@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/services")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Services, ResonaBed" },

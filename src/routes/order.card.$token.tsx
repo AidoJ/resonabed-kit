@@ -13,6 +13,7 @@ import { startCardUpdate } from "@/lib/arrears.functions";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/order/card/$token")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Update your Resonabed payment card" },

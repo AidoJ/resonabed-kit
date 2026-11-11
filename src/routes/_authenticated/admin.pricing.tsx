@@ -24,6 +24,7 @@ import {
 } from "@/lib/packages";
 
 export const Route = createFileRoute("/_authenticated/admin/pricing")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Kit pricing, Admin, ResonaBed" },

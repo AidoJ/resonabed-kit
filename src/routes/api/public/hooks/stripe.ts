@@ -16,6 +16,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import Stripe from "stripe";
 
 export const Route = createFileRoute("/api/public/hooks/stripe")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

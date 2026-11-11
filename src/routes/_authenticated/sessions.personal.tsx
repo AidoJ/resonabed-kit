@@ -49,6 +49,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/sessions/personal")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Personal session, ResonaBed" },

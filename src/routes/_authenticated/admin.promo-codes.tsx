@@ -36,6 +36,7 @@ import {
 import { Plus, Tag, Copy, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/promo-codes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Promo codes, ResonaBed" },

@@ -464,7 +464,7 @@ export const getOrgSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("organisations")
       .select(
-        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, flyer_design, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid, checkin_items, slug, published, public_blurb, public_strapline, public_contact_email, public_contact_phone, public_show_email, public_show_phone, public_show_practitioners, public_allow_practitioner_choice, public_suburb, public_booking_enabled, timezone, clinic_type, clinic_type_confirmed, retail_show_address, address_line1, address_line2, address_city, address_state, address_postcode, address_country",
+        "id, name, business_name, contact_email, abn, brand_color, logo_path, theme_primary, theme_sidebar, theme_accent, flyer_design, consent_text, consent_version, privacy_policy_text, health_policy_text, is_configured, configured_at, configured_acknowledgement_by, configured_acknowledgement_at, configured_acknowledgement_signature, practitioners_can_manage_clients, practitioners_can_view_all_clients, practitioners_can_manage_bookings, practitioners_can_complete_unpaid, checkin_items, slug, published, public_blurb, public_strapline, public_contact_email, public_contact_phone, public_show_email, public_show_phone, public_show_practitioners, public_allow_practitioner_choice, directory_listed, public_suburb, public_booking_enabled, timezone, clinic_type, clinic_type_confirmed, retail_show_address, address_line1, address_line2, address_city, address_state, address_postcode, address_country",
       )
 
       .eq("id", _org_id)
@@ -555,6 +555,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
         public_show_phone: z.boolean().optional(),
         public_show_practitioners: z.boolean().optional(),
         public_allow_practitioner_choice: z.boolean().optional(),
+        directory_listed: z.boolean().optional(),
         public_suburb: z.string().max(120).nullable().optional(),
         public_booking_enabled: z.boolean().optional(),
         timezone: z.string().min(1).max(64).optional(),
@@ -623,6 +624,7 @@ export const updateOrgSettings = createServerFn({ method: "POST" })
       "public_show_phone",
       "public_show_practitioners",
       "public_allow_practitioner_choice",
+      "directory_listed",
       "public_suburb",
       "public_booking_enabled",
       "timezone",

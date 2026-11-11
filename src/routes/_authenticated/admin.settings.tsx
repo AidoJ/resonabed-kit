@@ -42,6 +42,7 @@ import { PublicPageCard } from "@/components/settings/public-page-card";
 
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Settings, Admin, ResonaBed" },

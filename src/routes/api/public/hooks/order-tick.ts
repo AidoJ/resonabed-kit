@@ -13,6 +13,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/api/public/hooks/order-tick")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

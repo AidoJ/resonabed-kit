@@ -1,6 +1,19 @@
+# Search and AI assistants named here are explicitly welcome. They share the
+# rules below with every other crawler, so private areas stay out of reach.
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: ClaudeBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Googlebot
+User-agent: Bingbot
 User-agent: *
 Allow: /
 
+# Sign-in, password reset, order and offer links
 Disallow: /auth
 Disallow: /reset-password
 Disallow: /forgot-password
@@ -8,5 +21,24 @@ Disallow: /offer/
 Disallow: /order/
 Disallow: /api/
 Disallow: /lovable/
+
+# Staff (clinic and platform) areas
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /audio
+Disallow: /availability
+Disallow: /bookings
+Disallow: /change-password
+Disallow: /clients
+Disallow: /crm
+Disallow: /frequencies
+Disallow: /help
+Disallow: /profile
+Disallow: /services
+Disallow: /sessions
+Disallow: /table-setup
+
+# Home-user app
+Disallow: /home
 
 Sitemap: https://resonabed.com/sitemap.xml

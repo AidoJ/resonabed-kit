@@ -26,6 +26,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/help")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [{ title: "Help guide, ResonaBed" }] }),
   component: HelpPage,
 });

@@ -56,6 +56,9 @@ export function SolfeggioFrequenciesSection() {
               >
                 {f.hz} · {f.tag}
               </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {f.hz} tone over a 25 to 120 Hz vibroacoustic base
+              </p>
             </div>
           ))}
         </div>

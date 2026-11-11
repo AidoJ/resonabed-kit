@@ -5,6 +5,7 @@ import { FlyerEditor } from "@/components/flyer-editor";
 
 const settingsQuery = { queryKey: ["org-settings", "marketing"], queryFn: () => getOrgSettings() };
 export const Route = createFileRoute("/_authenticated/admin/marketing")({
+  staticData: { sitemap: false },
   loader: ({ context }) => context.queryClient.ensureQueryData(settingsQuery),
   head: () => ({ meta: [
     { title: "Flyer editor · ResonaBed Marketing" },

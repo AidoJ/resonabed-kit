@@ -24,6 +24,7 @@ const passwordRules = [
 ];
 
 export const Route = createFileRoute("/_authenticated/profile")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "My profile, ResonaBed" },

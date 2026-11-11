@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { TableSetupVideos } from "@/components/table-setup-videos";
 
 export const Route = createFileRoute("/_authenticated/table-setup")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Table setup, ResonaBed" },

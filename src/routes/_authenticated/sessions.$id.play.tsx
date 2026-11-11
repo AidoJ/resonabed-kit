@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/sessions/$id/play")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Session, ResonaBed" },

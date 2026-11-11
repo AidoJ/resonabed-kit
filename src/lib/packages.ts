@@ -84,7 +84,7 @@ export const PACKAGES: Record<PackageKey, PackageDef> = {
     shipsTable: true,
     personalOnly: true,
     description:
-      'Complete home package: therapy table fully fitted with 2x Douk Audio tactile transducers, 100W amplifier, a 10" tablet, JBL Tune 530 Headphones, the personal Resonabed app with a perpetual licence and the 9 Solfeggio frequencies.',
+      'Complete home package: therapy table fully fitted with 2x Douk Audio tactile transducers, 100W amplifier, a 10" tablet, JBL Tune 530 Headphones, the personal Resonabed app with a perpetual licence and 9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base.',
   },
 };
 

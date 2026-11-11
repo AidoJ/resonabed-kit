@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/admin/metrics")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Platform metrics, ResonaBed" },

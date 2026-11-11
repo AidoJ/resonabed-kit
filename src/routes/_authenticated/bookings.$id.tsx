@@ -24,6 +24,7 @@ import { useOrgTimezone } from "@/hooks/use-org-timezone";
 import { formatInTz, tzAbbrev } from "@/lib/timezone";
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Booking, ResonaBed" },

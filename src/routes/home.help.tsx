@@ -6,6 +6,7 @@ import { getHomeContext } from "@/lib/home.functions";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/home/help")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Help guide, Resonabed Home" },

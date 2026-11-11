@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { finalizeCheckoutSession } from "@/lib/checkout.functions";
 
 export const Route = createFileRoute("/order/success")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Order confirmed · Resonabed" },

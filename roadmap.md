@@ -59,3 +59,13 @@
 - [x] Preserve existing saved score meanings and frequency matching
 - [x] Pain/Stress numbers run 0 (left) → 10 (right); stored scores are now severity (10 = Severe/Very stressed), colours inverted for those two
 - [x] Verified live in preview: Pain dragged right = 10/red/Severe; Stress dragged left = 0/green/Calm; before and after checks share the same logic
+
+## Search and AI visibility (owner plan, Nov 2026)
+- [x] Part 1: Research page text server-rendered
+- [x] Part 2: www→apex 301, canonicals, robots.txt bots, sitemap (demo, directory clinics, lastmod)
+- [x] Part 3: lang en-AU, homepage canonical/title/description, audit all public pages
+- [x] Part 4: JSON-LD (Organization, Product+Offer, FAQPage, BreadcrumbList)
+- [x] Part 5: frequency wording, tone card line, new FAQ, health-wording list
+- [x] Part 6: clinic directory switch, /practitioners, clinic H1 + LocalBusiness
+- [ ] Part 7: AI crawler log — owner's message cut off; needs rest of instructions
+- [ ] Ask owner which packages are in stock (Offer availability)

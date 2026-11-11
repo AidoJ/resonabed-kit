@@ -41,6 +41,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/bookings/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Bookings, ResonaBed" },

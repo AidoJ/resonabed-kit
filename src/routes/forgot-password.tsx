@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/forgot-password")({
+  staticData: { sitemap: false },
   ssr: false,
   head: () => ({
     meta: [

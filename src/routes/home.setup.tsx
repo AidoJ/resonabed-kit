@@ -6,6 +6,7 @@ import { TableSetupVideos } from "@/components/table-setup-videos";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/home/setup")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Table setup, Resonabed Home" },

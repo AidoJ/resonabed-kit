@@ -24,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ClientCheckinTrends } from "@/components/checkin/trend-chart";
 
 export const Route = createFileRoute("/_authenticated/clients")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Clients, ResonaBed" },

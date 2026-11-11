@@ -34,6 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldPlus, Copy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/platform-admins")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Platform admins, ResonaBed" },

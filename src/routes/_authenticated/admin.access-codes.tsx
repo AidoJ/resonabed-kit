@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_authenticated/admin/access-codes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Home access codes, ResonaBed" },

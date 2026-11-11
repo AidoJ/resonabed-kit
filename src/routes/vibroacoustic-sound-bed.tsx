@@ -18,9 +18,11 @@ import {
 } from "lucide-react";
 
 
+import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
+
 const TITLE = "Vibroacoustic Therapy System | Resonabed";
 const DESCRIPTION =
-  "A complete vibroacoustic therapy system for your practice — tactile sound, session software, client booking and nine licensed Solfeggio frequencies, ready to add to your treatment room.";
+  "Sound bed kit for your own table, with session software and 9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base.";
 const URL = "https://resonabed.com/vibroacoustic-sound-bed";
 
 export const FAQS: { q: string; a: string }[] = [
@@ -38,7 +40,7 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Is music included with the sound bed kit?",
-    a: "Yes. Nine wellbeing-focused Solfeggio frequency tracks are licensed and ready to play inside the Resonabed app, so there is no separate music licence to negotiate.",
+    a: "Yes. The Resonabed app comes with 9 original tracks designed by a sound engineer, each pairing a Solfeggio tone with low-frequency vibration between 25 and 120 Hz, centred around 40 Hz, the most widely studied frequency in vibroacoustic therapy. They are licensed and ready to play, so there is no separate music licence to negotiate.",
   },
   {
     q: "Can a vibroacoustic sound bed be used at home?",
@@ -47,6 +49,7 @@ export const FAQS: { q: string; a: string }[] = [
 ];
 
 export const Route = createFileRoute("/vibroacoustic-sound-bed")({
+  staticData: { sitemap: true, sitemapLastmod: "2026-11-11" },
   head: () => ({
     meta: [
       { title: TITLE },
@@ -61,6 +64,7 @@ export const Route = createFileRoute("/vibroacoustic-sound-bed")({
     ],
     links: [{ rel: "canonical", href: URL }],
     scripts: [
+      jsonLdScript(breadcrumbJsonLd([{ name: "Vibroacoustic sound bed", path: "/vibroacoustic-sound-bed" }])),
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -254,7 +258,7 @@ function SoundBedPage() {
               },
               {
                 icon: Music,
-                title: "9 Solfeggio frequencies",
+                title: "9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base",
                 body: "Nine therapeutic, wellbeing-focused tones matched to how clients describe what they want. Licensed and ready to play, with no separate music agreement.",
                 image: kitImages.solfeggio,
                 imageAlt: "Sheet music representing the nine licensed Solfeggio frequency tracks",

@@ -3,6 +3,7 @@ import { XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/order/cancelled")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Order cancelled · Resonabed" },

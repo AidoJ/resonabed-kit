@@ -45,6 +45,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/sessions/new")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "New session, ResonaBed" },

@@ -1,46 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
-
-// Heavy canvas model: loaded only when the visitor scrolls near it.
-const CellularResponseSection = lazy(() =>
-  import("@/components/public-clinic/cellular-response-section").then((m) => ({
-    default: m.CellularResponseSection,
-  })),
-);
-
-function LazyCellModel() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (!("IntersectionObserver" in window)) {
-      setShow(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setShow(true);
-          io.disconnect();
-        }
-      },
-      { rootMargin: "600px 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  const fallback = (
-    <div className="mx-auto max-w-6xl px-6 py-24 text-sm text-muted-foreground md:px-10">
-      Loading the cell model…
-    </div>
-  );
-  return (
-    <div ref={ref} className="min-h-[400px]">
-      {show ? <Suspense fallback={fallback}>{<CellularResponseSection />}</Suspense> : fallback}
-    </div>
-  );
-}
+import { useEffect, useRef, useState } from "react";
+// Rendered on the server so its text is in the first HTML; the canvas
+// animation only starts in the browser once the section is on screen.
+import { CellularResponseSection } from "@/components/public-clinic/cellular-response-section";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -91,6 +53,8 @@ import {
 } from "@/lib/packages";
 import { getKitPricing } from "@/lib/pricing.functions";
 import { HomeOrderPanel } from "@/components/home-order-panel";
+import { SITE_URL, jsonLdScript } from "@/lib/seo";
+import { applyPricing, type KitPricing } from "@/lib/packages";
 
 import {
   ArrowRight,
@@ -125,9 +89,18 @@ const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
   ["Full business app", true, true, true, false],
   ["Full business webpage", true, true, true, false],
   ["Home use app", false, false, false, true],
-  ["9 Solfeggio frequencies", true, true, true, true],
+  ["9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base", true, true, true, true],
   ["Fully fitted out table", false, false, true, true],
 ];
+
+/** Package card copy, shared by the cards and the Product structured data. */
+const CARD_DESCRIPTIONS = {
+  essentials:
+    "The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room.",
+  pro: "Everything in Basic, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room.",
+  platinum:
+    "Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives.",
+} as const;
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
   {
@@ -164,7 +137,11 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "What about the app and music licence?",
-    a: "Business packages include the Resonabed business app and a 12 month music licence for the 9 Solfeggio tracks, renewable after that. The Home package includes the personal app and its music licence at no ongoing cost. There are no per-session fees.",
+    a: "Business packages include the Resonabed business app and a 12 month music licence for the 9 sound engineer designed tracks: Solfeggio tones over a 25 to 120 Hz vibroacoustic base, renewable after that. The Home package includes the personal app and its music licence at no ongoing cost. There are no per-session fees.",
+  },
+  {
+    q: "Are Solfeggio frequencies the same as vibroacoustic therapy?",
+    a: "No. Vibroacoustic therapy uses low-frequency sound, usually between about 20 and 120 Hz, that you feel through the body. Solfeggio tones are higher and mostly heard. Resonabed tracks combine both: each Solfeggio tone sits on a vibroacoustic layer between 25 and 120 Hz, centred around 40 Hz, so the session is something you hear and feel.",
   },
   {
     q: "Who should not use a session?",
@@ -176,36 +153,82 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
 ];
 
+const HOME_TITLE = "Resonabed | Vibroacoustic Therapy for Your Practice";
+const HOME_DESCRIPTION =
+  "Resonabed is a complete vibroacoustic therapy system for your practice: therapy table, tactile sound, session software and booking.";
+const HOME_URL = `${SITE_URL}/`;
+
+/** Product + Offer per business package, from the same prices the cards show. */
+function packagesJsonLd(pricing: KitPricing) {
+  const cards = [
+    ["essentials", CARD_DESCRIPTIONS.essentials],
+    ["pro", CARD_DESCRIPTIONS.pro],
+    ["platinum", CARD_DESCRIPTIONS.platinum],
+  ] as const;
+  return {
+    "@context": "https://schema.org",
+    "@graph": cards.map(([key, description]) => {
+      const pkg = pricing.packages[key];
+      return {
+        "@type": "Product",
+        name: pkg.label,
+        description,
+        brand: { "@type": "Brand", name: "Resonabed" },
+        url: `${SITE_URL}/#packages`,
+        offers: {
+          "@type": "Offer",
+          price: (pkg.listCents / 100).toFixed(2),
+          priceCurrency: "AUD",
+          url: `${SITE_URL}/#packages`,
+          seller: { "@id": `${SITE_URL}/#organization` },
+        },
+      };
+    }),
+  };
+}
+
 export const Route = createFileRoute("/")({
-  head: () => ({
+  staticData: { sitemap: true, sitemapLastmod: "2026-11-11" },
+  // Saved package prices are read on the server so the first HTML (and the
+  // Product data) carries the same prices visitors see.
+  loader: async (): Promise<{ pricing: KitPricing }> => {
+    try {
+      return { pricing: await getKitPricing() };
+    } catch {
+      return { pricing: applyPricing([]) };
+    }
+  },
+  head: ({ loaderData }) => ({
     meta: [
-      { title: "Resonabed | Vibroacoustic Therapy for Your Practice" },
-      {
-        name: "description",
-        content:
-          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
-      },
-      { property: "og:title", content: "Resonabed | Vibroacoustic Therapy for Your Practice" },
-      {
-        property: "og:description",
-        content:
-          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
-      },
-      { name: "twitter:title", content: "Resonabed | Vibroacoustic Therapy for Your Practice" },
-      {
-        name: "twitter:description",
-        content:
-          "Offer your clients deep relaxation they can feel. Resonabed is a complete vibroacoustic therapy system — therapy table, tactile sound, session software and booking, ready to add to your practice.",
-      },
+      { title: HOME_TITLE },
+      { name: "description", content: HOME_DESCRIPTION },
+      { property: "og:title", content: HOME_TITLE },
+      { property: "og:description", content: HOME_DESCRIPTION },
+      { property: "og:url", content: HOME_URL },
+      { name: "twitter:title", content: HOME_TITLE },
+      { name: "twitter:description", content: HOME_DESCRIPTION },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
+      { rel: "canonical", href: HOME_URL },
       {
         rel: "preload",
         as: "image",
         href: heroPosterUrl,
       },
+    ],
+    scripts: [
+      jsonLdScript(packagesJsonLd(loaderData?.pricing ?? applyPricing([]))),
+      jsonLdScript({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: FAQ_ITEMS.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }),
     ],
   }),
   component: LandingPage,
@@ -219,10 +242,12 @@ function LandingPage() {
 
   // Super-admin editable kit pricing; static defaults render until this lands.
   const fetchPricing = useServerFn(getKitPricing);
+  const { pricing: serverPricing } = Route.useLoaderData();
   const { data: pricing } = useQuery({
     queryKey: ["kit-pricing"],
     queryFn: () => fetchPricing(),
     staleTime: 5 * 60_000,
+    initialData: serverPricing,
   });
   const pkgs = pricing?.packages ?? PACKAGES;
   const orderDepositCents = pricing?.depositCents ?? ORDER_DEPOSIT_CENTS;
@@ -594,7 +619,9 @@ function LandingPage() {
 
       {/* INTERACTIVE CELL MODEL */}
       <div id="cell-model">
-        <LazyCellModel />
+        <div className="min-h-[400px]">
+          <CellularResponseSection />
+        </div>
       </div>
 
 
@@ -704,7 +731,7 @@ function LandingPage() {
             pkg={pkgs.essentials}
             depositCents={orderDepositCents}
             tagline="Use your own table and device."
-            description="The complete business system, running on the phone, tablet or laptop you already use. Fits the treatment table already in your room."
+            description={CARD_DESCRIPTIONS.essentials}
             features={[
               "Two Douk Audio tactile transducers and 100W amplifier",
               "JBL Tune 530 Headphones and 100 disposable covers",
@@ -720,7 +747,7 @@ function LandingPage() {
             depositCents={orderDepositCents}
             highlighted
             tagline="Upgrade your table with a dedicated tablet and headphones."
-            description="Everything in Basic, plus the dedicated hardware for a hands-off client experience. Fitted to the treatment table in your room."
+            description={CARD_DESCRIPTIONS.pro}
             features={[
               "Everything included in Basic",
               '10" tablet, pre-configured for sessions',
@@ -735,7 +762,7 @@ function LandingPage() {
             pkg={pkgs.platinum}
             depositCents={orderDepositCents}
             tagline="Start with a fully fitted table."
-            description="Everything in Pro, on a new therapy table with the system fully fitted and tested before it ships. A complete business in a box, ready to run from the moment it arrives."
+            description={CARD_DESCRIPTIONS.platinum}
             features={[
               "Everything included in Pro",
               "New therapy table, fully fitted out",

@@ -20,6 +20,7 @@ import { money } from "@/lib/packages";
 import logo from "@/assets/resonabed-logo.svg.asset.json";
 
 export const Route = createFileRoute("/order/balance/$token")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Complete your Resonabed order" },

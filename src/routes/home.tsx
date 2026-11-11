@@ -6,6 +6,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
  * signed-in pages.
  */
 export const Route = createFileRoute("/home")({
+  staticData: { sitemap: "exclude-subtree" },
   head: () => ({
     meta: [
       { title: "Resonabed Home App" },
