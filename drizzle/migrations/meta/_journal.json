@@ -29,6 +29,13 @@
       "when": 1794374127506,
       "tag": "0003_clinic_directory_listing",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794376383015,
+      "tag": "0004_crawler_visits",
+      "breakpoints": true
     }
   ]
 }

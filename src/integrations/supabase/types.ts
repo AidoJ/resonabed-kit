@@ -794,6 +794,30 @@ export type Database = {
           },
         ]
       }
+      crawler_visits: {
+        Row: {
+          bot_name: string
+          id: number
+          path: string
+          status_code: number
+          visited_at: string
+        }
+        Insert: {
+          bot_name: string
+          id?: never
+          path: string
+          status_code: number
+          visited_at?: string
+        }
+        Update: {
+          bot_name?: string
+          id?: never
+          path?: string
+          status_code?: number
+          visited_at?: string
+        }
+        Relationships: []
+      }
       demo_enquiries: {
         Row: {
           created_at: string
@@ -2543,6 +2567,24 @@ export type Database = {
       client_item_cleared: {
         Args: { _client_id: string; _item: string }
         Returns: boolean
+      }
+      crawler_top_paths: {
+        Args: never
+        Returns: {
+          bot_name: string
+          last_status: number
+          path: string
+          rank: number
+          visits: number
+        }[]
+      }
+      crawler_visits_weekly: {
+        Args: never
+        Returns: {
+          bot_name: string
+          visits: number
+          week_start: string
+        }[]
       }
       current_org_id: { Args: never; Returns: string }
       get_public_availability: {

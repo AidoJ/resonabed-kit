@@ -14,6 +14,7 @@ import {
   Sparkles,
   Building2,
   BarChart3,
+  Bot,
   Wrench,
   LifeBuoy,
   Settings,
@@ -104,6 +105,7 @@ function buildNav(
           { to: "/admin/policy-templates", label: "Policy templates", icon: ScrollText },
           { to: "/admin/platform-admins", label: "Platform admins", icon: ShieldPlus },
           { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
+          { to: "/admin/crawlers", label: "AI crawlers", icon: Bot },
         ],
       },
       {

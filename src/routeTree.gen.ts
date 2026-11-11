@@ -49,6 +49,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminAccessCodesRouteImport } from './routes/_authenticated/admin.access-codes'
 import { Route as AuthenticatedAdminArrearsRouteImport } from './routes/_authenticated/admin.arrears'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated/admin.clients'
+import { Route as AuthenticatedAdminCrawlersRouteImport } from './routes/_authenticated/admin.crawlers'
 import { Route as AuthenticatedAdminGlobalServicesRouteImport } from './routes/_authenticated/admin.global-services'
 import { Route as AuthenticatedAdminHelpRouteImport } from './routes/_authenticated/admin.help'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
@@ -289,6 +290,12 @@ const AuthenticatedAdminClientsRoute =
     path: '/clients',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCrawlersRoute =
+  AuthenticatedAdminCrawlersRouteImport.update({
+    id: '/crawlers',
+    path: '/crawlers',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminGlobalServicesRoute =
   AuthenticatedAdminGlobalServicesRouteImport.update({
     id: '/global-services',
@@ -521,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
   '/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/admin/crawlers': typeof AuthenticatedAdminCrawlersRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/help': typeof AuthenticatedAdminHelpRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -593,6 +601,7 @@ export interface FileRoutesByTo {
   '/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
   '/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/admin/crawlers': typeof AuthenticatedAdminCrawlersRoute
   '/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/admin/help': typeof AuthenticatedAdminHelpRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -670,6 +679,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/access-codes': typeof AuthenticatedAdminAccessCodesRoute
   '/_authenticated/admin/arrears': typeof AuthenticatedAdminArrearsRoute
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRoute
+  '/_authenticated/admin/crawlers': typeof AuthenticatedAdminCrawlersRoute
   '/_authenticated/admin/global-services': typeof AuthenticatedAdminGlobalServicesRoute
   '/_authenticated/admin/help': typeof AuthenticatedAdminHelpRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
@@ -747,6 +757,7 @@ export interface FileRouteTypes {
     | '/admin/access-codes'
     | '/admin/arrears'
     | '/admin/clients'
+    | '/admin/crawlers'
     | '/admin/global-services'
     | '/admin/help'
     | '/admin/invoices'
@@ -819,6 +830,7 @@ export interface FileRouteTypes {
     | '/admin/access-codes'
     | '/admin/arrears'
     | '/admin/clients'
+    | '/admin/crawlers'
     | '/admin/global-services'
     | '/admin/help'
     | '/admin/invoices'
@@ -895,6 +907,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/access-codes'
     | '/_authenticated/admin/arrears'
     | '/_authenticated/admin/clients'
+    | '/_authenticated/admin/crawlers'
     | '/_authenticated/admin/global-services'
     | '/_authenticated/admin/help'
     | '/_authenticated/admin/invoices'
@@ -1244,6 +1257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClientsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/crawlers': {
+      id: '/_authenticated/admin/crawlers'
+      path: '/crawlers'
+      fullPath: '/admin/crawlers'
+      preLoaderRoute: typeof AuthenticatedAdminCrawlersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/global-services': {
       id: '/_authenticated/admin/global-services'
       path: '/global-services'
@@ -1489,6 +1509,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAccessCodesRoute: typeof AuthenticatedAdminAccessCodesRoute
   AuthenticatedAdminArrearsRoute: typeof AuthenticatedAdminArrearsRoute
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRoute
+  AuthenticatedAdminCrawlersRoute: typeof AuthenticatedAdminCrawlersRoute
   AuthenticatedAdminGlobalServicesRoute: typeof AuthenticatedAdminGlobalServicesRoute
   AuthenticatedAdminHelpRoute: typeof AuthenticatedAdminHelpRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
@@ -1514,6 +1535,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAccessCodesRoute: AuthenticatedAdminAccessCodesRoute,
   AuthenticatedAdminArrearsRoute: AuthenticatedAdminArrearsRoute,
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRoute,
+  AuthenticatedAdminCrawlersRoute: AuthenticatedAdminCrawlersRoute,
   AuthenticatedAdminGlobalServicesRoute: AuthenticatedAdminGlobalServicesRoute,
   AuthenticatedAdminHelpRoute: AuthenticatedAdminHelpRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,

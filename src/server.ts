@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { detectLoggedBot } from "./lib/crawler-log";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -84,12 +85,29 @@ function withStaticCacheHeaders(request: Request, response: Response): Response 
   });
 }
 
+// AI crawler log: runs after the response is ready and never delays it.
+// The worker keeps the insert alive via waitUntil; elsewhere it is fire-and-forget.
+function logCrawlerVisitInBackground(request: Request, status: number, ctx: unknown) {
+  const ua = request.headers.get("user-agent");
+  if (!ua || !detectLoggedBot(ua)) return; // cheap check: humans pay nothing
+  const task = import("./lib/crawler-log.server")
+    .then((m) => m.recordCrawlerVisit(request, status))
+    .catch((error) => console.error("[crawler-log]", error));
+  const waitUntil = (ctx as { waitUntil?: (p: Promise<unknown>) => void } | null)?.waitUntil;
+  if (typeof waitUntil === "function") waitUntil.call(ctx, task);
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return withStaticCacheHeaders(request, await normalizeCatastrophicSsrResponse(response));
+      const finalResponse = withStaticCacheHeaders(
+        request,
+        await normalizeCatastrophicSsrResponse(response),
+      );
+      logCrawlerVisitInBackground(request, finalResponse.status, ctx);
+      return finalResponse;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

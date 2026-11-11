@@ -22,6 +22,7 @@ import {
   Megaphone,
   AlertTriangle,
   Wallet,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +49,7 @@ const SUPER_TABS: Tab[] = [
   { to: "/admin/invoices", label: "Invoices", icon: FileText },
   { to: "/admin/payments", label: "Payments", icon: Banknote },
   { to: "/admin/metrics", label: "Platform metrics", icon: BarChart3 },
+  { to: "/admin/crawlers", label: "AI crawlers", icon: Bot },
 ];
 
 const ORG_ADMIN_TABS: Tab[] = [

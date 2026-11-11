@@ -62,10 +62,12 @@
 
 ## Search and AI visibility (owner plan, Nov 2026)
 - [x] Part 1: Research page text server-rendered
-- [x] Part 2: www→apex 301, canonicals, robots.txt bots, sitemap (demo, directory clinics, lastmod)
+- [x] Part 2: www→apex (hosting forces 302; canonicals point to apex), canonicals, robots.txt bots, sitemap (demo, directory clinics, lastmod)
 - [x] Part 3: lang en-AU, homepage canonical/title/description, audit all public pages
 - [x] Part 4: JSON-LD (Organization, Product+Offer, FAQPage, BreadcrumbList)
 - [x] Part 5: frequency wording, tone card line, new FAQ, health-wording list
 - [x] Part 6: clinic directory switch, /practitioners, clinic H1 + LocalBusiness
-- [ ] Part 7: AI crawler log — owner's message cut off; needs rest of instructions
-- [ ] Ask owner which packages are in stock (Offer availability)
+- [x] Part 7: AI crawler log (8 AI bots, public pages only, background insert, 90-day cleanup, AI crawlers admin page)
+- [x] Part 8: SEO review, sound-bed vs therapy-bed overlap report, final change list
+- [ ] Publish — waiting for owner's go-ahead
+- [ ] Package stock status for search data — waiting for owner's answer
