@@ -574,6 +574,11 @@ export async function createEftDepositOrder(data: z.infer<typeof EftOrderSchema>
 
   const { createEftDepositInvoice } = await import("@/lib/eft-order.server");
   const invoice = await createEftDepositInvoice(order, token);
+  const { sendEftInvoiceEmails } = await import("@/lib/eft-order.server");
+  const emailed = await sendEftInvoiceEmails("deposit", order, invoice, token);
+  await logOrderEvent(order.id, "eft_invoice_emailed", {
+    detail: { invoice: invoice.invoiceNumber, stage: "deposit", ...emailed },
+  });
   return invoice;
 }
 
@@ -601,8 +606,14 @@ export async function requestEftBalance(token: string) {
   if (order.state !== "deposit_paid") {
     throw new Error("This order is not waiting on a balance payment");
   }
-  const { createEftBalanceInvoice } = await import("@/lib/eft-order.server");
+  const { createEftBalanceInvoice, sendEftInvoiceEmails } = await import("@/lib/eft-order.server");
   const invoice = await createEftBalanceInvoice(order);
+  if (invoice.created) {
+    const emailed = await sendEftInvoiceEmails("balance", order, invoice, token);
+    await logOrderEvent(order.id, "eft_invoice_emailed", {
+      detail: { invoice: invoice.invoiceNumber, stage: "balance", ...emailed },
+    });
+  }
   await updateOrder(order.id, { payment_channel: "eft", path: "full" });
   await logOrderEvent(order.id, "balance_eft_invoice_raised", {
     detail: { invoice: invoice.invoiceNumber, amount_cents: order.balance_cents },

@@ -11,6 +11,7 @@ import { template as contactFormTemplate } from './contact-form'
 import { template as demoEnquiryTemplate } from './demo-enquiry'
 import { template as orderDepositReceivedTemplate } from './order-deposit-received'
 import { template as orderBalanceReminderTemplate } from './order-balance-reminder'
+import { template as eftInvoiceTemplate } from './eft-invoice'
 import {
   planPaymentFailed,
   planPaymentRetry,
@@ -45,6 +46,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'demo-enquiry': demoEnquiryTemplate,
   'order-deposit-received': orderDepositReceivedTemplate,
   'order-balance-reminder': orderBalanceReminderTemplate,
+  'eft-invoice': eftInvoiceTemplate,
   'plan-payment-failed': planPaymentFailed,
   'plan-payment-retry': planPaymentRetry,
   'plan-payment-final-notice': planPaymentFinalNotice,

@@ -85,7 +85,7 @@ export async function createEftDepositInvoice(
         .filter(Boolean)
         .join(" "),
     })
-    .select("invoice_number, total_cents, gst_cents, due_date")
+    .select("invoice_number, total_cents, gst_cents, due_date, created_at")
     .single();
   if (error) throw new Error(error.message);
 
@@ -117,6 +117,7 @@ export async function createEftDepositInvoice(
     totalCents: row.total_cents as number,
     gstCents: row.gst_cents as number,
     dueDate: row.due_date as string | null,
+    issuedAt: row.created_at as string,
     depositCents: order.deposit_cents,
     balanceCents: order.balance_cents,
     discountCents: order.discount_cents,
@@ -159,12 +160,13 @@ export async function createEftBalanceInvoice(order: {
 
   const { data: existing } = await supabaseAdmin
     .from("kit_invoices")
-    .select("invoice_number, total_cents, gst_cents, due_date")
+    .select("invoice_number, total_cents, gst_cents, due_date, created_at")
     .eq("order_id", order.id)
     .eq("stage", "balance_eft")
     .maybeSingle();
 
   let row = existing;
+  const created = !row;
   if (!row) {
     const { data: numberRow, error: numErr } = await supabaseAdmin.rpc("next_kit_invoice_number");
     if (numErr) throw new Error(numErr.message);
@@ -207,7 +209,7 @@ export async function createEftBalanceInvoice(order: {
           .filter(Boolean)
           .join(" "),
       })
-      .select("invoice_number, total_cents, gst_cents, due_date")
+      .select("invoice_number, total_cents, gst_cents, due_date, created_at")
       .single();
     if (error) throw new Error(error.message);
     row = inserted;
@@ -239,6 +241,110 @@ export async function createEftBalanceInvoice(order: {
     totalCents: row!.total_cents as number,
     gstCents: row!.gst_cents as number,
     dueDate: row!.due_date as string | null,
+    issuedAt: row!.created_at as string,
+    /** True only when this call raised the invoice, so the email goes once. */
+    created,
     bank,
   };
+}
+
+/**
+ * Emails the bank-transfer tax invoice to the buyer, then a copy to the admin
+ * inbox. Never throws: a failed email must not undo a raised invoice, and the
+ * buyer still sees the same details on screen.
+ */
+export async function sendEftInvoiceEmails(
+  stage: "deposit" | "balance",
+  order: import("@/lib/orders.server").KitOrderRow,
+  invoice: {
+    invoiceNumber: string;
+    totalCents: number;
+    gstCents: number;
+    dueDate: string | null;
+    issuedAt: string;
+  },
+  token: string,
+): Promise<{ buyer: boolean; admin: boolean }> {
+  const result = { buyer: false, admin: false };
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { balanceUrl } = await import("@/lib/orders.server");
+    const { buildEftInvoiceEmail, EFT_INVOICE_ADMIN_COPY } = await import("@/lib/eft-invoice-email");
+    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+
+    const { data: settings } = await supabaseAdmin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "kit_billing_profile")
+      .maybeSingle();
+    let profile: Record<string, string> = {};
+    try {
+      profile = settings?.value ? (JSON.parse(settings.value as string) as Record<string, string>) : {};
+    } catch {
+      profile = {};
+    }
+
+    const data = buildEftInvoiceEmail({
+      stage,
+      invoice,
+      order: {
+        orderNumber: order.order_number,
+        packageLabel: order.package_label,
+        buyerType: order.buyer_type,
+        businessName: order.business_name,
+        abn: order.abn,
+        contactName: order.contact_name,
+        contactEmail: order.contact_email,
+        contactPhone: order.contact_phone,
+        pickup: order.pickup,
+        shippingAddress: order.shipping_address,
+        shippingLabel: order.shipping_label,
+        shippingCents: order.shipping_cents,
+        shippingGstInclusive: order.shipping_gst_inclusive,
+        shippingChargedAt: order.shipping_charged_at,
+        listCents: order.list_cents,
+        depositCents: order.deposit_cents,
+        balanceCents: order.balance_cents,
+        discountCents: order.discount_cents,
+        promoCode: order.promo_code,
+        expiresAt: order.expires_at,
+      },
+      seller: {
+        businessName: profile["businessName"] ?? "Resonabed",
+        abn: profile["abn"] ?? "",
+        address: profile["address"] ?? "",
+        email: profile["email"] ?? "",
+        accountName: profile["accountName"] ?? "",
+        bankName: profile["bankName"] ?? "",
+        bsb: profile["bsb"] ?? "",
+        accountNumber: profile["accountNumber"] ?? "",
+      },
+      orderUrl: balanceUrl(token),
+    });
+
+    if (order.contact_email) {
+      try {
+        const sent = await sendTemplateEmail("eft-invoice", order.contact_email, {
+          templateData: data,
+          idempotencyKey: `eft-invoice:${invoice.invoiceNumber}:buyer`,
+          replyTo: EFT_INVOICE_ADMIN_COPY,
+        });
+        result.buyer = sent.sent;
+      } catch (err) {
+        console.error("EFT invoice email to buyer failed", invoice.invoiceNumber, err);
+      }
+    }
+    try {
+      const sent = await sendTemplateEmail("eft-invoice", EFT_INVOICE_ADMIN_COPY, {
+        templateData: { ...data, copyOfEmailTo: order.contact_email ?? "no email on the order" },
+        idempotencyKey: `eft-invoice:${invoice.invoiceNumber}:admin`,
+      });
+      result.admin = sent.sent;
+    } catch (err) {
+      console.error("EFT invoice admin copy failed", invoice.invoiceNumber, err);
+    }
+  } catch (err) {
+    console.error("EFT invoice email could not be prepared", invoice.invoiceNumber, err);
+  }
+  return result;
 }
