@@ -29,6 +29,21 @@ export type KitInvoice = {
   status: string;
   notes: string | null;
   created_at: string;
+  stage?: string | null;
+  order_id?: string | null;
+};
+
+/** A bank-transfer order still waiting on its deposit 30+ days after the invoice. */
+export type OverdueDeposit = {
+  invoiceId: string;
+  invoiceNumber: string;
+  orderNumber: string | null;
+  customerName: string;
+  customerEmail: string | null;
+  packageLabel: string;
+  totalCents: number;
+  issuedAt: string;
+  daysWaiting: number;
 };
 
 export type KitPayment = {
@@ -93,10 +108,62 @@ export const listKitInvoices = createServerFn({ method: "GET" })
     const unsubscribed = await loadUnsubscribedEmails(
       (invoices ?? []).map((i: { customer_email: string | null }) => i.customer_email ?? ""),
     );
+    // Deposit overdue: flagged only, never deleted.
+    const invList = (invoices ?? []) as KitInvoice[];
+    const payList = (payments ?? []) as KitPayment[];
+    const depositOrderIds = invList
+      .filter((i) => i.stage === "deposit" && i.order_id)
+      .map((i) => i.order_id as string);
+    const orderById = new Map<string, { state: string; order_number: string }>();
+    if (depositOrderIds.length) {
+      const { data: orders, error: ordErr } = await sb
+        .from("kit_orders")
+        .select("id, state, order_number")
+        .in("id", depositOrderIds);
+      if (ordErr) throw new Error(ordErr.message);
+      for (const o of (orders ?? []) as { id: string; state: string; order_number: string }[]) {
+        orderById.set(o.id, o);
+      }
+    }
+    const { isDepositOverdue, daysWaiting } = await import("@/lib/order-page-rules");
+    const now = new Date();
+    const overdueDeposits: OverdueDeposit[] = [];
+    for (const inv of invList) {
+      const order = inv.order_id ? orderById.get(inv.order_id) : undefined;
+      const paidCents = payList
+        .filter((p) => p.invoice_id === inv.id)
+        .reduce((a, p) => a + p.amount_cents, 0);
+      const overdue = isDepositOverdue(
+        {
+          stage: inv.stage ?? null,
+          status: inv.status,
+          totalCents: inv.total_cents,
+          paidCents,
+          issuedAt: inv.created_at,
+          orderState: order?.state ?? null,
+        },
+        now,
+      );
+      if (!overdue) continue;
+      overdueDeposits.push({
+        invoiceId: inv.id,
+        invoiceNumber: inv.invoice_number,
+        orderNumber: order?.order_number ?? null,
+        customerName: inv.business_name || inv.customer_name,
+        customerEmail: inv.customer_email,
+        packageLabel: inv.package_label,
+        totalCents: inv.total_cents,
+        issuedAt: inv.created_at,
+        daysWaiting: daysWaiting(inv.created_at, now),
+      });
+    }
+    overdueDeposits.sort((a, b) => b.daysWaiting - a.daysWaiting);
+
     return {
-      invoices: (invoices ?? []) as KitInvoice[],
-      payments: (payments ?? []) as KitPayment[],
+      invoices: invList,
+      payments: payList,
       unsubscribedEmails: [...unsubscribed],
+      overdueDeposits,
     };
   });
 

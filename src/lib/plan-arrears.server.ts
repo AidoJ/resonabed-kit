@@ -511,25 +511,30 @@ export async function sendPlanEmail(
   extra: Record<string, unknown>,
 ): Promise<boolean> {
   if (!order.contact_email) return false;
+  const to = order.contact_email;
   try {
-    const { mintNewOrderToken, SITE_URL } = await import("@/lib/orders.server");
+    const { sendWithFreshOrderToken, SITE_URL } = await import("@/lib/orders.server");
     const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
-    const token = await mintNewOrderToken(order.id);
-    await sendTemplateEmail(template, order.contact_email, {
-      templateData: {
-        recipientName: order.contact_name,
-        orderNumber: order.order_number,
-        packageLabel: order.package_label,
-        cardUpdateUrl: `${SITE_URL}/order/card/${token}`,
-        paymentsMade: order.payments_made,
-        paymentsDue: order.payments_due,
-        monthlyText: money(order.plan_monthly_cents ?? 0),
-        outstandingText: money(outstandingCents(order)),
-        ...extra,
-      },
-      idempotencyKey: `${template}:${order.order_number}:${order.failure_count}:${
-        extra["stage"] ?? "x"
-      }`,
+    // A blocked email keeps the buyer's existing link working; the call still
+    // counts as handled so daily jobs don't retry a recipient who opted out.
+    await sendWithFreshOrderToken(order.id, async (token) => {
+      const result = await sendTemplateEmail(template, to, {
+        templateData: {
+          recipientName: order.contact_name,
+          orderNumber: order.order_number,
+          packageLabel: order.package_label,
+          cardUpdateUrl: `${SITE_URL}/order/card/${token}`,
+          paymentsMade: order.payments_made,
+          paymentsDue: order.payments_due,
+          monthlyText: money(order.plan_monthly_cents ?? 0),
+          outstandingText: money(outstandingCents(order)),
+          ...extra,
+        },
+        idempotencyKey: `${template}:${order.order_number}:${order.failure_count}:${
+          extra["stage"] ?? "x"
+        }`,
+      });
+      return result.sent;
     });
     return true;
   } catch (err) {

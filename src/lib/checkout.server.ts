@@ -448,12 +448,63 @@ async function loadAwaitingDeposit(order: KitOrderRow): Promise<AwaitingDeposit 
   };
 }
 
-export async function loadOrderForToken(
-  token: string,
-): Promise<OrderSummary & { awaitingDeposit: AwaitingDeposit | null }> {
+export type OrderRelease =
+  | { kind: "processing" }
+  | { kind: "home"; code: string; redeemed: boolean; email: string }
+  | { kind: "clinic"; status: "setting_up" | "ready" | "unknown"; email: string };
+
+/**
+ * After the balance is paid: the Home access code or the clinic setup status,
+ * read here on the server so a buyer whose emails are blocked (for example
+ * after unsubscribing) can still get them from their private order link.
+ */
+async function loadOrderRelease(order: KitOrderRow): Promise<OrderRelease | null> {
+  const { releaseStageFor, clinicSetupStatus } = await import("@/lib/order-page-rules");
+  const stage = releaseStageFor(order.state, order.fulfilled_at ?? null);
+  if (stage === "none") return null;
+  if (stage === "processing") return { kind: "processing" };
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  if (order.buyer_type === "business") {
+    const { data } = await supabaseAdmin
+      .from("kit_onboarding_orders")
+      .select("status, contact_email")
+      .eq("source", "order")
+      .eq("source_ref", order.order_number)
+      .maybeSingle();
+    return {
+      kind: "clinic",
+      status: clinicSetupStatus(data?.status ?? null),
+      email: data?.contact_email ?? order.contact_email ?? "",
+    };
+  }
+  const { data: code } = await supabaseAdmin
+    .from("kit_access_codes")
+    .select("code, status, buyer_email")
+    .eq("source", "order")
+    .eq("source_ref", order.order_number)
+    .in("status", ["issued", "redeemed"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!code) return { kind: "processing" };
+  return {
+    kind: "home",
+    code: code.code,
+    redeemed: code.status === "redeemed",
+    email: code.buyer_email,
+  };
+}
+
+export async function loadOrderForToken(token: string): Promise<
+  OrderSummary & { awaitingDeposit: AwaitingDeposit | null; release: OrderRelease | null }
+> {
   const order = await getOrderByToken(token);
   if (!order) throw new Error("We couldn't find that order. Please use the latest link we emailed you.");
-  return { ...summariseOrder(order), awaitingDeposit: await loadAwaitingDeposit(order) };
+  const [awaitingDeposit, release] = await Promise.all([
+    loadAwaitingDeposit(order),
+    loadOrderRelease(order),
+  ]);
+  return { ...summariseOrder(order), awaitingDeposit, release };
 }
 
 export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckoutSchema>) {

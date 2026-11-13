@@ -134,6 +134,8 @@ function InvoicesAdmin() {
 
   const invoices = data?.invoices ?? [];
   const payments = data?.payments ?? [];
+  const overdueDeposits = data?.overdueDeposits ?? [];
+  const overdueIds = new Set(overdueDeposits.map((d) => d.invoiceId));
   const paidFor = (id: string) =>
     payments.filter((p) => p.invoice_id === id).reduce((a, p) => a + p.amount_cents, 0);
 
@@ -173,6 +175,42 @@ function InvoicesAdmin() {
               {profileMut.isPending ? "Saving…" : "Save billing details"}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">
+            Deposit overdue ({overdueDeposits.length})
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Bank-transfer orders still waiting on their deposit 30 days or more after the invoice was
+            raised. They are kept until you record the deposit, void or delete the invoice.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {overdueDeposits.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No overdue deposits.</p>
+          ) : (
+            <ul className="divide-y rounded-md border">
+              {overdueDeposits.map((d) => (
+                <li key={d.invoiceId} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                  <div>
+                    <div className="font-medium">
+                      {d.invoiceNumber}
+                      {d.orderNumber ? ` · Order ${d.orderNumber}` : ""} · {d.customerName}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {d.packageLabel} · {money(d.totalCents)} deposit · raised{" "}
+                      {new Date(d.issuedAt).toLocaleDateString("en-AU")} · {d.daysWaiting} days waiting
+                      {d.customerEmail ? ` · ${d.customerEmail}` : ""}
+                    </div>
+                  </div>
+                  <Badge variant="destructive">Deposit overdue</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
 
@@ -223,6 +261,11 @@ function InvoicesAdmin() {
                     <Badge variant={STATUS_VARIANT[inv.status] ?? "outline"} className="capitalize">
                       {inv.status}
                     </Badge>
+                    {overdueIds.has(inv.id) ? (
+                      <Badge variant="destructive" className="mt-1 block w-fit whitespace-nowrap">
+                        Deposit overdue
+                      </Badge>
+                    ) : null}
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1">

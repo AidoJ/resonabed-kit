@@ -6,7 +6,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowRight, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, KeyRound, Loader2, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EmbeddedCheckoutDialog } from "@/components/embedded-checkout-dialog";
@@ -121,6 +121,8 @@ function BalancePage() {
           </div>
         ) : order.state === "draft" && order.awaitingDeposit ? (
           <AwaitingDepositCard order={order} deposit={order.awaitingDeposit} />
+        ) : order.release ? (
+          <PaidInFullCard order={order} release={order.release} />
         ) : order.state !== "deposit_paid" ? (
           <div className="rounded-3xl border border-border bg-card p-8 text-center shadow-soft">
             <CheckCircle2 className="mx-auto h-10 w-10 text-brand-violet-strong" />
@@ -280,6 +282,95 @@ function AwaitingDepositCard({
       <p className="mt-6 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-violet-strong" />
         This link is private to your order. Questions? Email {deposit.bank.email}.
+      </p>
+    </div>
+  );
+}
+
+function PaidInFullCard({
+  order,
+  release,
+}: {
+  order: Summary;
+  release: NonNullable<Summary["release"]>;
+}) {
+  return (
+    <div className="rounded-3xl border border-border bg-card p-8 shadow-soft">
+      <CheckCircle2 className="h-10 w-10 text-brand-violet-strong" />
+      <h1 className="mt-4 text-2xl font-medium text-brand-indigo md:text-3xl">
+        {release.kind === "clinic"
+          ? release.status === "ready"
+            ? "Your clinic account is ready"
+            : "Your clinic account is being set up"
+          : release.kind === "home"
+            ? "Your Resonabed access code"
+            : "Payment received"}
+      </h1>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        Order {order.orderNumber}, {order.packageLabel}, is paid in full. Thank you.
+      </p>
+
+      {release.kind === "home" ? (
+        <>
+          <div className="mt-6 rounded-2xl border border-border bg-brand-tint/60 p-6 text-center">
+            <p className="flex items-center justify-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-brand-indigo">
+              <KeyRound className="h-4 w-4" /> Access code
+            </p>
+            <p className="mt-2 font-mono text-2xl font-semibold tracking-[0.12em] text-foreground select-all">
+              {release.code}
+            </p>
+          </div>
+          {release.redeemed ? (
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              This code has already been used to set up your app.{" "}
+              <Link to="/home/login" className="text-brand-violet-strong underline">
+                Sign in to your Resonabed app
+              </Link>
+              .
+            </p>
+          ) : (
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              Set up your personal Resonabed app at{" "}
+              <Link to="/home/signup" className="text-brand-violet-strong underline">
+                resonabed.com/home/signup
+              </Link>{" "}
+              using {release.email || "the email address on your order"}. The code works once, and
+              your account then stays with you for good.
+            </p>
+          )}
+        </>
+      ) : release.kind === "clinic" ? (
+        release.status === "ready" ? (
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            Sign in at{" "}
+            <Link to="/auth" className="text-brand-violet-strong underline">
+              resonabed.com/auth
+            </Link>{" "}
+            with {release.email || "the email address on your order"}. If you don't have your
+            password, choose "Forgot password?" on the sign-in page and we will email you a link to
+            set one.
+          </p>
+        ) : release.status === "setting_up" ? (
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            We set each clinic up by hand so your public web address, ABN and clinic type are correct
+            from day one. You will receive your login details by email, usually within one business
+            day. There is nothing you need to do in the meantime.
+          </p>
+        ) : (
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            Questions about your clinic account? Email info@resonabed.com and we will help.
+          </p>
+        )
+      ) : (
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          We are getting your access ready now. Refresh this page in a minute, or email
+          info@resonabed.com if nothing changes.
+        </p>
+      )}
+
+      <p className="mt-6 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-violet-strong" />
+        This link is private to your order. Please don't share it.
       </p>
     </div>
   );

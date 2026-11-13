@@ -768,32 +768,62 @@ export async function mintNewOrderToken(orderId: string): Promise<string> {
   return token;
 }
 
+/**
+ * Mints a fresh order link for one email. If the email isn't delivered (the
+ * buyer unsubscribed, or the send failed) the previous link is put back, so a
+ * link the buyer already holds keeps working instead of silently dying.
+ */
+export async function sendWithFreshOrderToken(
+  orderId: string,
+  send: (token: string) => Promise<boolean>,
+): Promise<string | null> {
+  const db = await admin();
+  const { data: before } = await db
+    .from("kit_orders")
+    .select("token_hash")
+    .eq("id", orderId)
+    .maybeSingle();
+  const previousHash = (before as { token_hash?: string | null } | null)?.token_hash ?? null;
+  const token = await mintNewOrderToken(orderId);
+  let delivered = false;
+  try {
+    delivered = await send(token);
+  } finally {
+    if (!delivered && previousHash) {
+      await updateOrder(orderId, { token_hash: previousHash });
+    }
+  }
+  return delivered ? token : null;
+}
+
 async function sendOrderEmail(
   template: "order-deposit-received" | "order-balance-reminder",
   order: KitOrderRow,
   extra: Record<string, unknown>,
 ): Promise<string | null> {
   if (!order.contact_email) return null;
+  const to = order.contact_email;
   try {
-    const token = await mintNewOrderToken(order.id);
-    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
-    await sendTemplateEmail(template, order.contact_email, {
-      templateData: {
-        recipientName: order.contact_name,
-        orderNumber: order.order_number,
-        packageLabel: order.package_label,
-        balanceUrl: balanceUrl(token),
-        balanceAmount: order.balance_cents,
-        planDepositBalance: order.plan_deposit_balance_cents,
-        planMonthly: order.plan_monthly_cents,
-        planMonths: order.plan_months,
-        expiresAt: order.expires_at,
-        shippingAmount: order.shipping_charged_at ? 0 : order.shipping_cents,
-        ...extra,
-      },
-      idempotencyKey: `${template}:${order.order_number}:${extra["stage"] ?? "initial"}`,
+    return await sendWithFreshOrderToken(order.id, async (token) => {
+      const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+      const result = await sendTemplateEmail(template, to, {
+        templateData: {
+          recipientName: order.contact_name,
+          orderNumber: order.order_number,
+          packageLabel: order.package_label,
+          balanceUrl: balanceUrl(token),
+          balanceAmount: order.balance_cents,
+          planDepositBalance: order.plan_deposit_balance_cents,
+          planMonthly: order.plan_monthly_cents,
+          planMonths: order.plan_months,
+          expiresAt: order.expires_at,
+          shippingAmount: order.shipping_charged_at ? 0 : order.shipping_cents,
+          ...extra,
+        },
+        idempotencyKey: `${template}:${order.order_number}:${extra["stage"] ?? "initial"}`,
+      });
+      return result.sent;
     });
-    return token;
   } catch (err) {
     console.error("Order email failed", template, order.order_number, err);
     return null;
