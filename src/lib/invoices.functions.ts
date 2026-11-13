@@ -89,9 +89,14 @@ export const listKitInvoices = createServerFn({ method: "GET" })
       ]);
     if (invErr) throw new Error(invErr.message);
     if (payErr) throw new Error(payErr.message);
+    const { loadUnsubscribedEmails } = await import("@/lib/email-unsubscribe.server");
+    const unsubscribed = await loadUnsubscribedEmails(
+      (invoices ?? []).map((i: { customer_email: string | null }) => i.customer_email ?? ""),
+    );
     return {
       invoices: (invoices ?? []) as KitInvoice[],
       payments: (payments ?? []) as KitPayment[],
+      unsubscribedEmails: [...unsubscribed],
     };
   });
 
@@ -205,16 +210,15 @@ export const setKitInvoiceStatus = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    // Marking an invoice paid by hand fulfils the order exactly like a card
-    // payment does: personal buyers get their access code emailed, business
-    // buyers land in the onboarding queue. Idempotent, so it is safe if a
-    // payment was already recorded against this invoice.
+    // Marking an invoice paid by hand follows the same rules as recording a
+    // payment: a deposit invoice only secures its order, a balance invoice
+    // releases it, a hand-raised invoice keeps the existing release.
     if (data.status === "paid" && invoice) {
       try {
-        const { fulfilPaidInvoice } = await import("@/lib/invoice-fulfilment.server");
-        return { ok: true, fulfilment: await fulfilPaidInvoice(invoice) };
+        const { applyPaidInvoice } = await import("@/lib/invoice-payment.server");
+        return { ok: true, applied: await applyPaidInvoice(invoice, invoice.total_cents ?? 0) };
       } catch (err) {
-        console.error("fulfilPaidInvoice (status change) failed", err);
+        console.error("applyPaidInvoice (status change) failed", err);
       }
     }
     return { ok: true };
@@ -288,18 +292,21 @@ export const recordKitPayment = createServerFn({ method: "POST" })
     );
     if (sum >= (invoice?.total_cents ?? 0) && invoice?.status !== "void") {
       await sb.from("kit_invoices").update({ status: "paid" }).eq("id", data.invoiceId);
+      // A deposit invoice only secures its order; only a balance invoice
+      // releases it (Home access code, clinic setup queue).
       try {
-        const { fulfilPaidInvoice } = await import("@/lib/invoice-fulfilment.server");
-        await fulfilPaidInvoice(invoice);
+        const { applyPaidInvoice } = await import("@/lib/invoice-payment.server");
+        const applied = await applyPaidInvoice(invoice, sum);
+        return { ...(row as KitPayment), applied };
       } catch (err) {
-        console.error("fulfilPaidInvoice (payment) failed", err);
+        console.error("applyPaidInvoice (payment) failed", err);
       }
     } else if (invoice?.status === "draft") {
       await sb.from("kit_invoices").update({ status: "sent" }).eq("id", data.invoiceId);
     }
 
 
-    return row as KitPayment;
+    return { ...(row as KitPayment), applied: null };
   });
 
 export const deleteKitPayment = createServerFn({ method: "POST" })

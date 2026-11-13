@@ -397,10 +397,63 @@ export function summariseOrder(order: KitOrderRow): OrderSummary {
   };
 }
 
-export async function loadOrderForToken(token: string): Promise<OrderSummary> {
+export type AwaitingDeposit = {
+  invoiceNumber: string;
+  totalCents: number;
+  gstCents: number;
+  dueDate: string | null;
+  bank: { accountName: string; bankName: string; bsb: string; accountNumber: string; email: string };
+};
+
+/**
+ * A bank-transfer order before its deposit arrives: the deposit invoice and the
+ * bank details, filled in here on the server (buyers can't read them directly).
+ */
+async function loadAwaitingDeposit(order: KitOrderRow): Promise<AwaitingDeposit | null> {
+  if (order.state !== "draft" || order.payment_channel !== "eft") return null;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: invoice } = await supabaseAdmin
+    .from("kit_invoices")
+    .select("invoice_number, total_cents, gst_cents, due_date, status")
+    .eq("order_id", order.id)
+    .eq("stage", "deposit")
+    .neq("status", "void")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!invoice) return null;
+  const { data: settings } = await supabaseAdmin
+    .from("app_settings")
+    .select("value")
+    .eq("key", "kit_billing_profile")
+    .maybeSingle();
+  let profile: Record<string, string> = {};
+  try {
+    profile = settings?.value ? (JSON.parse(settings.value as string) as Record<string, string>) : {};
+  } catch {
+    profile = {};
+  }
+  return {
+    invoiceNumber: invoice.invoice_number as string,
+    totalCents: invoice.total_cents as number,
+    gstCents: invoice.gst_cents as number,
+    dueDate: (invoice.due_date as string | null) ?? null,
+    bank: {
+      accountName: profile["accountName"] || profile["businessName"] || "",
+      bankName: profile["bankName"] ?? "",
+      bsb: profile["bsb"] ?? "",
+      accountNumber: profile["accountNumber"] ?? "",
+      email: profile["email"] || "info@resonabed.com",
+    },
+  };
+}
+
+export async function loadOrderForToken(
+  token: string,
+): Promise<OrderSummary & { awaitingDeposit: AwaitingDeposit | null }> {
   const order = await getOrderByToken(token);
   if (!order) throw new Error("We couldn't find that order. Please use the latest link we emailed you.");
-  return summariseOrder(order);
+  return { ...summariseOrder(order), awaitingDeposit: await loadAwaitingDeposit(order) };
 }
 
 export async function createBalanceCheckout(data: z.infer<typeof BalanceCheckoutSchema>) {

@@ -216,6 +216,11 @@ function SalesAdmin() {
                     <div className="min-w-40">
                       <div>{r.customerName ?? "—"}</div>
                       <div className="text-xs text-muted-foreground">{r.customerEmail ?? ""}</div>
+                      {r.buyerUnsubscribed ? (
+                        <div className="mt-1 max-w-56 rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
+                          Buyer has unsubscribed, order emails will not be delivered.
+                        </div>
+                      ) : null}
                       {r.customerPhone ? (
                         <div className="text-xs text-muted-foreground">{r.customerPhone}</div>
                       ) : null}

@@ -40,6 +40,8 @@ export type KitSaleRow = {
   /** Full delivery address as entered at checkout. */
   shippingAddress: string | null;
   orderNumber: string;
+  /** Buyer has unsubscribed from app emails, so order emails won't arrive. */
+  buyerUnsubscribed: boolean;
 };
 
 export type BuyerCategory =
@@ -148,6 +150,11 @@ export async function fetchKitSales(_secret?: string): Promise<{
     .limit(500);
   if (error) throw new Error(error.message);
 
+  const { loadUnsubscribedEmails } = await import("@/lib/email-unsubscribe.server");
+  const unsubscribed = await loadUnsubscribedEmails(
+    (data ?? []).map((o) => o.contact_email ?? "").filter(Boolean),
+  );
+
   const rows: KitSaleRow[] = (data ?? []).map((o) => {
     // Onboarding records reference the purchase number (newer) or the Stripe
     // session id (older); try both so set-up clinics aren't shown as pending.
@@ -194,6 +201,7 @@ export async function fetchKitSales(_secret?: string): Promise<{
       pickup: !!o.pickup,
       shippingAddress: o.shipping_address ?? null,
       orderNumber: o.order_number ?? "",
+      buyerUnsubscribed: !!o.contact_email && unsubscribed.has(o.contact_email.trim().toLowerCase()),
     };
   });
 

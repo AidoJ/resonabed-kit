@@ -100,21 +100,19 @@ function InvoicesAdmin() {
   });
   const payMut = useMutation({
     mutationFn: (input: Parameters<typeof pay>[0]) => pay(input),
-    onSuccess: () => { toast.success("Payment recorded, receipt issued"); setPayingFor(null); invalidate(); },
+    onSuccess: (res: unknown) => {
+      const applied = (res as { applied?: AppliedNote | null })?.applied ?? null;
+      toast.success(appliedMessage(applied, "Payment recorded, receipt issued"));
+      setPayingFor(null);
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   const statusMut = useMutation({
     mutationFn: (input: Parameters<typeof setStatus>[0]) => setStatus(input),
     onSuccess: (res: unknown) => {
-      const f = (res as { fulfilment?: { buyerType: string; codeEmail: string | null } })
-        ?.fulfilment;
-      if (f?.buyerType === "personal") {
-        toast.success(
-          f.codeEmail ? `Access code emailed to ${f.codeEmail}` : "Marked paid, access code issued",
-        );
-      } else if (f?.buyerType === "business") {
-        toast.success("Marked paid, order sent to clinic onboarding");
-      }
+      const applied = (res as { applied?: AppliedNote | null })?.applied ?? null;
+      if (applied) toast.success(appliedMessage(applied, "Marked paid"));
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -208,6 +206,12 @@ function InvoicesAdmin() {
                     <div className="min-w-40">
                       <div>{inv.customer_name}</div>
                       <div className="text-xs text-muted-foreground">{inv.customer_email ?? ""}</div>
+                      {inv.customer_email &&
+                      (data?.unsubscribedEmails ?? []).includes(inv.customer_email.trim().toLowerCase()) ? (
+                        <div className="mt-1 max-w-56 rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
+                          Buyer has unsubscribed, order emails will not be delivered.
+                        </div>
+                      ) : null}
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-nowrap">{inv.package_label}</TableCell>
@@ -537,4 +541,29 @@ function EditInvoiceDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+type AppliedNote = {
+  action: string;
+  orderNumber?: string | null;
+  orderState?: string | null;
+  securedEmailSent?: boolean;
+  fulfilled?: boolean;
+};
+
+/** Plain-language toast for what a paid invoice did to its order. */
+function appliedMessage(applied: AppliedNote | null, fallback: string): string {
+  if (!applied) return fallback;
+  if (applied.action === "secure_order") {
+    return applied.securedEmailSent
+      ? `Deposit received, order ${applied.orderNumber ?? ""} secured. Balance link emailed.`
+      : `Deposit received, order ${applied.orderNumber ?? ""} is ${String(applied.orderState ?? "").replace(/_/g, " ")}.`;
+  }
+  if (applied.action === "release_order") {
+    return applied.fulfilled
+      ? `Paid in full, order ${applied.orderNumber ?? ""} released.`
+      : `Paid, but order ${applied.orderNumber ?? ""} could not be released (${String(applied.orderState ?? "").replace(/_/g, " ")}).`;
+  }
+  if (applied.action === "legacy_fulfil") return `${fallback}. Invoice paid in full.`;
+  return fallback;
 }

@@ -369,31 +369,8 @@ export async function markDepositPaid(
     detail: { amount_cents: opts.amountCents },
   });
 
-  // Clinic buyers enter the onboarding queue as soon as the deposit clears, so
-  // the org, slug and branded flyers can be prepared while the balance is
-  // outstanding. Nothing ships until fulfilment; the queue entry is idempotent
-  // on (source, source_ref) so fulfilment will not duplicate it.
-  if (updated.buyer_type === "business" && updated.contact_email) {
-    try {
-      const { recordOnboardingOrder } = await import("@/lib/onboarding.server");
-      await recordOnboardingOrder({
-        source: "order",
-        sourceRef: updated.order_number,
-        businessName: updated.business_name,
-        abn: updated.abn,
-        contactName: updated.contact_name,
-        contactEmail: updated.contact_email,
-        contactPhone: updated.contact_phone,
-        packageKey: updated.package_key,
-        plan: updated.path === "plan" ? "installments" : "full",
-        shippingAddress: updated.shipping_address,
-        amountCents: updated.contract_cents,
-        notes: `Order ${updated.order_number}, deposit paid, balance outstanding.`,
-      });
-    } catch (err) {
-      console.error("Could not queue clinic onboarding at deposit", updated.order_number, err);
-    }
-  }
+  // A deposit secures the order and nothing else: no clinic setup queue, no
+  // Home access code. Both happen only in fulfilOrder, once the balance clears.
 
   const balanceToken = await sendDepositReceivedEmail(updated);
   return { order: updated, balanceToken };
@@ -517,10 +494,19 @@ export async function fulfilOrder(orderId: string): Promise<OrderFulfilmentResul
     };
   }
 
-  // Books first, so every released order is in the ledger.
+  // Books first, so every released order is in the ledger. Bank-transfer
+  // orders already carry their own deposit and balance invoices.
   try {
-    const { recordOrderInvoice } = await import("@/lib/kit-invoicing.server");
-    await recordOrderInvoice(order);
+    const db = await admin();
+    const { count: eftInvoices } = await db
+      .from("kit_invoices")
+      .select("id", { count: "exact", head: true })
+      .eq("order_id", order.id)
+      .in("stage", ["deposit", "balance_eft"]);
+    if (!eftInvoices) {
+      const { recordOrderInvoice } = await import("@/lib/kit-invoicing.server");
+      await recordOrderInvoice(order);
+    }
   } catch (err) {
     console.error("Failed to record kit invoice for order", order.order_number, err);
   }
@@ -710,16 +696,19 @@ export async function tickOrders(): Promise<{
   const db = await admin();
   const now = Date.now();
 
-  // 1. Abandoned drafts: checkout opened, deposit never paid.
+  // 1. Abandoned card drafts: checkout opened, deposit never paid. Bank-transfer
+  // drafts are kept, because the deposit is recorded by hand when it arrives.
+  const { isAbandonableDraft } = await import("@/lib/invoice-payment-rules");
   const draftCutoff = new Date(now - 24 * 60 * 60 * 1000).toISOString();
   const { data: drafts } = await db
     .from("kit_orders")
-    .select("id, order_number")
+    .select("id, order_number, payment_channel")
     .eq("state", "draft")
     .lt("created_at", draftCutoff)
     .limit(500);
   let draftsCleaned = 0;
   for (const d of drafts ?? []) {
+    if (!isAbandonableDraft(d.payment_channel as string | null)) continue;
     await db.from("kit_orders").delete().eq("id", d.id);
     draftsCleaned += 1;
   }

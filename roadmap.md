@@ -101,3 +101,10 @@
 - [ ] Stage B: device tests on an IQU tablet and an iPad (installed), incl. screen-locked playback — needs the owner's devices
 - [ ] Stage C: offline build for tester accounts — waiting for Stage B results
 - [ ] Stage D: roll out — waiting for owner's own Stage C testing
+
+## Bank-transfer order flow
+- [x] Deposit invoice payment only secures the order (order secured email, no access code, no clinic setup queue)
+- [x] Balance invoice payment marks paid in full and releases the order
+- [x] Order link before the deposit shows "Awaiting your $100 deposit" with invoice and bank details
+- [x] Admin warning when a buyer has unsubscribed from emails
+- [x] Tested end to end with temporary Home and clinic orders, cleaned up, numbering reset

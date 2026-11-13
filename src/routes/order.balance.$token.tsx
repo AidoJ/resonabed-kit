@@ -119,6 +119,8 @@ function BalancePage() {
           <div className="flex items-center justify-center gap-3 py-20 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" /> Loading your order…
           </div>
+        ) : order.state === "draft" && order.awaitingDeposit ? (
+          <AwaitingDepositCard order={order} deposit={order.awaitingDeposit} />
         ) : order.state !== "deposit_paid" ? (
           <div className="rounded-3xl border border-border bg-card p-8 text-center shadow-soft">
             <CheckCircle2 className="mx-auto h-10 w-10 text-brand-violet-strong" />
@@ -230,5 +232,64 @@ function BalancePage() {
       />
       <EftInvoiceDialog result={eftResult} onClose={() => setEftResult(null)} />
     </main>
+  );
+}
+
+function AwaitingDepositCard({
+  order,
+  deposit,
+}: {
+  order: Summary;
+  deposit: NonNullable<Summary["awaitingDeposit"]>;
+}) {
+  const dollars = deposit.totalCents % 100 === 0 ? `$${deposit.totalCents / 100}` : money(deposit.totalCents);
+  return (
+    <div className="rounded-3xl border border-border bg-card p-8 shadow-soft">
+      <h1 className="text-2xl font-medium text-brand-indigo md:text-3xl">
+        Awaiting your {dollars} deposit
+      </h1>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        Order {order.orderNumber}, {order.packageLabel}. Transfer the deposit below using the invoice
+        number as your payment reference. Once it arrives we will email you to confirm your order is
+        secured, with a link to pay the balance.
+      </p>
+
+      <div className="mt-6 rounded-2xl border border-border p-5 text-sm">
+        <DetailRow label="Invoice" value={deposit.invoiceNumber} strong />
+        <DetailRow label="Amount due" value={money(deposit.totalCents)} strong />
+        <DetailRow label="Includes GST" value={money(deposit.gstCents)} />
+        {deposit.dueDate ? (
+          <DetailRow
+            label="Due by"
+            value={new Date(deposit.dueDate).toLocaleDateString("en-AU")}
+          />
+        ) : null}
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-border bg-brand-tint/60 p-5 text-sm">
+        <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-brand-indigo">
+          Bank transfer details
+        </p>
+        <DetailRow label="Account name" value={deposit.bank.accountName || "—"} />
+        <DetailRow label="Bank" value={deposit.bank.bankName || "—"} />
+        <DetailRow label="BSB" value={deposit.bank.bsb || "—"} />
+        <DetailRow label="Account number" value={deposit.bank.accountNumber || "—"} />
+        <DetailRow label="Reference" value={deposit.invoiceNumber} strong />
+      </div>
+
+      <p className="mt-6 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-violet-strong" />
+        This link is private to your order. Questions? Email {deposit.bank.email}.
+      </p>
+    </div>
+  );
+}
+
+function DetailRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 py-1">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={strong ? "font-semibold text-foreground" : "text-foreground"}>{value}</span>
+    </div>
   );
 }
